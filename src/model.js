@@ -182,13 +182,20 @@ export function exportStep(shape, fileName = 'racetrack.step') {
     throw new Error('OpenCascade is not loaded');
   }
 
-  const safeFileName = fileName.toLowerCase().endsWith('.step') ? fileName : `${fileName}.step`;
-  const virtualPath = `/${safeFileName}`;
+  const normalizedBase = String(fileName)
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'racetrack';
+  const safeFileName = normalizedBase.endsWith('.step') ? normalizedBase : `${normalizedBase}.step`;
+  const candidatePaths = [safeFileName, `/${safeFileName}`];
 
-  try {
-    oc.FS.unlink(virtualPath);
-  } catch {
-    // File may not exist from a previous export.
+  for (const path of candidatePaths) {
+    try {
+      oc.FS.unlink(path);
+    } catch {
+      // File may not exist from a previous export.
+    }
   }
 
   const writer = new oc.STEPControl_Writer_1();
@@ -203,7 +210,26 @@ export function exportStep(shape, fileName = 'racetrack.step') {
     throw new Error('STEP write failed');
   }
 
-  const stepBytes = oc.FS.readFile(virtualPath);
+  let stepBytes = null;
+  for (const path of candidatePaths) {
+    try {
+      stepBytes = oc.FS.readFile(path);
+      break;
+    } catch {
+      // try next candidate path
+    }
+  }
+
+  if (!stepBytes) {
+    let rootEntries = [];
+    try {
+      rootEntries = oc.FS.readdir('/');
+    } catch {
+      // ignore
+    }
+    throw new Error(`FS error: STEP file not found after write. FS / = ${rootEntries.join(', ')}`);
+  }
+
   const blob = new Blob([stepBytes], { type: 'model/step' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
