@@ -47,27 +47,37 @@ function renderResults(tracks) {
 }
 
 let debounceTimer;
+let searchAbortController = null;
+
 input.addEventListener('input', () => {
   const query = input.value.trim();
   clearTimeout(debounceTimer);
 
-  if (query.length < 2) {
+  // Cancel any in-flight search request immediately
+  if (searchAbortController) {
+    searchAbortController.abort();
+    searchAbortController = null;
+  }
+
+  if (query.length < 3) {
     clearResults();
     setStatus('');
     return;
   }
 
   debounceTimer = setTimeout(async () => {
+    searchAbortController = new AbortController();
     setStatus('Searching…');
     try {
-      const tracks = await searchTracks(query);
+      const tracks = await searchTracks(query, searchAbortController.signal);
       setStatus(`${tracks.length} result${tracks.length !== 1 ? 's' : ''} found`);
       renderResults(tracks);
     } catch (err) {
+      if (err.name === 'AbortError') return; // stale request, ignore
       setStatus(`Search error: ${err.message}`, true);
       console.error(err);
     }
-  }, 400);
+  }, 800);
 });
 
 document.addEventListener('click', e => {

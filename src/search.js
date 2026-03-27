@@ -1,7 +1,7 @@
 const OVERPASS_PRIMARY = 'https://overpass-api.de/api/interpreter';
 const OVERPASS_FALLBACK = 'https://overpass.kumi.systems/api/interpreter';
 
-export async function searchTracks(query) {
+export async function searchTracks(query, signal) {
   // Search Overpass directly for raceway-tagged features matching the name.
   // This is far more reliable than Nominatim which returns places, not circuits.
   const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -16,7 +16,7 @@ export async function searchTracks(query) {
 out tags center;
   `.trim();
 
-  const data = await runOverpassQuery(overpassQuery);
+  const data = await runOverpassQuery(overpassQuery, signal);
 
   return data.elements.map(el => {
     const name = el.tags?.name || el.tags?.['name:en'] || 'Unknown';
@@ -38,7 +38,7 @@ const OVERPASS_ENDPOINTS = [
   'https://overpass.private.coffee/api/interpreter',
 ];
 
-async function runOverpassQuery(query) {
+async function runOverpassQuery(query, signal) {
   const body = `data=${encodeURIComponent(query)}`;
   const errors = [];
 
@@ -48,20 +48,26 @@ async function runOverpassQuery(query) {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body,
+        signal,
       });
-      const contentType = response.headers.get('content-type') || '';
-      // Overpass returns text/html on errors even with status 200 — detect and skip
-      if (!contentType.includes('json')) {
-        errors.push(`${endpoint}: returned ${contentType} (server busy or error)`);
+      // 429 = rate limited, try next mirror
+      if (response.status === 429) {
+        errors.push(`${endpoint}: rate limited (429)`);
         continue;
       }
-      const data = await response.json();
-      return data;
+      const contentType = response.headers.get('content-type') || '';
+      // Overpass returns text/html on server errors even with status 200
+      if (!contentType.includes('json')) {
+        errors.push(`${endpoint}: returned ${contentType} (server busy)`);
+        continue;
+      }
+      return await response.json();
     } catch (err) {
+      if (err.name === 'AbortError') throw err; // propagate cancellation
       errors.push(`${endpoint}: ${err.message}`);
     }
   }
-  throw new Error(`All Overpass endpoints failed:\n${errors.join('\n')}`);
+  throw new Error(`All Overpass endpoints failed: ${errors.join('; ')}`);
 }
 
 function stitchWays(ways) {
@@ -118,18 +124,18 @@ function stitchWays(ways) {
   return chain;
 }
 
-export async function fetchTrackGeometry(osmType, osmId) {
+export async function fetchTrackGeometry(osmType, osmId, signal) {
   let data;
 
   if (osmType === 'way') {
-    data = await runOverpassQuery(`[out:json];way(${osmId});out geom;`);
+    data = await runOverpassQuery(`[out:json];way(${osmId});out geom;`, signal);
     const way = data.elements.find(e => e.type === 'way');
     if (!way || !way.geometry) throw new Error('No geometry returned for way');
     return way.geometry.map(n => ({ lat: n.lat, lon: n.lon }));
   }
 
   if (osmType === 'relation') {
-    data = await runOverpassQuery(`[out:json];relation(${osmId});way(r);out geom;`);
+    data = await runOverpassQuery(`[out:json];relation(${osmId});way(r);out geom;`, signal);
     const ways = data.elements.filter(e => e.type === 'way' && e.geometry);
     if (ways.length === 0) throw new Error('No ways returned for relation');
     return stitchWays(ways);
