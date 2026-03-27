@@ -1,26 +1,33 @@
 const WIKIDATA_SPARQL = 'https://query.wikidata.org/sparql';
+const WIKIDATA_API = 'https://www.wikidata.org/w/api.php';
 
 export async function searchTracks(query, signal) {
-  // Search Wikidata for racing circuits by name. Wikidata is reliable, has CORS,
-  // and stores OSM relation IDs (P402) for most major circuits.
+  // Step 1: use Wikidata EntitySearch (autocomplete) to find candidate items by name
+  const searchUrl = `${WIKIDATA_API}?action=wbsearchentities&search=${encodeURIComponent(query)}&language=en&type=item&limit=20&format=json&origin=*`;
+  const searchResp = await fetch(searchUrl, { signal });
+  if (!searchResp.ok) throw new Error(`Wikidata search error: ${searchResp.status}`);
+  const searchData = await searchResp.json();
+
+  const ids = searchData.search.map(r => r.id);
+  if (ids.length === 0) return [];
+
+  // Step 2: of those candidates, keep only ones that have an OSM relation ID (P402)
   const sparql = `
-SELECT DISTINCT ?item ?itemLabel ?countryLabel ?osmId WHERE {
-  ?item wdt:P31/wdt:P279* wd:Q1777138 .
+SELECT ?item ?itemLabel ?countryLabel ?osmId WHERE {
+  VALUES ?item { ${ids.map(id => `wd:${id}`).join(' ')} }
+  ?item wdt:P402 ?osmId .
   OPTIONAL { ?item wdt:P17 ?country . }
-  OPTIONAL { ?item wdt:P402 ?osmId . }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
-  FILTER(CONTAINS(LCASE(?itemLabel), LCASE("${query.replace(/"/g, '')}")))
 }
-LIMIT 15
   `.trim();
 
-  const url = `${WIKIDATA_SPARQL}?query=${encodeURIComponent(sparql)}&format=json`;
-  const response = await fetch(url, {
+  const sparqlUrl = `${WIKIDATA_SPARQL}?query=${encodeURIComponent(sparql)}&format=json`;
+  const sparqlResp = await fetch(sparqlUrl, {
     headers: { Accept: 'application/sparql-results+json' },
     signal,
   });
-  if (!response.ok) throw new Error(`Wikidata error: ${response.status}`);
-  const { results } = await response.json();
+  if (!sparqlResp.ok) throw new Error(`Wikidata SPARQL error: ${sparqlResp.status}`);
+  const { results } = await sparqlResp.json();
 
   return results.bindings.map(b => ({
     name: b.itemLabel?.value || 'Unknown',
@@ -28,7 +35,7 @@ LIMIT 15
       ? `${b.itemLabel?.value} — ${b.countryLabel.value}`
       : b.itemLabel?.value || 'Unknown',
     osmType: 'relation',
-    osmId: b.osmId?.value || null,   // OSM relation ID from Wikidata P402
+    osmId: b.osmId?.value || null,
     wikidataId: b.item?.value?.split('/').pop(),
   }));
 }
