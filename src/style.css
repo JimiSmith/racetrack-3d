@@ -1,0 +1,104 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0f0f13;
+  --surface: #1a1a22;
+  --border: #2e2e3a;
+  --text: #d0d0e0;
+  --text-dim: #6b6b80;
+  --accent: #c084fc;
+  --accent-dim: rgba(192, 132, 252, 0.15);
+  --error: #f87171;
+  font: 15px/1.5 system-ui, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: dark;
+  color: var(--text);
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 16px;
+}
+
+#app {
+  width: 100%;
+  max-width: 560px;
+}
+
+h1 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin: 0 0 24px;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+
+.search-wrap {
+  position: relative;
+}
+
+#search-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: var(--accent);
+  }
+}
+
+#search-results {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 4px 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+  position: absolute;
+  width: 100%;
+  z-index: 10;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+
+  li {
+    padding: 9px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1.4;
+
+    &:hover {
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    &.no-results {
+      cursor: default;
+      color: var(--text-dim);
+      &:hover { background: none; color: var(--text-dim); }
+    }
+  }
+}
+
+#status {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-dim);
+  min-height: 1.4em;
+
+  &.error {
+    color: var(--error);
+  }
+}
