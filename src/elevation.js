@@ -19,12 +19,16 @@ async function fetchRawElevations(nodes) {
   const results = [];
   for (let i = 0; i < nodes.length; i += CHUNK_SIZE) {
     const chunk = nodes.slice(i, i + CHUNK_SIZE);
-    // Open-Topo-Data uses pipe-separated lat,lon pairs as a GET param
-    const locations = chunk.map(n => `${n.lat},${n.lon}`).join('|');
-    const resp = await fetch(`${TOPO_API}?locations=${encodeURIComponent(locations)}`);
+    const resp = await fetch(TOPO_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        locations: chunk.map(n => ({ latitude: n.lat, longitude: n.lon })),
+      }),
+    });
     if (!resp.ok) throw new Error(`opentopodata error: ${resp.status}`);
     const data = await resp.json();
-    if (data.status !== 'OK') throw new Error(`opentopodata: ${data.status}`);
+    if (data.status !== 'OK') throw new Error(`opentopodata: ${data.status} — ${JSON.stringify(data)}`);
     for (const r of data.results) {
       results.push(r.elevation ?? 0);
     }
