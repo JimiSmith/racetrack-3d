@@ -1,30 +1,35 @@
-const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 const OVERPASS_PRIMARY = 'https://overpass-api.de/api/interpreter';
 const OVERPASS_FALLBACK = 'https://overpass.kumi.systems/api/interpreter';
-const USER_AGENT = 'racetrack-3d/1.0 (https://github.com/piclaw/racetrack-3d)';
 
 export async function searchTracks(query) {
-  const url = `${NOMINATIM_URL}?q=${encodeURIComponent(query)}&format=json&limit=10`;
-  const response = await fetch(url, {
-    headers: { 'User-Agent': USER_AGENT, 'Accept-Language': 'en' },
+  // Search Overpass directly for raceway-tagged features matching the name.
+  // This is far more reliable than Nominatim which returns places, not circuits.
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const overpassQuery = `
+[out:json][timeout:10];
+(
+  way["highway"="raceway"]["name"~"${escaped}",i];
+  relation["highway"="raceway"]["name"~"${escaped}",i];
+  way["leisure"="track"]["sport"~"motor|karting"]["name"~"${escaped}",i];
+  relation["leisure"="track"]["sport"~"motor|karting"]["name"~"${escaped}",i];
+);
+out tags center;
+  `.trim();
+
+  const data = await overpassQuery(overpassQuery);
+
+  return data.elements.map(el => {
+    const name = el.tags?.name || el.tags?.['name:en'] || 'Unknown';
+    const country = el.tags?.['addr:country'] || '';
+    const city = el.tags?.['addr:city'] || el.tags?.['addr:state'] || '';
+    const location = [city, country].filter(Boolean).join(', ');
+    return {
+      name,
+      displayName: location ? `${name} — ${location}` : name,
+      osmType: el.type,   // 'way' or 'relation'
+      osmId: el.id,
+    };
   });
-  if (!response.ok) throw new Error(`Nominatim error: ${response.status}`);
-  const results = await response.json();
-
-  // Accept anything that could be a racing circuit — Nominatim class values vary
-  // between leisure, highway, sport, etc. Filter lightly: exclude administrative/
-  // postal/place results that are clearly not circuits.
-  const EXCLUDED_CLASSES = new Set(['boundary', 'place', 'amenity', 'highway', 'railway', 'waterway', 'natural']);
-  const EXCLUDED_TYPES = new Set(['administrative', 'city', 'town', 'village', 'suburb', 'quarter', 'hamlet', 'municipality', 'county', 'state', 'country', 'postcode']);
-
-  return results
-    .filter(r => !EXCLUDED_CLASSES.has(r.class) || !EXCLUDED_TYPES.has(r.type))
-    .map(r => ({
-      name: r.name || r.display_name.split(',')[0],
-      displayName: r.display_name,
-      osmType: r.osm_type,  // 'node', 'way', or 'relation'
-      osmId: r.osm_id,
-    }));
 }
 
 async function overpassQuery(query) {
