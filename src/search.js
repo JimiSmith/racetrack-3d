@@ -11,8 +11,14 @@ export async function searchTracks(query) {
   if (!response.ok) throw new Error(`Nominatim error: ${response.status}`);
   const results = await response.json();
 
+  // Accept anything that could be a racing circuit — Nominatim class values vary
+  // between leisure, highway, sport, etc. Filter lightly: exclude administrative/
+  // postal/place results that are clearly not circuits.
+  const EXCLUDED_CLASSES = new Set(['boundary', 'place', 'amenity', 'highway', 'railway', 'waterway', 'natural']);
+  const EXCLUDED_TYPES = new Set(['administrative', 'city', 'town', 'village', 'suburb', 'quarter', 'hamlet', 'municipality', 'county', 'state', 'country', 'postcode']);
+
   return results
-    .filter(r => r.class === 'leisure' || (r.class === 'highway' && r.type === 'raceway'))
+    .filter(r => !EXCLUDED_CLASSES.has(r.class) || !EXCLUDED_TYPES.has(r.type))
     .map(r => ({
       name: r.name || r.display_name.split(',')[0],
       displayName: r.display_name,
