@@ -38,33 +38,35 @@ const OVERPASS_ENDPOINTS = [
   'https://overpass.private.coffee/api/interpreter',
 ];
 
+const ENDPOINT_TIMEOUT_MS = 8000;
+
 async function runOverpassQuery(query, signal) {
   const body = `data=${encodeURIComponent(query)}`;
   const errors = [];
 
   for (const endpoint of OVERPASS_ENDPOINTS) {
+    // Combine user cancel signal with a per-endpoint timeout
+    const timeoutSignal = AbortSignal.timeout(ENDPOINT_TIMEOUT_MS);
+    const combined = signal
+      ? AbortSignal.any([signal, timeoutSignal])
+      : timeoutSignal;
+
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body,
-        signal,
+        signal: combined,
       });
-      // 429 = rate limited, try next mirror
-      if (response.status === 429) {
-        errors.push(`${endpoint}: rate limited (429)`);
-        continue;
-      }
-      const contentType = response.headers.get('content-type') || '';
-      // Overpass returns text/html on server errors even with status 200
-      if (!contentType.includes('json')) {
-        errors.push(`${endpoint}: returned ${contentType} (server busy)`);
+      // Skip on any non-JSON response (504, 429, HTML error pages)
+      if (!response.ok || !response.headers.get('content-type')?.includes('json')) {
+        errors.push(`${endpoint}: ${response.status}`);
         continue;
       }
       return await response.json();
     } catch (err) {
-      if (err.name === 'AbortError') throw err; // propagate cancellation
-      errors.push(`${endpoint}: ${err.message}`);
+      if (signal?.aborted) throw new DOMException('Aborted', 'AbortError'); // user cancelled
+      errors.push(`${endpoint}: ${err.name === 'TimeoutError' ? 'timed out' : err.message}`);
     }
   }
   throw new Error(`All Overpass endpoints failed: ${errors.join('; ')}`);
