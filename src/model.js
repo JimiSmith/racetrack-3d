@@ -187,8 +187,12 @@ export function exportStep(shape, fileName = 'racetrack.step') {
     .replace(/[^a-z0-9._-]+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '') || 'racetrack';
-  const safeFileName = normalizedBase.endsWith('.step') ? normalizedBase : `${normalizedBase}.step`;
-  const candidatePaths = [safeFileName, `/${safeFileName}`];
+  const downloadFileName = normalizedBase.endsWith('.step') ? normalizedBase : `${normalizedBase}.step`;
+
+  // Use a fixed simple virtual filename for OpenCascade/Emscripten FS.
+  // The user-friendly filename is only used for the browser download.
+  const virtualFileName = 'out.step';
+  const candidatePaths = [virtualFileName, `/${virtualFileName}`];
 
   for (const path of candidatePaths) {
     try {
@@ -200,7 +204,7 @@ export function exportStep(shape, fileName = 'racetrack.step') {
 
   const writer = new oc.STEPControl_Writer_1();
   const transferStatus = writer.Transfer(shape, oc.STEPControl_StepModelType.STEPControl_AsIs, true);
-  const writeStatus = writer.Write(safeFileName);
+  const writeStatus = writer.Write(virtualFileName);
 
   if (!isReturnStatus(transferStatus, oc.IFSelect_ReturnStatus.IFSelect_RetDone)) {
     throw new Error('STEP transfer failed');
@@ -234,12 +238,12 @@ export function exportStep(shape, fileName = 'racetrack.step') {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = safeFileName;
+  link.download = downloadFileName;
   link.style.display = 'none';
   document.body.appendChild(link);
   link.click();
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 0);
 
-  return { fileName: safeFileName };
+  return { fileName: downloadFileName };
 }
