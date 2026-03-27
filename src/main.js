@@ -2,13 +2,13 @@ import './style.css';
 import { searchTracks, fetchTrackGeometry } from './search.js';
 import { projectNodes, buildTrackOutline, buildBasePlate } from './geometry.js';
 import { fetchElevations } from './elevation.js';
-import { loadOcct, buildTrackModel, exportStep } from './model.js';
+import { buildTrackModel, exportStl } from './model.js';
 
 const input = document.getElementById('search-input');
 const resultsList = document.getElementById('search-results');
 const status = document.getElementById('status');
-const generateStepButton = document.getElementById('generate-step');
-const generateStepButtonLabel = generateStepButton.textContent;
+const generateStlButton = document.getElementById('generate-stl');
+const generateStlButtonLabel = generateStlButton.textContent;
 const exaggerationWrap = document.getElementById('exaggeration-wrap');
 const exaggerationSlider = document.getElementById('exaggeration');
 const exaggerationLabel = document.getElementById('exaggeration-label');
@@ -17,7 +17,7 @@ let currentNodes = null;
 let currentTrack = null;
 let currentOutline = null;
 let currentBasePlate = null;
-let isGeneratingStep = false;
+let isGeneratingStl = false;
 
 function setStatus(msg, isError = false) {
   status.textContent = msg;
@@ -25,8 +25,8 @@ function setStatus(msg, isError = false) {
 }
 
 function updateGenerateButton() {
-  generateStepButton.disabled = isGeneratingStep || !currentOutline || !currentBasePlate || !currentTrack;
-  generateStepButton.textContent = isGeneratingStep ? 'Generating STEP…' : generateStepButtonLabel;
+  generateStlButton.disabled = isGeneratingStl || !currentOutline || !currentBasePlate || !currentTrack;
+  generateStlButton.textContent = isGeneratingStl ? 'Generating STL…' : generateStlButtonLabel;
 }
 
 function slugifyFileName(value) {
@@ -83,34 +83,31 @@ async function handleSelect(track) {
   }
 }
 
-generateStepButton.addEventListener('click', async () => {
-  if (!currentOutline || !currentBasePlate || !currentTrack || isGeneratingStep) {
+generateStlButton.addEventListener('click', async () => {
+  if (!currentOutline || !currentBasePlate || !currentTrack || isGeneratingStl) {
     return;
   }
 
-  isGeneratingStep = true;
+  isGeneratingStl = true;
   updateGenerateButton();
 
   try {
-    setStatus('Initialising OpenCascade…');
-    await loadOcct();
-
-    setStatus('Building flat raised track model…');
-    const shape = buildTrackModel({
+    setStatus('Building STL mesh…');
+    const model = buildTrackModel({
       outlinePoints: currentOutline,
       basePlate: currentBasePlate,
       trackName: currentTrack.name,
     });
 
-    setStatus('Writing STEP file…');
-    const fileName = `${slugifyFileName(currentTrack.name)}.step`;
-    exportStep(shape, fileName);
-    setStatus(`Downloaded ${fileName}`);
+    setStatus('Serializing STL file…');
+    const fileName = `${slugifyFileName(currentTrack.name)}.stl`;
+    const result = exportStl(model, fileName);
+    setStatus(`Downloaded ${result.fileName} (${result.triangleCount} triangles)`);
   } catch (err) {
-    setStatus(`STEP export failed: ${err.message}`, true);
+    setStatus(`STL export failed: ${err.message}`, true);
     console.error(err);
   } finally {
-    isGeneratingStep = false;
+    isGeneratingStl = false;
     updateGenerateButton();
   }
 });

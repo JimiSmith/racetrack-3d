@@ -1,35 +1,7 @@
-import OpenCascade from 'opencascade.js/dist/opencascade.wasm.js';
-import openCascadeWasmUrl from 'opencascade.js/dist/opencascade.wasm.wasm?url';
+import earcut from 'earcut';
 
 const BASE_THICKNESS_MM = 8;
 const TRACK_HEIGHT_MM = 2;
-
-let occtPromise = null;
-let occtInstance = null;
-
-export async function loadOcct() {
-  if (!occtPromise) {
-    occtPromise = (async () => {
-      occtInstance = await new OpenCascade({
-        locateFile(path) {
-          if (path.endsWith('.wasm')) {
-            return openCascadeWasmUrl;
-          }
-
-          return path;
-        },
-      });
-
-      return occtInstance;
-    })().catch(error => {
-      occtPromise = null;
-      occtInstance = null;
-      throw error;
-    });
-  }
-
-  return occtPromise;
-}
 
 function toMm(valueMetres) {
   return valueMetres * 1000;
@@ -66,177 +38,188 @@ function normalizeRing(points) {
     ring.pop();
   }
 
+  if (ring.length < 3) {
+    throw new Error('Outline must contain at least three unique points');
+  }
+
   return ring;
 }
 
-function makePolygonWire(oc, points, z) {
-  const polygon = new oc.BRepBuilderAPI_MakePolygon_1();
+function signedArea(points) {
+  let area = 0;
 
-  for (const point of points) {
-    polygon.Add_1(new oc.gp_Pnt_3(toMm(point.x), toMm(point.y), z));
+  for (let i = 0; i < points.length; i += 1) {
+    const current = points[i];
+    const next = points[(i + 1) % points.length];
+    area += current.x * next.y - next.x * current.y;
   }
 
-  polygon.Close();
-
-  if (!polygon.IsDone()) {
-    throw new Error('Failed to build track outline wire');
-  }
-
-  return polygon.Wire();
+  return area / 2;
 }
 
-function makeTrackSolid(oc, outlinePoints) {
-  const ring = normalizeRing(outlinePoints);
-  const wire = makePolygonWire(oc, ring, BASE_THICKNESS_MM);
-  const faceMaker = new oc.BRepBuilderAPI_MakeFace_15(wire, false);
-
-  if (!faceMaker.IsDone()) {
-    throw new Error('Failed to build track face');
-  }
-
-  const prism = new oc.BRepPrimAPI_MakePrism_1(
-    faceMaker.Face(),
-    new oc.gp_Vec_4(0, 0, TRACK_HEIGHT_MM),
-    false,
-    true,
-  );
-
-  if (!prism.IsDone()) {
-    throw new Error('Failed to extrude track solid');
-  }
-
-  return prism.Shape();
+function ensureCounterClockwise(points) {
+  return signedArea(points) >= 0 ? points : [...points].reverse();
 }
 
-function makeBaseSlab(oc, basePlate) {
-  return new oc.BRepPrimAPI_MakeBox_2(
-    new oc.gp_Pnt_3(toMm(basePlate.minX), toMm(basePlate.minY), 0),
-    toMm(basePlate.width),
-    toMm(basePlate.height),
-    BASE_THICKNESS_MM,
-  ).Shape();
+function createVertex(x, y, z) {
+  return { x, y, z };
 }
 
-function makeCompound(oc, shapes) {
-  const builder = new oc.BRep_Builder();
-  const compound = new oc.TopoDS_Compound();
-  builder.MakeCompound(compound);
-
-  for (const shape of shapes) {
-    builder.Add(compound, shape);
-  }
-
-  return compound;
+function addTriangle(triangles, a, b, c) {
+  triangles.push([a, b, c]);
 }
 
-function fuseShapesIfAvailable(oc, baseShape, trackShape) {
-  if (!oc.BRepAlgoAPI_Fuse_3) {
-    return null;
-  }
-
-  try {
-    const fuse = new oc.BRepAlgoAPI_Fuse_3(baseShape, trackShape);
-
-    if (typeof fuse.Build === 'function') {
-      fuse.Build();
-    }
-
-    if (typeof fuse.IsDone === 'function' && !fuse.IsDone()) {
-      return null;
-    }
-
-    return fuse.Shape();
-  } catch {
-    return null;
-  }
+function addQuad(triangles, a, b, c, d) {
+  addTriangle(triangles, a, b, c);
+  addTriangle(triangles, a, c, d);
 }
 
-export function buildTrackModel({ outlinePoints, basePlate, trackName }) {
-  const oc = occtInstance;
-  if (!oc) {
-    throw new Error('OpenCascade is not loaded');
-  }
-
+function buildBasePlateMesh(basePlate) {
   if (!basePlate) {
     throw new Error('Base plate dimensions are missing');
   }
 
-  const baseShape = makeBaseSlab(oc, basePlate);
-  const trackShape = makeTrackSolid(oc, outlinePoints);
-  const fused = fuseShapesIfAvailable(oc, baseShape, trackShape);
-  const shape = fused || makeCompound(oc, [baseShape, trackShape]);
+  const minX = toMm(basePlate.minX);
+  const maxX = toMm(basePlate.maxX);
+  const minY = toMm(basePlate.minY);
+  const maxY = toMm(basePlate.maxY);
+  const minZ = 0;
+  const maxZ = BASE_THICKNESS_MM;
 
-  // TODO(issue #4): add raised text once the basic export path is stable.
-  void trackName;
+  const v000 = createVertex(minX, minY, minZ);
+  const v100 = createVertex(maxX, minY, minZ);
+  const v110 = createVertex(maxX, maxY, minZ);
+  const v010 = createVertex(minX, maxY, minZ);
+  const v001 = createVertex(minX, minY, maxZ);
+  const v101 = createVertex(maxX, minY, maxZ);
+  const v111 = createVertex(maxX, maxY, maxZ);
+  const v011 = createVertex(minX, maxY, maxZ);
 
-  return shape;
+  const triangles = [];
+
+  addQuad(triangles, v001, v101, v111, v011);
+  addQuad(triangles, v000, v010, v110, v100);
+  addQuad(triangles, v000, v100, v101, v001);
+  addQuad(triangles, v100, v110, v111, v101);
+  addQuad(triangles, v110, v010, v011, v111);
+  addQuad(triangles, v010, v000, v001, v011);
+
+  return triangles;
 }
 
-function isReturnStatus(status, expected) {
-  return status === expected;
-}
+function buildTrackPrismMesh(outlinePoints) {
+  const ring = ensureCounterClockwise(normalizeRing(outlinePoints));
+  const flattened = [];
 
-export function exportStep(shape, fileName = 'racetrack.step') {
-  const oc = occtInstance;
-  if (!oc) {
-    throw new Error('OpenCascade is not loaded');
+  for (const point of ring) {
+    flattened.push(toMm(point.x), toMm(point.y));
   }
 
+  const indices = earcut(flattened);
+  if (indices.length < 3) {
+    throw new Error('Failed to triangulate track outline');
+  }
+
+  const bottomZ = BASE_THICKNESS_MM;
+  const topZ = BASE_THICKNESS_MM + TRACK_HEIGHT_MM;
+  const bottom = ring.map(point => createVertex(toMm(point.x), toMm(point.y), bottomZ));
+  const top = ring.map(point => createVertex(toMm(point.x), toMm(point.y), topZ));
+  const triangles = [];
+
+  for (let i = 0; i < indices.length; i += 3) {
+    const a = indices[i];
+    const b = indices[i + 1];
+    const c = indices[i + 2];
+    addTriangle(triangles, top[a], top[b], top[c]);
+    addTriangle(triangles, bottom[c], bottom[b], bottom[a]);
+  }
+
+  for (let i = 0; i < ring.length; i += 1) {
+    const nextIndex = (i + 1) % ring.length;
+    addQuad(triangles, bottom[i], bottom[nextIndex], top[nextIndex], top[i]);
+  }
+
+  return triangles;
+}
+
+export function buildTrackModel({ outlinePoints, basePlate, trackName }) {
+  void trackName;
+
+  return {
+    triangles: [
+      ...buildBasePlateMesh(basePlate),
+      ...buildTrackPrismMesh(outlinePoints),
+    ],
+  };
+}
+
+function computeNormal(a, b, c) {
+  const abx = b.x - a.x;
+  const aby = b.y - a.y;
+  const abz = b.z - a.z;
+  const acx = c.x - a.x;
+  const acy = c.y - a.y;
+  const acz = c.z - a.z;
+
+  const nx = aby * acz - abz * acy;
+  const ny = abz * acx - abx * acz;
+  const nz = abx * acy - aby * acx;
+  const length = Math.hypot(nx, ny, nz) || 1;
+
+  return {
+    x: nx / length,
+    y: ny / length,
+    z: nz / length,
+  };
+}
+
+export function serializeBinaryStl(triangles, solidName = 'racetrack-3d') {
+  const safeName = String(solidName).replace(/[^\x20-\x7e]+/g, ' ').slice(0, 80);
+  const triangleCount = triangles.length;
+  const buffer = new ArrayBuffer(84 + triangleCount * 50);
+  const view = new DataView(buffer);
+  const header = new Uint8Array(buffer, 0, 80);
+
+  for (let i = 0; i < safeName.length; i += 1) {
+    header[i] = safeName.charCodeAt(i);
+  }
+
+  view.setUint32(80, triangleCount, true);
+
+  let offset = 84;
+  for (const [a, b, c] of triangles) {
+    const normal = computeNormal(a, b, c);
+    const values = [
+      normal.x, normal.y, normal.z,
+      a.x, a.y, a.z,
+      b.x, b.y, b.z,
+      c.x, c.y, c.z,
+    ];
+
+    for (const value of values) {
+      view.setFloat32(offset, value, true);
+      offset += 4;
+    }
+
+    view.setUint16(offset, 0, true);
+    offset += 2;
+  }
+
+  return buffer;
+}
+
+export function exportStl(model, fileName = 'racetrack.stl') {
   const normalizedBase = String(fileName)
     .toLowerCase()
     .replace(/[^a-z0-9._-]+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '') || 'racetrack';
-  const downloadFileName = normalizedBase.endsWith('.step') ? normalizedBase : `${normalizedBase}.step`;
-
-  // Use a fixed simple virtual filename for OpenCascade/Emscripten FS.
-  // The user-friendly filename is only used for the browser download.
-  const virtualFileName = 'out.step';
-  const candidatePaths = [virtualFileName, `/${virtualFileName}`];
-
-  for (const path of candidatePaths) {
-    try {
-      oc.FS.unlink(path);
-    } catch {
-      // File may not exist from a previous export.
-    }
-  }
-
-  const writer = new oc.STEPControl_Writer_1();
-  const transferStatus = writer.Transfer(shape, oc.STEPControl_StepModelType.STEPControl_AsIs, true);
-  const writeStatus = writer.Write(virtualFileName);
-
-  if (!isReturnStatus(transferStatus, oc.IFSelect_ReturnStatus.IFSelect_RetDone)) {
-    throw new Error('STEP transfer failed');
-  }
-
-  if (!isReturnStatus(writeStatus, oc.IFSelect_ReturnStatus.IFSelect_RetDone)) {
-    throw new Error('STEP write failed');
-  }
-
-  let stepBytes = null;
-  for (const path of candidatePaths) {
-    try {
-      stepBytes = oc.FS.readFile(path);
-      break;
-    } catch {
-      // try next candidate path
-    }
-  }
-
-  if (!stepBytes) {
-    let rootEntries = [];
-    try {
-      rootEntries = oc.FS.readdir('/');
-    } catch {
-      // ignore
-    }
-    throw new Error(`FS error: STEP file not found after write. FS / = ${rootEntries.join(', ')}`);
-  }
-
-  const blob = new Blob([stepBytes], { type: 'model/step' });
+  const downloadFileName = normalizedBase.endsWith('.stl') ? normalizedBase : `${normalizedBase}.stl`;
+  const stlBytes = serializeBinaryStl(model.triangles, downloadFileName);
+  const blob = new Blob([stlBytes], { type: 'model/stl' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
+
   link.href = url;
   link.download = downloadFileName;
   link.style.display = 'none';
@@ -245,5 +228,9 @@ export function exportStep(shape, fileName = 'racetrack.step') {
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 0);
 
-  return { fileName: downloadFileName };
+  return {
+    fileName: downloadFileName,
+    triangleCount: model.triangles.length,
+    byteLength: stlBytes.byteLength,
+  };
 }

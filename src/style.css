@@ -107,7 +107,7 @@ h1 {
   margin-top: 16px;
 }
 
-#generate-step {
+#generate-stl {
   appearance: none;
   border: 1px solid var(--accent);
   background: var(--accent);
@@ -121,11 +121,11 @@ h1 {
   box-shadow: 0 10px 24px rgba(192, 132, 252, 0.18);
 }
 
-#generate-step:hover:not(:disabled) {
+#generate-stl:hover:not(:disabled) {
   transform: translateY(-1px);
 }
 
-#generate-step:disabled {
+#generate-stl:disabled {
   cursor: not-allowed;
   opacity: 0.45;
   box-shadow: none;

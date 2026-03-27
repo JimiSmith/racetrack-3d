@@ -13,6 +13,6 @@
   },
   "dependencies": {
     "@turf/turf": "^7.3.4",
-    "opencascade.js": "^1.1.4"
+    "earcut": "^3.0.2"
   }
 }
