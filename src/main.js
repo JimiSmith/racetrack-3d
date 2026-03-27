@@ -25,9 +25,10 @@ function clearResults() {
 async function loadElevations(nodes, exaggeration) {
   setStatus('Fetching elevation data…');
   const elevations = await fetchElevations(nodes, exaggeration);
-  const maxZ = Math.max(...elevations);
-  const rawMax = Math.round(maxZ / exaggeration);
-  setStatus(`Elevation: 0–${rawMax}m (×${exaggeration} exaggeration)`);
+  // elevations are already multiplied by exaggeration — divide back to get raw range
+  const rawMax = Math.round(Math.max(...elevations) / exaggeration);
+  const exaggeratedMax = Math.round(rawMax * exaggeration);
+  setStatus(`Elevation: 0–${rawMax}m raw → 0–${exaggeratedMax}m (×${exaggeration})`);
   console.log('Elevations (exaggerated):', elevations);
   return elevations;
 }
@@ -75,15 +76,17 @@ function renderResults(tracks) {
   resultsList.hidden = false;
 }
 
+let elevationRefreshTimer;
 exaggerationSlider.addEventListener('input', () => {
   const val = exaggerationSlider.value;
   exaggerationLabel.textContent = `Elevation exaggeration: ${val}×`;
-});
 
-exaggerationSlider.addEventListener('change', async () => {
   if (!currentNodes) return;
-  const exaggeration = Number(exaggerationSlider.value);
-  await loadElevations(currentNodes, exaggeration);
+  clearTimeout(elevationRefreshTimer);
+  elevationRefreshTimer = setTimeout(async () => {
+    const exaggeration = Number(exaggerationSlider.value);
+    await loadElevations(currentNodes, exaggeration);
+  }, 150);
 });
 
 let debounceTimer;
