@@ -82,10 +82,10 @@ async function runOverpassQuery(query, signal) {
 
 function stitchWays(ways) {
   if (ways.length === 0) return [];
-  if (ways.length === 1) return ways[0].geometry.map(n => ({ lat: n.lat, lon: n.lon }));
+  if (ways.length === 1) return ways[0].nodes;
 
-  // Build a map from endpoint node id to way
-  const remaining = ways.map(w => ({ nodes: w.geometry.map(n => ({ lat: n.lat, lon: n.lon })) }));
+  // ways already have { nodes: [{lat, lon}] } — stitch into one ordered chain
+  const remaining = ways.map(w => ({ nodes: [...w.nodes] }));
   const chain = [...remaining.shift().nodes];
 
   while (remaining.length > 0) {
