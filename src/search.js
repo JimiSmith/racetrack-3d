@@ -32,22 +32,36 @@ out tags center;
   });
 }
 
+const OVERPASS_ENDPOINTS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter',
+];
+
 async function runOverpassQuery(query) {
   const body = `data=${encodeURIComponent(query)}`;
-  for (const endpoint of [OVERPASS_PRIMARY, OVERPASS_FALLBACK]) {
+  const errors = [];
+
+  for (const endpoint of OVERPASS_ENDPOINTS) {
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body,
       });
-      if (!response.ok) continue;
-      return await response.json();
-    } catch {
-      // try fallback
+      const contentType = response.headers.get('content-type') || '';
+      // Overpass returns text/html on errors even with status 200 — detect and skip
+      if (!contentType.includes('json')) {
+        errors.push(`${endpoint}: returned ${contentType} (server busy or error)`);
+        continue;
+      }
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      errors.push(`${endpoint}: ${err.message}`);
     }
   }
-  throw new Error('All Overpass endpoints failed');
+  throw new Error(`All Overpass endpoints failed:\n${errors.join('\n')}`);
 }
 
 function stitchWays(ways) {
