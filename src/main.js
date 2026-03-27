@@ -1,5 +1,6 @@
 import './style.css';
 import { searchTracks, fetchTrackGeometry } from './search.js';
+import { projectNodes, buildTrackOutline } from './geometry.js';
 
 const input = document.getElementById('search-input');
 const resultsList = document.getElementById('search-results');
@@ -22,6 +23,11 @@ async function handleSelect(track) {
     const nodes = await fetchTrackGeometry(track.osmType, track.osmId);
     setStatus(`Loaded ${nodes.length} nodes for ${track.name}`);
     console.log('Track geometry:', track, nodes);
+
+    const projected = projectNodes(nodes);
+    const outline = buildTrackOutline(projected);
+    setStatus(`Outline: ${outline.length} points`);
+    console.log('Track outline:', outline);
   } catch (err) {
     setStatus(`Error loading geometry: ${err.message}`, true);
     console.error(err);
