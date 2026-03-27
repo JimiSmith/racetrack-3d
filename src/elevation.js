@@ -19,8 +19,8 @@ async function fetchRawElevations(nodes) {
   const results = [];
   for (let i = 0; i < nodes.length; i += CHUNK_SIZE) {
     const chunk = nodes.slice(i, i + CHUNK_SIZE);
-    // Use GET — opentopodata blocks POST from browsers (CORS). Don't encode pipes.
-    const locations = chunk.map(n => `${n.lat},${n.lon}`).join('|');
+    // Safari rejects literal | in URLs (status 0) — encode pipe but NOT comma
+    const locations = chunk.map(n => `${n.lat},${n.lon}`).join('%7C');
     const resp = await fetch(`${TOPO_API}?locations=${locations}`);
     if (!resp.ok) throw new Error(`opentopodata error: ${resp.status}`);
     const data = await resp.json();
