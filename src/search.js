@@ -1,35 +1,36 @@
-const OVERPASS_PRIMARY = 'https://overpass-api.de/api/interpreter';
-const OVERPASS_FALLBACK = 'https://overpass.kumi.systems/api/interpreter';
+const WIKIDATA_SPARQL = 'https://query.wikidata.org/sparql';
 
 export async function searchTracks(query, signal) {
-  // Search Overpass directly for raceway-tagged features matching the name.
-  // This is far more reliable than Nominatim which returns places, not circuits.
-  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const overpassQuery = `
-[out:json][timeout:10];
-(
-  way["highway"="raceway"]["name"~"${escaped}",i];
-  relation["highway"="raceway"]["name"~"${escaped}",i];
-  way["leisure"="track"]["sport"~"motor|karting"]["name"~"${escaped}",i];
-  relation["leisure"="track"]["sport"~"motor|karting"]["name"~"${escaped}",i];
-);
-out tags center;
+  // Search Wikidata for racing circuits by name. Wikidata is reliable, has CORS,
+  // and stores OSM relation IDs (P402) for most major circuits.
+  const sparql = `
+SELECT DISTINCT ?item ?itemLabel ?countryLabel ?osmId WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q1777138 .
+  OPTIONAL { ?item wdt:P17 ?country . }
+  OPTIONAL { ?item wdt:P402 ?osmId . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+  FILTER(CONTAINS(LCASE(?itemLabel), LCASE("${query.replace(/"/g, '')}")))
+}
+LIMIT 15
   `.trim();
 
-  const data = await runOverpassQuery(overpassQuery, signal);
-
-  return data.elements.map(el => {
-    const name = el.tags?.name || el.tags?.['name:en'] || 'Unknown';
-    const country = el.tags?.['addr:country'] || '';
-    const city = el.tags?.['addr:city'] || el.tags?.['addr:state'] || '';
-    const location = [city, country].filter(Boolean).join(', ');
-    return {
-      name,
-      displayName: location ? `${name} — ${location}` : name,
-      osmType: el.type,   // 'way' or 'relation'
-      osmId: el.id,
-    };
+  const url = `${WIKIDATA_SPARQL}?query=${encodeURIComponent(sparql)}&format=json`;
+  const response = await fetch(url, {
+    headers: { Accept: 'application/sparql-results+json' },
+    signal,
   });
+  if (!response.ok) throw new Error(`Wikidata error: ${response.status}`);
+  const { results } = await response.json();
+
+  return results.bindings.map(b => ({
+    name: b.itemLabel?.value || 'Unknown',
+    displayName: b.countryLabel
+      ? `${b.itemLabel?.value} — ${b.countryLabel.value}`
+      : b.itemLabel?.value || 'Unknown',
+    osmType: 'relation',
+    osmId: b.osmId?.value || null,   // OSM relation ID from Wikidata P402
+    wikidataId: b.item?.value?.split('/').pop(),
+  }));
 }
 
 const OVERPASS_ENDPOINTS = [
@@ -127,6 +128,7 @@ function stitchWays(ways) {
 }
 
 export async function fetchTrackGeometry(osmType, osmId, signal) {
+  if (!osmId) throw new Error('No OSM ID available for this circuit (not yet mapped in OSM)');
   let data;
 
   if (osmType === 'way') {
@@ -137,9 +139,9 @@ export async function fetchTrackGeometry(osmType, osmId, signal) {
   }
 
   if (osmType === 'relation') {
-    data = await runOverpassQuery(`[out:json];relation(${osmId});way(r);out geom;`, signal);
+    data = await runOverpassQuery(`[out:json];relation(${osmId});way(r["highway"="raceway"];);out geom;`, signal);
     const ways = data.elements.filter(e => e.type === 'way' && e.geometry);
-    if (ways.length === 0) throw new Error('No ways returned for relation');
+    if (ways.length === 0) throw new Error('No raceway ways found in this relation');
     return stitchWays(ways);
   }
 
