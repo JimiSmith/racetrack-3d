@@ -1,10 +1,16 @@
 import './style.css';
 import { searchTracks, fetchTrackGeometry } from './search.js';
 import { projectNodes, buildTrackOutline } from './geometry.js';
+import { fetchElevations } from './elevation.js';
 
 const input = document.getElementById('search-input');
 const resultsList = document.getElementById('search-results');
 const status = document.getElementById('status');
+const exaggerationWrap = document.getElementById('exaggeration-wrap');
+const exaggerationSlider = document.getElementById('exaggeration');
+const exaggerationLabel = document.getElementById('exaggeration-label');
+
+let currentNodes = null;
 
 function setStatus(msg, isError = false) {
   status.textContent = msg;
@@ -16,9 +22,20 @@ function clearResults() {
   resultsList.hidden = true;
 }
 
+async function loadElevations(nodes, exaggeration) {
+  setStatus('Fetching elevation data…');
+  const elevations = await fetchElevations(nodes, exaggeration);
+  const maxZ = Math.max(...elevations);
+  const rawMax = Math.round(maxZ / exaggeration);
+  setStatus(`Elevation: 0–${rawMax}m (×${exaggeration} exaggeration)`);
+  console.log('Elevations (exaggerated):', elevations);
+  return elevations;
+}
+
 async function handleSelect(track) {
   clearResults();
   setStatus(`Loading geometry for ${track.name}…`);
+  exaggerationWrap.hidden = true;
   try {
     const nodes = await fetchTrackGeometry(track.osmType, track.osmId);
     setStatus(`Loaded ${nodes.length} nodes for ${track.name}`);
@@ -28,6 +45,12 @@ async function handleSelect(track) {
     const outline = buildTrackOutline(projected);
     setStatus(`Outline: ${outline.length} points`);
     console.log('Track outline:', outline);
+
+    currentNodes = nodes;
+    exaggerationWrap.hidden = false;
+
+    const exaggeration = Number(exaggerationSlider.value);
+    await loadElevations(nodes, exaggeration);
   } catch (err) {
     setStatus(`Error loading geometry: ${err.message}`, true);
     console.error(err);
@@ -51,6 +74,17 @@ function renderResults(tracks) {
   }
   resultsList.hidden = false;
 }
+
+exaggerationSlider.addEventListener('input', () => {
+  const val = exaggerationSlider.value;
+  exaggerationLabel.textContent = `Elevation exaggeration: ${val}×`;
+});
+
+exaggerationSlider.addEventListener('change', async () => {
+  if (!currentNodes) return;
+  const exaggeration = Number(exaggerationSlider.value);
+  await loadElevations(currentNodes, exaggeration);
+});
 
 let debounceTimer;
 let searchAbortController = null;
