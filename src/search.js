@@ -16,7 +16,7 @@ export async function searchTracks(query) {
 out tags center;
   `.trim();
 
-  const data = await overpassQuery(overpassQuery);
+  const data = await runOverpassQuery(overpassQuery);
 
   return data.elements.map(el => {
     const name = el.tags?.name || el.tags?.['name:en'] || 'Unknown';
@@ -32,7 +32,7 @@ out tags center;
   });
 }
 
-async function overpassQuery(query) {
+async function runOverpassQuery(query) {
   const body = `data=${encodeURIComponent(query)}`;
   for (const endpoint of [OVERPASS_PRIMARY, OVERPASS_FALLBACK]) {
     try {
@@ -108,14 +108,14 @@ export async function fetchTrackGeometry(osmType, osmId) {
   let data;
 
   if (osmType === 'way') {
-    data = await overpassQuery(`[out:json];way(${osmId});out geom;`);
+    data = await runOverpassQuery(`[out:json];way(${osmId});out geom;`);
     const way = data.elements.find(e => e.type === 'way');
     if (!way || !way.geometry) throw new Error('No geometry returned for way');
     return way.geometry.map(n => ({ lat: n.lat, lon: n.lon }));
   }
 
   if (osmType === 'relation') {
-    data = await overpassQuery(`[out:json];relation(${osmId});way(r);out geom;`);
+    data = await runOverpassQuery(`[out:json];relation(${osmId});way(r);out geom;`);
     const ways = data.elements.filter(e => e.type === 'way' && e.geometry);
     if (ways.length === 0) throw new Error('No ways returned for relation');
     return stitchWays(ways);
