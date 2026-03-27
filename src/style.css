@@ -102,3 +102,31 @@ h1 {
     color: var(--error);
   }
 }
+
+.actions {
+  margin-top: 16px;
+}
+
+#generate-step {
+  appearance: none;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #140c1f;
+  font: inherit;
+  font-weight: 700;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 10px 24px rgba(192, 132, 252, 0.18);
+}
+
+#generate-step:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+#generate-step:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  box-shadow: none;
+}

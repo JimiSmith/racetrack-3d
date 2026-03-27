@@ -1,20 +1,39 @@
 import './style.css';
 import { searchTracks, fetchTrackGeometry } from './search.js';
-import { projectNodes, buildTrackOutline } from './geometry.js';
+import { projectNodes, buildTrackOutline, buildBasePlate } from './geometry.js';
 import { fetchElevations } from './elevation.js';
+import { loadOcct, buildTrackModel, exportStep } from './model.js';
 
 const input = document.getElementById('search-input');
 const resultsList = document.getElementById('search-results');
 const status = document.getElementById('status');
+const generateStepButton = document.getElementById('generate-step');
+const generateStepButtonLabel = generateStepButton.textContent;
 const exaggerationWrap = document.getElementById('exaggeration-wrap');
 const exaggerationSlider = document.getElementById('exaggeration');
 const exaggerationLabel = document.getElementById('exaggeration-label');
 
 let currentNodes = null;
+let currentTrack = null;
+let currentOutline = null;
+let currentBasePlate = null;
+let isGeneratingStep = false;
 
 function setStatus(msg, isError = false) {
   status.textContent = msg;
   status.className = isError ? 'error' : '';
+}
+
+function updateGenerateButton() {
+  generateStepButton.disabled = isGeneratingStep || !currentOutline || !currentBasePlate || !currentTrack;
+  generateStepButton.textContent = isGeneratingStep ? 'Generating STEP…' : generateStepButtonLabel;
+}
+
+function slugifyFileName(value) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'racetrack';
 }
 
 function clearResults() {
@@ -34,6 +53,10 @@ async function handleSelect(track) {
   clearResults();
   setStatus(`Loading geometry for ${track.name}…`);
   exaggerationWrap.hidden = true;
+  currentTrack = null;
+  currentOutline = null;
+  currentBasePlate = null;
+  updateGenerateButton();
   try {
     const nodes = await fetchTrackGeometry(track.osmType, track.osmId);
     setStatus(`Loaded ${nodes.length} nodes for ${track.name}`);
@@ -41,11 +64,16 @@ async function handleSelect(track) {
 
     const projected = projectNodes(nodes);
     const outline = buildTrackOutline(projected);
-    setStatus(`Outline: ${outline.length} points`);
+    const basePlate = buildBasePlate(outline);
+    setStatus(`Outline: ${outline.length} points, base plate ${basePlate.width.toFixed(1)}m × ${basePlate.height.toFixed(1)}m`);
     console.log('Track outline:', outline);
 
     currentNodes = nodes;
+    currentTrack = track;
+    currentOutline = outline;
+    currentBasePlate = basePlate;
     exaggerationWrap.hidden = true;
+    updateGenerateButton();
 
     const exaggeration = Number(exaggerationSlider.value);
     await loadElevations(nodes, exaggeration);
@@ -54,6 +82,38 @@ async function handleSelect(track) {
     console.error(err);
   }
 }
+
+generateStepButton.addEventListener('click', async () => {
+  if (!currentOutline || !currentBasePlate || !currentTrack || isGeneratingStep) {
+    return;
+  }
+
+  isGeneratingStep = true;
+  updateGenerateButton();
+
+  try {
+    setStatus('Initialising OpenCascade…');
+    await loadOcct();
+
+    setStatus('Building flat raised track model…');
+    const shape = buildTrackModel({
+      outlinePoints: currentOutline,
+      basePlate: currentBasePlate,
+      trackName: currentTrack.name,
+    });
+
+    setStatus('Writing STEP file…');
+    const fileName = `${slugifyFileName(currentTrack.name)}.step`;
+    exportStep(shape, fileName);
+    setStatus(`Downloaded ${fileName}`);
+  } catch (err) {
+    setStatus(`STEP export failed: ${err.message}`, true);
+    console.error(err);
+  } finally {
+    isGeneratingStep = false;
+    updateGenerateButton();
+  }
+});
 
 function renderResults(tracks) {
   resultsList.innerHTML = '';
@@ -125,3 +185,5 @@ document.addEventListener('click', e => {
     clearResults();
   }
 });
+
+updateGenerateButton();
