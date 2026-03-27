@@ -134,22 +134,59 @@ function stitchWays(ways) {
   return chain;
 }
 
+const OSM_API = 'https://api.openstreetmap.org/api/0.6';
+
 export async function fetchTrackGeometry(osmType, osmId, signal) {
   if (!osmId) throw new Error('No OSM ID available for this circuit (not yet mapped in OSM)');
-  let data;
 
-  if (osmType === 'way') {
-    data = await runOverpassQuery(`[out:json];way(${osmId});out geom;`, signal);
-    const way = data.elements.find(e => e.type === 'way');
-    if (!way || !way.geometry) throw new Error('No geometry returned for way');
-    return way.geometry.map(n => ({ lat: n.lat, lon: n.lon }));
+  // Use the OSM API directly — much more reliable than Overpass for ID-based lookups
+  if (osmType === 'relation') {
+    const resp = await fetch(`${OSM_API}/relation/${osmId}/full.json`, { signal });
+    if (!resp.ok) throw new Error(`OSM API error: ${resp.status}`);
+    const { elements } = await resp.json();
+
+    // Build node ID → coords lookup
+    const nodeMap = new Map();
+    for (const el of elements) {
+      if (el.type === 'node') nodeMap.set(el.id, { lat: el.lat, lon: el.lon });
+    }
+
+    // Get the relation's way members, expanded with coords
+    const relation = elements.find(e => e.type === 'relation');
+    const wayIds = new Set(
+      (relation?.members || []).filter(m => m.type === 'way').map(m => m.ref)
+    );
+
+    const ways = elements
+      .filter(e => e.type === 'way' && wayIds.has(e.id))
+      .filter(e => {
+        // Prefer highway=raceway ways; fall back to all ways if none tagged
+        return e.tags?.highway === 'raceway';
+      });
+
+    const allWays = ways.length > 0
+      ? ways
+      : elements.filter(e => e.type === 'way' && wayIds.has(e.id));
+
+    // Expand node refs to coords
+    const waysWithGeom = allWays.map(w => ({
+      nodes: (w.nodes || []).map(id => nodeMap.get(id)).filter(Boolean),
+    }));
+
+    return stitchWays(waysWithGeom);
   }
 
-  if (osmType === 'relation') {
-    data = await runOverpassQuery(`[out:json];relation(${osmId});way(r["highway"="raceway"];);out geom;`, signal);
-    const ways = data.elements.filter(e => e.type === 'way' && e.geometry);
-    if (ways.length === 0) throw new Error('No raceway ways found in this relation');
-    return stitchWays(ways);
+  if (osmType === 'way') {
+    const resp = await fetch(`${OSM_API}/way/${osmId}/full.json`, { signal });
+    if (!resp.ok) throw new Error(`OSM API error: ${resp.status}`);
+    const { elements } = await resp.json();
+    const nodeMap = new Map();
+    for (const el of elements) {
+      if (el.type === 'node') nodeMap.set(el.id, { lat: el.lat, lon: el.lon });
+    }
+    const way = elements.find(e => e.type === 'way');
+    if (!way) throw new Error('No way found');
+    return (way.nodes || []).map(id => nodeMap.get(id)).filter(Boolean);
   }
 
   throw new Error(`Unsupported osmType: ${osmType}`);
