@@ -164,17 +164,7 @@ function stitchWaysOrdered(ways) {
   return chain;
 }
 
-function componentCentroid(indices, ways) {
-  let latSum = 0, lonSum = 0, count = 0;
-  for (const i of indices) {
-    for (const n of ways[i].nodes) {
-      latSum += n.lat; lonSum += n.lon; count++;
-    }
-  }
-  return count > 0 ? { lat: latSum / count, lon: lonSum / count } : { lat: 0, lon: 0 };
-}
-
-function stitchWays(ways, refLat, refLon) {
+function stitchWays(ways) {
   if (ways.length === 0) return [];
   if (ways.length === 1) return ways[0].nodes;
 
@@ -182,22 +172,14 @@ function stitchWays(ways, refLat, refLon) {
 
   // Pick the component whose centroid is closest to the known circuit coordinates.
   // Falls back to largest-by-nodes if no ref coords available.
-  let best;
-  if (Number.isFinite(refLat) && Number.isFinite(refLon)) {
-    best = components.reduce((a, b) => {
-      const ca = componentCentroid(a, ways);
-      const cb = componentCentroid(b, ways);
-      const da = dist(ca, { lat: refLat, lon: refLon });
-      const db = dist(cb, { lat: refLat, lon: refLon });
-      return db < da ? b : a;
-    });
-  } else {
-    best = components.reduce((a, b) => {
-      const an = a.reduce((s, i) => s + ways[i].nodes.length, 0);
-      const bn = b.reduce((s, i) => s + ways[i].nodes.length, 0);
-      return bn > an ? b : a;
-    });
-  }
+  // Use the largest component by total node count.
+  // The main racing circuit will always have far more nodes than
+  // adjacent karting tracks, theme park rides, rallycross, etc.
+  const best = components.reduce((a, b) => {
+    const an = a.reduce((s, i) => s + ways[i].nodes.length, 0);
+    const bn = b.reduce((s, i) => s + ways[i].nodes.length, 0);
+    return bn > an ? b : a;
+  });
 
   const mainWays = best.map(i => ways[i]);
   return stitchWaysOrdered(mainWays);
@@ -244,5 +226,5 @@ export async function fetchTrackGeometry(lat, lon, signal, trackName) {
     nodes: (w.geometry || []).map(({ lat: wlat, lon: wlon }) => ({ lat: wlat, lon: wlon })),
   }));
 
-  return stitchWays(waysWithGeom, lat, lon);
+  return stitchWays(waysWithGeom);
 }
