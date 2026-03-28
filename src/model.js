@@ -1,11 +1,11 @@
 import earcut from 'earcut';
 
-const BASE_THICKNESS_MM = 8;
+export const BASE_THICKNESS_MM = 8;
 const TRACK_HEIGHT_MM = 3;
 const TARGET_MAX_SIZE_MM = 200; // fit model within this bounding box dimension
 
 // Compute a scale factor so the outline fits within TARGET_MAX_SIZE_MM
-function computeScale(basePlate) {
+export function computeScale(basePlate) {
   const longestSide = Math.max(basePlate.width, basePlate.height); // metres
   if (longestSide <= 0) return 1;
   return TARGET_MAX_SIZE_MM / longestSide;
@@ -256,6 +256,9 @@ export function exportStl(model, fileName = 'racetrack.stl') {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 
   return {
+    blob,
+    buffer: stlBytes,
+    filename: downloadFileName,
     fileName: downloadFileName,
     triangleCount: model.triangles.length,
     byteLength: stlBytes.byteLength,

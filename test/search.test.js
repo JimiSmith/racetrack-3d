@@ -93,6 +93,15 @@ function withMockedFetch(payload, callback) {
   });
 }
 
+function withFetchMock(fetchImpl, callback) {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = fetchImpl;
+
+  return Promise.resolve(callback()).finally(() => {
+    globalThis.fetch = originalFetch;
+  });
+}
+
 function n(lat, lon) {
   return { lat, lon };
 }
@@ -301,4 +310,148 @@ test('near-identical duplicate named layouts are filtered out', async () => {
   assert.equal(result.layouts.length, 3);
   assert.equal(result.layouts.filter(layout => layout.name === 'Grand Prix Circuit').length, 1);
   assert.equal(result.layouts.filter(layout => layout.name === 'Grand Prix Circuit Alternate').length, 0);
+});
+
+test('fetchTrackGeometry throws a useful error when no raceways are found in the bbox', async () => {
+  await withMockedFetch({ elements: [] }, async () => {
+    await assert.rejects(
+      fetchTrackGeometry(51.5, -0.1, undefined, 'Missing Circuit'),
+      /No raceway found near Missing Circuit/,
+    );
+  });
+});
+
+test('fetchTrackGeometry throws when coordinates are not finite', async () => {
+  await assert.rejects(
+    fetchTrackGeometry(Number.NaN, Infinity, undefined, 'Broken Circuit'),
+    /No coordinates available for this circuit/,
+  );
+});
+
+test('fetchTrackGeometry falls back to the next Overpass endpoint when the first response is not JSON', async () => {
+  const calls = [];
+  const payload = {
+    elements: [
+      {
+        type: 'way',
+        id: 1,
+        tags: { name: 'Fallback Circuit' },
+        geometry: [n(0, 0), n(0, 0.02), n(0.02, 0.02), n(0.02, 0), n(0, 0)],
+      },
+    ],
+  };
+
+  await withFetchMock(async url => {
+    calls.push(url);
+    if (calls.length === 1) {
+      return {
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'text/html' }),
+      };
+    }
+
+    return {
+      ok: true,
+      status: 200,
+      headers: new Headers({ 'content-type': 'application/json' }),
+      async json() {
+        return payload;
+      },
+    };
+  }, async () => {
+    const result = await fetchTrackGeometry(0, 0, undefined, 'Fallback Circuit');
+
+    assert.equal(calls.length, 2);
+    assert.match(calls[0], /overpass-api\.de/);
+    assert.match(calls[1], /overpass\.kumi\.systems/);
+    assert.equal(result.layouts.length, 1);
+    assert.equal(result.layouts[0].name, 'Main');
+  });
+});
+
+test('fetchTrackGeometry excludes pit lane ways from the main circuit', async () => {
+  const payload = {
+    elements: [
+      {
+        type: 'way',
+        id: 1,
+        tags: { name: 'Example Circuit' },
+        geometry: [n(0, 0), n(0, 0.02)],
+      },
+      {
+        type: 'way',
+        id: 2,
+        tags: { name: 'Example Circuit' },
+        geometry: [n(0, 0.02), n(0.02, 0.02)],
+      },
+      {
+        type: 'way',
+        id: 3,
+        tags: { name: 'Example Circuit' },
+        geometry: [n(0.02, 0.02), n(0.02, 0)],
+      },
+      {
+        type: 'way',
+        id: 4,
+        tags: { name: 'Example Circuit' },
+        geometry: [n(0.02, 0), n(0, 0)],
+      },
+      {
+        type: 'way',
+        id: 5,
+        tags: { name: 'Example Pit Lane' },
+        geometry: [n(0, 0.02), n(-0.005, 0.025), n(0.005, 0.02)],
+      },
+    ],
+  };
+
+  await withMockedFetch(payload, async () => {
+    const result = await fetchTrackGeometry(0, 0, undefined, 'Example Circuit');
+
+    assert.equal(result.layouts.length, 1);
+    assert.equal(result.layouts[0].stats.segmentCount, 4);
+    result.layouts[0].nodes.forEach(node => {
+      assert.notDeepEqual(node, n(-0.005, 0.025));
+    });
+  });
+});
+
+test('fetchTrackGeometry keeps National Pit Straight in the main circuit', async () => {
+  const payload = {
+    elements: [
+      {
+        type: 'way',
+        id: 1,
+        tags: { name: 'Example Circuit' },
+        geometry: [n(0, 0), n(0, 0.02)],
+      },
+      {
+        type: 'way',
+        id: 2,
+        tags: { name: 'National Pit Straight' },
+        geometry: [n(0, 0.02), n(0.02, 0.02)],
+      },
+      {
+        type: 'way',
+        id: 3,
+        tags: { name: 'Example Circuit' },
+        geometry: [n(0.02, 0.02), n(0.02, 0)],
+      },
+      {
+        type: 'way',
+        id: 4,
+        tags: { name: 'Example Circuit' },
+        geometry: [n(0.02, 0), n(0, 0)],
+      },
+    ],
+  };
+
+  await withMockedFetch(payload, async () => {
+    const result = await fetchTrackGeometry(0, 0, undefined, 'Example Circuit');
+
+    assert.equal(result.layouts.length, 1);
+    assert.equal(result.layouts[0].stats.segmentCount, 4);
+    assert.ok(result.layouts[0].nodes.some(node => node.lat === 0.02 && node.lon === 0.02));
+  });
 });
