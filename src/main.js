@@ -59,7 +59,7 @@ async function handleSelect(track) {
   updateGenerateButton();
   try {
     const nodes = await fetchTrackGeometry(track.osmType, track.osmId, undefined, track.name);
-    setStatus(`Loaded ${nodes.length} nodes for ${track.name}`);
+    setStatus(`Loaded ${nodes.length} nodes for ${track.name} (OSM ${track.osmType}/${track.osmId})`);
     console.log('Track geometry:', track, nodes);
 
     const projected = projectNodes(nodes);
