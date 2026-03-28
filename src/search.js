@@ -720,6 +720,7 @@ function buildVariantLayouts(ways, graph, sections, trackName, backboneCycle) {
       for (const { section, branch } of substitutedSections) {
         const forkNode = graph.vertices.get(section.forkVertexId)?.node;
         const mergeNode = graph.vertices.get(section.mergeVertexId)?.node;
+        const backboneBranch = section.branches[0];
         if (!forkNode || !mergeNode || !branch.nodes?.length) {
           isValid = false;
           break;
@@ -734,7 +735,6 @@ function buildVariantLayouts(ways, graph, sections, trackName, backboneCycle) {
 
         let bestNodes = null;
         let bestScore = Infinity;
-        const orientedBranchNodes = orientVariantNodes(branch.nodes, forkNode, mergeNode);
 
         for (const forkMatch of forkMatches) {
           for (const mergeMatch of mergeMatches) {
@@ -742,21 +742,43 @@ function buildVariantLayouts(ways, graph, sections, trackName, backboneCycle) {
               continue;
             }
 
-            const preservedSection = sliceClosedNodeChain(layoutNodes, mergeMatch.index, forkMatch.index);
-            if (preservedSection.length < 2) {
-              continue;
-            }
+            const forwardPreservedSection = sliceClosedNodeChain(layoutNodes, mergeMatch.index, forkMatch.index);
+            const reversePreservedSection = sliceClosedNodeChain(layoutNodes, forkMatch.index, mergeMatch.index);
+            const replacementCandidates = [
+              {
+                preservedNodes: forwardPreservedSection,
+                replacementLength: measurePolylineLength(reversePreservedSection),
+                variantNodes: orientVariantNodes(branch.nodes, forkNode, mergeNode),
+              },
+              {
+                preservedNodes: reversePreservedSection,
+                replacementLength: measurePolylineLength(forwardPreservedSection),
+                variantNodes: orientVariantNodes(branch.nodes, mergeNode, forkNode),
+              },
+            ];
 
-            const candidateNodes = dedupeSequentialNodes([...preservedSection, ...orientedBranchNodes]);
-            if (candidateNodes.length < 4) {
-              continue;
-            }
+            for (const replacement of replacementCandidates) {
+              if (!replacement.preservedNodes?.length || replacement.preservedNodes.length < 2) {
+                continue;
+              }
 
-            const endpointGap = computeEndpointGap(candidateNodes);
-            const score = endpointGap * 1000 + forkMatch.distance + mergeMatch.distance;
-            if (score < bestScore) {
-              bestScore = score;
-              bestNodes = candidateNodes;
+              const candidateNodes = dedupeSequentialNodes([
+                ...replacement.preservedNodes,
+                ...replacement.variantNodes,
+              ]);
+              if (candidateNodes.length < 4) {
+                continue;
+              }
+
+              const endpointGap = computeEndpointGap(candidateNodes);
+              const score = Math.abs(replacement.replacementLength - backboneBranch.length)
+                + endpointGap * 10
+                + forkMatch.distance
+                + mergeMatch.distance;
+              if (score < bestScore) {
+                bestScore = score;
+                bestNodes = candidateNodes;
+              }
             }
           }
         }
@@ -1112,19 +1134,30 @@ function buildLayoutsFromWays(ways, trackName) {
 
   const graph = buildWayGraph(ways);
   const backboneCycle = selectBackboneCycle(graph);
+  const stitchedCandidate = buildCandidateFromWays(ways);
+  const variantBackbone = stitchedCandidate
+    && stitchedCandidate.endpointGap <= 80
+    && stitchedCandidate.length > (backboneCycle?.length ?? 0) + 400
+    ? {
+        ...backboneCycle,
+        nodes: stitchedCandidate.nodes,
+        length: stitchedCandidate.length,
+        area: stitchedCandidate.area,
+      }
+    : backboneCycle;
   const sections = detectForkSections(graph, new Set(backboneCycle?.edgeIds ?? []));
-  const variantLayouts = buildVariantLayouts(ways, graph, sections, trackName, backboneCycle);
+  const variantLayouts = buildVariantLayouts(ways, graph, sections, trackName, variantBackbone);
 
   if (variantLayouts.length > 1) {
     return variantLayouts.slice(0, 8).map(({ area, ...layout }) => layout);
   }
 
-  const singleLayout = backboneCycle
+  const singleLayout = variantBackbone
     ? {
-        nodes: backboneCycle.nodes,
-        length: backboneCycle.length,
+        nodes: variantBackbone.nodes,
+        length: variantBackbone.length,
       }
-    : buildCandidateFromWays(ways);
+    : stitchedCandidate;
   if (!singleLayout || singleLayout.nodes.length < 4) {
     return [];
   }
