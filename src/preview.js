@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-const BASE_THICKNESS_MM = 8;
+import { splitModelTriangles } from './triangle-groups.js';
+
 const PREVIEW_BACKGROUND = '#0f0f13';
 
 let container;
@@ -170,20 +171,7 @@ export function updatePreview(model) {
     return;
   }
 
-  const baseTriangles = [];
-  const trackTriangles = [];
-  const baseTriangleCount = Number.isInteger(model.baseTriangleCount)
-    ? model.baseTriangleCount
-    : null;
-
-  for (let index = 0; index < model.triangles.length; index += 1) {
-    const triangle = model.triangles[index];
-    if ((baseTriangleCount !== null && index < baseTriangleCount) || triangle.every(vertex => vertex.z <= BASE_THICKNESS_MM)) {
-      baseTriangles.push(triangle);
-    } else {
-      trackTriangles.push(triangle);
-    }
-  }
+  const { baseTriangles, trackTriangles } = splitModelTriangles(model);
 
   if (baseTriangles.length > 0) {
     modelGroup.add(new THREE.Mesh(

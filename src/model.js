@@ -188,14 +188,16 @@ function buildTrackPrismMesh(outline, scale, projectedNodes = null) {
 export function buildTrackModel({ outlinePoints, basePlate, trackName, projectedNodes = null }) {
   const scale = computeScale(basePlate);
   const basePlateTriangles = buildBasePlateMesh(basePlate, scale);
+  const trackTriangles = buildTrackPrismMesh(outlinePoints, scale, projectedNodes);
   const textTriangles = trackName
     ? buildTextMesh(trackName, outlinePoints, basePlate, scale, { baseThickness: BASE_THICKNESS_MM })
     : [];
-  const trackTriangles = buildTrackPrismMesh(outlinePoints, scale, projectedNodes);
 
   return {
-    triangles: [...basePlateTriangles, ...textTriangles, ...trackTriangles],
-    baseTriangleCount: basePlateTriangles.length + textTriangles.length,
+    triangles: [...basePlateTriangles, ...trackTriangles, ...textTriangles],
+    baseTriangleCount: basePlateTriangles.length,
+    trackTriangleCount: trackTriangles.length,
+    textTriangleCount: textTriangles.length,
     scale,
   };
 }

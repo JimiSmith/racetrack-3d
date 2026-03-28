@@ -83,13 +83,30 @@ test('buildTrackModel keeps base plate triangles at or below the base thickness 
   const outlinePoints = syntheticOutline();
   const basePlate = buildBasePlate(outlinePoints, 20);
   const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
-  const basePlateTriangles = model.triangles.slice(0, 12);
-  const trackTriangles = model.triangles.slice(12);
+  const basePlateTriangles = model.triangles.slice(0, model.baseTriangleCount);
+  const trackTriangles = model.triangles.slice(model.baseTriangleCount);
 
   assert.ok(basePlateTriangles.length > 0);
   assert.ok(trackTriangles.length > 0);
+  assert.ok(model.trackTriangleCount > 0);
+  assert.ok(model.textTriangleCount > 0);
   assert.ok(basePlateTriangles.every(triangle => triangle.every(vertex => vertex.z <= BASE_THICKNESS_MM)));
   assert.ok(trackTriangles.some(triangle => triangle.some(vertex => vertex.z > BASE_THICKNESS_MM)));
+});
+
+test('buildTrackModel keeps embossed text after the track segment and out of the base segment', () => {
+  const outlinePoints = syntheticOutline();
+  const basePlate = buildBasePlate(outlinePoints, 20);
+  const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
+
+  const baseTriangles = model.triangles.slice(0, model.baseTriangleCount);
+  const textTriangles = model.triangles.slice(model.baseTriangleCount + model.trackTriangleCount);
+
+  assert.equal(baseTriangles.length, model.baseTriangleCount);
+  assert.equal(textTriangles.length, model.textTriangleCount);
+  assert.ok(textTriangles.length > 0);
+  assert.ok(textTriangles.some(triangle => triangle.some(vertex => vertex.z > BASE_THICKNESS_MM)));
+  assert.ok(baseTriangles.every(triangle => triangle.every(vertex => vertex.z <= BASE_THICKNESS_MM)));
 });
 
 test('computeScale fits the base plate inside a 200mm bounding box', () => {

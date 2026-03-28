@@ -4,6 +4,7 @@ import test from 'node:test';
 import { strFromU8, unzipSync } from 'fflate';
 
 import { buildBasePlate } from '../src/geometry.js';
+import { splitModelTriangles } from '../src/triangle-groups.js';
 import { buildTrackModel } from '../src/model.js';
 import { export3mf } from '../src/export3mf.js';
 
@@ -58,6 +59,45 @@ test('export3mf colors base plate triangles black and track triangles red', asyn
 
   assert.ok(blackTriangles.length > 0);
   assert.ok(redTriangles.length > 0);
+});
+
+test('splitModelTriangles keeps embossed text in the red track group', () => {
+  const outlinePoints = syntheticOutline();
+  const basePlate = buildBasePlate(outlinePoints, 20);
+  const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
+
+  const { baseTriangles, trackTriangles } = splitModelTriangles(model);
+  const textTriangles = model.triangles.slice(model.baseTriangleCount + model.trackTriangleCount);
+
+  assert.equal(baseTriangles.length, model.baseTriangleCount);
+  assert.equal(trackTriangles.length, model.trackTriangleCount + model.textTriangleCount);
+  assert.ok(textTriangles.length > 0);
+  assert.ok(textTriangles.every(triangle => trackTriangles.includes(triangle)));
+});
+
+test('export3mf colors embossed text triangles red', async () => {
+  const outlinePoints = syntheticOutline();
+  const basePlate = buildBasePlate(outlinePoints, 20);
+  const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
+
+  const textTriangles = model.triangles.slice(model.baseTriangleCount + model.trackTriangleCount);
+  const textVertexSet = new Set(
+    textTriangles.flatMap(triangle => triangle.map(vertex => `${vertex.x.toFixed(4)},${vertex.y.toFixed(4)},${vertex.z.toFixed(4)}`)),
+  );
+
+  const result = export3mf(model, 'Synthetic Raceway.3mf');
+  const archive = unzipSync(new Uint8Array(await result.blob.arrayBuffer()));
+  const xml = extractModelXml(archive);
+
+  const redTriangles = [...xml.matchAll(/<triangle[^>]*v1="(\d+)"[^>]*v2="(\d+)"[^>]*v3="(\d+)"[^>]*p1="1"\/>/g)];
+  const vertices = [...xml.matchAll(/<vertex x="([^"]+)" y="([^"]+)" z="([^"]+)"\/>/g)].map(([, x, y, z]) => `${x},${y},${z}`);
+
+  const hasRedTextTriangle = redTriangles.some(([, v1, v2, v3]) => {
+    const keys = [Number(v1), Number(v2), Number(v3)].map(index => vertices[index]);
+    return keys.every(key => textVertexSet.has(key));
+  });
+
+  assert.ok(hasRedTextTriangle);
 });
 
 test('export3mf deduplicates vertices in the model XML', async () => {
