@@ -58,14 +58,14 @@ async function handleSelect(track) {
   currentBasePlate = null;
   updateGenerateButton();
   try {
-    const nodes = await fetchTrackGeometry(track.osmType, track.osmId, undefined, track.name);
+    const nodes = await fetchTrackGeometry(track.lat, track.lon, undefined, track.name);
     setStatus(`Loaded ${nodes.length} nodes for ${track.name}`);
     console.log('Track geometry:', track, nodes);
 
     const projected = projectNodes(nodes);
     const outline = buildTrackOutline(projected);
     const basePlate = buildBasePlate(outline);
-    setStatus(`Outline: ${outline.outerRing.length} pts · ${basePlate.width.toFixed(0)}m×${basePlate.height.toFixed(0)}m · OSM ${track.osmType}/${track.osmId}`);
+    setStatus(`Outline: ${outline.outerRing.length} pts · ${basePlate.width.toFixed(0)}m×${basePlate.height.toFixed(0)}m · ${track.lat.toFixed(4)},${track.lon.toFixed(4)}`);
     console.log('Track outline:', outline);
 
     currentNodes = nodes;
