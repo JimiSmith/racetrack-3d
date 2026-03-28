@@ -1249,6 +1249,45 @@ function stitchWays(ways) {
   return stitchWaysOrdered(mainWays);
 }
 
+const PIT_PATTERN = /pit[\s\-_]*lane|pit[\s\-_]*road|pitlane|pitroad|support[\s\-_]*pit|\bpit\s*$/i;
+
+function extractOverpassWays(elements) {
+  const waysById = new Map();
+
+  function addWay(id, tags, geometry, overwrite = false) {
+    if (!Number.isFinite(id) || !Array.isArray(geometry) || geometry.length < 2 || (waysById.has(id) && !overwrite)) {
+      return;
+    }
+
+    waysById.set(id, {
+      id,
+      tags: tags ?? {},
+      nodes: geometry.map(({ lat: wayLat, lon: wayLon }) => ({ lat: wayLat, lon: wayLon })),
+    });
+  }
+
+  for (const element of elements || []) {
+    if (element.type === 'way') {
+      addWay(element.id, element.tags, element.geometry);
+      continue;
+    }
+
+    if (element.type !== 'relation') {
+      continue;
+    }
+
+    for (const member of element.members || []) {
+      if (member.type !== 'way' || member.role === 'pit_lane') {
+        continue;
+      }
+
+      addWay(member.ref, element.tags, member.geometry, true);
+    }
+  }
+
+  return [...waysById.values()];
+}
+
 // Fetch raceway geometry using Overpass bbox query around Wikidata P625 coordinates.
 // Much more reliable than P402 (stale OSM relation IDs) or name searches (timeouts).
 export async function fetchTrackGeometry(lat, lon, signal, trackName) {
@@ -1259,10 +1298,10 @@ export async function fetchTrackGeometry(lat, lon, signal, trackName) {
   // ~9km margin — covers any F1 circuit layout but avoids pulling in distant tracks
   const MARGIN = 0.08;
   const bbox = `${lat - MARGIN},${lon - MARGIN},${lat + MARGIN},${lon + MARGIN}`;
-  const query = `[out:json][timeout:25];way["highway"="raceway"](${bbox});out body geom;`;
+  const query = `[out:json][timeout:30];(way["highway"="raceway"](${bbox});relation["highway"="raceway"](${bbox});relation["type"="circuit"](${bbox}););out geom;`;
 
   const data = await runOverpassQuery(query, signal);
-  const ways = (data.elements || []).filter(e => e.type === 'way' && e.geometry?.length > 1);
+  const ways = extractOverpassWays(data.elements || []);
 
   if (ways.length === 0) {
     throw new Error(`No raceway found near ${trackName ?? 'this location'}`);
@@ -1270,27 +1309,20 @@ export async function fetchTrackGeometry(lat, lon, signal, trackName) {
 
   // Exclude pit lanes and service roads — but NOT straights that merely contain "pit"
   // in their name (e.g. "National Pit Straight" is a legit racing-line way at Silverstone).
-  const PIT_PATTERN = /pit[\s\-_]*lane|pit[\s\-_]*road|pitlane|pitroad|support[\s\-_]*pit|\bpit\s*$/i;
   const mainWays = ways.filter(w => {
     const name = w.tags?.name ?? '';
     return !PIT_PATTERN.test(name);
   });
   const racingWays = mainWays.length > 0 ? mainWays : ways; // fallback if over-filtered
 
-  const waysWithGeom = racingWays.map(w => ({
-    id: w.id,
-    tags: w.tags ?? {},
-    nodes: (w.geometry || []).map(({ lat: wlat, lon: wlon }) => ({ lat: wlat, lon: wlon })),
-  }));
-
-  const components = buildComponents(waysWithGeom);
+  const components = buildComponents(racingWays);
   const bestComponent = components.reduce((a, b) => {
-    const an = a.reduce((sum, index) => sum + waysWithGeom[index].nodes.length, 0);
-    const bn = b.reduce((sum, index) => sum + waysWithGeom[index].nodes.length, 0);
+    const an = a.reduce((sum, index) => sum + racingWays[index].nodes.length, 0);
+    const bn = b.reduce((sum, index) => sum + racingWays[index].nodes.length, 0);
     return bn > an ? b : a;
   });
 
-  const componentWays = bestComponent.map(index => waysWithGeom[index]);
+  const componentWays = bestComponent.map(index => racingWays[index]);
 
   // Pre-pass: if the component contains multiple explicitly-named distinct circuits
   // (e.g. Bahrain's "Grand Prix Circuit", "Inner Circuit", "Endurance Circuit"),
