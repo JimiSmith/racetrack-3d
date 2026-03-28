@@ -684,17 +684,21 @@ function buildVariantLayouts(ways, graph, sections, trackName) {
 }
 
 // Detect layouts from ways that carry distinct "circuit-level" names.
-// E.g. Bahrain has "Grand Prix Circuit", "Inner Circuit", "Endurance Circuit" etc.
+// E.g. Bahrain: "Grand Prix Circuit", "Inner Circuit", "Endurance Circuit" — each
+// group of named ways forms a COMPLETE standalone circuit on its own.
 //
-// Key insight: unnamed ways = SHARED backbone (all layouts use them).
-// Named circuit ways = VARIANT sections (each group creates one layout).
-// Each layout = shared unnamed ways + one named group's ways.
+// This is different from Spa-style forks (short branches like "Moto layout" that
+// are not complete circuits by themselves).  The key filter: a named group must be
+// able to stitch into a near-closed loop on its own (endpointGap < 15% of length).
+// Short stubs / rallycross / theme-park branches fail this test and are ignored here;
+// the fork-based detector handles them downstream.
 //
-// Returns [] if no clear multi-circuit naming is detected.
+// Returns [] if no two named groups independently form valid closed circuits.
 function buildNamedCircuitLayouts(ways, trackName) {
   const CIRCUIT_KEYWORD = /\b(circuit|layout|oval|grand[\s_-]*prix|national|endurance|inner|outer|short)\b/i;
+  const MIN_LENGTH = 1500; // metres — ignore sub-km stubs
+  const MAX_GAP_FRACTION = 0.15; // endpoint gap must be < 15% of total length
 
-  // Build name → ways map (only consider non-empty names that hint at distinct circuits)
   const nameGroups = new Map();
   for (const way of ways) {
     const name = (way.tags?.name ?? '').trim();
@@ -703,21 +707,16 @@ function buildNamedCircuitLayouts(ways, trackName) {
     nameGroups.get(name).push(way);
   }
 
-  if (nameGroups.size < 2) return []; // nothing to differentiate
-
-  // Shared backbone = all ways NOT in any circuit-named group
-  const sharedWays = ways.filter(w => {
-    const name = (w.tags?.name ?? '').trim();
-    return !name || !CIRCUIT_KEYWORD.test(name);
-  });
+  if (nameGroups.size < 2) return [];
 
   const layouts = [];
   for (const [groupName, namedWays] of nameGroups) {
-    // Layout = shared backbone + this group's variant ways
-    const combined = [...sharedWays, ...namedWays];
-
-    const candidate = buildCandidateFromWays(combined);
-    if (!candidate || candidate.nodes.length < 4 || candidate.length < 500) continue;
+    // Only use the named ways — no shared backbone mixing
+    const candidate = buildCandidateFromWays(namedWays);
+    if (!candidate || candidate.nodes.length < 4) continue;
+    if (candidate.length < MIN_LENGTH) continue;
+    // Must form a near-closed loop on its own
+    if (candidate.endpointGap > candidate.length * MAX_GAP_FRACTION) continue;
 
     layouts.push({
       id: `layout-${layouts.length + 1}`,
@@ -725,13 +724,15 @@ function buildNamedCircuitLayouts(ways, trackName) {
       nodes: candidate.nodes,
       stats: {
         lengthMetres: candidate.length,
-        segmentCount: combined.length,
+        segmentCount: namedWays.length,
         variantSectionCount: 0,
       },
     });
   }
 
-  // Sort longest first (GP circuit > inner > short etc.)
+  // Need at least 2 valid standalone circuits to show a picker
+  if (layouts.length < 2) return [];
+
   layouts.sort((a, b) => b.stats.lengthMetres - a.stats.lengthMetres);
   return layouts;
 }
