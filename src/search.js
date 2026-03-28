@@ -204,12 +204,12 @@ export async function fetchTrackGeometry(lat, lon, signal, trackName) {
     throw new Error(`No raceway found near ${trackName ?? 'this location'}`);
   }
 
-  // Exclude pit lanes, service roads, and other non-racing-line ways.
-  const PIT_PATTERN = /\bpit\b|pit.lane|pit.road|pitlane|pitroad|service/i;
+  // Exclude pit lanes and service roads — but NOT straights that merely contain "pit"
+  // in their name (e.g. "National Pit Straight" is a legit racing-line way at Silverstone).
+  const PIT_PATTERN = /pit[\s\-_]*lane|pit[\s\-_]*road|pitlane|pitroad|support[\s\-_]*pit|\bpit\s*$/i;
   const mainWays = ways.filter(w => {
     const name = w.tags?.name ?? '';
-    const service = w.tags?.service ?? '';
-    return !PIT_PATTERN.test(name) && !PIT_PATTERN.test(service);
+    return !PIT_PATTERN.test(name);
   });
   const racingWays = mainWays.length > 0 ? mainWays : ways; // fallback if over-filtered
 
