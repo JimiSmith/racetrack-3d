@@ -44,7 +44,7 @@ function clearResults() {
 async function loadElevations(nodes, exaggeration) {
   setStatus('Using fixed elevation…');
   const elevations = await fetchElevations(nodes, exaggeration);
-  setStatus('Elevation: fixed 1m for all track nodes');
+  // Elevation is stubbed — don't clobber the outline status with a message
   console.log('Elevations (stubbed):', elevations);
   return elevations;
 }
@@ -59,13 +59,13 @@ async function handleSelect(track) {
   updateGenerateButton();
   try {
     const nodes = await fetchTrackGeometry(track.osmType, track.osmId, undefined, track.name);
-    setStatus(`Loaded ${nodes.length} nodes for ${track.name} (OSM ${track.osmType}/${track.osmId})`);
+    setStatus(`Loaded ${nodes.length} nodes for ${track.name}`);
     console.log('Track geometry:', track, nodes);
 
     const projected = projectNodes(nodes);
     const outline = buildTrackOutline(projected);
     const basePlate = buildBasePlate(outline);
-    setStatus(`Outline: ${outline.length} points, base plate ${basePlate.width.toFixed(1)}m × ${basePlate.height.toFixed(1)}m`);
+    setStatus(`Outline: ${outline.outerRing.length} pts · ${basePlate.width.toFixed(0)}m×${basePlate.height.toFixed(0)}m · OSM ${track.osmType}/${track.osmId}`);
     console.log('Track outline:', outline);
 
     currentNodes = nodes;
