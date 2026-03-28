@@ -667,7 +667,13 @@ function enumerateBranchCombinations(sections, maxCombinations = 8) {
   return combinations;
 }
 
-function buildVariantLayouts(ways, graph, sections, trackName) {
+function buildVariantLayouts(ways, graph, sections, trackName, backboneCycle) {
+  if (!backboneCycle?.nodes?.length) {
+    return [];
+  }
+
+  const MAX_ENDPOINT_MATCH_DISTANCE = SNAP_FUZZY * 8;
+  const MIN_LAYOUT_LENGTH = 1000;
   const sectionEdgeIds = new Set(sections.flatMap(section => section.branches.flatMap(branch => branch.edgeIds)));
   const sharedWayIds = ways
     .map((_, index) => index)
@@ -687,30 +693,111 @@ function buildVariantLayouts(ways, graph, sections, trackName) {
 
   for (const selectedBranches of combinations) {
     const selectedWayIds = [...sharedWayIds];
+    const substitutedSections = [];
     const nameParts = [];
 
-    for (const branch of selectedBranches) {
+    for (let sectionIndex = 0; sectionIndex < selectedBranches.length; sectionIndex += 1) {
+      const branch = selectedBranches[sectionIndex];
+      const section = sections[sectionIndex];
+      const backboneBranch = section.branches[0];
       selectedWayIds.push(...branch.edgeIds);
-      nameParts.push(branchFallbackLabels.get(branch.edgeIds.join(',')) ?? 'Alternate');
+      const branchLabel = branchFallbackLabels.get(branch.edgeIds.join(',')) ?? 'Alternate';
+
+      if (branch === backboneBranch) {
+        nameParts.push(branchLabel);
+        continue;
+      }
+
+      substitutedSections.push({ section, branch });
+      nameParts.push(branchLabel);
     }
 
-    const uniqueWayIds = [...new Set(selectedWayIds)].sort((a, b) => a - b);
-    const selectedWays = uniqueWayIds.map(index => ways[index]);
-    const candidate = buildCandidateFromWays(selectedWays);
+    let layoutNodes = backboneCycle.nodes;
 
-    if (!candidate || candidate.nodes.length < 4 || candidate.endpointGap > 80) {
+    if (substitutedSections.length > 0) {
+      let isValid = true;
+
+      for (const { section, branch } of substitutedSections) {
+        const forkNode = graph.vertices.get(section.forkVertexId)?.node;
+        const mergeNode = graph.vertices.get(section.mergeVertexId)?.node;
+        if (!forkNode || !mergeNode || !branch.nodes?.length) {
+          isValid = false;
+          break;
+        }
+
+        const forkMatches = findClosestNodePositions(layoutNodes, forkNode, MAX_ENDPOINT_MATCH_DISTANCE);
+        const mergeMatches = findClosestNodePositions(layoutNodes, mergeNode, MAX_ENDPOINT_MATCH_DISTANCE);
+        if (!forkMatches.length || !mergeMatches.length) {
+          isValid = false;
+          break;
+        }
+
+        let bestNodes = null;
+        let bestScore = Infinity;
+        const orientedBranchNodes = orientVariantNodes(branch.nodes, forkNode, mergeNode);
+
+        for (const forkMatch of forkMatches) {
+          for (const mergeMatch of mergeMatches) {
+            if (forkMatch.index === mergeMatch.index) {
+              continue;
+            }
+
+            const preservedSection = sliceClosedNodeChain(layoutNodes, mergeMatch.index, forkMatch.index);
+            if (preservedSection.length < 2) {
+              continue;
+            }
+
+            const candidateNodes = dedupeSequentialNodes([...preservedSection, ...orientedBranchNodes]);
+            if (candidateNodes.length < 4) {
+              continue;
+            }
+
+            const endpointGap = computeEndpointGap(candidateNodes);
+            const score = endpointGap * 1000 + forkMatch.distance + mergeMatch.distance;
+            if (score < bestScore) {
+              bestScore = score;
+              bestNodes = candidateNodes;
+            }
+          }
+        }
+
+        if (!bestNodes) {
+          isValid = false;
+          break;
+        }
+
+        layoutNodes = bestNodes;
+      }
+
+      if (!isValid) {
+        continue;
+      }
+    }
+
+    const candidate = {
+      nodes: layoutNodes,
+      length: measurePolylineLength(layoutNodes),
+      area: computeBoundingBoxArea(layoutNodes),
+      endpointGap: computeEndpointGap(layoutNodes),
+    };
+
+    if (candidate.nodes.length < 4 || candidate.length < MIN_LAYOUT_LENGTH || candidate.endpointGap > 80) {
       continue;
     }
 
+    const uniqueWayIds = [...new Set(selectedWayIds)].sort((a, b) => a - b);
+
     layouts.push({
       id: `layout-${layouts.length + 1}`,
-      name: sections.length === 1 ? (nameParts[0] ?? `Layout ${layouts.length + 1}`) : nameParts.join(' + '),
+      name: substitutedSections.length === 0
+        ? 'Main'
+        : (sections.length === 1 ? (nameParts[0] ?? `Layout ${layouts.length + 1}`) : nameParts.join(' + ')),
       nodes: candidate.nodes,
       area: candidate.area,
       stats: {
         lengthMetres: candidate.length,
-        segmentCount: selectedWays.length,
-        variantSectionCount: sections.length,
+        segmentCount: uniqueWayIds.length,
+        variantSectionCount: substitutedSections.length,
       },
     });
   }
@@ -1026,13 +1113,18 @@ function buildLayoutsFromWays(ways, trackName) {
   const graph = buildWayGraph(ways);
   const backboneCycle = selectBackboneCycle(graph);
   const sections = detectForkSections(graph, new Set(backboneCycle?.edgeIds ?? []));
-  const variantLayouts = buildVariantLayouts(ways, graph, sections, trackName);
+  const variantLayouts = buildVariantLayouts(ways, graph, sections, trackName, backboneCycle);
 
   if (variantLayouts.length > 1) {
     return variantLayouts.slice(0, 8).map(({ area, ...layout }) => layout);
   }
 
-  const singleLayout = buildCandidateFromWays(ways);
+  const singleLayout = backboneCycle
+    ? {
+        nodes: backboneCycle.nodes,
+        length: backboneCycle.length,
+      }
+    : buildCandidateFromWays(ways);
   if (!singleLayout || singleLayout.nodes.length < 4) {
     return [];
   }
