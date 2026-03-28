@@ -1,0 +1,60 @@
+{
+  "elements": [
+    {
+      "type": "way",
+      "id": 101,
+      "tags": { "name": "Circuit de Spa-Francorchamps" },
+      "geometry": [
+        { "lat": 50.43, "lon": 5.95 },
+        { "lat": 50.43, "lon": 5.97 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 102,
+      "tags": { "name": "Circuit de Spa-Francorchamps" },
+      "geometry": [
+        { "lat": 50.43, "lon": 5.97 },
+        { "lat": 50.445, "lon": 5.982 },
+        { "lat": 50.46, "lon": 5.97 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 103,
+      "tags": { "name": "Moto" },
+      "geometry": [
+        { "lat": 50.43, "lon": 5.97 },
+        { "lat": 50.445, "lon": 5.976 },
+        { "lat": 50.46, "lon": 5.97 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 104,
+      "tags": { "name": "Circuit de Spa-Francorchamps" },
+      "geometry": [
+        { "lat": 50.46, "lon": 5.97 },
+        { "lat": 50.46, "lon": 5.95 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 105,
+      "tags": { "name": "Circuit de Spa-Francorchamps" },
+      "geometry": [
+        { "lat": 50.46, "lon": 5.95 },
+        { "lat": 50.43, "lon": 5.95 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 106,
+      "tags": { "name": "Service Spur" },
+      "geometry": [
+        { "lat": 50.43, "lon": 5.95 },
+        { "lat": 50.423, "lon": 5.943 }
+      ]
+    }
+  ]
+}

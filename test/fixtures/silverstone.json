@@ -1,0 +1,69 @@
+{
+  "elements": [
+    {
+      "type": "way",
+      "id": 201,
+      "tags": { "name": "National Pit Straight" },
+      "geometry": [
+        { "lat": 52.078, "lon": -1.02 },
+        { "lat": 52.078, "lon": -0.999 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 202,
+      "tags": { "name": "Silverstone Circuit" },
+      "geometry": [
+        { "lat": 52.078, "lon": -0.999 },
+        { "lat": 52.092, "lon": -0.987 },
+        { "lat": 52.105, "lon": -0.999 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 203,
+      "tags": { "name": "National Circuit" },
+      "geometry": [
+        { "lat": 52.078, "lon": -0.999 },
+        { "lat": 52.09, "lon": -0.993 },
+        { "lat": 52.105, "lon": -0.999 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 204,
+      "tags": { "name": "Silverstone Circuit" },
+      "geometry": [
+        { "lat": 52.105, "lon": -0.999 },
+        { "lat": 52.105, "lon": -1.02 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 205,
+      "tags": { "name": "Silverstone Circuit" },
+      "geometry": [
+        { "lat": 52.105, "lon": -1.02 },
+        { "lat": 52.078, "lon": -1.02 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 206,
+      "tags": { "name": "Access Road" },
+      "geometry": [
+        { "lat": 52.078, "lon": -1.02 },
+        { "lat": 52.071, "lon": -1.027 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 207,
+      "tags": { "name": "Pit Lane" },
+      "geometry": [
+        { "lat": 52.078, "lon": -0.999 },
+        { "lat": 52.072, "lon": -0.994 }
+      ]
+    }
+  ]
+}

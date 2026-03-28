@@ -222,7 +222,7 @@ function buildComponents(ways) {
   return [...groups.values()];
 }
 
-function stitchWaysOrdered(ways) {
+export function stitchWaysOrdered(ways) {
   if (ways.length === 0) return [];
   if (ways.length === 1) return ways[0].nodes;
 
@@ -268,7 +268,7 @@ function makeEndpointKey(node) {
   return `${Math.round(node.lat / SNAP_FUZZY)}:${Math.round(node.lon / SNAP_FUZZY)}`;
 }
 
-function buildWayGraph(ways) {
+export function buildWayGraph(ways) {
   const vertices = new Map();
   const edges = [];
 
@@ -304,7 +304,7 @@ function buildWayGraph(ways) {
   return { vertices, edges };
 }
 
-function buildCycleFromEdges(graph, edgeIds) {
+export function buildCycleFromEdges(graph, edgeIds) {
   if (!edgeIds.length) {
     return null;
   }
@@ -561,7 +561,7 @@ function walkBranchToJunction(graph, startVertexId, initialEdgeId) {
   return null;
 }
 
-function detectForkSections(graph, backboneEdgeIds = null) {
+export function detectForkSections(graph, backboneEdgeIds = null) {
   const sectionCandidates = [];
 
   for (const [vertexId, vertex] of graph.vertices.entries()) {
@@ -667,7 +667,7 @@ function enumerateBranchCombinations(sections, maxCombinations = 8) {
   return combinations;
 }
 
-function buildVariantLayouts(ways, graph, sections, trackName, backboneCycle) {
+export function buildVariantLayouts(ways, graph, sections, trackName, backboneCycle) {
   if (!backboneCycle?.nodes?.length) {
     return [];
   }
@@ -1127,7 +1127,7 @@ function buildNamedCircuitLayouts(ways, trackName) {
   return [];
 }
 
-function buildLayoutsFromWays(ways, trackName) {
+export function buildLayoutsFromWays(ways, trackName) {
   if (!ways.length) {
     return [];
   }
