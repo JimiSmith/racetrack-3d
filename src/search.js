@@ -83,11 +83,14 @@ async function runOverpassQuery(query, signal) {
   throw new Error(`All Overpass endpoints failed: ${errors.join('; ')}`);
 }
 
+const dist = (a, b) => Math.abs(a.lat - b.lat) + Math.abs(a.lon - b.lon);
+// Exact snap: shared OSM node (same coords). Fuzzy snap: slight gap in OSM data (~30m).
+const SNAP_EXACT = 1e-5;
+const SNAP_FUZZY = 3e-4; // ~30m — catches gaps in OSM data without pulling in distant outliers
+
 // Build connected components from a list of ways using endpoint proximity.
 // Returns arrays of way indices grouped by connectivity.
 function buildComponents(ways) {
-  const dist = (a, b) => Math.abs(a.lat - b.lat) + Math.abs(a.lon - b.lon);
-  const SNAP = 1e-5;
   const n = ways.length;
   const parent = Array.from({ length: n }, (_, i) => i);
 
@@ -103,8 +106,8 @@ function buildComponents(ways) {
     for (let j = i + 1; j < n; j++) {
       const sj = ways[j].nodes[0];
       const ej = ways[j].nodes[ways[j].nodes.length - 1];
-      if (dist(si, sj) < SNAP || dist(si, ej) < SNAP ||
-          dist(ei, sj) < SNAP || dist(ei, ej) < SNAP) {
+      if (dist(si, sj) < SNAP_FUZZY || dist(si, ej) < SNAP_FUZZY ||
+          dist(ei, sj) < SNAP_FUZZY || dist(ei, ej) < SNAP_FUZZY) {
         union(i, j);
       }
     }
@@ -125,35 +128,37 @@ function stitchWaysOrdered(ways) {
 
   const remaining = ways.map(w => ({ nodes: [...w.nodes] }));
   const chain = [...remaining.shift().nodes];
-  const dist = (a, b) => Math.abs(a.lat - b.lat) + Math.abs(a.lon - b.lon);
-  const SNAP = 1e-5;
 
   while (remaining.length > 0) {
     const chainStart = chain[0];
     const chainEnd = chain[chain.length - 1];
     let found = false;
 
-    for (let i = 0; i < remaining.length; i++) {
-      const way = remaining[i];
-      const wayStart = way.nodes[0];
-      const wayEnd = way.nodes[way.nodes.length - 1];
+    // First pass: exact snap
+    for (let snap of [SNAP_EXACT, SNAP_FUZZY]) {
+      for (let i = 0; i < remaining.length; i++) {
+        const way = remaining[i];
+        const wayStart = way.nodes[0];
+        const wayEnd = way.nodes[way.nodes.length - 1];
 
-      if (dist(chainEnd, wayStart) < SNAP) {
-        chain.push(...way.nodes.slice(1));
-        remaining.splice(i, 1); found = true; break;
-      } else if (dist(chainEnd, wayEnd) < SNAP) {
-        chain.push(...way.nodes.slice(0, -1).reverse());
-        remaining.splice(i, 1); found = true; break;
-      } else if (dist(chainStart, wayEnd) < SNAP) {
-        chain.unshift(...way.nodes.slice(0, -1));
-        remaining.splice(i, 1); found = true; break;
-      } else if (dist(chainStart, wayStart) < SNAP) {
-        chain.unshift(...way.nodes.slice(1).reverse());
-        remaining.splice(i, 1); found = true; break;
+        if (dist(chainEnd, wayStart) < snap) {
+          chain.push(...way.nodes.slice(1));
+          remaining.splice(i, 1); found = true; break;
+        } else if (dist(chainEnd, wayEnd) < snap) {
+          chain.push(...way.nodes.slice(0, -1).reverse());
+          remaining.splice(i, 1); found = true; break;
+        } else if (dist(chainStart, wayEnd) < snap) {
+          chain.unshift(...way.nodes.slice(0, -1));
+          remaining.splice(i, 1); found = true; break;
+        } else if (dist(chainStart, wayStart) < snap) {
+          chain.unshift(...way.nodes.slice(1).reverse());
+          remaining.splice(i, 1); found = true; break;
+        }
       }
+      if (found) break;
     }
 
-    if (!found) break; // stop rather than appending disconnected ways
+    if (!found) break; // no more connectable ways in this component
   }
 
   return chain;
