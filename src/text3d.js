@@ -379,6 +379,13 @@ function translateAndScaleContours(contours, scale, offsetX, offsetY) {
   })));
 }
 
+function flipContoursY(contours) {
+  return contours.map(contour => contour.map(point => ({
+    x: point.x,
+    y: -point.y,
+  })));
+}
+
 function computeOutlineBounds(points) {
   return polygonBounds(points?.outerRing ?? points);
 }
@@ -486,7 +493,7 @@ export function buildTextMesh(text, outlinePoints, basePlate, scale, options = {
   }
 
   const path = font.getPath(normalizedText, 0, 0, 1);
-  const contours = pathCommandsToContours(path.commands);
+  const contours = flipContoursY(pathCommandsToContours(path.commands));
   if (!contours.length) {
     return [];
   }

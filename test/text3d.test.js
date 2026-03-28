@@ -41,6 +41,45 @@ function createMockFont() {
   };
 }
 
+function createCanvasCoordinateLFont() {
+  return {
+    getPath() {
+      return {
+        commands: [
+          ...rectangleCommands(0, 0, 0.2, 1.2),
+          ...rectangleCommands(0, 0.95, 0.85, 0.25),
+        ],
+      };
+    },
+  };
+}
+
+function triangleArea2d(a, b, c) {
+  return Math.abs(
+    (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) / 2,
+  );
+}
+
+function sumTopFaceAreaByHalf(triangles) {
+  const topZ = Math.max(...triangles.flatMap(triangle => triangle.map(vertex => vertex.z)));
+  const topFaceTriangles = triangles.filter(triangle => triangle.every(vertex => vertex.z === topZ));
+  const ys = topFaceTriangles.flatMap(triangle => triangle.map(vertex => vertex.y));
+  const midY = (Math.min(...ys) + Math.max(...ys)) / 2;
+
+  return topFaceTriangles.reduce((areas, [a, b, c]) => {
+    const centroidY = (a.y + b.y + c.y) / 3;
+    const area = triangleArea2d(a, b, c);
+
+    if (centroidY <= midY) {
+      areas.lower += area;
+    } else {
+      areas.upper += area;
+    }
+
+    return areas;
+  }, { lower: 0, upper: 0 });
+}
+
 function largeHoleOutline() {
   return {
     outerRing: [
@@ -123,4 +162,19 @@ test('buildTextMesh returns non-empty triangles for a known good input', () => {
   );
 
   assert.ok(triangles.length > 0);
+});
+
+test('buildTextMesh restores upright glyph orientation from canvas-style font paths', () => {
+  const triangles = buildTextMesh(
+    'L',
+    largeHoleOutline(),
+    { minX: -100, maxX: 4100, minY: -100, maxY: 2600, width: 4200, height: 2700 },
+    0.05,
+    { font: createCanvasCoordinateLFont(), baseThickness: BASE_THICKNESS_MM },
+  );
+
+  assert.ok(triangles.length > 0);
+
+  const { lower, upper } = sumTopFaceAreaByHalf(triangles);
+  assert.ok(lower > upper, `expected more top-face area in the lower half, got lower=${lower} upper=${upper}`);
 });
