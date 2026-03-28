@@ -1,7 +1,7 @@
 import earcut from 'earcut';
 
 const BASE_THICKNESS_MM = 8;
-const TRACK_HEIGHT_MM = 2;
+const TRACK_HEIGHT_MM = 20;
 
 function toMm(valueMetres) {
   return valueMetres * 1000;
