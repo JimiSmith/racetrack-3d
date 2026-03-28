@@ -115,7 +115,7 @@ function buildBasePlateMesh(basePlate, scale) {
   return triangles;
 }
 
-function buildTrackPrismMesh(outline, scale) {
+function buildTrackPrismMesh(outline, scale, projectedNodes = null) {
   // Accept {outerRing, holes} or plain array (fallback)
   const outerRing = ensureCounterClockwise(normalizeRing(outline?.outerRing ?? outline));
   const holeRings = (outline?.holes ?? []).map(h => normalizeRing(h));
@@ -140,9 +140,26 @@ function buildTrackPrismMesh(outline, scale) {
   }
 
   const bottomZ = BASE_THICKNESS_MM;
-  const topZ = BASE_THICKNESS_MM + TRACK_HEIGHT_MM;
+
+  // Nearest-node elevation lookup (in mm after scale)
+  function elevOffsetMm(px, py) {
+    if (!projectedNodes?.length) return 0;
+    let minDist = Infinity;
+    let elev = 0;
+    for (const node of projectedNodes) {
+      const dx = node.x - px;
+      const dy = node.y - py;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < minDist) { minDist = d2; elev = node.elevation ?? 0; }
+    }
+    return toScaled(elev, scale);
+  }
+
   const bottom = allVertices.map(p => createVertex(toScaled(p.x, scale), toScaled(p.y, scale), bottomZ));
-  const top    = allVertices.map(p => createVertex(toScaled(p.x, scale), toScaled(p.y, scale), topZ));
+  const top    = allVertices.map(p => {
+    const elevMm = elevOffsetMm(p.x, p.y);
+    return createVertex(toScaled(p.x, scale), toScaled(p.y, scale), bottomZ + TRACK_HEIGHT_MM + elevMm);
+  });
   const triangles = [];
 
   // Top and bottom faces
@@ -166,7 +183,7 @@ function buildTrackPrismMesh(outline, scale) {
   return triangles;
 }
 
-export function buildTrackModel({ outlinePoints, basePlate, trackName }) {
+export function buildTrackModel({ outlinePoints, basePlate, trackName, projectedNodes = null }) {
   void trackName;
 
   const scale = computeScale(basePlate);
@@ -174,7 +191,7 @@ export function buildTrackModel({ outlinePoints, basePlate, trackName }) {
   return {
     triangles: [
       ...buildBasePlateMesh(basePlate, scale),
-      ...buildTrackPrismMesh(outlinePoints, scale),  // outlinePoints is {outerRing, holes}
+      ...buildTrackPrismMesh(outlinePoints, scale, projectedNodes),
     ],
     scale,
   };

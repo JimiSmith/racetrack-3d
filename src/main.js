@@ -65,7 +65,7 @@ function updateLayoutSelector() {
   layoutHint.textContent = pickerState.hint;
 }
 
-function buildSelectedLayoutModel() {
+function buildSelectedLayoutModel(elevations = null) {
   const layout = getSelectedLayout(currentLayouts, currentLayoutIndex);
   if (!layout) {
     currentNodes = null;
@@ -77,7 +77,7 @@ function buildSelectedLayoutModel() {
     return;
   }
 
-  const projected = projectNodes(layout.nodes);
+  const projected = projectNodes(layout.nodes, elevations);
   const outline = buildTrackOutline(projected);
   const basePlate = buildBasePlate(outline);
 
@@ -88,6 +88,7 @@ function buildSelectedLayoutModel() {
     outlinePoints: outline,
     basePlate,
     trackName: currentTrack?.name,
+    projectedNodes: projected,
   });
 
   const layoutLabel = layout.name || `Layout ${currentLayoutIndex + 1}`;
@@ -110,9 +111,14 @@ function clearResults() {
 }
 
 async function loadElevations(nodes, exaggeration) {
-  const elevations = await fetchElevations(nodes, exaggeration);
-  console.log('Elevations:', elevations);
-  return elevations;
+  if (!nodes?.length) return;
+  try {
+    const elevations = await fetchElevations(nodes, exaggeration);
+    buildSelectedLayoutModel(elevations);
+    exaggerationWrap.hidden = false;
+  } catch (err) {
+    console.warn('Elevation loading failed, keeping flat model:', err);
+  }
 }
 
 async function handleSelect(track) {
@@ -136,7 +142,6 @@ async function handleSelect(track) {
     currentTrack = track;
     updateLayoutSelector();
     buildSelectedLayoutModel();
-    exaggerationWrap.hidden = true;
 
     const exaggeration = Number(exaggerationSlider.value);
     await loadElevations(getSelectedLayout(currentLayouts, currentLayoutIndex)?.nodes ?? [], exaggeration);
@@ -225,11 +230,10 @@ layoutSelect.addEventListener('change', async () => {
 
   currentLayoutIndex = normalizeSelectedLayoutIndex(currentLayouts, nextIndex);
   buildSelectedLayoutModel();
+  exaggerationWrap.hidden = true;
 
-  if (currentNodes) {
-    const exaggeration = Number(exaggerationSlider.value);
-    await loadElevations(currentNodes, exaggeration);
-  }
+  const exaggeration = Number(exaggerationSlider.value);
+  await loadElevations(getSelectedLayout(currentLayouts, currentLayoutIndex)?.nodes ?? [], exaggeration);
 });
 
 let debounceTimer;
