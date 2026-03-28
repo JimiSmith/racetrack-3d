@@ -137,6 +137,41 @@ function computeEndpointGap(nodes) {
   return Math.hypot(dx, dy);
 }
 
+// Fix "spikes" in a node chain where a section is traversed backwards.
+// A spike shows up as two near-180° reversals — the chain goes forward, then
+// abruptly backward (reversal 1), then forward again (reversal 2).
+// Reversing the section between the two reversal points fixes the winding.
+// Genuine sharp corners (hairpins) don't create paired reversals like this.
+function fixChainReversals(nodes) {
+  if (nodes.length < 6) return nodes;
+
+  const reversals = [];
+  for (let i = 1; i < nodes.length - 1; i++) {
+    const d1lat = nodes[i].lat - nodes[i - 1].lat;
+    const d1lon = nodes[i].lon - nodes[i - 1].lon;
+    const d2lat = nodes[i + 1].lat - nodes[i].lat;
+    const d2lon = nodes[i + 1].lon - nodes[i].lon;
+    const m1 = Math.sqrt(d1lat * d1lat + d1lon * d1lon);
+    const m2 = Math.sqrt(d2lat * d2lat + d2lon * d2lon);
+    if (m1 > 1e-10 && m2 > 1e-10) {
+      const dot = (d1lat * d2lat + d1lon * d2lon) / (m1 * m2);
+      if (dot < -0.9) reversals.push(i);
+    }
+  }
+
+  if (reversals.length < 2) return nodes;
+
+  // Fix in pairs: reverse the section between each consecutive pair of reversals
+  const result = [...nodes];
+  for (let i = 0; i + 1 < reversals.length; i += 2) {
+    const start = reversals[i];
+    const end = reversals[i + 1];
+    const section = result.slice(start + 1, end + 1).reverse();
+    result.splice(start + 1, end - start, ...section);
+  }
+  return result;
+}
+
 function dedupeSequentialNodes(nodes) {
   const deduped = [];
 
@@ -670,7 +705,7 @@ function buildVariantLayouts(ways, graph, sections, trackName) {
     layouts.push({
       id: `layout-${layouts.length + 1}`,
       name: sections.length === 1 ? (nameParts[0] ?? `Layout ${layouts.length + 1}`) : nameParts.join(' + '),
-      nodes: candidate.nodes,
+      nodes: fixChainReversals(candidate.nodes),
       area: candidate.area,
       stats: {
         lengthMetres: candidate.length,
