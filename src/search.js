@@ -683,6 +683,232 @@ function buildVariantLayouts(ways, graph, sections, trackName) {
   return layouts;
 }
 
+function buildOrderedCycleMetadata(graph, edgeIds) {
+  if (!edgeIds.length) {
+    return null;
+  }
+
+  const adjacency = new Map();
+  for (const edgeId of edgeIds) {
+    const edge = graph.edges[edgeId];
+
+    if (!adjacency.has(edge.start)) adjacency.set(edge.start, []);
+    if (!adjacency.has(edge.end)) adjacency.set(edge.end, []);
+    adjacency.get(edge.start).push(edgeId);
+    adjacency.get(edge.end).push(edgeId);
+  }
+
+  for (const connectedEdgeIds of adjacency.values()) {
+    if (connectedEdgeIds.length !== 2) {
+      return null;
+    }
+  }
+
+  const firstEdgeId = edgeIds[0];
+  const firstEdge = graph.edges[firstEdgeId];
+  const orderedEdges = [];
+  const orderedNodes = [...firstEdge.nodes];
+  const visitedEdges = new Set([firstEdgeId]);
+  let currentVertexId = firstEdge.end;
+  let previousEdgeId = firstEdgeId;
+
+  orderedEdges.push({
+    edgeId: firstEdgeId,
+  });
+
+  while (currentVertexId !== firstEdge.start) {
+    const nextEdgeId = adjacency.get(currentVertexId)?.find(edgeId => edgeId !== previousEdgeId);
+    if (nextEdgeId == null || visitedEdges.has(nextEdgeId)) {
+      return null;
+    }
+
+    const nextEdge = graph.edges[nextEdgeId];
+    const forward = nextEdge.start === currentVertexId;
+    const orientedNodes = forward ? nextEdge.nodes : [...nextEdge.nodes].reverse();
+    orderedNodes.push(...orientedNodes.slice(1));
+    orderedEdges.push({
+      edgeId: nextEdgeId,
+    });
+    visitedEdges.add(nextEdgeId);
+    previousEdgeId = nextEdgeId;
+    currentVertexId = forward ? nextEdge.end : nextEdge.start;
+  }
+
+  if (visitedEdges.size !== edgeIds.length) {
+    return null;
+  }
+
+  return {
+    nodes: dedupeSequentialNodes(orderedNodes),
+    orderedEdges,
+  };
+}
+
+function findClosestNodePositions(nodes, targetNode, maxDistance, limit = 8) {
+  const searchNodes = nodes.length > 1 ? nodes.slice(0, -1) : nodes;
+  const matches = searchNodes
+    .map((node, index) => ({ index, distance: dist(node, targetNode) }))
+    .filter(match => match.distance <= maxDistance)
+    .sort((a, b) => a.distance - b.distance || a.index - b.index);
+
+  return matches.slice(0, limit);
+}
+
+function sliceClosedNodeChain(nodes, startIndex, endIndex) {
+  const baseNodes = nodes.length > 1 ? nodes.slice(0, -1) : nodes;
+  if (!baseNodes.length) {
+    return [];
+  }
+
+  if (startIndex <= endIndex) {
+    return baseNodes.slice(startIndex, endIndex + 1);
+  }
+
+  return [...baseNodes.slice(startIndex), ...baseNodes.slice(0, endIndex + 1)];
+}
+
+function orientVariantNodes(variantNodes, startNode, endNode) {
+  const forwardScore = dist(variantNodes[0], startNode) + dist(variantNodes[variantNodes.length - 1], endNode);
+  const reverseScore = dist(variantNodes[0], endNode) + dist(variantNodes[variantNodes.length - 1], startNode);
+  return reverseScore < forwardScore ? [...variantNodes].reverse() : variantNodes;
+}
+
+function buildNamedGroupChain(namedWays) {
+  return dedupeSequentialNodes(stitchWaysOrdered(namedWays));
+}
+
+function buildSubstitutionLayouts(nameGroups, backboneGroupName, backboneWays, backboneCandidate) {
+  const backboneGraph = buildWayGraph(backboneWays);
+  const cycleMetadata = buildOrderedCycleMetadata(backboneGraph, backboneGraph.edges.map(edge => edge.id));
+  if (!cycleMetadata || cycleMetadata.orderedEdges.length !== backboneWays.length) {
+    return [];
+  }
+
+  const MAX_ENDPOINT_MATCH_DISTANCE = SNAP_FUZZY * 8;
+  const MIN_LENGTH = 1000;
+  const MAX_GAP_FRACTION = 0.2;
+  const layouts = [{
+    id: 'layout-1',
+    name: backboneGroupName,
+    nodes: backboneCandidate.nodes,
+    stats: {
+      lengthMetres: backboneCandidate.length,
+      segmentCount: backboneWays.length,
+      variantSectionCount: 0,
+    },
+  }];
+
+  for (const [groupName, namedWays] of nameGroups) {
+    if (groupName === backboneGroupName) {
+      continue;
+    }
+
+    const variantNodes = buildNamedGroupChain(namedWays);
+    if (variantNodes.length < 2) {
+      continue;
+    }
+
+    const startMatches = findClosestNodePositions(
+      cycleMetadata.nodes,
+      variantNodes[0],
+      MAX_ENDPOINT_MATCH_DISTANCE,
+    );
+    const endMatches = findClosestNodePositions(
+      cycleMetadata.nodes,
+      variantNodes[variantNodes.length - 1],
+      MAX_ENDPOINT_MATCH_DISTANCE,
+    );
+
+    if (!startMatches.length || !endMatches.length) {
+      continue;
+    }
+
+    const variantLength = measureWaySetLength(namedWays);
+    let bestLayout = null;
+
+    for (const startMatch of startMatches) {
+      for (const endMatch of endMatches) {
+        if (startMatch.index === endMatch.index) {
+          continue;
+        }
+
+        const forwardReplacementNodes = sliceClosedNodeChain(cycleMetadata.nodes, startMatch.index, endMatch.index);
+        const reverseReplacementNodes = sliceClosedNodeChain(cycleMetadata.nodes, endMatch.index, startMatch.index);
+        const replacementCandidates = [
+          {
+            replacementNodes: forwardReplacementNodes,
+            preservedNodes: reverseReplacementNodes,
+            variantNodes: orientVariantNodes(variantNodes, forwardReplacementNodes[0], forwardReplacementNodes[forwardReplacementNodes.length - 1]),
+          },
+          {
+            replacementNodes: reverseReplacementNodes,
+            preservedNodes: forwardReplacementNodes,
+            variantNodes: orientVariantNodes(variantNodes, reverseReplacementNodes[0], reverseReplacementNodes[reverseReplacementNodes.length - 1]),
+          },
+        ].map(option => ({
+          ...option,
+          replacementLength: measurePolylineLength(option.replacementNodes),
+        })).sort((a, b) => {
+          const delta = Math.abs(a.replacementLength - variantLength) - Math.abs(b.replacementLength - variantLength);
+          if (Math.abs(delta) > 1) {
+            return delta;
+          }
+          return a.replacementLength - b.replacementLength;
+        });
+
+        const replacement = replacementCandidates[0];
+        if (!replacement?.preservedNodes?.length || replacement.preservedNodes.length < 2) {
+          continue;
+        }
+
+        const selectedWays = [
+          { nodes: replacement.preservedNodes, tags: { name: backboneGroupName } },
+          { nodes: replacement.variantNodes, tags: { name: groupName } },
+        ];
+
+        const candidate = buildCandidateFromWays(selectedWays);
+        if (!candidate || candidate.nodes.length < 4) {
+          continue;
+        }
+        if (candidate.length < MIN_LENGTH) {
+          continue;
+        }
+        if (candidate.endpointGap > candidate.length * MAX_GAP_FRACTION) {
+          continue;
+        }
+
+        const score = (startMatch.distance + endMatch.distance) * 1000000
+          + Math.abs(candidate.length - backboneCandidate.length)
+          + Math.abs(replacement.replacementLength - variantLength);
+        if (!bestLayout || score < bestLayout.score) {
+          bestLayout = {
+            score,
+            candidate,
+            selectedWays,
+          };
+        }
+      }
+    }
+
+    if (!bestLayout) {
+      continue;
+    }
+
+    layouts.push({
+      id: `layout-${layouts.length + 1}`,
+      name: groupName,
+      nodes: bestLayout.candidate.nodes,
+      stats: {
+        lengthMetres: bestLayout.candidate.length,
+        segmentCount: bestLayout.selectedWays.length,
+        variantSectionCount: 1,
+      },
+    });
+  }
+
+  return layouts.length >= 2 ? layouts : [];
+}
+
 // Detect layouts from ways that carry distinct "circuit-level" names.
 // E.g. Bahrain: "Grand Prix Circuit", "Inner Circuit", "Endurance Circuit" — each
 // group of named ways forms a COMPLETE standalone circuit on its own.
@@ -709,7 +935,7 @@ function buildNamedCircuitLayouts(ways, trackName) {
 
   if (nameGroups.size < 2) return [];
 
-  const layouts = [];
+  const standaloneLayouts = [];
   for (const [groupName, namedWays] of nameGroups) {
     // Only use the named ways — no shared backbone mixing
     const candidate = buildCandidateFromWays(namedWays);
@@ -718,10 +944,12 @@ function buildNamedCircuitLayouts(ways, trackName) {
     // Must form a near-closed loop on its own
     if (candidate.endpointGap > candidate.length * MAX_GAP_FRACTION) continue;
 
-    layouts.push({
-      id: `layout-${layouts.length + 1}`,
+    standaloneLayouts.push({
+      id: `layout-${standaloneLayouts.length + 1}`,
       name: groupName,
       nodes: candidate.nodes,
+      candidate,
+      ways: namedWays,
       stats: {
         lengthMetres: candidate.length,
         segmentCount: namedWays.length,
@@ -731,10 +959,28 @@ function buildNamedCircuitLayouts(ways, trackName) {
   }
 
   // Need at least 2 valid standalone circuits to show a picker
-  if (layouts.length < 2) return [];
+  if (standaloneLayouts.length >= 2) {
+    standaloneLayouts.sort((a, b) => b.stats.lengthMetres - a.stats.lengthMetres);
+    return standaloneLayouts.map(({ candidate, ways: groupedWays, ...layout }) => layout);
+  }
 
-  layouts.sort((a, b) => b.stats.lengthMetres - a.stats.lengthMetres);
-  return layouts;
+  if (standaloneLayouts.length !== 1) {
+    return [];
+  }
+
+  const backboneLayout = standaloneLayouts[0];
+  const substitutionLayouts = buildSubstitutionLayouts(
+    nameGroups,
+    backboneLayout.name,
+    backboneLayout.ways,
+    backboneLayout.candidate,
+  );
+  if (substitutionLayouts.length >= 2) {
+    substitutionLayouts.sort((a, b) => b.stats.lengthMetres - a.stats.lengthMetres);
+    return substitutionLayouts;
+  }
+
+  return [];
 }
 
 function buildLayoutsFromWays(ways, trackName) {
