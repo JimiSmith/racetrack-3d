@@ -683,6 +683,66 @@ function buildVariantLayouts(ways, graph, sections, trackName) {
   return layouts;
 }
 
+// Detect layouts from ways that carry distinct "circuit-level" names.
+// E.g. Bahrain has "Grand Prix Circuit", "Inner Circuit", "Endurance Circuit" etc.
+// Returns [] if no clear multi-circuit naming is detected.
+function buildNamedCircuitLayouts(ways, trackName) {
+  const CIRCUIT_KEYWORD = /\b(circuit|layout|oval|grand[\s_-]*prix|national|endurance|inner|outer|short)\b/i;
+
+  // Build name → ways map (only consider non-empty names that hint at distinct circuits)
+  const nameGroups = new Map();
+  for (const way of ways) {
+    const name = (way.tags?.name ?? '').trim();
+    if (!name || !CIRCUIT_KEYWORD.test(name)) continue;
+    if (!nameGroups.has(name)) nameGroups.set(name, []);
+    nameGroups.get(name).push(way);
+  }
+
+  if (nameGroups.size < 2) return []; // nothing to differentiate
+
+  // For each named group, expand with unnamed ways that sit in the same connected component
+  const unnamedWays = ways.filter(w => !(w.tags?.name ?? '').trim() || !CIRCUIT_KEYWORD.test(w.tags.name));
+
+  const layouts = [];
+  for (const [groupName, namedWays] of nameGroups) {
+    // Start from the named ways and add unnamed ways that connect to them
+    const seed = new Set(namedWays.map(w => w.id ?? Math.random()));
+    const combined = [...namedWays];
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const uw of unnamedWays) {
+        if (combined.includes(uw)) continue;
+        const connects = combined.some(cw => {
+          const cs = cw.nodes[0], ce = cw.nodes[cw.nodes.length - 1];
+          const us = uw.nodes[0], ue = uw.nodes[uw.nodes.length - 1];
+          return dist(cs, us) < SNAP_FUZZY || dist(cs, ue) < SNAP_FUZZY ||
+                 dist(ce, us) < SNAP_FUZZY || dist(ce, ue) < SNAP_FUZZY;
+        });
+        if (connects) { combined.push(uw); changed = true; }
+      }
+    }
+
+    const candidate = buildCandidateFromWays(combined);
+    if (!candidate || candidate.nodes.length < 4 || candidate.length < 500) continue;
+
+    layouts.push({
+      id: `layout-${layouts.length + 1}`,
+      name: groupName,
+      nodes: candidate.nodes,
+      stats: {
+        lengthMetres: candidate.length,
+        segmentCount: combined.length,
+        variantSectionCount: 0,
+      },
+    });
+  }
+
+  // Sort longest first (GP circuit > inner > short etc.)
+  layouts.sort((a, b) => b.stats.lengthMetres - a.stats.lengthMetres);
+  return layouts;
+}
+
 function buildLayoutsFromWays(ways, trackName) {
   if (!ways.length) {
     return [];
@@ -777,6 +837,15 @@ export async function fetchTrackGeometry(lat, lon, signal, trackName) {
   });
 
   const componentWays = bestComponent.map(index => waysWithGeom[index]);
+
+  // Pre-pass: if the component contains multiple explicitly-named distinct circuits
+  // (e.g. Bahrain's "Grand Prix Circuit", "Inner Circuit", "Endurance Circuit"),
+  // offer each as a named layout before falling through to fork-based detection.
+  const namedLayouts = buildNamedCircuitLayouts(componentWays, trackName);
+  if (namedLayouts.length > 1) {
+    return { layouts: namedLayouts, selectedLayoutIndex: 0 };
+  }
+
   const layouts = buildLayoutsFromWays(componentWays, trackName);
 
   if (layouts.length === 0) {
