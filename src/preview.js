@@ -91,10 +91,12 @@ function fitCameraToModel() {
 
   camera.near = Math.max(0.1, maxDim / 100);
   camera.far = maxDim * 20;
+  // Model is flat in XZ plane (Y-up after rotation).
+  // Start from above and slightly in front so the circuit is immediately visible.
   camera.position.set(
-    center.x + distance * 0.7,
-    center.y - distance * 1.15,
-    center.z + distance,
+    center.x,
+    center.y + distance * 1.4,
+    center.z + distance * 0.6,
   );
   camera.updateProjectionMatrix();
 
