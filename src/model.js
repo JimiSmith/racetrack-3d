@@ -115,36 +115,52 @@ function buildBasePlateMesh(basePlate, scale) {
   return triangles;
 }
 
-function buildTrackPrismMesh(outlinePoints, scale) {
-  const ring = ensureCounterClockwise(normalizeRing(outlinePoints));
-  const flattened = [];
+function buildTrackPrismMesh(outline, scale) {
+  // Accept {outerRing, holes} or plain array (fallback)
+  const outerRing = ensureCounterClockwise(normalizeRing(outline?.outerRing ?? outline));
+  const holeRings = (outline?.holes ?? []).map(h => normalizeRing(h));
 
-  for (const point of ring) {
-    flattened.push(toScaled(point.x, scale), toScaled(point.y, scale));
+  // Flatten all rings for earcut: [outerRing, ...holes]
+  const allRings = [outerRing, ...holeRings];
+  const flattened = [];
+  const holeIndices = [];
+  const allVertices = []; // parallel flat list of {x,y} for vertex lookup
+
+  for (const ring of allRings) {
+    if (flattened.length > 0) holeIndices.push(allVertices.length);
+    for (const point of ring) {
+      flattened.push(toScaled(point.x, scale), toScaled(point.y, scale));
+      allVertices.push(point);
+    }
   }
 
-  const indices = earcut(flattened);
+  const indices = earcut(flattened, holeIndices.length ? holeIndices : null);
   if (indices.length < 3) {
     throw new Error('Failed to triangulate track outline');
   }
 
   const bottomZ = BASE_THICKNESS_MM;
   const topZ = BASE_THICKNESS_MM + TRACK_HEIGHT_MM;
-  const bottom = ring.map(point => createVertex(toScaled(point.x, scale), toScaled(point.y, scale), bottomZ));
-  const top = ring.map(point => createVertex(toScaled(point.x, scale), toScaled(point.y, scale), topZ));
+  const bottom = allVertices.map(p => createVertex(toScaled(p.x, scale), toScaled(p.y, scale), bottomZ));
+  const top    = allVertices.map(p => createVertex(toScaled(p.x, scale), toScaled(p.y, scale), topZ));
   const triangles = [];
 
+  // Top and bottom faces
   for (let i = 0; i < indices.length; i += 3) {
-    const a = indices[i];
-    const b = indices[i + 1];
-    const c = indices[i + 2];
+    const a = indices[i], b = indices[i + 1], c = indices[i + 2];
     addTriangle(triangles, top[a], top[b], top[c]);
     addTriangle(triangles, bottom[c], bottom[b], bottom[a]);
   }
 
-  for (let i = 0; i < ring.length; i += 1) {
-    const nextIndex = (i + 1) % ring.length;
-    addQuad(triangles, bottom[i], bottom[nextIndex], top[nextIndex], top[i]);
+  // Side walls for each ring (track offsets built alongside allVertices above)
+  let ringOffset = 0;
+  for (const ring of allRings) {
+    for (let i = 0; i < ring.length; i++) {
+      const curr = ringOffset + i;
+      const next = ringOffset + (i + 1) % ring.length;
+      addQuad(triangles, bottom[curr], bottom[next], top[next], top[curr]);
+    }
+    ringOffset += ring.length;
   }
 
   return triangles;
@@ -158,7 +174,7 @@ export function buildTrackModel({ outlinePoints, basePlate, trackName }) {
   return {
     triangles: [
       ...buildBasePlateMesh(basePlate, scale),
-      ...buildTrackPrismMesh(outlinePoints, scale),
+      ...buildTrackPrismMesh(outlinePoints, scale),  // outlinePoints is {outerRing, holes}
     ],
     scale,
   };

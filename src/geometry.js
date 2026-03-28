@@ -30,12 +30,17 @@ export function buildTrackOutline(nodes, widthMetres = 12) {
   const bufferKm = widthMetres / 2 / 1000;
   const buffered = turf.buffer(line, bufferKm, { units: 'kilometers' });
 
-  // Outer ring of the buffer polygon → back to metres
-  const ring = buffered.geometry.coordinates[0];
-  return ring.map(([lon, lat]) => ({ x: lon * 111320, y: lat * 111320 }));
+  // Outer ring + any inner hole rings (donut shape for closed circuits)
+  const toMetres = ring => ring.map(([lon, lat]) => ({ x: lon * 111320, y: lat * 111320 }));
+  return {
+    outerRing: toMetres(buffered.geometry.coordinates[0]),
+    holes: buffered.geometry.coordinates.slice(1).map(toMetres),
+  };
 }
 
-export function buildBasePlate(outlinePoints, margin = 50) {
+export function buildBasePlate(outline, margin = 50) {
+  // Accept either the full outline object {outerRing, holes} or a plain array
+  const outlinePoints = outline?.outerRing ?? outline;
   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
   for (const { x, y } of outlinePoints) {
     if (x < minX) minX = x;
