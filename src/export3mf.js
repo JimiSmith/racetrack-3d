@@ -18,12 +18,17 @@ function formatCoordinate(value) {
   return (Math.round(value * 10000) / 10000).toFixed(4);
 }
 
-function splitTriangles(triangles) {
+function splitTriangles(model) {
+  const triangles = model?.triangles ?? [];
+  const baseTriangleCount = Number.isInteger(model?.baseTriangleCount)
+    ? model.baseTriangleCount
+    : null;
   const baseTriangles = [];
   const trackTriangles = [];
 
-  for (const triangle of triangles) {
-    if (triangle.every(vertex => vertex.z <= BASE_THICKNESS_MM)) {
+  for (let index = 0; index < triangles.length; index += 1) {
+    const triangle = triangles[index];
+    if ((baseTriangleCount !== null && index < baseTriangleCount) || triangle.every(vertex => vertex.z <= BASE_THICKNESS_MM)) {
       baseTriangles.push(triangle);
     } else {
       trackTriangles.push(triangle);
@@ -37,7 +42,7 @@ export function build3mfModelXml(model) {
   const vertexIndexes = new Map();
   const vertices = [];
   const triangleEntries = [];
-  const { baseTriangles, trackTriangles } = splitTriangles(model?.triangles ?? []);
+  const { baseTriangles, trackTriangles } = splitTriangles(model);
 
   function getVertexIndex(vertex) {
     const x = formatCoordinate(vertex.x);

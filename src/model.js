@@ -1,5 +1,7 @@
 import earcut from 'earcut';
 
+import { buildTextMesh } from './text3d.js';
+
 export const BASE_THICKNESS_MM = 8;
 const TRACK_HEIGHT_MM = 3;
 const TARGET_MAX_SIZE_MM = 200; // fit model within this bounding box dimension
@@ -184,15 +186,16 @@ function buildTrackPrismMesh(outline, scale, projectedNodes = null) {
 }
 
 export function buildTrackModel({ outlinePoints, basePlate, trackName, projectedNodes = null }) {
-  void trackName;
-
   const scale = computeScale(basePlate);
+  const basePlateTriangles = buildBasePlateMesh(basePlate, scale);
+  const textTriangles = trackName
+    ? buildTextMesh(trackName, outlinePoints, basePlate, scale, { baseThickness: BASE_THICKNESS_MM })
+    : [];
+  const trackTriangles = buildTrackPrismMesh(outlinePoints, scale, projectedNodes);
 
   return {
-    triangles: [
-      ...buildBasePlateMesh(basePlate, scale),
-      ...buildTrackPrismMesh(outlinePoints, scale, projectedNodes),
-    ],
+    triangles: [...basePlateTriangles, ...textTriangles, ...trackTriangles],
+    baseTriangleCount: basePlateTriangles.length + textTriangles.length,
     scale,
   };
 }

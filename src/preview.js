@@ -172,9 +172,13 @@ export function updatePreview(model) {
 
   const baseTriangles = [];
   const trackTriangles = [];
+  const baseTriangleCount = Number.isInteger(model.baseTriangleCount)
+    ? model.baseTriangleCount
+    : null;
 
-  for (const triangle of model.triangles) {
-    if (triangle.every(vertex => vertex.z <= BASE_THICKNESS_MM)) {
+  for (let index = 0; index < model.triangles.length; index += 1) {
+    const triangle = model.triangles[index];
+    if ((baseTriangleCount !== null && index < baseTriangleCount) || triangle.every(vertex => vertex.z <= BASE_THICKNESS_MM)) {
       baseTriangles.push(triangle);
     } else {
       trackTriangles.push(triangle);
