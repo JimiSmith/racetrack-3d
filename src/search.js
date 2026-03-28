@@ -685,6 +685,11 @@ function buildVariantLayouts(ways, graph, sections, trackName) {
 
 // Detect layouts from ways that carry distinct "circuit-level" names.
 // E.g. Bahrain has "Grand Prix Circuit", "Inner Circuit", "Endurance Circuit" etc.
+//
+// Key insight: unnamed ways = SHARED backbone (all layouts use them).
+// Named circuit ways = VARIANT sections (each group creates one layout).
+// Each layout = shared unnamed ways + one named group's ways.
+//
 // Returns [] if no clear multi-circuit naming is detected.
 function buildNamedCircuitLayouts(ways, trackName) {
   const CIRCUIT_KEYWORD = /\b(circuit|layout|oval|grand[\s_-]*prix|national|endurance|inner|outer|short)\b/i;
@@ -700,28 +705,16 @@ function buildNamedCircuitLayouts(ways, trackName) {
 
   if (nameGroups.size < 2) return []; // nothing to differentiate
 
-  // For each named group, expand with unnamed ways that sit in the same connected component
-  const unnamedWays = ways.filter(w => !(w.tags?.name ?? '').trim() || !CIRCUIT_KEYWORD.test(w.tags.name));
+  // Shared backbone = all ways NOT in any circuit-named group
+  const sharedWays = ways.filter(w => {
+    const name = (w.tags?.name ?? '').trim();
+    return !name || !CIRCUIT_KEYWORD.test(name);
+  });
 
   const layouts = [];
   for (const [groupName, namedWays] of nameGroups) {
-    // Start from the named ways and add unnamed ways that connect to them
-    const seed = new Set(namedWays.map(w => w.id ?? Math.random()));
-    const combined = [...namedWays];
-    let changed = true;
-    while (changed) {
-      changed = false;
-      for (const uw of unnamedWays) {
-        if (combined.includes(uw)) continue;
-        const connects = combined.some(cw => {
-          const cs = cw.nodes[0], ce = cw.nodes[cw.nodes.length - 1];
-          const us = uw.nodes[0], ue = uw.nodes[uw.nodes.length - 1];
-          return dist(cs, us) < SNAP_FUZZY || dist(cs, ue) < SNAP_FUZZY ||
-                 dist(ce, us) < SNAP_FUZZY || dist(ce, ue) < SNAP_FUZZY;
-        });
-        if (connects) { combined.push(uw); changed = true; }
-      }
-    }
+    // Layout = shared backbone + this group's variant ways
+    const combined = [...sharedWays, ...namedWays];
 
     const candidate = buildCandidateFromWays(combined);
     if (!candidate || candidate.nodes.length < 4 || candidate.length < 500) continue;
