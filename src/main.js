@@ -13,12 +13,17 @@ const generateStlButtonLabel = generateStlButton.textContent;
 const exaggerationWrap = document.getElementById('exaggeration-wrap');
 const exaggerationSlider = document.getElementById('exaggeration');
 const exaggerationLabel = document.getElementById('exaggeration-label');
+const layoutWrap = document.getElementById('layout-wrap');
+const layoutSelect = document.getElementById('layout-select');
+const layoutHint = document.getElementById('layout-hint');
 
 let currentNodes = null;
 let currentTrack = null;
 let currentOutline = null;
 let currentBasePlate = null;
 let currentModel = null;
+let currentLayouts = [];
+let currentLayoutIndex = 0;
 let isGeneratingStl = false;
 
 function setStatus(msg, isError = false) {
@@ -36,6 +41,77 @@ function slugifyFileName(value) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '') || 'racetrack';
+}
+
+function getSelectedLayout() {
+  return currentLayouts[currentLayoutIndex] ?? null;
+}
+
+function formatLayoutOptionLabel(layout, index) {
+  const fallback = `Layout ${index + 1}`;
+  const name = layout?.name?.trim() || fallback;
+  const lengthKm = layout?.stats?.lengthMetres ? layout.stats.lengthMetres / 1000 : null;
+  return Number.isFinite(lengthKm) ? `${name} - ${lengthKm.toFixed(1)} km` : name;
+}
+
+function updateLayoutSelector() {
+  layoutSelect.innerHTML = '';
+
+  if (currentLayouts.length <= 1) {
+    layoutWrap.hidden = true;
+    layoutHint.textContent = '';
+    return;
+  }
+
+  currentLayouts.forEach((layout, index) => {
+    const option = document.createElement('option');
+    option.value = String(index);
+    option.textContent = formatLayoutOptionLabel(layout, index);
+    option.selected = index === currentLayoutIndex;
+    layoutSelect.appendChild(option);
+  });
+
+  layoutWrap.hidden = false;
+  layoutHint.textContent = `${currentLayouts.length} plausible layouts found.`;
+}
+
+function buildSelectedLayoutModel() {
+  const layout = getSelectedLayout();
+  if (!layout) {
+    currentNodes = null;
+    currentOutline = null;
+    currentBasePlate = null;
+    currentModel = null;
+    updatePreview(null);
+    updateGenerateButton();
+    return;
+  }
+
+  const projected = projectNodes(layout.nodes);
+  const outline = buildTrackOutline(projected);
+  const basePlate = buildBasePlate(outline);
+
+  currentNodes = layout.nodes;
+  currentOutline = outline;
+  currentBasePlate = basePlate;
+  currentModel = buildTrackModel({
+    outlinePoints: outline,
+    basePlate,
+    trackName: currentTrack?.name,
+  });
+
+  const layoutLabel = layout.name || `Layout ${currentLayoutIndex + 1}`;
+  const segmentCount = layout.stats?.segmentCount;
+  const lengthKm = layout.stats?.lengthMetres ? layout.stats.lengthMetres / 1000 : null;
+  const detailParts = [
+    Number.isFinite(lengthKm) ? `${lengthKm.toFixed(1)} km` : null,
+    Number.isFinite(segmentCount) ? `${segmentCount} segment${segmentCount === 1 ? '' : 's'}` : null,
+    `${basePlate.width.toFixed(0)}m×${basePlate.height.toFixed(0)}m`,
+  ].filter(Boolean);
+  setStatus(`${currentTrack.name}: ${layoutLabel} · ${detailParts.join(' · ')}`);
+
+  updatePreview(currentModel);
+  updateGenerateButton();
 }
 
 function clearResults() {
@@ -60,37 +136,27 @@ async function handleSelect(track) {
   currentOutline = null;
   currentBasePlate = null;
   currentModel = null;
+  currentLayouts = [];
+  currentLayoutIndex = 0;
+  updateLayoutSelector();
   updatePreview(null);
   updateGenerateButton();
   try {
-    const nodes = await fetchTrackGeometry(track.lat, track.lon, undefined, track.name);
-    setStatus(`Loaded ${nodes.length} nodes for ${track.name}`);
-    console.log('Track geometry:', track, nodes);
-
-    const projected = projectNodes(nodes);
-    const outline = buildTrackOutline(projected);
-    const basePlate = buildBasePlate(outline);
-    setStatus(`Outline: ${outline.outerRing.length} pts · ${basePlate.width.toFixed(0)}m×${basePlate.height.toFixed(0)}m · ${track.lat.toFixed(4)},${track.lon.toFixed(4)}`);
-    console.log('Track outline:', outline);
-
-    currentNodes = nodes;
+    const geometry = await fetchTrackGeometry(track.lat, track.lon, undefined, track.name);
+    currentLayouts = geometry.layouts ?? [];
+    currentLayoutIndex = Math.min(geometry.selectedLayoutIndex ?? 0, Math.max(currentLayouts.length - 1, 0));
     currentTrack = track;
-    currentOutline = outline;
-    currentBasePlate = basePlate;
-    currentModel = buildTrackModel({
-      outlinePoints: outline,
-      basePlate,
-      trackName: track.name,
-    });
+    updateLayoutSelector();
+    buildSelectedLayoutModel();
     exaggerationWrap.hidden = true;
-    updatePreview(currentModel);
-    updateGenerateButton();
 
     const exaggeration = Number(exaggerationSlider.value);
-    await loadElevations(nodes, exaggeration);
+    await loadElevations(getSelectedLayout()?.nodes ?? [], exaggeration);
   } catch (err) {
     currentNodes = null;
+    currentLayouts = [];
     currentModel = null;
+    updateLayoutSelector();
     updatePreview(null);
     setStatus(`Error loading geometry: ${err.message}`, true);
     console.error(err);
@@ -114,7 +180,9 @@ generateStlButton.addEventListener('click', async () => {
     });
 
     setStatus('Serializing STL file…');
-    const fileName = `${slugifyFileName(currentTrack.name)}.stl`;
+    const layout = getSelectedLayout();
+    const layoutSuffix = currentLayouts.length > 1 ? `-${slugifyFileName(layout?.name || `layout-${currentLayoutIndex + 1}`)}` : '';
+    const fileName = `${slugifyFileName(currentTrack.name)}${layoutSuffix}.stl`;
     const result = exportStl(model, fileName);
     setStatus(`Downloaded ${result.fileName} (${result.triangleCount} triangles)`);
   } catch (err) {
@@ -155,6 +223,25 @@ exaggerationSlider.addEventListener('input', () => {
     const exaggeration = Number(exaggerationSlider.value);
     await loadElevations(currentNodes, exaggeration);
   }, 150);
+});
+
+layoutSelect.addEventListener('change', async () => {
+  if (!currentLayouts.length) {
+    return;
+  }
+
+  const nextIndex = Number(layoutSelect.value);
+  if (!Number.isInteger(nextIndex) || nextIndex < 0 || nextIndex >= currentLayouts.length) {
+    return;
+  }
+
+  currentLayoutIndex = nextIndex;
+  buildSelectedLayoutModel();
+
+  if (currentNodes) {
+    const exaggeration = Number(exaggerationSlider.value);
+    await loadElevations(currentNodes, exaggeration);
+  }
 });
 
 let debounceTimer;
