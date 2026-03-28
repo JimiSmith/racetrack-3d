@@ -15,6 +15,7 @@
   "dependencies": {
     "@turf/turf": "^7.3.4",
     "earcut": "^3.0.2",
+    "fflate": "^0.8.2",
     "three": "^0.183.2"
   }
 }

@@ -3,6 +3,7 @@ import { searchTracks, fetchTrackGeometry } from './search.js';
 import { projectNodes, buildTrackOutline, buildBasePlate } from './geometry.js';
 import { fetchElevations } from './elevation.js';
 import { buildTrackModel, exportStl } from './model.js';
+import { export3mf } from './export3mf.js';
 import { initPreview, updatePreview } from './preview.js';
 import {
   buildLayoutPickerState,
@@ -15,6 +16,8 @@ const resultsList = document.getElementById('search-results');
 const status = document.getElementById('status');
 const generateStlButton = document.getElementById('generate-stl');
 const generateStlButtonLabel = generateStlButton.textContent;
+const generate3mfButton = document.getElementById('generate-3mf');
+const generate3mfButtonLabel = generate3mfButton.textContent;
 const exaggerationWrap = document.getElementById('exaggeration-wrap');
 const exaggerationSlider = document.getElementById('exaggeration');
 const exaggerationLabel = document.getElementById('exaggeration-label');
@@ -30,6 +33,7 @@ let currentModel = null;
 let currentLayouts = [];
 let currentLayoutIndex = 0;
 let isGeneratingStl = false;
+let isGenerating3mf = false;
 
 function setStatus(msg, isError = false) {
   status.textContent = msg;
@@ -37,8 +41,12 @@ function setStatus(msg, isError = false) {
 }
 
 function updateGenerateButton() {
-  generateStlButton.disabled = isGeneratingStl || !currentOutline || !currentBasePlate || !currentTrack;
+  const disabled = !currentOutline || !currentBasePlate || !currentTrack;
+
+  generateStlButton.disabled = isGeneratingStl || isGenerating3mf || disabled;
+  generate3mfButton.disabled = isGeneratingStl || isGenerating3mf || disabled;
   generateStlButton.textContent = isGeneratingStl ? 'Generating STL…' : generateStlButtonLabel;
+  generate3mfButton.textContent = isGenerating3mf ? 'Generating 3MF…' : generate3mfButtonLabel;
 }
 
 function slugifyFileName(value) {
@@ -63,6 +71,28 @@ function updateLayoutSelector() {
 
   layoutWrap.hidden = pickerState.hidden;
   layoutHint.textContent = pickerState.hint;
+}
+
+function buildDownloadFileName(extension) {
+  const layout = getSelectedLayout(currentLayouts, currentLayoutIndex);
+  const layoutSuffix = currentLayouts.length > 1
+    ? `-${slugifyFileName(layout?.name || `layout-${currentLayoutIndex + 1}`)}`
+    : '';
+
+  return `${slugifyFileName(currentTrack.name)}${layoutSuffix}.${extension}`;
+}
+
+function triggerDownload(blob, fileName) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = fileName;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 function buildSelectedLayoutModel(elevations = null) {
@@ -173,9 +203,7 @@ generateStlButton.addEventListener('click', async () => {
     });
 
     setStatus('Serializing STL file…');
-    const layout = getSelectedLayout(currentLayouts, currentLayoutIndex);
-    const layoutSuffix = currentLayouts.length > 1 ? `-${slugifyFileName(layout?.name || `layout-${currentLayoutIndex + 1}`)}` : '';
-    const fileName = `${slugifyFileName(currentTrack.name)}${layoutSuffix}.stl`;
+    const fileName = buildDownloadFileName('stl');
     const result = exportStl(model, fileName);
     setStatus(`Downloaded ${result.fileName} (${result.triangleCount} triangles)`);
   } catch (err) {
@@ -183,6 +211,36 @@ generateStlButton.addEventListener('click', async () => {
     console.error(err);
   } finally {
     isGeneratingStl = false;
+    updateGenerateButton();
+  }
+});
+
+generate3mfButton.addEventListener('click', async () => {
+  if (!currentOutline || !currentBasePlate || !currentTrack || isGeneratingStl || isGenerating3mf) {
+    return;
+  }
+
+  isGenerating3mf = true;
+  updateGenerateButton();
+
+  try {
+    setStatus('Building 3MF mesh…');
+    const model = currentModel ?? buildTrackModel({
+      outlinePoints: currentOutline,
+      basePlate: currentBasePlate,
+      trackName: currentTrack.name,
+    });
+
+    setStatus('Packaging 3MF file…');
+    const fileName = buildDownloadFileName('3mf');
+    const result = export3mf(model, fileName);
+    triggerDownload(result.blob, result.fileName);
+    setStatus(`Downloaded ${result.fileName}`);
+  } catch (err) {
+    setStatus(`3MF export failed: ${err.message}`, true);
+    console.error(err);
+  } finally {
+    isGenerating3mf = false;
     updateGenerateButton();
   }
 });
