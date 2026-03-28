@@ -1,10 +1,18 @@
 import earcut from 'earcut';
 
 const BASE_THICKNESS_MM = 8;
-const TRACK_HEIGHT_MM = 20;
+const TRACK_HEIGHT_MM = 3;
+const TARGET_MAX_SIZE_MM = 200; // fit model within this bounding box dimension
 
-function toMm(valueMetres) {
-  return valueMetres * 1000;
+// Compute a scale factor so the outline fits within TARGET_MAX_SIZE_MM
+function computeScale(basePlate) {
+  const longestSide = Math.max(basePlate.width, basePlate.height); // metres
+  if (longestSide <= 0) return 1;
+  return TARGET_MAX_SIZE_MM / longestSide;
+}
+
+function toScaled(valueMetres, scale) {
+  return valueMetres * scale;
 }
 
 function normalizeRing(points) {
@@ -74,15 +82,15 @@ function addQuad(triangles, a, b, c, d) {
   addTriangle(triangles, a, c, d);
 }
 
-function buildBasePlateMesh(basePlate) {
+function buildBasePlateMesh(basePlate, scale) {
   if (!basePlate) {
     throw new Error('Base plate dimensions are missing');
   }
 
-  const minX = toMm(basePlate.minX);
-  const maxX = toMm(basePlate.maxX);
-  const minY = toMm(basePlate.minY);
-  const maxY = toMm(basePlate.maxY);
+  const minX = toScaled(basePlate.minX, scale);
+  const maxX = toScaled(basePlate.maxX, scale);
+  const minY = toScaled(basePlate.minY, scale);
+  const maxY = toScaled(basePlate.maxY, scale);
   const minZ = 0;
   const maxZ = BASE_THICKNESS_MM;
 
@@ -107,12 +115,12 @@ function buildBasePlateMesh(basePlate) {
   return triangles;
 }
 
-function buildTrackPrismMesh(outlinePoints) {
+function buildTrackPrismMesh(outlinePoints, scale) {
   const ring = ensureCounterClockwise(normalizeRing(outlinePoints));
   const flattened = [];
 
   for (const point of ring) {
-    flattened.push(toMm(point.x), toMm(point.y));
+    flattened.push(toScaled(point.x, scale), toScaled(point.y, scale));
   }
 
   const indices = earcut(flattened);
@@ -122,8 +130,8 @@ function buildTrackPrismMesh(outlinePoints) {
 
   const bottomZ = BASE_THICKNESS_MM;
   const topZ = BASE_THICKNESS_MM + TRACK_HEIGHT_MM;
-  const bottom = ring.map(point => createVertex(toMm(point.x), toMm(point.y), bottomZ));
-  const top = ring.map(point => createVertex(toMm(point.x), toMm(point.y), topZ));
+  const bottom = ring.map(point => createVertex(toScaled(point.x, scale), toScaled(point.y, scale), bottomZ));
+  const top = ring.map(point => createVertex(toScaled(point.x, scale), toScaled(point.y, scale), topZ));
   const triangles = [];
 
   for (let i = 0; i < indices.length; i += 3) {
@@ -145,11 +153,14 @@ function buildTrackPrismMesh(outlinePoints) {
 export function buildTrackModel({ outlinePoints, basePlate, trackName }) {
   void trackName;
 
+  const scale = computeScale(basePlate);
+
   return {
     triangles: [
-      ...buildBasePlateMesh(basePlate),
-      ...buildTrackPrismMesh(outlinePoints),
+      ...buildBasePlateMesh(basePlate, scale),
+      ...buildTrackPrismMesh(outlinePoints, scale),
     ],
+    scale,
   };
 }
 
