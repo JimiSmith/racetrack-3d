@@ -4,6 +4,11 @@ import { projectNodes, buildTrackOutline, buildBasePlate } from './geometry.js';
 import { fetchElevations } from './elevation.js';
 import { buildTrackModel, exportStl } from './model.js';
 import { initPreview, updatePreview } from './preview.js';
+import {
+  buildLayoutPickerState,
+  getSelectedLayout,
+  normalizeSelectedLayoutIndex,
+} from './layout-picker.js';
 
 const input = document.getElementById('search-input');
 const resultsList = document.getElementById('search-results');
@@ -43,43 +48,25 @@ function slugifyFileName(value) {
     .replace(/^-+|-+$/g, '') || 'racetrack';
 }
 
-function getSelectedLayout() {
-  return currentLayouts[currentLayoutIndex] ?? null;
-}
-
-function formatLayoutOptionLabel(layout, index) {
-  const fallback = `Layout ${index + 1}`;
-  const name = layout?.name?.trim() || fallback;
-  const lengthKm = layout?.stats?.lengthMetres ? layout.stats.lengthMetres / 1000 : null;
-  return Number.isFinite(lengthKm) ? `${name} - ${lengthKm.toFixed(1)} km` : name;
-}
-
 function updateLayoutSelector() {
+  const pickerState = buildLayoutPickerState(currentLayouts, currentLayoutIndex);
+  currentLayoutIndex = pickerState.selectedIndex;
   layoutSelect.innerHTML = '';
 
-  if (currentLayouts.length <= 1) {
-    layoutWrap.hidden = true;
-    layoutHint.textContent = '';
-    return;
+  for (const optionState of pickerState.options) {
+    const option = document.createElement('option');
+    option.value = optionState.value;
+    option.textContent = optionState.label;
+    option.selected = optionState.selected;
+    layoutSelect.appendChild(option);
   }
 
-  currentLayouts.forEach((layout, index) => {
-    const option = document.createElement('option');
-    option.value = String(index);
-    option.textContent = formatLayoutOptionLabel(layout, index);
-    option.selected = index === currentLayoutIndex;
-    layoutSelect.appendChild(option);
-  });
-
-  layoutWrap.hidden = false;
-  const variantSectionCount = currentLayouts[0]?.stats?.variantSectionCount ?? 1;
-  layoutHint.textContent = variantSectionCount === 1
-    ? 'Select the alternate section to use for the circuit.'
-    : `Select one of ${currentLayouts.length} fork-based layout combinations.`;
+  layoutWrap.hidden = pickerState.hidden;
+  layoutHint.textContent = pickerState.hint;
 }
 
 function buildSelectedLayoutModel() {
-  const layout = getSelectedLayout();
+  const layout = getSelectedLayout(currentLayouts, currentLayoutIndex);
   if (!layout) {
     currentNodes = null;
     currentOutline = null;
@@ -147,14 +134,14 @@ async function handleSelect(track) {
   try {
     const geometry = await fetchTrackGeometry(track.lat, track.lon, undefined, track.name);
     currentLayouts = geometry.layouts ?? [];
-    currentLayoutIndex = Math.min(geometry.selectedLayoutIndex ?? 0, Math.max(currentLayouts.length - 1, 0));
+    currentLayoutIndex = normalizeSelectedLayoutIndex(currentLayouts, geometry.selectedLayoutIndex ?? 0);
     currentTrack = track;
     updateLayoutSelector();
     buildSelectedLayoutModel();
     exaggerationWrap.hidden = true;
 
     const exaggeration = Number(exaggerationSlider.value);
-    await loadElevations(getSelectedLayout()?.nodes ?? [], exaggeration);
+    await loadElevations(getSelectedLayout(currentLayouts, currentLayoutIndex)?.nodes ?? [], exaggeration);
   } catch (err) {
     currentNodes = null;
     currentLayouts = [];
@@ -183,7 +170,7 @@ generateStlButton.addEventListener('click', async () => {
     });
 
     setStatus('Serializing STL file…');
-    const layout = getSelectedLayout();
+    const layout = getSelectedLayout(currentLayouts, currentLayoutIndex);
     const layoutSuffix = currentLayouts.length > 1 ? `-${slugifyFileName(layout?.name || `layout-${currentLayoutIndex + 1}`)}` : '';
     const fileName = `${slugifyFileName(currentTrack.name)}${layoutSuffix}.stl`;
     const result = exportStl(model, fileName);
@@ -238,7 +225,7 @@ layoutSelect.addEventListener('change', async () => {
     return;
   }
 
-  currentLayoutIndex = nextIndex;
+  currentLayoutIndex = normalizeSelectedLayoutIndex(currentLayouts, nextIndex);
   buildSelectedLayoutModel();
 
   if (currentNodes) {

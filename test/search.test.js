@@ -11,6 +11,13 @@ import {
   fetchTrackGeometry,
   stitchWaysOrdered,
 } from '../src/search.js';
+import {
+  expectApproxLength,
+  expectClosedish,
+  expectDistinctLayouts,
+  expectNoDuplicateSequentialNodes,
+  expectNoImmediateBacktrack,
+} from '../test-utils/layout-assertions.js';
 
 function loadFixture(name) {
   return JSON.parse(readFileSync(new URL(`./fixtures/${name}`, import.meta.url), 'utf8'));
@@ -23,6 +30,52 @@ function assertLayoutNames(layouts, expectedNames) {
 function assertClosedLayout(layout) {
   assert.ok(layout.nodes.length >= 4, `${layout.name} should have enough nodes`);
   assert.deepEqual(layout.nodes[0], layout.nodes[layout.nodes.length - 1], `${layout.name} should be closed`);
+}
+
+function assertLayoutInvariants(layout, { maxGapMeters = 15_000 } = {}) {
+  assertClosedLayout(layout);
+  expectClosedish(layout.nodes, maxGapMeters);
+  expectNoDuplicateSequentialNodes(layout.nodes);
+  expectNoImmediateBacktrack(layout.nodes);
+}
+
+function fixtureWays(name) {
+  const fixture = loadFixture(name);
+  return fixture.elements.map(element => ({
+    id: element.id,
+    tags: element.tags,
+    nodes: element.geometry,
+  }));
+}
+
+function renamedWays(ways, renameMap) {
+  return ways.map(way => ({
+    ...way,
+    tags: {
+      ...way.tags,
+      name: renameMap[way.tags?.name] ?? way.tags?.name,
+    },
+  }));
+}
+
+function duplicateNamedWays(ways, sourceName, duplicateName, coordinateOffset = 0.000005) {
+  const nextIdBase = Math.max(...ways.map(way => way.id)) + 1;
+  const duplicates = ways
+    .filter(way => way.tags?.name === sourceName)
+    .map((way, index) => ({
+      ...way,
+      id: nextIdBase + index,
+      tags: {
+        ...way.tags,
+        name: duplicateName,
+      },
+      nodes: way.nodes.map((node, nodeIndex) => ({
+        lat: node.lat + (nodeIndex % 2 === 0 ? coordinateOffset : -coordinateOffset),
+        lon: node.lon + (nodeIndex % 2 === 0 ? -coordinateOffset : coordinateOffset),
+      })),
+    }));
+
+  return [...ways, ...duplicates];
 }
 
 function withMockedFetch(payload, callback) {
@@ -127,21 +180,18 @@ test('buildVariantLayouts creates main and alternate layouts from one fork secti
   assert.equal(layouts[0].stats.variantSectionCount, 0);
   assert.equal(layouts[1].stats.variantSectionCount, 1);
   assert.ok(layouts[1].stats.lengthMetres > layouts[0].stats.lengthMetres);
-  layouts.forEach(assertClosedLayout);
+  layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 1 }));
+  expectDistinctLayouts(layouts[0], layouts[1]);
 });
 
 test('buildLayoutsFromWays keeps the same two fork-based layouts for a Spa-style fixture', () => {
-  const fixture = loadFixture('spa.json');
-  const ways = fixture.elements.map(element => ({
-    id: element.id,
-    tags: element.tags,
-    nodes: element.geometry,
-  }));
+  const ways = fixtureWays('spa.json');
 
   const layouts = buildLayoutsFromWays(ways, 'Circuit de Spa-Francorchamps');
 
   assertLayoutNames(layouts, ['Main', 'Moto']);
-  layouts.forEach(assertClosedLayout);
+  layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 20 }));
+  expectDistinctLayouts(layouts[0], layouts[1]);
 });
 
 test('fetchTrackGeometry keeps Silverstone branch layouts from a frozen fixture', async () => {
@@ -152,7 +202,8 @@ test('fetchTrackGeometry keeps Silverstone branch layouts from a frozen fixture'
 
   assert.equal(result.selectedLayoutIndex, 0);
   assertLayoutNames(result.layouts, ['Main', 'National Circuit']);
-  result.layouts.forEach(assertClosedLayout);
+  result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 20 }));
+  expectDistinctLayouts(result.layouts[0], result.layouts[1]);
 });
 
 test('fetchTrackGeometry returns named Bahrain layouts from frozen fixture data', async () => {
@@ -163,5 +214,91 @@ test('fetchTrackGeometry returns named Bahrain layouts from frozen fixture data'
 
   assert.equal(result.selectedLayoutIndex, 0);
   assertLayoutNames(result.layouts, ['Endurance Circuit', 'Grand Prix Circuit', 'Inner Circuit']);
-  result.layouts.forEach(assertClosedLayout);
+  result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 1 }));
+  expectDistinctLayouts(result.layouts[0], result.layouts[1]);
+  expectDistinctLayouts(result.layouts[0], result.layouts[2]);
+  expectDistinctLayouts(result.layouts[1], result.layouts[2]);
+});
+
+test('named-circuit detection distinguishes Bahrain standalone layouts from Spa branch alternates', async () => {
+  const bahrain = loadFixture('bahrain.json');
+  const spa = loadFixture('spa.json');
+
+  const [bahrainResult, spaResult] = await Promise.all([
+    withMockedFetch(bahrain, () =>
+      fetchTrackGeometry(26.0325, 50.5106, undefined, 'Bahrain International Circuit')),
+    withMockedFetch(spa, () =>
+      fetchTrackGeometry(50.4372, 5.9714, undefined, 'Circuit de Spa-Francorchamps')),
+  ]);
+
+  assertLayoutNames(bahrainResult.layouts, ['Endurance Circuit', 'Grand Prix Circuit', 'Inner Circuit']);
+  assertLayoutNames(spaResult.layouts, ['Main', 'Moto']);
+  bahrainResult.layouts.forEach(layout => assert.equal(layout.stats.variantSectionCount, 0));
+  assert.equal(spaResult.layouts[0].stats.variantSectionCount, 0);
+  assert.equal(spaResult.layouts[1].stats.variantSectionCount, 1);
+});
+
+test('Bahrain named layouts keep distinct approximate circuit lengths', async () => {
+  const fixture = loadFixture('bahrain.json');
+
+  const result = await withMockedFetch(fixture, () =>
+    fetchTrackGeometry(26.0325, 50.5106, undefined, 'Bahrain International Circuit'));
+
+  const byName = new Map(result.layouts.map(layout => [layout.name, layout]));
+  expectApproxLength(byName.get('Grand Prix Circuit').nodes, 6.9, 0.2);
+  expectApproxLength(byName.get('Inner Circuit').nodes, 4.5, 0.2);
+  expectApproxLength(byName.get('Endurance Circuit').nodes, 8.8, 0.2);
+});
+
+test('Spa branch-only alternates are not promoted to standalone named circuits', async () => {
+  const ways = renamedWays(fixtureWays('spa.json'), {
+    Moto: 'Moto layout',
+  });
+  ways.push({
+    id: 999001,
+    tags: { name: 'Rallycross circuit' },
+    nodes: [
+      { lat: 50.432, lon: 5.965 },
+      { lat: 50.4324, lon: 5.9654 },
+      { lat: 50.4328, lon: 5.9659 },
+    ],
+  });
+  const payload = {
+    elements: ways.map(way => ({
+      type: 'way',
+      id: way.id,
+      tags: way.tags,
+      geometry: way.nodes,
+    })),
+  };
+
+  const result = await withMockedFetch(payload, () =>
+    fetchTrackGeometry(50.4372, 5.9714, undefined, 'Circuit de Spa-Francorchamps'));
+
+  assertLayoutNames(result.layouts, ['Circuit de Spa-Francorchamps', 'Moto layout']);
+  result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 20 }));
+  assert.equal(result.layouts.some(layout => layout.name === 'Rallycross circuit'), false);
+});
+
+test('near-identical duplicate named layouts are filtered out', async () => {
+  const ways = duplicateNamedWays(
+    fixtureWays('bahrain.json'),
+    'Grand Prix Circuit',
+    'Grand Prix Circuit Alternate',
+  );
+  const payload = {
+    elements: ways.map(way => ({
+      type: 'way',
+      id: way.id,
+      tags: way.tags,
+      geometry: way.nodes,
+    })),
+  };
+
+  const result = await withMockedFetch(payload, () =>
+    fetchTrackGeometry(26.0325, 50.5106, undefined, 'Bahrain International Circuit'));
+
+  assert.equal(result.layouts.length, 3);
+  assert.equal(result.layouts.filter(layout => layout.name === 'Grand Prix Circuit').length, 1);
+  assert.equal(result.layouts.filter(layout => layout.name === 'Grand Prix Circuit Alternate').length, 0);
 });

@@ -921,6 +921,34 @@ function buildNamedGroupChain(namedWays) {
   return dedupeSequentialNodes(stitchWaysOrdered(namedWays));
 }
 
+function sampleChainNodes(nodes, sampleCount = 24) {
+  const baseNodes = nodes.length > 1 ? nodes.slice(0, -1) : nodes;
+  if (baseNodes.length <= sampleCount) {
+    return baseNodes;
+  }
+
+  return Array.from({ length: sampleCount }, (_, index) => {
+    const sampleIndex = Math.floor((index * baseNodes.length) / sampleCount);
+    return baseNodes[sampleIndex];
+  });
+}
+
+function isNearDuplicateLayoutCandidate(candidate, existingCandidates) {
+  const MAX_LENGTH_DELTA = 250;
+  const MAX_NODE_DISTANCE = SNAP_FUZZY * 4;
+
+  return existingCandidates.findIndex(existing => {
+    if (Math.abs(existing.length - candidate.length) > MAX_LENGTH_DELTA) {
+      return false;
+    }
+
+    const candidateSamples = sampleChainNodes(candidate.nodes);
+    const existingSamples = sampleChainNodes(existing.nodes);
+    return candidateSamples.every(node => findClosestNodePositions(existing.nodes, node, MAX_NODE_DISTANCE, 1).length > 0)
+      && existingSamples.every(node => findClosestNodePositions(candidate.nodes, node, MAX_NODE_DISTANCE, 1).length > 0);
+  });
+}
+
 function buildSubstitutionLayouts(nameGroups, backboneGroupName, backboneWays, backboneCandidate) {
   const backboneGraph = buildWayGraph(backboneWays);
   const cycleMetadata = buildOrderedCycleMetadata(backboneGraph, backboneGraph.edges.map(edge => edge.id));
@@ -1104,8 +1132,34 @@ function buildNamedCircuitLayouts(ways, trackName) {
 
   // Need at least 2 valid standalone circuits to show a picker
   if (standaloneLayouts.length >= 2) {
-    standaloneLayouts.sort((a, b) => b.stats.lengthMetres - a.stats.lengthMetres);
-    return standaloneLayouts.map(({ candidate, ways: groupedWays, ...layout }) => layout);
+    standaloneLayouts.sort((a, b) => (
+      b.stats.lengthMetres - a.stats.lengthMetres
+      || a.name.length - b.name.length
+      || a.name.localeCompare(b.name)
+    ));
+    const dedupedLayouts = [];
+    const seenCandidates = [];
+
+    for (const layout of standaloneLayouts) {
+      const duplicateIndex = isNearDuplicateLayoutCandidate(layout.candidate, seenCandidates);
+      if (duplicateIndex >= 0) {
+        const existingLayout = dedupedLayouts[duplicateIndex];
+        const shouldReplace = layout.name.length < existingLayout.name.length
+          || (layout.name.length === existingLayout.name.length && layout.name.localeCompare(existingLayout.name) < 0);
+        if (shouldReplace) {
+          seenCandidates[duplicateIndex] = layout.candidate;
+          const { candidate, ways: groupedWays, ...publicLayout } = layout;
+          dedupedLayouts[duplicateIndex] = publicLayout;
+        }
+        continue;
+      }
+
+      seenCandidates.push(layout.candidate);
+      const { candidate, ways: groupedWays, ...publicLayout } = layout;
+      dedupedLayouts.push(publicLayout);
+    }
+
+    return dedupedLayouts.length >= 2 ? dedupedLayouts : [];
   }
 
   if (standaloneLayouts.length !== 1) {
