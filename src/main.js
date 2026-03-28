@@ -42,7 +42,7 @@ function clearResults() {
 }
 
 async function loadElevations(nodes, exaggeration) {
-  setStatus('Using fixed elevation…');
+  // Elevation stubbed — no status update needed
   const elevations = await fetchElevations(nodes, exaggeration);
   // Elevation is stubbed — don't clobber the outline status with a message
   console.log('Elevations (stubbed):', elevations);
