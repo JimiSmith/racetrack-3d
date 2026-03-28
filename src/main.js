@@ -58,7 +58,7 @@ async function handleSelect(track) {
   currentBasePlate = null;
   updateGenerateButton();
   try {
-    const nodes = await fetchTrackGeometry(track.osmType, track.osmId);
+    const nodes = await fetchTrackGeometry(track.osmType, track.osmId, undefined, track.name);
     setStatus(`Loaded ${nodes.length} nodes for ${track.name}`);
     console.log('Track geometry:', track, nodes);
 

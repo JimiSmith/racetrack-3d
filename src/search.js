@@ -136,43 +136,71 @@ function stitchWays(ways) {
 
 const OSM_API = 'https://api.openstreetmap.org/api/0.6';
 
-export async function fetchTrackGeometry(osmType, osmId, signal) {
+function extractWaysFromRelationElements(elements) {
+  const nodeMap = new Map();
+  for (const el of elements) {
+    if (el.type === 'node') nodeMap.set(el.id, { lat: el.lat, lon: el.lon });
+  }
+
+  const relation = elements.find(e => e.type === 'relation');
+  const members = relation?.members || [];
+
+  // Build a map of wayId → role for filtering
+  const wayMemberRoles = new Map();
+  for (const m of members) {
+    if (m.type === 'way') wayMemberRoles.set(m.ref, m.role ?? '');
+  }
+
+  const allMemberWays = elements.filter(e => e.type === 'way' && wayMemberRoles.has(e.id));
+
+  // Priority 1: ways with empty role (main track), tagged highway=raceway
+  // Priority 2: any empty-role ways
+  // Priority 3: highway=raceway ways regardless of role
+  // Priority 4: all member ways (last resort)
+  const emptyRoleWays = allMemberWays.filter(w => wayMemberRoles.get(w.id) === '');
+  const emptyRoleRaceway = emptyRoleWays.filter(w => w.tags?.highway === 'raceway');
+  const anyRaceway = allMemberWays.filter(w => w.tags?.highway === 'raceway');
+
+  const chosen =
+    emptyRoleRaceway.length > 0 ? emptyRoleRaceway :
+    emptyRoleWays.length > 0    ? emptyRoleWays :
+    anyRaceway.length > 0       ? anyRaceway :
+    allMemberWays;
+
+  return chosen.map(w => ({
+    nodes: (w.nodes || []).map(id => nodeMap.get(id)).filter(Boolean),
+  }));
+}
+
+async function fetchGeometryViaOverpassName(trackName, signal) {
+  // Fallback: search Overpass for a highway=raceway way with matching name
+  const escapedName = trackName.replace(/"/g, '\\"');
+  const query = `[out:json][timeout:25];(way["name"="${escapedName}"]["highway"="raceway"];way["name"~"${escapedName}","i"]["highway"="raceway"];);out body geom;`;
+  const data = await runOverpassQuery(query, signal);
+  const ways = (data.elements || []).filter(e => e.type === 'way' && e.geometry?.length);
+  if (ways.length === 0) throw new Error(`No raceway geometry found for "${trackName}"`);
+  const waysWithGeom = ways.map(w => ({
+    nodes: (w.geometry || []).map(({ lat, lon }) => ({ lat, lon })),
+  }));
+  return stitchWays(waysWithGeom);
+}
+
+export async function fetchTrackGeometry(osmType, osmId, signal, trackName) {
   if (!osmId) throw new Error('No OSM ID available for this circuit (not yet mapped in OSM)');
 
   // Use the OSM API directly — much more reliable than Overpass for ID-based lookups
   if (osmType === 'relation') {
     const resp = await fetch(`${OSM_API}/relation/${osmId}/full.json`, { signal });
-    if (!resp.ok) throw new Error(`OSM API error: ${resp.status}`);
-    const { elements } = await resp.json();
 
-    // Build node ID → coords lookup
-    const nodeMap = new Map();
-    for (const el of elements) {
-      if (el.type === 'node') nodeMap.set(el.id, { lat: el.lat, lon: el.lon });
+    if (resp.status === 410 || resp.status === 404) {
+      // Relation deleted or not found — try Overpass name fallback if we have a name
+      if (trackName) return fetchGeometryViaOverpassName(trackName, signal);
+      throw new Error(`OSM relation ${osmId} no longer exists (${resp.status})`);
     }
+    if (!resp.ok) throw new Error(`OSM API error: ${resp.status}`);
 
-    // Get the relation's way members, expanded with coords
-    const relation = elements.find(e => e.type === 'relation');
-    const wayIds = new Set(
-      (relation?.members || []).filter(m => m.type === 'way').map(m => m.ref)
-    );
-
-    const ways = elements
-      .filter(e => e.type === 'way' && wayIds.has(e.id))
-      .filter(e => {
-        // Prefer highway=raceway ways; fall back to all ways if none tagged
-        return e.tags?.highway === 'raceway';
-      });
-
-    const allWays = ways.length > 0
-      ? ways
-      : elements.filter(e => e.type === 'way' && wayIds.has(e.id));
-
-    // Expand node refs to coords
-    const waysWithGeom = allWays.map(w => ({
-      nodes: (w.nodes || []).map(id => nodeMap.get(id)).filter(Boolean),
-    }));
-
+    const { elements } = await resp.json();
+    const waysWithGeom = extractWaysFromRelationElements(elements);
     return stitchWays(waysWithGeom);
   }
 
