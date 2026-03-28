@@ -222,11 +222,20 @@ export async function fetchTrackGeometry(lat, lon, signal, trackName) {
     throw new Error(`No raceway found near ${trackName ?? 'this location'}`);
   }
 
+  // Exclude pit lanes, service roads, and other non-racing-line ways.
+  const PIT_PATTERN = /\bpit\b|pit.lane|pit.road|pitlane|pitroad|service/i;
+  const mainWays = ways.filter(w => {
+    const name = w.tags?.name ?? '';
+    const service = w.tags?.service ?? '';
+    return !PIT_PATTERN.test(name) && !PIT_PATTERN.test(service);
+  });
+  const racingWays = mainWays.length > 0 ? mainWays : ways; // fallback if over-filtered
+
   // If multiple ways, prefer those whose name matches the track name (case-insensitive)
-  let chosenWays = ways;
-  if (trackName && ways.length > 1) {
+  let chosenWays = racingWays;
+  if (trackName && racingWays.length > 1) {
     const nameLower = trackName.toLowerCase();
-    const named = ways.filter(w => w.tags?.name?.toLowerCase().includes(nameLower) ||
+    const named = racingWays.filter(w => w.tags?.name?.toLowerCase().includes(nameLower) ||
                                     nameLower.includes(w.tags?.name?.toLowerCase() ?? '___'));
     if (named.length > 0) chosenWays = named;
   }
