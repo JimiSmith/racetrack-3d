@@ -139,6 +139,9 @@ export function initPreview() {
   scene.add(fillLight);
 
   modelGroup = new THREE.Group();
+  // Our geometry has Z-up; Three.js expects Y-up.
+  // Rotate the group so the flat circuit lies in the XZ ground plane.
+  modelGroup.rotation.x = -Math.PI / 2;
   scene.add(modelGroup);
 
   container.replaceChildren(renderer.domElement);
