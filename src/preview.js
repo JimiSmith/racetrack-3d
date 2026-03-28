@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 const BASE_THICKNESS_MM = 8;
 const PREVIEW_BACKGROUND = '#0f0f13';
@@ -101,7 +101,6 @@ function fitCameraToModel() {
   controls.target.copy(center);
   controls.minDistance = maxDim * 0.35;
   controls.maxDistance = maxDim * 8;
-  controls.update();
   renderFrame();
 }
 
@@ -122,11 +121,12 @@ export function initPreview() {
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
-  controls = new TrackballControls(camera, renderer.domElement);
-  controls.rotateSpeed = 3.0;
-  controls.zoomSpeed = 1.2;
-  controls.panSpeed = 0.8;
-  controls.dynamicDampingFactor = 0.12;
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  // Allow full vertical rotation (over the top and underneath)
+  controls.minPolarAngle = 0;
+  controls.maxPolarAngle = Math.PI;
 
   scene.add(new THREE.AmbientLight(0xffffff, 1.8));
 
