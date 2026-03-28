@@ -705,7 +705,7 @@ function buildVariantLayouts(ways, graph, sections, trackName) {
     layouts.push({
       id: `layout-${layouts.length + 1}`,
       name: sections.length === 1 ? (nameParts[0] ?? `Layout ${layouts.length + 1}`) : nameParts.join(' + '),
-      nodes: fixChainReversals(candidate.nodes),
+      nodes: candidate.nodes,
       area: candidate.area,
       stats: {
         lengthMetres: candidate.length,
