@@ -72,7 +72,10 @@ function updateLayoutSelector() {
   });
 
   layoutWrap.hidden = false;
-  layoutHint.textContent = `${currentLayouts.length} plausible layouts found.`;
+  const variantSectionCount = currentLayouts[0]?.stats?.variantSectionCount ?? 1;
+  layoutHint.textContent = variantSectionCount === 1
+    ? 'Select the alternate section to use for the circuit.'
+    : `Select one of ${currentLayouts.length} fork-based layout combinations.`;
 }
 
 function buildSelectedLayoutModel() {

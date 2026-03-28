@@ -396,48 +396,291 @@ function enumerateCycleCandidates(graph) {
   return [...cycles.values()];
 }
 
-function inferLayoutName(candidate, graph, trackName, index) {
-  const names = new Map();
-  let namedLength = 0;
-
-  for (const edgeId of candidate.edgeIds) {
-    const name = graph.edges[edgeId].tags?.name?.trim();
-    if (!name) {
-      continue;
+function selectBackboneCycle(graph) {
+  const cycleCandidates = enumerateCycleCandidates(graph);
+  return cycleCandidates.sort((a, b) => {
+    const lengthDelta = b.length - a.length;
+    if (Math.abs(lengthDelta) > 1) {
+      return lengthDelta;
     }
-
-    const weight = graph.edges[edgeId].length;
-    namedLength += weight;
-    names.set(name, (names.get(name) ?? 0) + weight);
-  }
-
-  const [bestName, bestWeight = 0] = [...names.entries()].sort((a, b) => b[1] - a[1])[0] ?? [];
-  const isDominantName = bestWeight > 0 && bestWeight >= candidate.length * 0.55 && namedLength >= candidate.length * 0.65;
-  if (isDominantName && bestName && bestName.toLowerCase() !== trackName?.toLowerCase()) {
-    return bestName;
-  }
-
-  return `Layout ${index + 1}`;
+    return b.area - a.area;
+  })[0] ?? null;
 }
 
-function areCandidatesNearDuplicates(a, b) {
-  const longerLength = Math.max(a.length, b.length, 1);
-  const largerArea = Math.max(a.area, b.area, 1);
-  const lengthDelta = Math.abs(a.length - b.length) / longerLength;
-  const areaDelta = Math.abs(a.area - b.area) / largerArea;
-  return lengthDelta <= 0.03 && areaDelta <= 0.08;
+function measureWaySetLength(ways) {
+  return ways.reduce((sum, way) => sum + measurePolylineLength(way.nodes), 0);
 }
 
-function buildStitchedCandidate(ways) {
-  const nodes = dedupeSequentialNodes(stitchWaysOrdered(ways));
+function buildCandidateFromWays(ways) {
+  if (!ways.length) {
+    return null;
+  }
+
+  const graph = buildWayGraph(ways);
+  const edgeIds = graph.edges.map(edge => edge.id);
+  const isSimpleLoop = graph.edges.length > 0 && [...graph.vertices.values()].every(vertex => vertex.edges.length === 2);
+  const cycleCandidate = isSimpleLoop ? buildCycleFromEdges(graph, edgeIds) : null;
+  const nodes = cycleCandidate?.nodes ?? dedupeSequentialNodes(stitchWaysOrdered(ways));
+
   return {
-    edgeIds: ways.map((_, index) => index),
     nodes,
-    length: measurePolylineLength(nodes),
+    length: cycleCandidate?.length ?? measurePolylineLength(nodes),
     area: computeBoundingBoxArea(nodes),
     segments: ways.length,
     endpointGap: computeEndpointGap(nodes),
   };
+}
+
+function buildWeightedNames(edgeIds, graph, trackName) {
+  const names = new Map();
+  let namedLength = 0;
+
+  for (const edgeId of edgeIds) {
+    const edge = graph.edges[edgeId];
+    const name = edge?.tags?.name?.trim();
+    if (!name || name.toLowerCase() === trackName?.toLowerCase()) {
+      continue;
+    }
+
+    namedLength += edge.length;
+    names.set(name, (names.get(name) ?? 0) + edge.length);
+  }
+
+  return { names, namedLength };
+}
+
+function inferBranchName(branch, graph, trackName) {
+  const { names, namedLength } = buildWeightedNames(branch.edgeIds, graph, trackName);
+  const [bestName, bestWeight = 0] = [...names.entries()].sort((a, b) => b[1] - a[1])[0] ?? [];
+  const isDominantName = bestName && bestWeight >= branch.length * 0.35 && namedLength >= branch.length * 0.35;
+  return isDominantName ? bestName : null;
+}
+
+function makeFallbackBranchLabels(branches) {
+  if (branches.length === 2) {
+    const [first, second] = [...branches].sort((a, b) => Number(b.onBackbone) - Number(a.onBackbone) || b.length - a.length);
+    if (first.onBackbone || (first.length > 0 && second.length / first.length <= 0.92)) {
+      return new Map([
+        [first.edgeIds.join(','), 'Main'],
+        [second.edgeIds.join(','), 'Alternate'],
+      ]);
+    }
+  }
+
+  return new Map(branches.map((branch, index) => [branch.edgeIds.join(','), `Layout ${String.fromCharCode(65 + index)}`]));
+}
+
+function orientEdgeNodes(edge, fromVertexId) {
+  return edge.start === fromVertexId ? edge.nodes : [...edge.nodes].reverse();
+}
+
+function walkBranchToJunction(graph, startVertexId, initialEdgeId) {
+  const startVertex = graph.vertices.get(startVertexId);
+  if (!startVertex || !startVertex.edges.includes(initialEdgeId)) {
+    return null;
+  }
+
+  const traversedEdgeIds = [];
+  const visitedEdgeIds = new Set();
+  const visitedVertexIds = new Set([startVertexId]);
+  let currentVertexId = startVertexId;
+  let edgeId = initialEdgeId;
+  let nodes = [];
+
+  while (edgeId != null) {
+    if (visitedEdgeIds.has(edgeId)) {
+      return null;
+    }
+
+    visitedEdgeIds.add(edgeId);
+    traversedEdgeIds.push(edgeId);
+    const edge = graph.edges[edgeId];
+    const orientedNodes = orientEdgeNodes(edge, currentVertexId);
+    nodes = nodes.length === 0 ? [...orientedNodes] : [...nodes, ...orientedNodes.slice(1)];
+
+    const nextVertexId = edge.start === currentVertexId ? edge.end : edge.start;
+    if (nextVertexId === startVertexId || visitedVertexIds.has(nextVertexId)) {
+      return null;
+    }
+
+    const nextVertex = graph.vertices.get(nextVertexId);
+    if (!nextVertex) {
+      return null;
+    }
+
+    visitedVertexIds.add(nextVertexId);
+    if (nextVertex.edges.length !== 2) {
+      return {
+        startVertexId,
+        endVertexId: nextVertexId,
+        edgeIds: traversedEdgeIds,
+        nodes: dedupeSequentialNodes(nodes),
+        length: traversedEdgeIds.reduce((sum, traversedEdgeId) => sum + graph.edges[traversedEdgeId].length, 0),
+      };
+    }
+
+    edgeId = nextVertex.edges.find(candidateEdgeId => candidateEdgeId !== edge.id);
+    currentVertexId = nextVertexId;
+  }
+
+  return null;
+}
+
+function detectForkSections(graph, backboneEdgeIds = null) {
+  const sectionCandidates = [];
+
+  for (const [vertexId, vertex] of graph.vertices.entries()) {
+    if (vertex.edges.length < 3) {
+      continue;
+    }
+
+    const groupedBranches = new Map();
+    for (const edgeId of vertex.edges) {
+      const branch = walkBranchToJunction(graph, vertexId, edgeId);
+      if (!branch || branch.endVertexId === vertexId) {
+        continue;
+      }
+
+      const mergeVertex = graph.vertices.get(branch.endVertexId);
+      if (!mergeVertex || mergeVertex.edges.length < 3) {
+        continue;
+      }
+
+      if (!groupedBranches.has(branch.endVertexId)) {
+        groupedBranches.set(branch.endVertexId, []);
+      }
+      groupedBranches.get(branch.endVertexId).push(branch);
+    }
+
+    for (const [mergeVertexId, branches] of groupedBranches.entries()) {
+      if (branches.length < 2) {
+        continue;
+      }
+
+      const forkTouchesBackbone = !backboneEdgeIds || vertex.edges.some(edgeId => backboneEdgeIds.has(edgeId));
+      const mergeVertex = graph.vertices.get(mergeVertexId);
+      const mergeTouchesBackbone = !backboneEdgeIds || mergeVertex?.edges.some(edgeId => backboneEdgeIds.has(edgeId));
+      const backboneBranches = !backboneEdgeIds
+        ? branches
+        : branches.filter(branch => branch.edgeIds.some(edgeId => backboneEdgeIds.has(edgeId)));
+
+      if (!forkTouchesBackbone || !mergeTouchesBackbone || backboneBranches.length === 0) {
+        continue;
+      }
+
+      const orderedBranches = branches
+        .map(branch => ({ ...branch, onBackbone: branch.edgeIds.some(edgeId => backboneEdgeIds?.has(edgeId)) }))
+        .sort((a, b) => Number(b.onBackbone) - Number(a.onBackbone) || b.length - a.length);
+
+      const branchKeys = orderedBranches
+        .map(branch => [...branch.edgeIds].sort((a, b) => a - b).join(','))
+        .sort();
+      sectionCandidates.push({
+        key: `${[vertexId, mergeVertexId].sort().join('::')}|${branchKeys.join('|')}`,
+        forkVertexId: vertexId,
+        mergeVertexId,
+        branches: orderedBranches,
+        totalLength: orderedBranches.reduce((sum, branch) => sum + branch.length, 0),
+      });
+    }
+  }
+
+  const uniqueSections = [...new Map(sectionCandidates.map(section => [section.key, section])).values()]
+    .sort((a, b) => b.totalLength - a.totalLength);
+  const usedEdgeIds = new Set();
+  const acceptedSections = [];
+
+  for (const section of uniqueSections) {
+    const overlapsExistingSection = section.branches.some(branch => branch.edgeIds.some(edgeId => usedEdgeIds.has(edgeId)));
+    if (overlapsExistingSection) {
+      continue;
+    }
+
+    section.branches.forEach(branch => branch.edgeIds.forEach(edgeId => usedEdgeIds.add(edgeId)));
+    acceptedSections.push(section);
+  }
+
+  return acceptedSections;
+}
+
+function enumerateBranchCombinations(sections, maxCombinations = 8) {
+  if (!sections.length) {
+    return [[]];
+  }
+
+  const combinations = [];
+
+  function visit(sectionIndex, selectedBranches) {
+    if (combinations.length >= maxCombinations) {
+      return;
+    }
+
+    if (sectionIndex >= sections.length) {
+      combinations.push(selectedBranches);
+      return;
+    }
+
+    for (const branch of sections[sectionIndex].branches) {
+      visit(sectionIndex + 1, [...selectedBranches, branch]);
+      if (combinations.length >= maxCombinations) {
+        return;
+      }
+    }
+  }
+
+  visit(0, []);
+  return combinations;
+}
+
+function buildVariantLayouts(ways, graph, sections, trackName) {
+  const sectionEdgeIds = new Set(sections.flatMap(section => section.branches.flatMap(branch => branch.edgeIds)));
+  const sharedWayIds = ways
+    .map((_, index) => index)
+    .filter(index => !sectionEdgeIds.has(index));
+  const branchFallbackLabels = new Map();
+
+  for (const section of sections) {
+    const fallbacks = makeFallbackBranchLabels(section.branches);
+    for (const branch of section.branches) {
+      const branchKey = branch.edgeIds.join(',');
+      branchFallbackLabels.set(branchKey, inferBranchName(branch, graph, trackName) ?? fallbacks.get(branchKey) ?? 'Alternate');
+    }
+  }
+
+  const combinations = enumerateBranchCombinations(sections);
+  const layouts = [];
+
+  for (const selectedBranches of combinations) {
+    const selectedWayIds = [...sharedWayIds];
+    const nameParts = [];
+
+    for (const branch of selectedBranches) {
+      selectedWayIds.push(...branch.edgeIds);
+      nameParts.push(branchFallbackLabels.get(branch.edgeIds.join(',')) ?? 'Alternate');
+    }
+
+    const uniqueWayIds = [...new Set(selectedWayIds)].sort((a, b) => a - b);
+    const selectedWays = uniqueWayIds.map(index => ways[index]);
+    const candidate = buildCandidateFromWays(selectedWays);
+
+    if (!candidate || candidate.nodes.length < 4 || candidate.endpointGap > 80) {
+      continue;
+    }
+
+    layouts.push({
+      id: `layout-${layouts.length + 1}`,
+      name: sections.length === 1 ? (nameParts[0] ?? `Layout ${layouts.length + 1}`) : nameParts.join(' + '),
+      nodes: candidate.nodes,
+      area: candidate.area,
+      stats: {
+        lengthMetres: candidate.length,
+        segmentCount: selectedWays.length,
+        variantSectionCount: sections.length,
+      },
+    });
+  }
+
+  return layouts;
 }
 
 function buildLayoutsFromWays(ways, trackName) {
@@ -446,49 +689,29 @@ function buildLayoutsFromWays(ways, trackName) {
   }
 
   const graph = buildWayGraph(ways);
-  const cycleCandidates = enumerateCycleCandidates(graph);
-  const stitchedCandidate = buildStitchedCandidate(ways);
+  const backboneCycle = selectBackboneCycle(graph);
+  const sections = detectForkSections(graph, new Set(backboneCycle?.edgeIds ?? []));
+  const variantLayouts = buildVariantLayouts(ways, graph, sections, trackName);
 
-  const sortedCandidates = cycleCandidates.sort((a, b) => {
-    const lengthDelta = b.length - a.length;
-    if (Math.abs(lengthDelta) > 1) {
-      return lengthDelta;
-    }
-    return b.area - a.area;
-  });
-
-  const longestLength = sortedCandidates[0]?.length ?? 0;
-  const largestArea = sortedCandidates.reduce((max, candidate) => Math.max(max, candidate.area), 0);
-  const plausible = sortedCandidates.filter(candidate => {
-    const keepsLength = longestLength === 0 || candidate.length >= longestLength * 0.5;
-    const keepsArea = largestArea === 0 || candidate.area >= largestArea * 0.3;
-    return keepsLength || keepsArea;
-  });
-
-  if (
-    stitchedCandidate.nodes.length >= 4 &&
-    stitchedCandidate.endpointGap <= 80 &&
-    (plausible.length === 0 || stitchedCandidate.length >= (longestLength || 0) * 1.1) &&
-    !plausible.some(candidate => areCandidatesNearDuplicates(candidate, stitchedCandidate))
-  ) {
-    plausible.unshift(stitchedCandidate);
+  if (variantLayouts.length > 1) {
+    return variantLayouts.slice(0, 8).map(({ area, ...layout }) => layout);
   }
 
-  const uniquePlausible = plausible.filter((candidate, index) => {
-    return !plausible.slice(0, index).some(existing => areCandidatesNearDuplicates(existing, candidate));
-  });
+  const singleLayout = buildCandidateFromWays(ways);
+  if (!singleLayout || singleLayout.nodes.length < 4) {
+    return [];
+  }
 
-  const layouts = (uniquePlausible.length > 0 ? uniquePlausible : [stitchedCandidate]).slice(0, 6).map((candidate, index) => ({
-    id: `layout-${index + 1}`,
-    name: inferLayoutName(candidate, graph, trackName, index),
-    nodes: candidate.nodes,
+  return [{
+    id: 'layout-1',
+    name: 'Main',
+    nodes: singleLayout.nodes,
     stats: {
-      lengthMetres: candidate.length,
-      segmentCount: candidate.segments,
+      lengthMetres: singleLayout.length || measureWaySetLength(ways),
+      segmentCount: ways.length,
+      variantSectionCount: 0,
     },
-  }));
-
-  return layouts;
+  }];
 }
 
 function stitchWays(ways) {
