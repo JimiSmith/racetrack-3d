@@ -244,16 +244,23 @@ export function exportStl(model, fileName = 'racetrack.stl') {
   const downloadFileName = normalizedBase.endsWith('.stl') ? normalizedBase : `${normalizedBase}.stl`;
   const stlBytes = serializeBinaryStl(model.triangles, downloadFileName);
   const blob = new Blob([stlBytes], { type: 'model/stl' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  const canDownloadInBrowser = typeof document !== 'undefined'
+    && typeof document.createElement === 'function'
+    && typeof document.body?.appendChild === 'function'
+    && typeof URL?.createObjectURL === 'function';
 
-  link.href = url;
-  link.download = downloadFileName;
-  link.style.display = 'none';
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 0);
+  if (canDownloadInBrowser) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = downloadFileName;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
 
   return {
     blob,
