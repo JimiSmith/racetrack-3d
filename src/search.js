@@ -164,20 +164,42 @@ function stitchWaysOrdered(ways) {
   return chain;
 }
 
-function stitchWays(ways) {
+function componentCentroid(indices, ways) {
+  let latSum = 0, lonSum = 0, count = 0;
+  for (const i of indices) {
+    for (const n of ways[i].nodes) {
+      latSum += n.lat; lonSum += n.lon; count++;
+    }
+  }
+  return count > 0 ? { lat: latSum / count, lon: lonSum / count } : { lat: 0, lon: 0 };
+}
+
+function stitchWays(ways, refLat, refLon) {
   if (ways.length === 0) return [];
   if (ways.length === 1) return ways[0].nodes;
 
-  // Find connected components; use only the largest one (main circuit).
-  // Discards pit lanes, karting tracks, test loops, etc.
   const components = buildComponents(ways);
-  const largest = components.reduce((a, b) => {
-    const aNodes = a.reduce((s, i) => s + ways[i].nodes.length, 0);
-    const bNodes = b.reduce((s, i) => s + ways[i].nodes.length, 0);
-    return bNodes > aNodes ? b : a;
-  });
 
-  const mainWays = largest.map(i => ways[i]);
+  // Pick the component whose centroid is closest to the known circuit coordinates.
+  // Falls back to largest-by-nodes if no ref coords available.
+  let best;
+  if (Number.isFinite(refLat) && Number.isFinite(refLon)) {
+    best = components.reduce((a, b) => {
+      const ca = componentCentroid(a, ways);
+      const cb = componentCentroid(b, ways);
+      const da = dist(ca, { lat: refLat, lon: refLon });
+      const db = dist(cb, { lat: refLat, lon: refLon });
+      return db < da ? b : a;
+    });
+  } else {
+    best = components.reduce((a, b) => {
+      const an = a.reduce((s, i) => s + ways[i].nodes.length, 0);
+      const bn = b.reduce((s, i) => s + ways[i].nodes.length, 0);
+      return bn > an ? b : a;
+    });
+  }
+
+  const mainWays = best.map(i => ways[i]);
   return stitchWaysOrdered(mainWays);
 }
 
@@ -188,8 +210,8 @@ export async function fetchTrackGeometry(lat, lon, signal, trackName) {
     throw new Error('No coordinates available for this circuit');
   }
 
-  // ~15km margin around the circuit centre
-  const MARGIN = 0.15;
+  // ~9km margin — covers any F1 circuit layout but avoids pulling in distant tracks
+  const MARGIN = 0.08;
   const bbox = `${lat - MARGIN},${lon - MARGIN},${lat + MARGIN},${lon + MARGIN}`;
   const query = `[out:json][timeout:25];way["highway"="raceway"](${bbox});out body geom;`;
 
@@ -210,8 +232,8 @@ export async function fetchTrackGeometry(lat, lon, signal, trackName) {
   }
 
   const waysWithGeom = chosenWays.map(w => ({
-    nodes: (w.geometry || []).map(({ lat, lon }) => ({ lat, lon })),
+    nodes: (w.geometry || []).map(({ lat: wlat, lon: wlon }) => ({ lat: wlat, lon: wlon })),
   }));
 
-  return stitchWays(waysWithGeom);
+  return stitchWays(waysWithGeom, lat, lon);
 }
