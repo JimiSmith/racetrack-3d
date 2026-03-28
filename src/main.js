@@ -3,6 +3,7 @@ import { searchTracks, fetchTrackGeometry } from './search.js';
 import { projectNodes, buildTrackOutline, buildBasePlate } from './geometry.js';
 import { fetchElevations } from './elevation.js';
 import { buildTrackModel, exportStl } from './model.js';
+import { initPreview, updatePreview } from './preview.js';
 
 const input = document.getElementById('search-input');
 const resultsList = document.getElementById('search-results');
@@ -17,6 +18,7 @@ let currentNodes = null;
 let currentTrack = null;
 let currentOutline = null;
 let currentBasePlate = null;
+let currentModel = null;
 let isGeneratingStl = false;
 
 function setStatus(msg, isError = false) {
@@ -53,9 +55,12 @@ async function handleSelect(track) {
   clearResults();
   setStatus(`Loading geometry for ${track.name}…`);
   exaggerationWrap.hidden = true;
+  currentNodes = null;
   currentTrack = null;
   currentOutline = null;
   currentBasePlate = null;
+  currentModel = null;
+  updatePreview(null);
   updateGenerateButton();
   try {
     const nodes = await fetchTrackGeometry(track.lat, track.lon, undefined, track.name);
@@ -72,12 +77,21 @@ async function handleSelect(track) {
     currentTrack = track;
     currentOutline = outline;
     currentBasePlate = basePlate;
+    currentModel = buildTrackModel({
+      outlinePoints: outline,
+      basePlate,
+      trackName: track.name,
+    });
     exaggerationWrap.hidden = true;
+    updatePreview(currentModel);
     updateGenerateButton();
 
     const exaggeration = Number(exaggerationSlider.value);
     await loadElevations(nodes, exaggeration);
   } catch (err) {
+    currentNodes = null;
+    currentModel = null;
+    updatePreview(null);
     setStatus(`Error loading geometry: ${err.message}`, true);
     console.error(err);
   }
@@ -93,7 +107,7 @@ generateStlButton.addEventListener('click', async () => {
 
   try {
     setStatus('Building STL mesh…');
-    const model = buildTrackModel({
+    const model = currentModel ?? buildTrackModel({
       outlinePoints: currentOutline,
       basePlate: currentBasePlate,
       trackName: currentTrack.name,
@@ -183,4 +197,5 @@ document.addEventListener('click', e => {
   }
 });
 
+initPreview();
 updateGenerateButton();
