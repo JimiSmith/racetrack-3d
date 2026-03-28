@@ -145,9 +145,9 @@ export function initPreview() {
 
   resizeRenderer();
   fitCameraToModel();
+  // Animation loop handles everything — do NOT also listen to 'change' or
+  // controls.update() inside renderFrame will dispatch 'change', causing infinite recursion.
   renderer.setAnimationLoop(renderFrame);
-
-  controls.addEventListener('change', renderFrame);
 }
 
 export function updatePreview(model) {
