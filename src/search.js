@@ -83,12 +83,50 @@ async function runOverpassQuery(query, signal) {
   throw new Error(`All Overpass endpoints failed: ${errors.join('; ')}`);
 }
 
-function stitchWays(ways) {
+// Build connected components from a list of ways using endpoint proximity.
+// Returns arrays of way indices grouped by connectivity.
+function buildComponents(ways) {
+  const dist = (a, b) => Math.abs(a.lat - b.lat) + Math.abs(a.lon - b.lon);
+  const SNAP = 1e-5;
+  const n = ways.length;
+  const parent = Array.from({ length: n }, (_, i) => i);
+
+  function find(i) {
+    while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i]; }
+    return i;
+  }
+  function union(a, b) { parent[find(a)] = find(b); }
+
+  for (let i = 0; i < n; i++) {
+    const si = ways[i].nodes[0];
+    const ei = ways[i].nodes[ways[i].nodes.length - 1];
+    for (let j = i + 1; j < n; j++) {
+      const sj = ways[j].nodes[0];
+      const ej = ways[j].nodes[ways[j].nodes.length - 1];
+      if (dist(si, sj) < SNAP || dist(si, ej) < SNAP ||
+          dist(ei, sj) < SNAP || dist(ei, ej) < SNAP) {
+        union(i, j);
+      }
+    }
+  }
+
+  const groups = new Map();
+  for (let i = 0; i < n; i++) {
+    const root = find(i);
+    if (!groups.has(root)) groups.set(root, []);
+    groups.get(root).push(i);
+  }
+  return [...groups.values()];
+}
+
+function stitchWaysOrdered(ways) {
   if (ways.length === 0) return [];
   if (ways.length === 1) return ways[0].nodes;
 
   const remaining = ways.map(w => ({ nodes: [...w.nodes] }));
   const chain = [...remaining.shift().nodes];
+  const dist = (a, b) => Math.abs(a.lat - b.lat) + Math.abs(a.lon - b.lon);
+  const SNAP = 1e-5;
 
   while (remaining.length > 0) {
     const chainStart = chain[0];
@@ -100,39 +138,42 @@ function stitchWays(ways) {
       const wayStart = way.nodes[0];
       const wayEnd = way.nodes[way.nodes.length - 1];
 
-      const dist = (a, b) => Math.abs(a.lat - b.lat) + Math.abs(a.lon - b.lon);
-      const SNAP = 1e-5;
-
       if (dist(chainEnd, wayStart) < SNAP) {
         chain.push(...way.nodes.slice(1));
-        remaining.splice(i, 1);
-        found = true;
-        break;
+        remaining.splice(i, 1); found = true; break;
       } else if (dist(chainEnd, wayEnd) < SNAP) {
         chain.push(...way.nodes.slice(0, -1).reverse());
-        remaining.splice(i, 1);
-        found = true;
-        break;
+        remaining.splice(i, 1); found = true; break;
       } else if (dist(chainStart, wayEnd) < SNAP) {
         chain.unshift(...way.nodes.slice(0, -1));
-        remaining.splice(i, 1);
-        found = true;
-        break;
+        remaining.splice(i, 1); found = true; break;
       } else if (dist(chainStart, wayStart) < SNAP) {
         chain.unshift(...way.nodes.slice(1).reverse());
-        remaining.splice(i, 1);
-        found = true;
-        break;
+        remaining.splice(i, 1); found = true; break;
       }
     }
 
-    if (!found) {
-      const next = remaining.shift();
-      chain.push(...next.nodes);
-    }
+    if (!found) break; // stop rather than appending disconnected ways
   }
 
   return chain;
+}
+
+function stitchWays(ways) {
+  if (ways.length === 0) return [];
+  if (ways.length === 1) return ways[0].nodes;
+
+  // Find connected components; use only the largest one (main circuit).
+  // Discards pit lanes, karting tracks, test loops, etc.
+  const components = buildComponents(ways);
+  const largest = components.reduce((a, b) => {
+    const aNodes = a.reduce((s, i) => s + ways[i].nodes.length, 0);
+    const bNodes = b.reduce((s, i) => s + ways[i].nodes.length, 0);
+    return bNodes > aNodes ? b : a;
+  });
+
+  const mainWays = largest.map(i => ways[i]);
+  return stitchWaysOrdered(mainWays);
 }
 
 // Fetch raceway geometry using Overpass bbox query around Wikidata P625 coordinates.
