@@ -13,7 +13,7 @@ The search system must:
 
 ## Core strategy
 
-Use **parallel expanded queries** against Wikidata search, then apply a **P31 type filter** on each branch, merge the surviving candidates, and rank them.
+Use **parallel expanded queries** against Wikidata search, then apply a **SPARQL-based P31 type filter** on each branch, merge the surviving candidates, and rank them.
 
 This is a retrieval-and-ranking improvement, not a single-query hard filter.
 
@@ -54,15 +54,17 @@ The purpose of parallel branches is to improve candidate recall, especially for 
 
 ---
 
-## Step 3 — Apply a P31 filter on each branch
+## Step 3 — Apply a SPARQL P31 filter on each branch
 
-Each branch must be filtered to candidates whose `P31` is one of:
+For each query branch, use SPARQL to filter the branch candidate set returned by `wbsearchentities`.
+
+This SPARQL step must operate on the branch's candidate IDs (for example via `VALUES ?item { ... }`) and keep only candidates whose `P31` is one of:
 
 - `Q2338524` — **motorsport racing track**
 - `Q926439` — **street circuit**
 
 ### Important
-This filter must be applied **per branch**, not only after a single raw query.
+This SPARQL filter must be applied **per branch**, not only after a single raw query.
 
 That is the whole point of the expanded-query design:
 - raw query may miss the circuit
@@ -283,7 +285,7 @@ This spec does **not** require:
 1. Build the parallel query branch set.
 2. Run `wbsearchentities` in parallel.
 3. Merge raw candidate IDs per branch.
-4. Apply P31-in-`{Q2338524,Q926439}` and coordinate filtering.
+4. Use SPARQL on each branch candidate set to apply `P31 in {Q2338524, Q926439}` and coordinate filtering.
 5. Merge surviving candidates by item ID.
 6. Rank by branch quality + venue cleanliness.
 7. Return ranked results.
