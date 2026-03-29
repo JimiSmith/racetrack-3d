@@ -1,10 +1,10 @@
 import './style.css';
 import { searchTracks, fetchTrackGeometry } from './search.js';
-import { projectNodes, buildTrackOutline, buildBasePlate } from './geometry.js';
+import { projectNodes } from './geometry.js';
 import { fetchElevations } from './elevation.js';
 import { buildTrackModel, exportStl } from './model.js';
 import { export3mf } from './export3mf.js';
-import { normalizeOrientationDeg, rotatePointsByOrientation } from './orientation.js';
+import { normalizeOrientationDeg } from './orientation.js';
 import { initPreview, updatePreview } from './preview.js';
 import {
   buildLayoutPickerState,
@@ -28,6 +28,7 @@ const layoutHint = document.getElementById('layout-hint');
 const orientationSelect = document.getElementById('orientation-select');
 
 let currentNodes = null;
+let currentProjectedNodes = null;
 let currentTrack = null;
 let currentOutline = null;
 let currentBasePlate = null;
@@ -102,6 +103,7 @@ function buildSelectedLayoutModel(elevations = null) {
   const layout = getSelectedLayout(currentLayouts, currentLayoutIndex);
   if (!layout) {
     currentNodes = null;
+    currentProjectedNodes = null;
     currentOutline = null;
     currentBasePlate = null;
     currentModel = null;
@@ -111,20 +113,19 @@ function buildSelectedLayoutModel(elevations = null) {
   }
 
   const projected = projectNodes(layout.nodes, elevations);
-  const orientedProjected = rotatePointsByOrientation(projected, currentOrientationDeg);
-  const outline = buildTrackOutline(orientedProjected);
-  const basePlate = buildBasePlate(outline);
-
-  currentNodes = layout.nodes;
-  currentOutline = outline;
-  currentBasePlate = basePlate;
-  currentModel = buildTrackModel({
-    outlinePoints: outline,
-    basePlate,
+  const model = buildTrackModel({
+    outlinePoints: null,
+    basePlate: null,
     trackName: currentTrack?.name,
-    projectedNodes: orientedProjected,
+    projectedNodes: projected,
     orientationDeg: currentOrientationDeg,
   });
+
+  currentNodes = layout.nodes;
+  currentProjectedNodes = projected;
+  currentOutline = model.outlinePoints;
+  currentBasePlate = model.basePlate;
+  currentModel = model;
 
   const layoutLabel = layout.name || `Layout ${currentLayoutIndex + 1}`;
   const segmentCount = layout.stats?.segmentCount;
@@ -132,7 +133,7 @@ function buildSelectedLayoutModel(elevations = null) {
   const detailParts = [
     Number.isFinite(lengthKm) ? `${lengthKm.toFixed(1)} km` : null,
     Number.isFinite(segmentCount) ? `${segmentCount} segment${segmentCount === 1 ? '' : 's'}` : null,
-    `${basePlate.width.toFixed(0)}m×${basePlate.height.toFixed(0)}m`,
+    `${model.basePlate.width.toFixed(0)}m×${model.basePlate.height.toFixed(0)}m`,
     `${currentOrientationDeg}° orientation`,
   ].filter(Boolean);
   setStatus(`${currentTrack.name}: ${layoutLabel} · ${detailParts.join(' · ')}`);
@@ -162,6 +163,7 @@ async function handleSelect(track) {
   setStatus(`Loading geometry for ${track.name}…`);
   exaggerationWrap.hidden = true;
   currentNodes = null;
+  currentProjectedNodes = null;
   currentTrack = null;
   currentOutline = null;
   currentBasePlate = null;
@@ -183,6 +185,7 @@ async function handleSelect(track) {
     await loadElevations(getSelectedLayout(currentLayouts, currentLayoutIndex)?.nodes ?? [], exaggeration);
   } catch (err) {
     currentNodes = null;
+    currentProjectedNodes = null;
     currentLayouts = [];
     currentModel = null;
     updateLayoutSelector();
@@ -203,10 +206,11 @@ generateStlButton.addEventListener('click', async () => {
   try {
     setStatus('Building STL mesh…');
     const model = currentModel ?? buildTrackModel({
-      outlinePoints: currentOutline,
-      basePlate: currentBasePlate,
+      outlinePoints: currentProjectedNodes ? null : currentOutline,
+      basePlate: currentProjectedNodes ? null : currentBasePlate,
       trackName: currentTrack.name,
-      orientationDeg: currentOrientationDeg,
+      projectedNodes: currentProjectedNodes,
+      orientationDeg: currentProjectedNodes ? currentOrientationDeg : 0,
     });
 
     setStatus('Serializing STL file…');
@@ -233,10 +237,11 @@ generate3mfButton.addEventListener('click', async () => {
   try {
     setStatus('Building 3MF mesh…');
     const model = currentModel ?? buildTrackModel({
-      outlinePoints: currentOutline,
-      basePlate: currentBasePlate,
+      outlinePoints: currentProjectedNodes ? null : currentOutline,
+      basePlate: currentProjectedNodes ? null : currentBasePlate,
       trackName: currentTrack.name,
-      orientationDeg: currentOrientationDeg,
+      projectedNodes: currentProjectedNodes,
+      orientationDeg: currentProjectedNodes ? currentOrientationDeg : 0,
     });
 
     setStatus('Packaging 3MF file…');

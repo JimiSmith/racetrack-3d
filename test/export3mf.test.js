@@ -7,7 +7,6 @@ import { buildBasePlate } from '../src/geometry.js';
 import { splitModelTriangles } from '../src/triangle-groups.js';
 import { buildTrackModel } from '../src/model.js';
 import { export3mf } from '../src/export3mf.js';
-import { rotateOutlineByOrientation } from '../src/orientation.js';
 
 function syntheticOutline() {
   return {
@@ -159,7 +158,7 @@ test('export3mf deduplicates vertices in the model XML', async () => {
 });
 
 test('export3mf keeps preview geometry bounds aligned for rotated models', async () => {
-  const outlinePoints = rotateOutlineByOrientation(syntheticOutline(), 90);
+  const outlinePoints = syntheticOutline();
   const basePlate = buildBasePlate(outlinePoints, 20);
   const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway', orientationDeg: 90 });
 

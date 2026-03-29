@@ -75,6 +75,21 @@ function triangleBounds(triangles) {
   });
 }
 
+function rotateTrianglesByOrientation(triangles, orientationDeg) {
+  return triangles.map(triangle => triangle.map(vertex => {
+    switch (orientationDeg) {
+      case 90:
+        return { ...vertex, x: -vertex.y, y: vertex.x };
+      case 180:
+        return { ...vertex, x: -vertex.x, y: -vertex.y };
+      case 270:
+        return { ...vertex, x: vertex.y, y: -vertex.x };
+      default:
+        return { ...vertex };
+    }
+  }));
+}
+
 function sumTopFaceAreaByHalf(triangles) {
   const topZ = Math.max(...triangles.flatMap(triangle => triangle.map(vertex => vertex.z)));
   const topFaceTriangles = triangles.filter(triangle => triangle.every(vertex => vertex.z === topZ));
@@ -253,28 +268,28 @@ test('buildTextMesh tries 90 degree text orientation for tall narrow placements'
   assert.ok(triangles.length > 0);
 });
 
-test('buildTextMesh still places text after the primary orientation changes', () => {
+test('buildTextMesh recomputes placement in the rotated search space', () => {
   const outline0 = centeredHoleOutline({
-    width: 1800,
-    height: 1100,
-    holeMinX: 450,
-    holeMaxX: 1450,
-    holeMinY: 300,
-    holeMaxY: 800,
+    width: 1200,
+    height: 700,
+    holeMinX: 360,
+    holeMaxX: 840,
+    holeMinY: 210,
+    holeMaxY: 280,
   });
-  const basePlate0 = { minX: 0, maxX: 1800, minY: 0, maxY: 1100, width: 1800, height: 1100 };
+  const basePlate0 = { minX: -50, maxX: 1250, minY: -50, maxY: 750, width: 1300, height: 800 };
   const outline90 = rotateOutlineByOrientation(outline0, 90);
-  const basePlate90 = { minX: -1100, maxX: 0, minY: 0, maxY: 1800, width: 1100, height: 1800 };
+  const basePlate90 = { minX: -750, maxX: 50, minY: -50, maxY: 1250, width: 800, height: 1300 };
 
   const triangles0 = buildTextMesh(
-    'DAYTONA ROAD COURSE',
+    'LAS VEGAS STRIP CIRCUIT',
     outline0,
     basePlate0,
     0.05,
     { font: createMockFont(), baseThickness: BASE_THICKNESS_MM },
   );
   const triangles90 = buildTextMesh(
-    'DAYTONA ROAD COURSE',
+    'LAS VEGAS STRIP CIRCUIT',
     outline90,
     basePlate90,
     0.05,
@@ -286,12 +301,12 @@ test('buildTextMesh still places text after the primary orientation changes', ()
 
   const bounds0 = triangleBounds(triangles0);
   const bounds90 = triangleBounds(triangles90);
-  const width0 = bounds0.maxX - bounds0.minX;
-  const height0 = bounds0.maxY - bounds0.minY;
-  const width90 = bounds90.maxX - bounds90.minX;
-  const height90 = bounds90.maxY - bounds90.minY;
+  const derotatedBounds90 = triangleBounds(rotateTrianglesByOrientation(triangles90, 270));
 
   assert.notEqual(bounds0.minX, bounds90.minX);
-  assert.ok(width0 > height0);
-  assert.ok(height90 > width90);
+  assert.ok(
+    Math.abs(bounds0.minY - derotatedBounds90.minY) > 1
+      || Math.abs(bounds0.maxY - derotatedBounds90.maxY) > 1,
+    'expected rotated placement search to produce a different fitted result',
+  );
 });

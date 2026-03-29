@@ -1,6 +1,8 @@
 import earcut from 'earcut';
 
+import { buildBasePlate, buildTrackOutline } from './geometry.js';
 import { normalizeOrientationDeg } from './orientation.js';
+import { rotateOutlineByOrientation, rotatePointsByOrientation } from './orientation.js';
 import { buildTextMesh } from './text3d.js';
 
 export const BASE_THICKNESS_MM = 8;
@@ -83,6 +85,66 @@ function addTriangle(triangles, a, b, c) {
 function addQuad(triangles, a, b, c, d) {
   addTriangle(triangles, a, b, c);
   addTriangle(triangles, a, c, d);
+}
+
+function boundsFromPoints(points) {
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+
+  for (const point of points) {
+    minX = Math.min(minX, point.x);
+    maxX = Math.max(maxX, point.x);
+    minY = Math.min(minY, point.y);
+    maxY = Math.max(maxY, point.y);
+  }
+
+  return {
+    minX,
+    maxX,
+    minY,
+    maxY,
+    width: maxX - minX,
+    height: maxY - minY,
+  };
+}
+
+function rotateBasePlateByOrientation(basePlate, orientationDeg) {
+  if (!basePlate) {
+    return null;
+  }
+
+  return boundsFromPoints(rotatePointsByOrientation([
+    { x: basePlate.minX, y: basePlate.minY },
+    { x: basePlate.maxX, y: basePlate.minY },
+    { x: basePlate.maxX, y: basePlate.maxY },
+    { x: basePlate.minX, y: basePlate.maxY },
+  ], orientationDeg));
+}
+
+export function orientTrackGeometry({
+  outlinePoints,
+  basePlate,
+  projectedNodes = null,
+  orientationDeg = 0,
+}) {
+  const normalizedOrientationDeg = normalizeOrientationDeg(orientationDeg);
+  const orientedProjectedNodes = projectedNodes?.length
+    ? rotatePointsByOrientation(projectedNodes, normalizedOrientationDeg)
+    : null;
+  const orientedOutlinePoints = orientedProjectedNodes?.length
+    ? buildTrackOutline(orientedProjectedNodes)
+    : rotateOutlineByOrientation(outlinePoints, normalizedOrientationDeg);
+  const orientedBasePlate = rotateBasePlateByOrientation(basePlate, normalizedOrientationDeg)
+    ?? buildBasePlate(orientedOutlinePoints);
+
+  return {
+    outlinePoints: orientedOutlinePoints,
+    basePlate: orientedBasePlate,
+    projectedNodes: orientedProjectedNodes,
+    orientationDeg: normalizedOrientationDeg,
+  };
 }
 
 function buildBasePlateMesh(basePlate, scale) {
@@ -193,11 +255,17 @@ export function buildTrackModel({
   projectedNodes = null,
   orientationDeg = 0,
 }) {
-  const scale = computeScale(basePlate);
-  const basePlateTriangles = buildBasePlateMesh(basePlate, scale);
-  const trackTriangles = buildTrackPrismMesh(outlinePoints, scale, projectedNodes);
+  const orientedGeometry = orientTrackGeometry({
+    outlinePoints,
+    basePlate,
+    projectedNodes,
+    orientationDeg,
+  });
+  const scale = computeScale(orientedGeometry.basePlate);
+  const basePlateTriangles = buildBasePlateMesh(orientedGeometry.basePlate, scale);
+  const trackTriangles = buildTrackPrismMesh(orientedGeometry.outlinePoints, scale, orientedGeometry.projectedNodes);
   const textTriangles = trackName
-    ? buildTextMesh(trackName, outlinePoints, basePlate, scale, { baseThickness: BASE_THICKNESS_MM })
+    ? buildTextMesh(trackName, orientedGeometry.outlinePoints, orientedGeometry.basePlate, scale, { baseThickness: BASE_THICKNESS_MM })
     : [];
 
   return {
@@ -206,7 +274,10 @@ export function buildTrackModel({
     trackTriangleCount: trackTriangles.length,
     textTriangleCount: textTriangles.length,
     scale,
-    orientationDeg: normalizeOrientationDeg(orientationDeg),
+    orientationDeg: orientedGeometry.orientationDeg,
+    outlinePoints: orientedGeometry.outlinePoints,
+    basePlate: orientedGeometry.basePlate,
+    projectedNodes: orientedGeometry.projectedNodes,
   };
 }
 

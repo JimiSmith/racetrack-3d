@@ -3,7 +3,6 @@ import test from 'node:test';
 
 import { buildBasePlate } from '../src/geometry.js';
 import { BASE_THICKNESS_MM, buildTrackModel, computeScale, exportStl } from '../src/model.js';
-import { rotateOutlineByOrientation } from '../src/orientation.js';
 
 function syntheticOutline() {
   return {
@@ -36,6 +35,42 @@ function span(bounds) {
     width: bounds.maxX - bounds.minX,
     height: bounds.maxY - bounds.minY,
   };
+}
+
+function offsetHoleOutline() {
+  return {
+    outerRing: [
+      { x: 0, y: 0 },
+      { x: 1200, y: 0 },
+      { x: 1200, y: 700 },
+      { x: 0, y: 700 },
+    ],
+    holes: [[
+      { x: 180, y: 140 },
+      { x: 360, y: 140 },
+      { x: 360, y: 350 },
+      { x: 180, y: 350 },
+    ]],
+  };
+}
+
+function textTriangles(model) {
+  return model.triangles.slice(model.baseTriangleCount + model.trackTriangleCount);
+}
+
+function rotateTrianglesByOrientation(triangles, orientationDeg) {
+  return triangles.map(triangle => triangle.map(vertex => {
+    switch (orientationDeg) {
+      case 90:
+        return { ...vertex, x: -vertex.y, y: vertex.x };
+      case 180:
+        return { ...vertex, x: -vertex.x, y: -vertex.y };
+      case 270:
+        return { ...vertex, x: vertex.y, y: -vertex.x };
+      default:
+        return { ...vertex };
+    }
+  }));
 }
 
 function approxEqual(actual, expected, tolerance = 1e-6) {
@@ -144,15 +179,13 @@ test('computeScale fits the base plate inside a 200mm bounding box', () => {
 });
 
 test('buildTrackModel rotates geometry bounds in 90 degree increments', () => {
-  const outline0 = syntheticOutline();
-  const outline90 = rotateOutlineByOrientation(outline0, 90);
-  const outline180 = rotateOutlineByOrientation(outline0, 180);
-  const outline270 = rotateOutlineByOrientation(outline0, 270);
+  const outlinePoints = syntheticOutline();
+  const basePlate = buildBasePlate(outlinePoints, 20);
 
-  const model0 = buildTrackModel({ outlinePoints: outline0, basePlate: buildBasePlate(outline0, 20), orientationDeg: 0 });
-  const model90 = buildTrackModel({ outlinePoints: outline90, basePlate: buildBasePlate(outline90, 20), orientationDeg: 90 });
-  const model180 = buildTrackModel({ outlinePoints: outline180, basePlate: buildBasePlate(outline180, 20), orientationDeg: 180 });
-  const model270 = buildTrackModel({ outlinePoints: outline270, basePlate: buildBasePlate(outline270, 20), orientationDeg: 270 });
+  const model0 = buildTrackModel({ outlinePoints, basePlate, orientationDeg: 0 });
+  const model90 = buildTrackModel({ outlinePoints, basePlate, orientationDeg: 90 });
+  const model180 = buildTrackModel({ outlinePoints, basePlate, orientationDeg: 180 });
+  const model270 = buildTrackModel({ outlinePoints, basePlate, orientationDeg: 270 });
 
   const span0 = span(triangleBounds(model0.triangles));
   const span90 = span(triangleBounds(model90.triangles));
@@ -169,6 +202,29 @@ test('buildTrackModel rotates geometry bounds in 90 degree increments', () => {
   assert.equal(model90.orientationDeg, 90);
   assert.equal(model180.orientationDeg, 180);
   assert.equal(model270.orientationDeg, 270);
+});
+
+test('buildTrackModel reruns text placement when primary orientation changes', () => {
+  const outlinePoints = offsetHoleOutline();
+  const basePlate = buildBasePlate(outlinePoints, 50);
+
+  const model0 = buildTrackModel({ outlinePoints, basePlate, trackName: 'DAYTONA ROAD COURSE', orientationDeg: 0 });
+  const model90 = buildTrackModel({ outlinePoints, basePlate, trackName: 'DAYTONA ROAD COURSE', orientationDeg: 90 });
+
+  const bounds0 = triangleBounds(textTriangles(model0));
+  const bounds90 = triangleBounds(textTriangles(model90));
+  const derotatedBounds90 = triangleBounds(rotateTrianglesByOrientation(textTriangles(model90), 270));
+
+  assert.ok(model0.textTriangleCount > 0);
+  assert.ok(model90.textTriangleCount > 0);
+  assert.notDeepEqual(bounds0, bounds90);
+  assert.ok(
+    Math.abs(bounds0.minX - derotatedBounds90.minX) > 1
+      || Math.abs(bounds0.maxX - derotatedBounds90.maxX) > 1
+      || Math.abs(bounds0.minY - derotatedBounds90.minY) > 1
+      || Math.abs(bounds0.maxY - derotatedBounds90.maxY) > 1,
+    'expected text placement to be recomputed instead of only rotating the final mesh',
+  );
 });
 
 test('exportStl returns download metadata with a blob, buffer, and filename', async () => {
