@@ -5,9 +5,11 @@ import { LABEL_FONT_BASE64 } from './label-font-data.js';
 
 export const TEXT_HEIGHT_MM = 0.8;
 const CURVE_SEGMENTS = 8;
-const MIN_INFIELD_WIDTH_METRES = 200;
-const MIN_INFIELD_HEIGHT_METRES = 100;
 const MIN_TEXT_HEIGHT_MM = 2;
+const MAX_TEXT_LINES = 4;
+const MAX_CANDIDATES = 16;
+const LONG_SIDE_GRID_CELLS = 96;
+const MIN_GRID_CELLS = 48;
 
 let cachedFont = null;
 
@@ -401,59 +403,442 @@ function createScaledBounds(bounds, scale) {
   };
 }
 
-function getPrimaryPlacement(outlinePoints, scale) {
-  const holes = outlinePoints?.holes ?? [];
-  if (!holes.length) {
-    return null;
-  }
+function scaleRing(points, scale) {
+  return (points ?? []).map(point => ({
+    x: point.x * scale,
+    y: point.y * scale,
+  }));
+}
 
-  let bestHole = null;
-  let bestArea = -Infinity;
-
-  for (const hole of holes) {
-    const area = Math.abs(signedArea(hole));
-    if (area > bestArea) {
-      bestArea = area;
-      bestHole = hole;
-    }
-  }
-
-  if (!bestHole) {
-    return null;
-  }
-
-  const bounds = polygonBounds(bestHole);
-  if (bounds.width < MIN_INFIELD_WIDTH_METRES || bounds.height < MIN_INFIELD_HEIGHT_METRES) {
-    return null;
-  }
-
-  const scaledBounds = createScaledBounds(bounds, scale);
-  const padding = Math.max(0.8, Math.min(scaledBounds.width, scaledBounds.height) * 0.08);
-
+function scaleOutline(outlinePoints, scale) {
   return {
-    minX: scaledBounds.minX + padding,
-    minY: scaledBounds.minY + padding,
-    width: Math.max(0, scaledBounds.width - padding * 2),
-    height: Math.max(0, scaledBounds.height - padding * 2),
+    outerRing: scaleRing(outlinePoints?.outerRing ?? outlinePoints ?? [], scale),
+    holes: (outlinePoints?.holes ?? []).map(hole => scaleRing(hole, scale)),
   };
 }
 
-function getFallbackPlacement(outlinePoints, basePlate, scale) {
-  const baseBounds = createScaledBounds(basePlate, scale);
-  const outlineBounds = createScaledBounds(computeOutlineBounds(outlinePoints), scale);
-  const edgePadding = Math.max(1.5, Math.min(baseBounds.width, baseBounds.height) * 0.02);
-  const availableWidth = Math.max(0, baseBounds.width * 0.45 - edgePadding * 2);
-  const availableHeight = Math.max(
-    0,
-    Math.min(baseBounds.height * 0.16, Math.max(outlineBounds.minY - baseBounds.minY - edgePadding, 0) + baseBounds.height * 0.08),
-  );
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function createPlacementGrid(basePlate) {
+  const longSide = Math.max(basePlate.width, basePlate.height);
+  const shortSide = Math.min(basePlate.width, basePlate.height);
+  const aspectRatio = longSide / Math.max(shortSide, Number.EPSILON);
+  const longCells = clamp(LONG_SIDE_GRID_CELLS, MIN_GRID_CELLS, LONG_SIDE_GRID_CELLS);
+  const shortCells = clamp(Math.round(longCells / aspectRatio), Math.max(24, Math.round(MIN_GRID_CELLS / aspectRatio)), longCells);
+  const columns = basePlate.width >= basePlate.height ? longCells : shortCells;
+  const rows = basePlate.width >= basePlate.height ? shortCells : longCells;
+  const cellWidth = basePlate.width / columns;
+  const cellHeight = basePlate.height / rows;
+  const edgeMarginCells = 1;
+  const obstacleMarginCells = shortSide >= 80 ? 1 : 0;
 
   return {
-    minX: baseBounds.minX + edgePadding,
-    minY: baseBounds.minY + edgePadding,
-    width: availableWidth,
-    height: Math.max(0, availableHeight - edgePadding),
+    columns,
+    rows,
+    cellWidth,
+    cellHeight,
+    edgeMarginCells,
+    obstacleMarginCells,
   };
+}
+
+function pointInTrackFootprint(point, outlinePoints) {
+  if (!outlinePoints?.outerRing?.length) {
+    return false;
+  }
+
+  if (!pointInPolygon(point, outlinePoints.outerRing)) {
+    return false;
+  }
+
+  return !(outlinePoints.holes ?? []).some(hole => hole.length >= 3 && pointInPolygon(point, hole));
+}
+
+function dilateBlockedCells(mask, radius) {
+  if (radius <= 0) {
+    return mask;
+  }
+
+  const rows = mask.length;
+  const columns = mask[0]?.length ?? 0;
+  const dilated = mask.map(row => [...row]);
+
+  for (let row = 0; row < rows; row += 1) {
+    for (let column = 0; column < columns; column += 1) {
+      if (!mask[row][column]) {
+        continue;
+      }
+
+      for (let deltaY = -radius; deltaY <= radius; deltaY += 1) {
+        for (let deltaX = -radius; deltaX <= radius; deltaX += 1) {
+          const nextRow = row + deltaY;
+          const nextColumn = column + deltaX;
+          if (nextRow >= 0 && nextRow < rows && nextColumn >= 0 && nextColumn < columns) {
+            dilated[nextRow][nextColumn] = true;
+          }
+        }
+      }
+    }
+  }
+
+  return dilated;
+}
+
+function computePlacementMask(outlinePoints, basePlate) {
+  const grid = createPlacementGrid(basePlate);
+  const mask = Array.from({ length: grid.rows }, () => Array.from({ length: grid.columns }, () => false));
+
+  for (let row = 0; row < grid.rows; row += 1) {
+    const y = basePlate.minY + (row + 0.5) * grid.cellHeight;
+    for (let column = 0; column < grid.columns; column += 1) {
+      const x = basePlate.minX + (column + 0.5) * grid.cellWidth;
+      mask[row][column] = pointInTrackFootprint({ x, y }, outlinePoints);
+    }
+  }
+
+  const dilated = dilateBlockedCells(mask, grid.obstacleMarginCells);
+
+  for (let row = 0; row < grid.rows; row += 1) {
+    for (let column = 0; column < grid.columns; column += 1) {
+      if (
+        row < grid.edgeMarginCells
+        || column < grid.edgeMarginCells
+        || row >= grid.rows - grid.edgeMarginCells
+        || column >= grid.columns - grid.edgeMarginCells
+      ) {
+        dilated[row][column] = true;
+      }
+    }
+  }
+
+  return {
+    ...grid,
+    blocked: dilated,
+  };
+}
+
+function rectIntersectionArea(a, b) {
+  const overlapWidth = Math.max(0, Math.min(a.maxX, b.maxX) - Math.max(a.minX, b.minX));
+  const overlapHeight = Math.max(0, Math.min(a.maxY, b.maxY) - Math.max(a.minY, b.minY));
+  return overlapWidth * overlapHeight;
+}
+
+function candidateToBounds(candidate, basePlate, grid) {
+  const minX = basePlate.minX + candidate.left * grid.cellWidth;
+  const maxX = basePlate.minX + (candidate.right + 1) * grid.cellWidth;
+  const minY = basePlate.minY + candidate.top * grid.cellHeight;
+  const maxY = basePlate.minY + (candidate.bottom + 1) * grid.cellHeight;
+
+  return {
+    minX,
+    minY,
+    maxX,
+    maxY,
+    width: maxX - minX,
+    height: maxY - minY,
+  };
+}
+
+function dedupeCandidates(candidates, basePlate, grid, maxCandidates) {
+  const deduped = [];
+
+  for (const candidate of candidates) {
+    const bounds = candidateToBounds(candidate, basePlate, grid);
+    const area = bounds.width * bounds.height;
+    if (area <= 0) {
+      continue;
+    }
+
+    const duplicate = deduped.find(existing => {
+      const intersection = rectIntersectionArea(bounds, existing.bounds);
+      return intersection / Math.min(area, existing.area) > 0.9;
+    });
+
+    if (duplicate) {
+      continue;
+    }
+
+    deduped.push({ ...candidate, bounds, area });
+    if (deduped.length >= maxCandidates) {
+      break;
+    }
+  }
+
+  return deduped;
+}
+
+function findPlacementCandidates(basePlate, placementMask, maxCandidates = MAX_CANDIDATES) {
+  const heights = Array.from({ length: placementMask.columns }, () => 0);
+  const rectangles = [];
+
+  for (let row = 0; row < placementMask.rows; row += 1) {
+    for (let column = 0; column < placementMask.columns; column += 1) {
+      heights[column] = placementMask.blocked[row][column] ? 0 : heights[column] + 1;
+    }
+
+    const stack = [];
+    for (let column = 0; column <= placementMask.columns; column += 1) {
+      const currentHeight = column < placementMask.columns ? heights[column] : 0;
+      let start = column;
+
+      while (stack.length && stack[stack.length - 1].height > currentHeight) {
+        const item = stack.pop();
+        start = item.start;
+        if (item.height <= 0 || column <= item.start) {
+          continue;
+        }
+
+        rectangles.push({
+          left: item.start,
+          right: column - 1,
+          top: row - item.height + 1,
+          bottom: row,
+          widthCells: column - item.start,
+          heightCells: item.height,
+          areaCells: (column - item.start) * item.height,
+        });
+      }
+
+      if (!stack.length || stack[stack.length - 1].height < currentHeight) {
+        stack.push({ start, height: currentHeight });
+      }
+    }
+  }
+
+  rectangles.sort((a, b) => (
+    b.areaCells - a.areaCells
+      || Math.abs(a.widthCells - a.heightCells) - Math.abs(b.widthCells - b.heightCells)
+      || a.top - b.top
+      || a.left - b.left
+  ));
+
+  return dedupeCandidates(rectangles, basePlate, placementMask, maxCandidates);
+}
+
+function normalizeContoursToOrigin(contours) {
+  const bounds = computeTextBounds(contours);
+  return {
+    contours: translateAndScaleContours(contours, 1, -bounds.minX, -bounds.minY),
+    bounds: {
+      minX: 0,
+      minY: 0,
+      maxX: bounds.width,
+      maxY: bounds.height,
+      width: bounds.width,
+      height: bounds.height,
+    },
+  };
+}
+
+function rotateContours90(contours) {
+  return contours.map(contour => contour.map(point => ({
+    x: -point.y,
+    y: point.x,
+  })));
+}
+
+function createLineGrouping(words, breakpoints) {
+  const lines = [];
+  let start = 0;
+
+  for (const breakpoint of [...breakpoints, words.length]) {
+    lines.push(words.slice(start, breakpoint).join(' '));
+    start = breakpoint;
+  }
+
+  return lines;
+}
+
+function enumerateLineGroupings(words, lineCount) {
+  if (lineCount <= 1) {
+    return [[words.join(' ')]];
+  }
+
+  const groupings = [];
+
+  function visit(nextIndex, chosen) {
+    if (chosen.length === lineCount - 1) {
+      groupings.push(createLineGrouping(words, chosen));
+      return;
+    }
+
+    const remainingBreaks = lineCount - 1 - chosen.length;
+    for (let breakpoint = nextIndex; breakpoint <= words.length - remainingBreaks; breakpoint += 1) {
+      visit(breakpoint + 1, [...chosen, breakpoint]);
+    }
+  }
+
+  visit(1, []);
+  return groupings;
+}
+
+function measureLine(font, line, cache) {
+  const cached = cache.get(line);
+  if (cached) {
+    return cached;
+  }
+
+  const path = font.getPath(line, 0, 0, 1);
+  const contours = flipContoursY(pathCommandsToContours(path.commands));
+  if (!contours.length) {
+    cache.set(line, null);
+    return null;
+  }
+
+  const normalized = normalizeContoursToOrigin(contours);
+  const result = {
+    text: line,
+    contours: normalized.contours,
+    bounds: normalized.bounds,
+  };
+  cache.set(line, result);
+  return result;
+}
+
+function buildMultilineContours(lines, font, cache) {
+  const measuredLines = lines.map(line => measureLine(font, line, cache));
+  if (measuredLines.some(line => !line || line.bounds.width <= 0 || line.bounds.height <= 0)) {
+    return null;
+  }
+
+  const maxWidth = Math.max(...measuredLines.map(line => line.bounds.width));
+  const averageHeight = measuredLines.reduce((sum, line) => sum + line.bounds.height, 0) / measuredLines.length;
+  const lineGap = averageHeight * 0.35;
+  const contours = [];
+  const lineWidths = measuredLines.map(line => line.bounds.width);
+  let cursorY = 0;
+
+  for (const line of measuredLines) {
+    const offsetX = (maxWidth - line.bounds.width) / 2;
+    contours.push(...translateAndScaleContours(line.contours, 1, offsetX, cursorY));
+    cursorY += line.bounds.height + lineGap;
+  }
+
+  const normalized = normalizeContoursToOrigin(contours);
+
+  return {
+    contours: normalized.contours,
+    bounds: normalized.bounds,
+    averageLineHeight: averageHeight,
+    maxLineWidth: Math.max(...lineWidths),
+    minLineWidth: Math.min(...lineWidths),
+    lineCount: measuredLines.length,
+  };
+}
+
+function computeCenterBias(rect, basePlate) {
+  const rectCenterX = rect.minX + rect.width / 2;
+  const rectCenterY = rect.minY + rect.height / 2;
+  const baseCenterX = basePlate.minX + basePlate.width / 2;
+  const baseCenterY = basePlate.minY + basePlate.height / 2;
+  const maxDistance = Math.hypot(basePlate.width / 2, basePlate.height / 2) || 1;
+  const distance = Math.hypot(rectCenterX - baseCenterX, rectCenterY - baseCenterY);
+  return 1 - 0.12 * Math.min(1, distance / maxDistance);
+}
+
+function scoreTextFit(rect, layout, scaledBounds, basePlate) {
+  const fittedWidth = scaledBounds.width;
+  const fittedHeight = scaledBounds.height;
+  const utilization = Math.min(1, (fittedWidth * fittedHeight) / Math.max(rect.width * rect.height, Number.EPSILON));
+  const rectAspect = rect.width / Math.max(rect.height, Number.EPSILON);
+  const layoutAspect = scaledBounds.width / Math.max(scaledBounds.height, Number.EPSILON);
+  const aspectPenalty = 1 / (1 + Math.abs(Math.log(rectAspect / Math.max(layoutAspect, Number.EPSILON))));
+  const lineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
+  const lineCountPenalty = Math.max(0.72, 1 - (layout.lineCount - 1) * 0.08);
+  const centerBias = computeCenterBias(rect, basePlate);
+
+  return layout.averageLineHeight
+    * Math.pow(utilization, 0.2)
+    * aspectPenalty
+    * (0.75 + lineBalance * 0.25)
+    * lineCountPenalty
+    * centerBias;
+}
+
+function fitTextToRectangle(text, font, rect, basePlate, cache) {
+  const words = String(text).split(/\s+/u).filter(Boolean);
+  if (!words.length) {
+    return null;
+  }
+
+  let bestLayout = null;
+  const maxLines = Math.min(MAX_TEXT_LINES, words.length);
+
+  for (let lineCount = 1; lineCount <= maxLines; lineCount += 1) {
+    const groupings = enumerateLineGroupings(words, lineCount);
+    for (const grouping of groupings) {
+      const multiline = buildMultilineContours(grouping, font, cache);
+      if (!multiline || multiline.bounds.width <= 0 || multiline.bounds.height <= 0) {
+        continue;
+      }
+
+      for (const rotation of [0, 90]) {
+        const oriented = rotation === 0
+          ? multiline
+          : { ...multiline, ...normalizeContoursToOrigin(rotateContours90(multiline.contours)) };
+        const fittedScale = Math.min(
+          rect.width / oriented.bounds.width,
+          rect.height / oriented.bounds.height,
+        );
+
+        if (!Number.isFinite(fittedScale) || fittedScale * multiline.averageLineHeight < MIN_TEXT_HEIGHT_MM) {
+          continue;
+        }
+
+        const fittedWidth = oriented.bounds.width * fittedScale;
+        const fittedHeight = oriented.bounds.height * fittedScale;
+        const score = scoreTextFit(rect, multiline, { width: fittedWidth, height: fittedHeight }, basePlate);
+
+        if (!bestLayout || score > bestLayout.score) {
+          bestLayout = {
+            score,
+            lines: grouping,
+            rotation,
+            scale: fittedScale,
+            bounds: oriented.bounds,
+            contours: oriented.contours,
+            fittedWidth,
+            fittedHeight,
+          };
+        }
+      }
+    }
+  }
+
+  return bestLayout;
+}
+
+function chooseTextPlacement(text, font, candidates, basePlate) {
+  const cache = new Map();
+  let bestPlacement = null;
+
+  for (const candidate of candidates) {
+    const layout = fitTextToRectangle(text, font, candidate.bounds, basePlate, cache);
+    if (!layout) {
+      continue;
+    }
+
+    const offsetX = candidate.bounds.minX + (candidate.bounds.width - layout.fittedWidth) / 2 - layout.bounds.minX * layout.scale;
+    const offsetY = candidate.bounds.minY + (candidate.bounds.height - layout.fittedHeight) / 2 - layout.bounds.minY * layout.scale;
+    const positionedContours = translateAndScaleContours(layout.contours, layout.scale, offsetX, offsetY);
+
+    if (
+      !bestPlacement
+      || layout.score > bestPlacement.score
+      || (layout.score === bestPlacement.score && candidate.area > bestPlacement.area)
+    ) {
+      bestPlacement = {
+        ...layout,
+        area: candidate.area,
+        candidate: candidate.bounds,
+        contours: positionedContours,
+      };
+    }
+  }
+
+  return bestPlacement;
 }
 
 function computeTextBounds(contours) {
@@ -487,33 +872,20 @@ export function buildTextMesh(text, outlinePoints, basePlate, scale, options = {
   }
 
   const font = getLabelFont(options.font ?? null);
-  const placement = getPrimaryPlacement(outlinePoints, scale) ?? getFallbackPlacement(outlinePoints, basePlate, scale);
-  if (!placement || placement.width <= 0 || placement.height <= 0) {
+  const scaledOutline = scaleOutline(outlinePoints, scale);
+  const scaledBasePlate = createScaledBounds(basePlate, scale);
+  const placementMask = computePlacementMask(scaledOutline, scaledBasePlate);
+  const candidates = findPlacementCandidates(scaledBasePlate, placementMask);
+  if (!candidates.length) {
     return [];
   }
 
-  const path = font.getPath(normalizedText, 0, 0, 1);
-  const contours = flipContoursY(pathCommandsToContours(path.commands));
-  if (!contours.length) {
+  const placement = chooseTextPlacement(normalizedText, font, candidates, scaledBasePlate);
+  if (!placement?.contours?.length) {
     return [];
   }
 
-  const textBounds = computeTextBounds(contours);
-  if (textBounds.width <= 0 || textBounds.height <= 0) {
-    return [];
-  }
-
-  const fittedScale = Math.min(placement.width / textBounds.width, placement.height / textBounds.height);
-  if (!Number.isFinite(fittedScale) || fittedScale * textBounds.height < MIN_TEXT_HEIGHT_MM) {
-    return [];
-  }
-
-  const fittedWidth = textBounds.width * fittedScale;
-  const fittedHeight = textBounds.height * fittedScale;
-  const offsetX = placement.minX + (placement.width - fittedWidth) / 2 - textBounds.minX * fittedScale;
-  const offsetY = placement.minY + (placement.height - fittedHeight) / 2 - textBounds.minY * fittedScale;
-  const positionedContours = translateAndScaleContours(contours, fittedScale, offsetX, offsetY);
-  const shapes = collectShapes(buildContourTree(positionedContours));
+  const shapes = collectShapes(buildContourTree(placement.contours));
   const minZ = options.baseThickness ?? 8;
   const maxZ = minZ + (options.textHeight ?? TEXT_HEIGHT_MM);
 

@@ -114,6 +114,23 @@ function smallHoleOutline() {
   };
 }
 
+function centeredHoleOutline({ width = 2000, height = 2000, holeMinX, holeMaxX, holeMinY, holeMaxY }) {
+  return {
+    outerRing: [
+      { x: 0, y: 0 },
+      { x: width, y: 0 },
+      { x: width, y: height },
+      { x: 0, y: height },
+    ],
+    holes: [[
+      { x: holeMinX, y: holeMinY },
+      { x: holeMaxX, y: holeMinY },
+      { x: holeMaxX, y: holeMaxY },
+      { x: holeMinX, y: holeMaxY },
+    ]],
+  };
+}
+
 test('buildTextMesh generates embossed text inside a large infield', () => {
   const triangles = buildTextMesh(
     'GO',
@@ -177,4 +194,46 @@ test('buildTextMesh restores upright glyph orientation from canvas-style font pa
 
   const { lower, upper } = sumTopFaceAreaByHalf(triangles);
   assert.ok(lower > upper, `expected more top-face area in the lower half, got lower=${lower} upper=${upper}`);
+});
+
+test('buildTextMesh uses multiline fitting when a single line would be unreadable', () => {
+  const outline = centeredHoleOutline({
+    width: 1200,
+    height: 700,
+    holeMinX: 300,
+    holeMaxX: 900,
+    holeMinY: 200,
+    holeMaxY: 500,
+  });
+
+  const triangles = buildTextMesh(
+    'LAS VEGAS STRIP CIRCUIT',
+    outline,
+    { minX: 0, maxX: 1200, minY: 0, maxY: 700, width: 1200, height: 700 },
+    0.05,
+    { font: createMockFont(), baseThickness: BASE_THICKNESS_MM },
+  );
+
+  assert.ok(triangles.length > 0);
+});
+
+test('buildTextMesh tries 90 degree text orientation for tall narrow placements', () => {
+  const outline = centeredHoleOutline({
+    width: 1000,
+    height: 2000,
+    holeMinX: 425,
+    holeMaxX: 575,
+    holeMinY: 200,
+    holeMaxY: 1800,
+  });
+
+  const triangles = buildTextMesh(
+    'IMOLA',
+    outline,
+    { minX: 0, maxX: 1000, minY: 0, maxY: 2000, width: 1000, height: 2000 },
+    0.05,
+    { font: createMockFont(), baseThickness: BASE_THICKNESS_MM },
+  );
+
+  assert.ok(triangles.length > 0);
 });
