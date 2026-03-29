@@ -338,6 +338,10 @@ h1 {
   pointer-events: none;
 }
 
+.preview-overlay[hidden] {
+  display: none;
+}
+
 #preview-overlay-title {
   margin: 0;
   font-size: clamp(1.35rem, 4vw, 2rem);
