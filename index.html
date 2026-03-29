@@ -31,26 +31,44 @@
           Search for a circuit to preview the model, adjust options, and export a print-ready file.
         </div>
         <div id="track-summary-content" hidden>
-          <h2 id="selected-track-name"></h2>
-          <p id="selected-track-meta"></p>
-          <dl class="summary-grid">
-            <div>
-              <dt>Layout</dt>
-              <dd id="summary-layout"></dd>
+          <div class="summary-mobile-header">
+            <div class="summary-mobile-copy">
+              <p id="selected-track-mobile-name" class="summary-mobile-name"></p>
+              <p id="selected-track-mobile-layout" class="summary-mobile-layout"></p>
             </div>
-            <div>
-              <dt>Label</dt>
-              <dd id="summary-label"></dd>
-            </div>
-            <div>
-              <dt>Orientation</dt>
-              <dd id="summary-orientation"></dd>
-            </div>
-            <div>
-              <dt>Placement</dt>
-              <dd id="summary-placement"></dd>
-            </div>
-          </dl>
+            <button
+              id="track-summary-toggle"
+              class="summary-toggle"
+              type="button"
+              aria-expanded="true"
+              aria-controls="track-summary-panel"
+            >
+              <span aria-hidden="true">i</span>
+              <span class="sr-only">Toggle track info</span>
+            </button>
+          </div>
+          <div id="track-summary-panel">
+            <h2 id="selected-track-name"></h2>
+            <p id="selected-track-meta"></p>
+            <dl class="summary-grid">
+              <div>
+                <dt>Layout</dt>
+                <dd id="summary-layout"></dd>
+              </div>
+              <div>
+                <dt>Label</dt>
+                <dd id="summary-label"></dd>
+              </div>
+              <div>
+                <dt>Orientation</dt>
+                <dd id="summary-orientation"></dd>
+              </div>
+              <div>
+                <dt>Placement</dt>
+                <dd id="summary-placement"></dd>
+              </div>
+            </dl>
+          </div>
         </div>
       </section>
       <section class="preview-card">

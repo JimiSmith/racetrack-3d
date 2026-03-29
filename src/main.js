@@ -21,10 +21,14 @@ const trackSummaryEmpty = document.getElementById('track-summary-empty');
 const trackSummaryContent = document.getElementById('track-summary-content');
 const selectedTrackName = document.getElementById('selected-track-name');
 const selectedTrackMeta = document.getElementById('selected-track-meta');
+const selectedTrackMobileName = document.getElementById('selected-track-mobile-name');
+const selectedTrackMobileLayout = document.getElementById('selected-track-mobile-layout');
 const summaryLayout = document.getElementById('summary-layout');
 const summaryLabel = document.getElementById('summary-label');
 const summaryOrientation = document.getElementById('summary-orientation');
 const summaryPlacement = document.getElementById('summary-placement');
+const trackSummaryToggle = document.getElementById('track-summary-toggle');
+const trackSummaryPanel = document.getElementById('track-summary-panel');
 const previewOverlay = document.getElementById('preview-overlay');
 const previewOverlayTitle = document.getElementById('preview-overlay-title');
 const previewOverlayBody = document.getElementById('preview-overlay-body');
@@ -63,6 +67,9 @@ let currentPrimaryOrientationDeg = normalizePrimaryOrientationDeg(orientationSel
 let currentTextPositionRank = normalizeTextPositionRank(textPositionSelect?.value ?? DEFAULT_TEXT_POSITION_RANK);
 let isGeneratingStl = false;
 let isGenerating3mf = false;
+let isTrackSummaryExpanded = true;
+
+const mobileSummaryMedia = window.matchMedia('(max-width: 699px)');
 
 function setStatus(msg, isError = false) {
   status.textContent = msg;
@@ -128,18 +135,47 @@ function setPreviewOverlayState(title, body, hidden = false) {
   previewOverlayBody.textContent = body;
 }
 
+function setTrackSummaryExpanded(expanded) {
+  isTrackSummaryExpanded = expanded;
+
+  if (!currentTrack) {
+    trackSummaryPanel.hidden = false;
+    trackSummaryToggle.setAttribute('aria-expanded', 'false');
+    return;
+  }
+
+  const shouldExpand = mobileSummaryMedia.matches ? expanded : true;
+  trackSummaryPanel.hidden = !shouldExpand;
+  trackSummaryToggle.setAttribute('aria-expanded', String(shouldExpand));
+}
+
+function syncTrackSummaryForViewport() {
+  if (!currentTrack) {
+    setTrackSummaryExpanded(false);
+    return;
+  }
+
+  setTrackSummaryExpanded(mobileSummaryMedia.matches ? isTrackSummaryExpanded : true);
+}
+
 function updateTrackSummary() {
   const layout = getSelectedLayout(currentLayouts, currentLayoutIndex);
 
   if (!currentTrack) {
     trackSummaryEmpty.hidden = false;
     trackSummaryContent.hidden = true;
+    selectedTrackMobileName.textContent = '';
+    selectedTrackMobileLayout.textContent = '';
+    syncTrackSummaryForViewport();
     return;
   }
 
   if (!layout) {
-    selectedTrackName.textContent = currentTrack.name ?? 'Loading track';
+    const loadingName = currentTrack.name ?? 'Loading track';
+    selectedTrackName.textContent = loadingName;
     selectedTrackMeta.textContent = 'Loading track geometry and printable layout details...';
+    selectedTrackMobileName.textContent = loadingName;
+    selectedTrackMobileLayout.textContent = 'Loading layout...';
     summaryLayout.textContent = 'Loading...';
     summaryLabel.textContent = currentTrack.name ?? 'Pending';
     summaryOrientation.textContent = getOrientationLabel();
@@ -147,6 +183,7 @@ function updateTrackSummary() {
 
     trackSummaryEmpty.hidden = true;
     trackSummaryContent.hidden = false;
+    syncTrackSummaryForViewport();
     return;
   }
 
@@ -158,6 +195,8 @@ function updateTrackSummary() {
 
   selectedTrackName.textContent = heading;
   selectedTrackMeta.textContent = meta;
+  selectedTrackMobileName.textContent = heading;
+  selectedTrackMobileLayout.textContent = layout.name ?? 'Default layout';
   summaryLayout.textContent = layout.name ?? 'Default';
   summaryLabel.textContent = trackNameState.printedName;
   summaryOrientation.textContent = getOrientationLabel();
@@ -165,6 +204,7 @@ function updateTrackSummary() {
 
   trackSummaryEmpty.hidden = true;
   trackSummaryContent.hidden = false;
+  syncTrackSummaryForViewport();
 }
 
 function updateLayoutSelector() {
@@ -279,6 +319,7 @@ async function handleSelect(track) {
   currentLayouts = [];
   currentLayoutIndex = 0;
   currentOsmVenueNames = [];
+  isTrackSummaryExpanded = !mobileSummaryMedia.matches;
   updateLayoutSelector();
   updatePreview(null);
   updateTrackSummary();
@@ -309,6 +350,22 @@ async function handleSelect(track) {
     console.error(err);
   }
 }
+
+trackSummaryToggle?.addEventListener('click', () => {
+  if (!currentTrack || !mobileSummaryMedia.matches) {
+    return;
+  }
+
+  setTrackSummaryExpanded(!isTrackSummaryExpanded);
+});
+
+mobileSummaryMedia.addEventListener('change', () => {
+  if (currentTrack && mobileSummaryMedia.matches) {
+    isTrackSummaryExpanded = false;
+  }
+
+  syncTrackSummaryForViewport();
+});
 
 generateStlButton.addEventListener('click', async () => {
   if (!currentOutline || !currentBasePlate || !currentTrack || isGeneratingStl) {
