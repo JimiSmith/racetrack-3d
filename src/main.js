@@ -56,6 +56,7 @@ const TEXT_POSITION_LABELS = {
 
 let currentNodes = null;
 let currentProjectedNodes = null;
+let currentElevations = null;
 let currentTrack = null;
 let currentOutline = null;
 let currentBasePlate = null;
@@ -242,11 +243,12 @@ function triggerDownload(blob, fileName) {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-function buildSelectedLayoutModel(elevations = null) {
+function buildSelectedLayoutModel(elevations = currentElevations) {
   const layout = getSelectedLayout(currentLayouts, currentLayoutIndex);
   if (!layout) {
     currentNodes = null;
     currentProjectedNodes = null;
+    currentElevations = null;
     currentOutline = null;
     currentBasePlate = null;
     currentModel = null;
@@ -270,6 +272,7 @@ function buildSelectedLayoutModel(elevations = null) {
 
   currentNodes = layout.nodes;
   currentProjectedNodes = projected;
+  currentElevations = elevations;
   currentOutline = model.outlinePoints;
   currentBasePlate = model.basePlate;
   currentModel = model;
@@ -312,6 +315,7 @@ async function handleSelect(track) {
   exaggerationWrap.hidden = true;
   currentNodes = null;
   currentProjectedNodes = null;
+  currentElevations = null;
   currentTrack = track;
   currentOutline = null;
   currentBasePlate = null;
@@ -338,6 +342,7 @@ async function handleSelect(track) {
   } catch (err) {
     currentNodes = null;
     currentProjectedNodes = null;
+    currentElevations = null;
     currentTrack = null;
     currentLayouts = [];
     currentOsmVenueNames = [];
@@ -477,6 +482,7 @@ layoutSelect.addEventListener('change', async () => {
   }
 
   currentLayoutIndex = normalizeSelectedLayoutIndex(currentLayouts, nextIndex);
+  currentElevations = null;
   buildSelectedLayoutModel();
   exaggerationWrap.hidden = true;
 
