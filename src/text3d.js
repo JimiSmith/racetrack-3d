@@ -406,6 +406,42 @@ function createScaledBounds(bounds, scale) {
   };
 }
 
+function translateAndScaleBounds(bounds, scale, offsetX, offsetY) {
+  return {
+    minX: bounds.minX * scale + offsetX,
+    minY: bounds.minY * scale + offsetY,
+    maxX: bounds.maxX * scale + offsetX,
+    maxY: bounds.maxY * scale + offsetY,
+    width: bounds.width * scale,
+    height: bounds.height * scale,
+  };
+}
+
+function rotateBounds90(bounds) {
+  return polygonBounds([
+    { x: -bounds.minY, y: bounds.minX },
+    { x: -bounds.minY, y: bounds.maxX },
+    { x: -bounds.maxY, y: bounds.maxX },
+    { x: -bounds.maxY, y: bounds.minX },
+  ]);
+}
+
+function normalizeBoundsListToOrigin(boundsList) {
+  const combined = polygonBounds(boundsList.flatMap(bounds => [
+    { x: bounds.minX, y: bounds.minY },
+    { x: bounds.maxX, y: bounds.maxY },
+  ]));
+
+  return boundsList.map(bounds => ({
+    minX: bounds.minX - combined.minX,
+    minY: bounds.minY - combined.minY,
+    maxX: bounds.maxX - combined.minX,
+    maxY: bounds.maxY - combined.minY,
+    width: bounds.width,
+    height: bounds.height,
+  }));
+}
+
 function scaleRing(points, scale) {
   return (points ?? []).map(point => ({
     x: point.x * scale,
@@ -741,13 +777,25 @@ function buildMultilineContours(lines, font, cache) {
   const averageHeight = measuredLines.reduce((sum, line) => sum + line.bounds.height, 0) / measuredLines.length;
   const lineGap = averageHeight * 0.35;
   const contours = [];
+  const lineBounds = [];
   const lineWidths = measuredLines.map(line => line.bounds.width);
-  let cursorY = 0;
+  const lineOffsetsY = [];
+  let totalHeight = 0;
 
-  for (const line of measuredLines) {
+  for (let index = 0; index < measuredLines.length; index += 1) {
+    lineOffsetsY.push(totalHeight);
+    totalHeight += measuredLines[index].bounds.height;
+    if (index < measuredLines.length - 1) {
+      totalHeight += lineGap;
+    }
+  }
+
+  for (let index = 0; index < measuredLines.length; index += 1) {
+    const line = measuredLines[index];
     const offsetX = (maxWidth - line.bounds.width) / 2;
-    contours.push(...translateAndScaleContours(line.contours, 1, offsetX, cursorY));
-    cursorY += line.bounds.height + lineGap;
+    const offsetY = totalHeight - lineOffsetsY[index] - line.bounds.height;
+    contours.push(...translateAndScaleContours(line.contours, 1, offsetX, offsetY));
+    lineBounds.push(translateAndScaleBounds(line.bounds, 1, offsetX, offsetY));
   }
 
   const normalized = normalizeContoursToOrigin(contours);
@@ -757,6 +805,7 @@ function buildMultilineContours(lines, font, cache) {
     lines: [...lines],
     contours: normalized.contours,
     bounds: normalized.bounds,
+    lineBounds: normalizeBoundsListToOrigin(lineBounds),
     averageLineHeight: averageHeight,
     maxLineWidth: Math.max(...lineWidths),
     minLineWidth: Math.min(...lineWidths),
@@ -821,7 +870,11 @@ function fitTextToRectangle(text, font, rect, basePlate, cache, textOrientationM
       for (const rotation of getTextRotationCandidates(textOrientationMode)) {
         const oriented = rotation === 0
           ? multiline
-          : { ...multiline, ...normalizeContoursToOrigin(rotateContours90(multiline.contours)) };
+          : {
+            ...multiline,
+            ...normalizeContoursToOrigin(rotateContours90(multiline.contours)),
+            lineBounds: normalizeBoundsListToOrigin(multiline.lineBounds.map(rotateBounds90)),
+          };
         const fittedScale = Math.min(
           rect.width / oriented.bounds.width,
           rect.height / oriented.bounds.height,
@@ -844,6 +897,7 @@ function fitTextToRectangle(text, font, rect, basePlate, cache, textOrientationM
             scale: fittedScale,
             bounds: oriented.bounds,
             contours: oriented.contours,
+            lineBounds: oriented.lineBounds,
             fittedWidth,
             fittedHeight,
           };
@@ -904,6 +958,7 @@ export function __debugTextPlacement(text, outlinePoints, basePlate, scale, opti
   return {
     text: placement.text,
     lines: [...placement.lines],
+    lineBounds: placement.lineBounds.map(bounds => ({ ...bounds })),
     rotation: placement.rotation,
     scale: placement.scale,
     candidateIndex: placement.candidateIndex,
@@ -926,6 +981,7 @@ function chooseTextPlacement(text, font, candidate, basePlate, textOrientationMo
     area: candidate.area,
     candidate: candidate.bounds,
     contours: translateAndScaleContours(layout.contours, layout.scale, offsetX, offsetY),
+    lineBounds: layout.lineBounds.map(bounds => translateAndScaleBounds(bounds, layout.scale, offsetX, offsetY)),
   };
 }
 

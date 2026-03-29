@@ -88,6 +88,26 @@ function boundsCenter(bounds) {
   };
 }
 
+function assertRenderedLineOrder(layout) {
+  assert.ok(layout);
+  assert.equal(layout.lines.length, layout.lineBounds.length);
+
+  const centers = layout.lineBounds.map(boundsCenter);
+  for (let index = 1; index < centers.length; index += 1) {
+    if (layout.rotation === 90) {
+      assert.ok(
+        centers[index - 1].x < centers[index].x,
+        `expected rotated line ${index} to render after line ${index - 1} along x, got ${centers[index - 1].x} and ${centers[index].x}`,
+      );
+    } else {
+      assert.ok(
+        centers[index - 1].y > centers[index].y,
+        `expected line ${index - 1} above line ${index}, got ${centers[index - 1].y} and ${centers[index].y}`,
+      );
+    }
+  }
+}
+
 function collapseWhitespace(text) {
   return String(text).trim().split(/\s+/u).filter(Boolean).join(' ');
 }
@@ -372,6 +392,53 @@ test('multiline fitting preserves exact word order across different line counts'
   assert.equal(collapseWhitespace(wideLayout.text), 'Las Vegas Strip Circuit');
   assert.equal(collapseWhitespace(narrowLayout.text), 'Las Vegas Strip Circuit');
   assert.ok(narrowLayout.lines.length >= wideLayout.lines.length);
+});
+
+test('multiline line stacking preserves top-to-bottom order without rotation', () => {
+  const outline = centeredHoleOutline({
+    width: 480,
+    height: 220,
+    holeMinX: 120,
+    holeMaxX: 360,
+    holeMinY: 50,
+    holeMaxY: 170,
+  });
+  const layout = __debugTextPlacement(
+    'Autodromo Nazionale di Monza',
+    outline,
+    { minX: 0, minY: 0, maxX: 480, maxY: 220, width: 480, height: 220 },
+    1,
+    { font: createMockFont(), baseThickness: BASE_THICKNESS_MM },
+  );
+
+  assert.ok(layout);
+  assert.notEqual(layout.lines.length, 1);
+  assert.equal(collapseWhitespace(layout.text), 'Autodromo Nazionale di Monza');
+  assertRenderedLineOrder(layout);
+});
+
+test('multiline line stacking preserves top-to-bottom order after 90 degree rotation', () => {
+  const outline = centeredHoleOutline({
+    width: 220,
+    height: 520,
+    holeMinX: 80,
+    holeMaxX: 140,
+    holeMinY: 60,
+    holeMaxY: 460,
+  });
+  const layout = __debugTextPlacement(
+    'Autodromo Nazionale di Monza',
+    outline,
+    { minX: 0, minY: 0, maxX: 220, maxY: 520, width: 220, height: 520 },
+    1,
+    { font: createMockFont(), baseThickness: BASE_THICKNESS_MM },
+  );
+
+  assert.ok(layout);
+  assert.equal(layout.rotation, 90);
+  assert.notEqual(layout.lines.length, 1);
+  assert.equal(collapseWhitespace(layout.text), 'Autodromo Nazionale di Monza');
+  assertRenderedLineOrder(layout);
 });
 
 test('placement rank and orientation mode do not alter word order', () => {
