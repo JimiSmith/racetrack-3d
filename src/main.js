@@ -17,18 +17,38 @@ import {
 const input = document.getElementById('search-input');
 const resultsList = document.getElementById('search-results');
 const status = document.getElementById('status');
+const trackSummaryEmpty = document.getElementById('track-summary-empty');
+const trackSummaryContent = document.getElementById('track-summary-content');
+const selectedTrackName = document.getElementById('selected-track-name');
+const selectedTrackMeta = document.getElementById('selected-track-meta');
+const summaryLayout = document.getElementById('summary-layout');
+const summaryLabel = document.getElementById('summary-label');
+const summaryOrientation = document.getElementById('summary-orientation');
+const summaryPlacement = document.getElementById('summary-placement');
+const previewOverlay = document.getElementById('preview-overlay');
+const previewOverlayTitle = document.getElementById('preview-overlay-title');
+const previewOverlayBody = document.getElementById('preview-overlay-body');
+const exportBar = document.getElementById('export-bar');
 const generateStlButton = document.getElementById('generate-stl');
-const generateStlButtonLabel = generateStlButton.textContent;
+const generateStlButtonText = generateStlButton.querySelector('.action-text');
+const generateStlButtonLabel = generateStlButtonText.textContent;
 const generate3mfButton = document.getElementById('generate-3mf');
-const generate3mfButtonLabel = generate3mfButton.textContent;
+const generate3mfButtonText = generate3mfButton.querySelector('.action-text');
+const generate3mfButtonLabel = generate3mfButtonText.textContent;
 const exaggerationWrap = document.getElementById('exaggeration-wrap');
 const exaggerationSlider = document.getElementById('exaggeration');
-const exaggerationLabel = document.getElementById('exaggeration-label');
+const exaggerationValue = document.getElementById('exaggeration-value');
 const layoutWrap = document.getElementById('layout-wrap');
 const layoutSelect = document.getElementById('layout-select');
 const layoutHint = document.getElementById('layout-hint');
 const orientationSelect = document.getElementById('orientation-select');
 const textPositionSelect = document.getElementById('text-position-select');
+
+const TEXT_POSITION_LABELS = {
+  1: 'Best fit',
+  2: 'Alternate 1',
+  3: 'Alternate 2',
+};
 
 let currentNodes = null;
 let currentProjectedNodes = null;
@@ -51,11 +71,13 @@ function setStatus(msg, isError = false) {
 
 function updateGenerateButton() {
   const disabled = !currentOutline || !currentBasePlate || !currentTrack;
+  const hasLoadedModel = Boolean(currentOutline && currentBasePlate && currentTrack);
 
   generateStlButton.disabled = isGeneratingStl || isGenerating3mf || disabled;
   generate3mfButton.disabled = isGeneratingStl || isGenerating3mf || disabled;
-  generateStlButton.textContent = isGeneratingStl ? 'Generating STL…' : generateStlButtonLabel;
-  generate3mfButton.textContent = isGenerating3mf ? 'Generating 3MF…' : generate3mfButtonLabel;
+  generateStlButtonText.textContent = isGeneratingStl ? 'Generating STL...' : generateStlButtonLabel;
+  generate3mfButtonText.textContent = isGenerating3mf ? 'Generating 3MF...' : generate3mfButtonLabel;
+  exportBar.hidden = !hasLoadedModel;
 }
 
 function slugifyFileName(value) {
@@ -74,6 +96,75 @@ function getSelectedTrackNameState(layout = getSelectedLayout(currentLayouts, cu
     osmVenueNames: currentOsmVenueNames,
     selectedLayoutName: layout?.name,
   });
+}
+
+function getOrientationLabel() {
+  return currentPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO
+    ? 'Auto'
+    : `${currentPrimaryOrientationDeg}°`;
+}
+
+function getTextPlacementLabel() {
+  return TEXT_POSITION_LABELS[currentTextPositionRank] ?? TEXT_POSITION_LABELS[DEFAULT_TEXT_POSITION_RANK];
+}
+
+function updateExaggerationSliderUI() {
+  const value = Number(exaggerationSlider.value);
+  const min = Number(exaggerationSlider.min);
+  const max = Number(exaggerationSlider.max);
+  const progress = ((value - min) / (max - min)) * 100;
+
+  exaggerationValue.textContent = `${value}x`;
+  exaggerationSlider.style.background = `linear-gradient(90deg, var(--accent) 0%, var(--accent) ${progress}%, rgba(99, 108, 128, 0.45) ${progress}%, rgba(99, 108, 128, 0.45) 100%)`;
+}
+
+function setPreviewOverlayState(title, body, hidden = false) {
+  previewOverlay.hidden = hidden;
+  if (hidden) {
+    return;
+  }
+
+  previewOverlayTitle.textContent = title;
+  previewOverlayBody.textContent = body;
+}
+
+function updateTrackSummary() {
+  const layout = getSelectedLayout(currentLayouts, currentLayoutIndex);
+
+  if (!currentTrack) {
+    trackSummaryEmpty.hidden = false;
+    trackSummaryContent.hidden = true;
+    return;
+  }
+
+  if (!layout) {
+    selectedTrackName.textContent = currentTrack.name ?? 'Loading track';
+    selectedTrackMeta.textContent = 'Loading track geometry and printable layout details...';
+    summaryLayout.textContent = 'Loading...';
+    summaryLabel.textContent = currentTrack.name ?? 'Pending';
+    summaryOrientation.textContent = getOrientationLabel();
+    summaryPlacement.textContent = getTextPlacementLabel();
+
+    trackSummaryEmpty.hidden = true;
+    trackSummaryContent.hidden = false;
+    return;
+  }
+
+  const trackNameState = getSelectedTrackNameState(layout);
+  const heading = currentTrack.name ?? trackNameState.printedName;
+  const meta = currentTrack.displayName && currentTrack.displayName !== heading
+    ? currentTrack.displayName
+    : 'Preview and export settings update live as you edit options.';
+
+  selectedTrackName.textContent = heading;
+  selectedTrackMeta.textContent = meta;
+  summaryLayout.textContent = layout.name ?? 'Default';
+  summaryLabel.textContent = trackNameState.printedName;
+  summaryOrientation.textContent = getOrientationLabel();
+  summaryPlacement.textContent = getTextPlacementLabel();
+
+  trackSummaryEmpty.hidden = true;
+  trackSummaryContent.hidden = false;
 }
 
 function updateLayoutSelector() {
@@ -120,6 +211,8 @@ function buildSelectedLayoutModel(elevations = null) {
     currentBasePlate = null;
     currentModel = null;
     updatePreview(null);
+    updateTrackSummary();
+    setPreviewOverlayState('No preview available', 'This selection does not include a printable layout yet.');
     updateGenerateButton();
     return;
   }
@@ -152,6 +245,8 @@ function buildSelectedLayoutModel(elevations = null) {
   setStatus(`${trackNameState.printedName} · ${detailParts.join(' · ')}`);
 
   updatePreview(currentModel);
+  updateTrackSummary();
+  setPreviewOverlayState('', '', true);
   updateGenerateButton();
 }
 
@@ -173,11 +268,11 @@ async function loadElevations(nodes, exaggeration) {
 
 async function handleSelect(track) {
   clearResults();
-  setStatus(`Loading geometry for ${track.name}…`);
+  setStatus(`Loading geometry for ${track.name}...`);
   exaggerationWrap.hidden = true;
   currentNodes = null;
   currentProjectedNodes = null;
-  currentTrack = null;
+  currentTrack = track;
   currentOutline = null;
   currentBasePlate = null;
   currentModel = null;
@@ -186,13 +281,14 @@ async function handleSelect(track) {
   currentOsmVenueNames = [];
   updateLayoutSelector();
   updatePreview(null);
+  updateTrackSummary();
+  setPreviewOverlayState('Loading preview', `Fetching track geometry for ${track.name}...`);
   updateGenerateButton();
   try {
     const geometry = await fetchTrackGeometry(track.lat, track.lon, undefined, track.name);
     currentLayouts = geometry.layouts ?? [];
     currentLayoutIndex = normalizeSelectedLayoutIndex(currentLayouts, geometry.selectedLayoutIndex ?? 0);
     currentOsmVenueNames = geometry.osmVenueNames ?? [];
-    currentTrack = track;
     updateLayoutSelector();
     buildSelectedLayoutModel();
 
@@ -201,11 +297,14 @@ async function handleSelect(track) {
   } catch (err) {
     currentNodes = null;
     currentProjectedNodes = null;
+    currentTrack = null;
     currentLayouts = [];
     currentOsmVenueNames = [];
     currentModel = null;
     updateLayoutSelector();
     updatePreview(null);
+    updateTrackSummary();
+    setPreviewOverlayState('Preview unavailable', 'Try another track or search again in a moment.');
     setStatus(`Error loading geometry: ${err.message}`, true);
     console.error(err);
   }
@@ -300,8 +399,7 @@ function renderResults(tracks) {
 
 let elevationRefreshTimer;
 exaggerationSlider.addEventListener('input', () => {
-  const val = exaggerationSlider.value;
-  exaggerationLabel.textContent = `Elevation exaggeration: ${val}×`;
+  updateExaggerationSliderUI();
 
   if (!currentNodes) return;
   clearTimeout(elevationRefreshTimer);
@@ -394,4 +492,7 @@ document.addEventListener('click', e => {
 });
 
 initPreview();
+updateExaggerationSliderUI();
+updateTrackSummary();
+setPreviewOverlayState('Search for a track', 'Choose a circuit to load a large live preview and export a 3D model.');
 updateGenerateButton();
