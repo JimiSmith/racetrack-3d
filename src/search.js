@@ -1,5 +1,247 @@
 const WIKIDATA_SPARQL = 'https://query.wikidata.org/sparql';
 const WIKIDATA_API = 'https://www.wikidata.org/w/api.php';
+const SEARCH_BRANCH_LIMIT = 10;
+const TRACK_INSTANCE_IDS = ['Q2338524', 'Q926439'];
+const SEARCH_BRANCH_DEFINITIONS = [
+  { key: 'base', suffix: '', branchWeight: 500 },
+  { key: 'circuit', suffix: 'circuit', branchWeight: 400 },
+  { key: 'street-circuit', suffix: 'street circuit', branchWeight: 300 },
+  { key: 'international-circuit', suffix: 'international circuit', branchWeight: 200 },
+  { key: 'track', suffix: 'track', branchWeight: 100 },
+];
+const VENUE_NAME_PATTERN = /\b(international circuit|circuit|autodrome|autodromo|raceway|speedway|ring)\b/i;
+const LAYOUT_VARIANT_PATTERN = /\b(layout|variant|alternate|alternative|historic|historical|original|modified|grand\s+prix|gp\b|national|club|endurance|inner|outer|short|oval|\d{4})\b/i;
+
+function extractWikidataId(value) {
+  return String(value ?? '').split('/').pop() || null;
+}
+
+function normalizeSearchText(value) {
+  return String(value ?? '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function buildSearchBranches(query) {
+  const normalizedQuery = String(query ?? '').trim().replace(/\s+/g, ' ');
+  const uniqueBranches = [];
+  const seenQueries = new Set();
+
+  for (const definition of SEARCH_BRANCH_DEFINITIONS) {
+    const branchQuery = definition.suffix
+      ? `${normalizedQuery} ${definition.suffix}`
+      : normalizedQuery;
+    const branchQueryKey = branchQuery.toLowerCase();
+
+    if (!branchQuery || seenQueries.has(branchQueryKey)) {
+      continue;
+    }
+
+    seenQueries.add(branchQueryKey);
+    uniqueBranches.push({
+      ...definition,
+      query: branchQuery,
+      isBase: definition.key === 'base',
+    });
+  }
+
+  return uniqueBranches;
+}
+
+async function searchWikidataEntities(query, signal) {
+  const searchUrl = `${WIKIDATA_API}?action=wbsearchentities&search=${encodeURIComponent(query)}&language=en&type=item&limit=${SEARCH_BRANCH_LIMIT}&format=json&origin=*`;
+  const searchResp = await fetch(searchUrl, { signal });
+  if (!searchResp.ok) {
+    throw new Error(`Wikidata search error: ${searchResp.status}`);
+  }
+
+  const searchData = await searchResp.json();
+  return (searchData.search ?? []).map((result, index) => ({
+    id: result.id,
+    label: result.label ?? null,
+    description: result.description ?? null,
+    match: result.match ?? null,
+    index,
+  }));
+}
+
+async function filterBranchTrackCandidates(ids, signal) {
+  if (!ids.length) {
+    return [];
+  }
+
+  const sparql = `
+SELECT DISTINCT ?item ?itemLabel ?countryLabel ?lat ?lon WHERE {
+  VALUES ?item { ${ids.map(id => `wd:${id}`).join(' ')} }
+  ?item wdt:P31 ?instance .
+  FILTER(?instance IN (${TRACK_INSTANCE_IDS.map(id => `wd:${id}`).join(', ')}))
+  ?item p:P625 ?coordStatement .
+  ?coordStatement psv:P625 ?coordNode .
+  ?coordNode wikibase:geoLatitude ?lat .
+  ?coordNode wikibase:geoLongitude ?lon .
+  OPTIONAL { ?item wdt:P17 ?country . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+}
+  `.trim();
+
+  const sparqlUrl = `${WIKIDATA_SPARQL}?query=${encodeURIComponent(sparql)}&format=json`;
+  const sparqlResp = await fetch(sparqlUrl, {
+    headers: { Accept: 'application/sparql-results+json' },
+    signal,
+  });
+  if (!sparqlResp.ok) {
+    throw new Error(`Wikidata SPARQL error: ${sparqlResp.status}`);
+  }
+
+  const { results } = await sparqlResp.json();
+  return [...new Map((results?.bindings ?? []).map(binding => {
+    const wikidataId = extractWikidataId(binding.item?.value);
+    return [wikidataId, {
+      name: binding.itemLabel?.value || 'Unknown',
+      countryLabel: binding.countryLabel?.value ?? null,
+      lat: parseFloat(binding.lat?.value),
+      lon: parseFloat(binding.lon?.value),
+      wikidataId,
+    }];
+  })).values()].filter(candidate => candidate.wikidataId && Number.isFinite(candidate.lat) && Number.isFinite(candidate.lon));
+}
+
+async function fetchBranchSurvivors(branch, signal) {
+  const rawResults = await searchWikidataEntities(branch.query, signal);
+  const rawResultsById = new Map(rawResults.map(result => [result.id, result]));
+  const ids = [...new Set(rawResults.map(result => result.id).filter(Boolean))];
+  const filteredCandidates = await filterBranchTrackCandidates(ids, signal);
+
+  return filteredCandidates.map(candidate => ({
+    ...candidate,
+    branch,
+    rawResult: rawResultsById.get(candidate.wikidataId) ?? null,
+  }));
+}
+
+function scoreTextMatch(queryKey, values) {
+  let bestScore = 0;
+
+  for (const value of values) {
+    const valueKey = normalizeSearchText(value);
+    if (!valueKey) {
+      continue;
+    }
+
+    if (valueKey === queryKey) {
+      bestScore = Math.max(bestScore, 220);
+      continue;
+    }
+
+    if (valueKey.startsWith(`${queryKey} `) || valueKey.endsWith(` ${queryKey}`)) {
+      bestScore = Math.max(bestScore, 170);
+      continue;
+    }
+
+    if (valueKey.includes(queryKey) || queryKey.includes(valueKey)) {
+      bestScore = Math.max(bestScore, 120);
+    }
+  }
+
+  return bestScore;
+}
+
+function rankSearchCandidate(candidate, query) {
+  const queryKey = normalizeSearchText(query);
+  const label = candidate.wikidataLabel ?? candidate.name;
+  const textMatchScore = scoreTextMatch(queryKey, [
+    label,
+    candidate.wikidataShortName,
+    ...(candidate.wikidataAliases ?? []),
+  ]);
+  const venueNameScore = VENUE_NAME_PATTERN.test(label) ? 60 : 0;
+  const layoutPenalty = LAYOUT_VARIANT_PATTERN.test(label) ? 140 : 0;
+  const branchDepthBonus = candidate.baseQueryMatch ? 40 : 0;
+  const bestRawIndexBonus = Number.isFinite(candidate.bestRawIndex)
+    ? Math.max(0, SEARCH_BRANCH_LIMIT - candidate.bestRawIndex)
+    : 0;
+
+  return candidate.bestBranchWeight
+    + branchDepthBonus
+    + textMatchScore
+    + venueNameScore
+    + bestRawIndexBonus
+    + candidate.matchedBranches.length * 5
+    - layoutPenalty;
+}
+
+function compareRankedCandidates(a, b) {
+  return b.rankScore - a.rankScore
+    || Number(b.baseQueryMatch) - Number(a.baseQueryMatch)
+    || b.bestBranchWeight - a.bestBranchWeight
+    || a.name.length - b.name.length
+    || a.name.localeCompare(b.name);
+}
+
+function mergeBranchCandidates(branchResults) {
+  const merged = new Map();
+
+  for (const candidates of branchResults) {
+    for (const candidate of candidates) {
+      if (!candidate.wikidataId) {
+        continue;
+      }
+
+      const existing = merged.get(candidate.wikidataId) ?? {
+        ...candidate,
+        matchedBranches: [],
+        matchedBranchKeys: [],
+        matchedBranchWeights: [],
+        baseQueryMatch: false,
+        suffixExpandedOnly: true,
+        bestBranchWeight: -Infinity,
+        bestRawIndex: Infinity,
+        primaryMatchType: null,
+      };
+
+      if (!existing.matchedBranchKeys.includes(candidate.branch.key)) {
+        existing.matchedBranches.push(candidate.branch.query);
+        existing.matchedBranchKeys.push(candidate.branch.key);
+        existing.matchedBranchWeights.push(candidate.branch.branchWeight);
+      }
+
+      existing.baseQueryMatch ||= candidate.branch.isBase;
+      existing.suffixExpandedOnly = !existing.baseQueryMatch;
+
+      if (candidate.branch.branchWeight > existing.bestBranchWeight) {
+        existing.bestBranchWeight = candidate.branch.branchWeight;
+        existing.primaryMatchType = candidate.branch.key;
+      }
+
+      if (Number.isFinite(candidate.rawResult?.index)) {
+        existing.bestRawIndex = Math.min(existing.bestRawIndex, candidate.rawResult.index);
+      }
+
+      if (!existing.name && candidate.name) {
+        existing.name = candidate.name;
+      }
+      if (!existing.countryLabel && candidate.countryLabel) {
+        existing.countryLabel = candidate.countryLabel;
+      }
+      if (!Number.isFinite(existing.lat) && Number.isFinite(candidate.lat)) {
+        existing.lat = candidate.lat;
+      }
+      if (!Number.isFinite(existing.lon) && Number.isFinite(candidate.lon)) {
+        existing.lon = candidate.lon;
+      }
+
+      merged.set(candidate.wikidataId, existing);
+    }
+  }
+
+  return [...merged.values()].map(candidate => ({
+    ...candidate,
+    bestRawIndex: Number.isFinite(candidate.bestRawIndex) ? candidate.bestRawIndex : null,
+  }));
+}
 
 async function fetchWikidataNamingDetails(ids, signal) {
   if (!ids.length) {
@@ -29,52 +271,44 @@ async function fetchWikidataNamingDetails(ids, signal) {
 }
 
 export async function searchTracks(query, signal) {
-  // Step 1: Wikidata EntitySearch for candidate circuit names
-  const searchUrl = `${WIKIDATA_API}?action=wbsearchentities&search=${encodeURIComponent(query)}&language=en&type=item&limit=20&format=json&origin=*`;
-  const searchResp = await fetch(searchUrl, { signal });
-  if (!searchResp.ok) throw new Error(`Wikidata search error: ${searchResp.status}`);
-  const searchData = await searchResp.json();
+  const normalizedQuery = String(query ?? '').trim().replace(/\s+/g, ' ');
+  if (!normalizedQuery) {
+    return [];
+  }
 
-  const ids = searchData.search.map(r => r.id);
-  if (ids.length === 0) return [];
+  const branches = buildSearchBranches(normalizedQuery);
+  const branchResults = await Promise.all(branches.map(branch => fetchBranchSurvivors(branch, signal)));
+  const mergedCandidates = mergeBranchCandidates(branchResults);
 
-  // Step 2: SPARQL — keep candidates that have P625 (coordinates) AND
-  // are an instance/subclass of a race track (P31/P279* wd:Q24931).
-  // P625 is needed for the Overpass bbox query.
-  const sparql = `
-SELECT ?item ?itemLabel ?countryLabel ?lat ?lon WHERE {
-  VALUES ?item { ${ids.map(id => `wd:${id}`).join(' ')} }
-  ?item p:P625 ?coordStatement .
-  ?coordStatement psv:P625 ?coordNode .
-  ?coordNode wikibase:geoLatitude ?lat .
-  ?coordNode wikibase:geoLongitude ?lon .
-  OPTIONAL { ?item wdt:P17 ?country . }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
-}
-  `.trim();
+  if (!mergedCandidates.length) {
+    return [];
+  }
 
-  const sparqlUrl = `${WIKIDATA_SPARQL}?query=${encodeURIComponent(sparql)}&format=json`;
-  const sparqlResp = await fetch(sparqlUrl, {
-    headers: { Accept: 'application/sparql-results+json' },
+  const namingDetails = await fetchWikidataNamingDetails(
+    mergedCandidates.map(candidate => candidate.wikidataId),
     signal,
-  });
-  if (!sparqlResp.ok) throw new Error(`Wikidata SPARQL error: ${sparqlResp.status}`);
-  const { results } = await sparqlResp.json();
-  const resultIds = results.bindings
-    .map(binding => binding.item?.value?.split('/').pop())
-    .filter(Boolean);
-  const namingDetails = await fetchWikidataNamingDetails(resultIds, signal);
+  );
 
-  return results.bindings.map(b => ({
-    ...(namingDetails.get(b.item?.value?.split('/').pop()) ?? {}),
-    name: b.itemLabel?.value || 'Unknown',
-    displayName: b.countryLabel
-      ? `${b.itemLabel?.value} — ${b.countryLabel.value}`
-      : b.itemLabel?.value || 'Unknown',
-    lat: parseFloat(b.lat?.value),
-    lon: parseFloat(b.lon?.value),
-    wikidataId: b.item?.value?.split('/').pop(),
-  }));
+  return mergedCandidates
+    .map(candidate => {
+      const details = namingDetails.get(candidate.wikidataId) ?? {};
+      const name = candidate.name || details.wikidataLabel || 'Unknown';
+      const displayName = candidate.countryLabel
+        ? `${name} — ${candidate.countryLabel}`
+        : name;
+
+      return {
+        ...details,
+        ...candidate,
+        name,
+        displayName,
+      };
+    })
+    .map(candidate => ({
+      ...candidate,
+      rankScore: rankSearchCandidate(candidate, normalizedQuery),
+    }))
+    .sort(compareRankedCandidates);
 }
 
 const OVERPASS_ENDPOINTS = [
