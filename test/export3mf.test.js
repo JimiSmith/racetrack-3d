@@ -7,6 +7,7 @@ import { buildBasePlate } from '../src/geometry.js';
 import { splitModelTriangles } from '../src/triangle-groups.js';
 import { buildTrackModel } from '../src/model.js';
 import { export3mf } from '../src/export3mf.js';
+import { rotateOutlineByOrientation } from '../src/orientation.js';
 
 function syntheticOutline() {
   return {
@@ -22,6 +23,46 @@ function syntheticOutline() {
 
 function extractModelXml(archive) {
   return strFromU8(archive['3D/3dmodel.model']);
+}
+
+function triangleBounds(triangles) {
+  return triangles.flat().reduce((bounds, vertex) => ({
+    minX: Math.min(bounds.minX, vertex.x),
+    maxX: Math.max(bounds.maxX, vertex.x),
+    minY: Math.min(bounds.minY, vertex.y),
+    maxY: Math.max(bounds.maxY, vertex.y),
+    minZ: Math.min(bounds.minZ, vertex.z),
+    maxZ: Math.max(bounds.maxZ, vertex.z),
+  }), {
+    minX: Infinity,
+    maxX: -Infinity,
+    minY: Infinity,
+    maxY: -Infinity,
+    minZ: Infinity,
+    maxZ: -Infinity,
+  });
+}
+
+function vertexBoundsFromXml(xml) {
+  return [...xml.matchAll(/<vertex x="([^"]+)" y="([^"]+)" z="([^"]+)"\/>/g)].reduce((bounds, [, x, y, z]) => ({
+    minX: Math.min(bounds.minX, Number(x)),
+    maxX: Math.max(bounds.maxX, Number(x)),
+    minY: Math.min(bounds.minY, Number(y)),
+    maxY: Math.max(bounds.maxY, Number(y)),
+    minZ: Math.min(bounds.minZ, Number(z)),
+    maxZ: Math.max(bounds.maxZ, Number(z)),
+  }), {
+    minX: Infinity,
+    maxX: -Infinity,
+    minY: Infinity,
+    maxY: -Infinity,
+    minZ: Infinity,
+    maxZ: -Infinity,
+  });
+}
+
+function approxEqual(actual, expected, tolerance = 1e-4) {
+  assert.ok(Math.abs(actual - expected) <= tolerance, `expected ${actual} to be within ${tolerance} of ${expected}`);
 }
 
 test('export3mf returns a 3MF blob and filename', async () => {
@@ -115,4 +156,24 @@ test('export3mf deduplicates vertices in the model XML', async () => {
   assert.ok(vertexCount > 0);
   assert.ok(triangleCount > 0);
   assert.ok(vertexCount < triangleCount * 3);
+});
+
+test('export3mf keeps preview geometry bounds aligned for rotated models', async () => {
+  const outlinePoints = rotateOutlineByOrientation(syntheticOutline(), 90);
+  const basePlate = buildBasePlate(outlinePoints, 20);
+  const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway', orientationDeg: 90 });
+
+  const result = export3mf(model, 'Synthetic Raceway');
+  const archive = unzipSync(new Uint8Array(await result.blob.arrayBuffer()));
+  const xml = extractModelXml(archive);
+
+  const previewBounds = triangleBounds(model.triangles);
+  const exportBounds = vertexBoundsFromXml(xml);
+
+  approxEqual(previewBounds.minX, exportBounds.minX);
+  approxEqual(previewBounds.maxX, exportBounds.maxX);
+  approxEqual(previewBounds.minY, exportBounds.minY);
+  approxEqual(previewBounds.maxY, exportBounds.maxY);
+  approxEqual(previewBounds.minZ, exportBounds.minZ);
+  approxEqual(previewBounds.maxZ, exportBounds.maxZ);
 });

@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { buildBasePlate } from '../src/geometry.js';
 import { BASE_THICKNESS_MM, buildTrackModel, computeScale, exportStl } from '../src/model.js';
+import { rotateOutlineByOrientation } from '../src/orientation.js';
 
 function syntheticOutline() {
   return {
@@ -14,6 +15,31 @@ function syntheticOutline() {
     ],
     holes: [],
   };
+}
+
+function triangleBounds(triangles) {
+  return triangles.flat().reduce((bounds, vertex) => ({
+    minX: Math.min(bounds.minX, vertex.x),
+    maxX: Math.max(bounds.maxX, vertex.x),
+    minY: Math.min(bounds.minY, vertex.y),
+    maxY: Math.max(bounds.maxY, vertex.y),
+  }), {
+    minX: Infinity,
+    maxX: -Infinity,
+    minY: Infinity,
+    maxY: -Infinity,
+  });
+}
+
+function span(bounds) {
+  return {
+    width: bounds.maxX - bounds.minX,
+    height: bounds.maxY - bounds.minY,
+  };
+}
+
+function approxEqual(actual, expected, tolerance = 1e-6) {
+  assert.ok(Math.abs(actual - expected) <= tolerance, `expected ${actual} to be within ${tolerance} of ${expected}`);
 }
 
 function withMockedDownloadDom(callback) {
@@ -115,6 +141,34 @@ test('computeScale fits the base plate inside a 200mm bounding box', () => {
   assert.equal(scale, 0.5);
   assert.ok(400 * scale <= 200);
   assert.ok(150 * scale <= 200);
+});
+
+test('buildTrackModel rotates geometry bounds in 90 degree increments', () => {
+  const outline0 = syntheticOutline();
+  const outline90 = rotateOutlineByOrientation(outline0, 90);
+  const outline180 = rotateOutlineByOrientation(outline0, 180);
+  const outline270 = rotateOutlineByOrientation(outline0, 270);
+
+  const model0 = buildTrackModel({ outlinePoints: outline0, basePlate: buildBasePlate(outline0, 20), orientationDeg: 0 });
+  const model90 = buildTrackModel({ outlinePoints: outline90, basePlate: buildBasePlate(outline90, 20), orientationDeg: 90 });
+  const model180 = buildTrackModel({ outlinePoints: outline180, basePlate: buildBasePlate(outline180, 20), orientationDeg: 180 });
+  const model270 = buildTrackModel({ outlinePoints: outline270, basePlate: buildBasePlate(outline270, 20), orientationDeg: 270 });
+
+  const span0 = span(triangleBounds(model0.triangles));
+  const span90 = span(triangleBounds(model90.triangles));
+  const span180 = span(triangleBounds(model180.triangles));
+  const span270 = span(triangleBounds(model270.triangles));
+
+  approxEqual(span0.width, span180.width);
+  approxEqual(span0.height, span180.height);
+  approxEqual(span90.width, span270.width);
+  approxEqual(span90.height, span270.height);
+  approxEqual(span0.width, span90.height);
+  approxEqual(span0.height, span90.width);
+  assert.notEqual(span0.width, span90.width);
+  assert.equal(model90.orientationDeg, 90);
+  assert.equal(model180.orientationDeg, 180);
+  assert.equal(model270.orientationDeg, 270);
 });
 
 test('exportStl returns download metadata with a blob, buffer, and filename', async () => {

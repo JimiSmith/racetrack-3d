@@ -119,7 +119,12 @@ h1 {
   }
 }
 
-#layout-select {
+.controls-wrap {
+  margin-top: 12px;
+}
+
+#layout-select,
+#orientation-select {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border);

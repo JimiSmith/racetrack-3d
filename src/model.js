@@ -1,5 +1,6 @@
 import earcut from 'earcut';
 
+import { normalizeOrientationDeg } from './orientation.js';
 import { buildTextMesh } from './text3d.js';
 
 export const BASE_THICKNESS_MM = 8;
@@ -185,7 +186,13 @@ function buildTrackPrismMesh(outline, scale, projectedNodes = null) {
   return triangles;
 }
 
-export function buildTrackModel({ outlinePoints, basePlate, trackName, projectedNodes = null }) {
+export function buildTrackModel({
+  outlinePoints,
+  basePlate,
+  trackName,
+  projectedNodes = null,
+  orientationDeg = 0,
+}) {
   const scale = computeScale(basePlate);
   const basePlateTriangles = buildBasePlateMesh(basePlate, scale);
   const trackTriangles = buildTrackPrismMesh(outlinePoints, scale, projectedNodes);
@@ -199,6 +206,7 @@ export function buildTrackModel({ outlinePoints, basePlate, trackName, projected
     trackTriangleCount: trackTriangles.length,
     textTriangleCount: textTriangles.length,
     scale,
+    orientationDeg: normalizeOrientationDeg(orientationDeg),
   };
 }
 

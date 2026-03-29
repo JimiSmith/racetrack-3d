@@ -4,6 +4,7 @@ import { projectNodes, buildTrackOutline, buildBasePlate } from './geometry.js';
 import { fetchElevations } from './elevation.js';
 import { buildTrackModel, exportStl } from './model.js';
 import { export3mf } from './export3mf.js';
+import { normalizeOrientationDeg, rotatePointsByOrientation } from './orientation.js';
 import { initPreview, updatePreview } from './preview.js';
 import {
   buildLayoutPickerState,
@@ -24,6 +25,7 @@ const exaggerationLabel = document.getElementById('exaggeration-label');
 const layoutWrap = document.getElementById('layout-wrap');
 const layoutSelect = document.getElementById('layout-select');
 const layoutHint = document.getElementById('layout-hint');
+const orientationSelect = document.getElementById('orientation-select');
 
 let currentNodes = null;
 let currentTrack = null;
@@ -32,6 +34,7 @@ let currentBasePlate = null;
 let currentModel = null;
 let currentLayouts = [];
 let currentLayoutIndex = 0;
+let currentOrientationDeg = normalizeOrientationDeg(orientationSelect?.value);
 let isGeneratingStl = false;
 let isGenerating3mf = false;
 
@@ -108,7 +111,8 @@ function buildSelectedLayoutModel(elevations = null) {
   }
 
   const projected = projectNodes(layout.nodes, elevations);
-  const outline = buildTrackOutline(projected);
+  const orientedProjected = rotatePointsByOrientation(projected, currentOrientationDeg);
+  const outline = buildTrackOutline(orientedProjected);
   const basePlate = buildBasePlate(outline);
 
   currentNodes = layout.nodes;
@@ -118,7 +122,8 @@ function buildSelectedLayoutModel(elevations = null) {
     outlinePoints: outline,
     basePlate,
     trackName: currentTrack?.name,
-    projectedNodes: projected,
+    projectedNodes: orientedProjected,
+    orientationDeg: currentOrientationDeg,
   });
 
   const layoutLabel = layout.name || `Layout ${currentLayoutIndex + 1}`;
@@ -128,6 +133,7 @@ function buildSelectedLayoutModel(elevations = null) {
     Number.isFinite(lengthKm) ? `${lengthKm.toFixed(1)} km` : null,
     Number.isFinite(segmentCount) ? `${segmentCount} segment${segmentCount === 1 ? '' : 's'}` : null,
     `${basePlate.width.toFixed(0)}m×${basePlate.height.toFixed(0)}m`,
+    `${currentOrientationDeg}° orientation`,
   ].filter(Boolean);
   setStatus(`${currentTrack.name}: ${layoutLabel} · ${detailParts.join(' · ')}`);
 
@@ -200,6 +206,7 @@ generateStlButton.addEventListener('click', async () => {
       outlinePoints: currentOutline,
       basePlate: currentBasePlate,
       trackName: currentTrack.name,
+      orientationDeg: currentOrientationDeg,
     });
 
     setStatus('Serializing STL file…');
@@ -229,6 +236,7 @@ generate3mfButton.addEventListener('click', async () => {
       outlinePoints: currentOutline,
       basePlate: currentBasePlate,
       trackName: currentTrack.name,
+      orientationDeg: currentOrientationDeg,
     });
 
     setStatus('Packaging 3MF file…');
@@ -287,6 +295,20 @@ layoutSelect.addEventListener('change', async () => {
   }
 
   currentLayoutIndex = normalizeSelectedLayoutIndex(currentLayouts, nextIndex);
+  buildSelectedLayoutModel();
+  exaggerationWrap.hidden = true;
+
+  const exaggeration = Number(exaggerationSlider.value);
+  await loadElevations(getSelectedLayout(currentLayouts, currentLayoutIndex)?.nodes ?? [], exaggeration);
+});
+
+orientationSelect?.addEventListener('change', async () => {
+  currentOrientationDeg = normalizeOrientationDeg(orientationSelect.value);
+
+  if (!currentLayouts.length || !currentTrack) {
+    return;
+  }
+
   buildSelectedLayoutModel();
   exaggerationWrap.hidden = true;
 

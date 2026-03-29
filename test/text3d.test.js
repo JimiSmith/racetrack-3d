@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { BASE_THICKNESS_MM } from '../src/model.js';
+import { rotateOutlineByOrientation } from '../src/orientation.js';
 import { TEXT_HEIGHT_MM, buildTextMesh } from '../src/text3d.js';
 
 function rectangleCommands(x, y, width, height) {
@@ -58,6 +59,20 @@ function triangleArea2d(a, b, c) {
   return Math.abs(
     (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) / 2,
   );
+}
+
+function triangleBounds(triangles) {
+  return triangles.flat().reduce((bounds, vertex) => ({
+    minX: Math.min(bounds.minX, vertex.x),
+    maxX: Math.max(bounds.maxX, vertex.x),
+    minY: Math.min(bounds.minY, vertex.y),
+    maxY: Math.max(bounds.maxY, vertex.y),
+  }), {
+    minX: Infinity,
+    maxX: -Infinity,
+    minY: Infinity,
+    maxY: -Infinity,
+  });
 }
 
 function sumTopFaceAreaByHalf(triangles) {
@@ -236,4 +251,47 @@ test('buildTextMesh tries 90 degree text orientation for tall narrow placements'
   );
 
   assert.ok(triangles.length > 0);
+});
+
+test('buildTextMesh still places text after the primary orientation changes', () => {
+  const outline0 = centeredHoleOutline({
+    width: 1800,
+    height: 1100,
+    holeMinX: 450,
+    holeMaxX: 1450,
+    holeMinY: 300,
+    holeMaxY: 800,
+  });
+  const basePlate0 = { minX: 0, maxX: 1800, minY: 0, maxY: 1100, width: 1800, height: 1100 };
+  const outline90 = rotateOutlineByOrientation(outline0, 90);
+  const basePlate90 = { minX: -1100, maxX: 0, minY: 0, maxY: 1800, width: 1100, height: 1800 };
+
+  const triangles0 = buildTextMesh(
+    'DAYTONA ROAD COURSE',
+    outline0,
+    basePlate0,
+    0.05,
+    { font: createMockFont(), baseThickness: BASE_THICKNESS_MM },
+  );
+  const triangles90 = buildTextMesh(
+    'DAYTONA ROAD COURSE',
+    outline90,
+    basePlate90,
+    0.05,
+    { font: createMockFont(), baseThickness: BASE_THICKNESS_MM },
+  );
+
+  assert.ok(triangles0.length > 0);
+  assert.ok(triangles90.length > 0);
+
+  const bounds0 = triangleBounds(triangles0);
+  const bounds90 = triangleBounds(triangles90);
+  const width0 = bounds0.maxX - bounds0.minX;
+  const height0 = bounds0.maxY - bounds0.minY;
+  const width90 = bounds90.maxX - bounds90.minX;
+  const height90 = bounds90.maxY - bounds90.minY;
+
+  assert.notEqual(bounds0.minX, bounds90.minX);
+  assert.ok(width0 > height0);
+  assert.ok(height90 > width90);
 });
