@@ -1,6 +1,33 @@
 const WIKIDATA_SPARQL = 'https://query.wikidata.org/sparql';
 const WIKIDATA_API = 'https://www.wikidata.org/w/api.php';
 
+async function fetchWikidataNamingDetails(ids, signal) {
+  if (!ids.length) {
+    return new Map();
+  }
+
+  const entitiesUrl = `${WIKIDATA_API}?action=wbgetentities&ids=${encodeURIComponent(ids.join('|'))}&languages=en&props=labels|aliases|descriptions|claims&format=json&origin=*`;
+  const response = await fetch(entitiesUrl, { signal });
+  if (!response.ok) {
+    throw new Error(`Wikidata entity lookup error: ${response.status}`);
+  }
+
+  const payload = await response.json();
+  const entities = payload.entities ?? {};
+
+  return new Map(ids.map(id => {
+    const entity = entities[id] ?? {};
+    const shortNameClaim = entity.claims?.P1813?.find(claim => claim?.mainsnak?.datavalue?.value?.text)?.mainsnak?.datavalue?.value?.text ?? null;
+
+    return [id, {
+      wikidataLabel: entity.labels?.en?.value ?? null,
+      wikidataAliases: (entity.aliases?.en ?? []).map(alias => alias.value).filter(Boolean),
+      wikidataDescription: entity.descriptions?.en?.value ?? null,
+      wikidataShortName: shortNameClaim,
+    }];
+  }));
+}
+
 export async function searchTracks(query, signal) {
   // Step 1: Wikidata EntitySearch for candidate circuit names
   const searchUrl = `${WIKIDATA_API}?action=wbsearchentities&search=${encodeURIComponent(query)}&language=en&type=item&limit=20&format=json&origin=*`;
@@ -33,8 +60,13 @@ SELECT ?item ?itemLabel ?countryLabel ?lat ?lon WHERE {
   });
   if (!sparqlResp.ok) throw new Error(`Wikidata SPARQL error: ${sparqlResp.status}`);
   const { results } = await sparqlResp.json();
+  const resultIds = results.bindings
+    .map(binding => binding.item?.value?.split('/').pop())
+    .filter(Boolean);
+  const namingDetails = await fetchWikidataNamingDetails(resultIds, signal);
 
   return results.bindings.map(b => ({
+    ...(namingDetails.get(b.item?.value?.split('/').pop()) ?? {}),
     name: b.itemLabel?.value || 'Unknown',
     displayName: b.countryLabel
       ? `${b.itemLabel?.value} — ${b.countryLabel.value}`
@@ -1288,6 +1320,15 @@ function extractOverpassWays(elements) {
   return [...waysById.values()];
 }
 
+function collectOsmVenueNames(ways) {
+  return [...new Set(
+    ways
+      .map(way => way.tags?.name)
+      .map(name => name?.trim())
+      .filter(Boolean),
+  )].sort((a, b) => a.localeCompare(b));
+}
+
 // Fetch raceway geometry using Overpass bbox query around Wikidata P625 coordinates.
 // Much more reliable than P402 (stale OSM relation IDs) or name searches (timeouts).
 export async function fetchTrackGeometry(lat, lon, signal, trackName) {
@@ -1323,13 +1364,14 @@ export async function fetchTrackGeometry(lat, lon, signal, trackName) {
   });
 
   const componentWays = bestComponent.map(index => racingWays[index]);
+  const osmVenueNames = collectOsmVenueNames(componentWays);
 
   // Pre-pass: if the component contains multiple explicitly-named distinct circuits
   // (e.g. Bahrain's "Grand Prix Circuit", "Inner Circuit", "Endurance Circuit"),
   // offer each as a named layout before falling through to fork-based detection.
   const namedLayouts = buildNamedCircuitLayouts(componentWays, trackName);
   if (namedLayouts.length > 1) {
-    return { layouts: namedLayouts, selectedLayoutIndex: 0 };
+    return { layouts: namedLayouts, selectedLayoutIndex: 0, osmVenueNames };
   }
 
   const layouts = buildLayoutsFromWays(componentWays, trackName);
@@ -1346,11 +1388,13 @@ export async function fetchTrackGeometry(lat, lon, signal, trackName) {
         },
       }],
       selectedLayoutIndex: 0,
+      osmVenueNames,
     };
   }
 
   return {
     layouts,
     selectedLayoutIndex: 0,
+    osmVenueNames,
   };
 }

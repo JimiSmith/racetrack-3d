@@ -7,6 +7,7 @@ import { export3mf } from './export3mf.js';
 import { PRIMARY_ORIENTATION_AUTO, normalizePrimaryOrientationDeg } from './orientation.js';
 import { initPreview, updatePreview } from './preview.js';
 import { DEFAULT_TEXT_POSITION_RANK, normalizeTextPositionRank } from './text3d.js';
+import { selectPrintedTrackName } from './track-name.js';
 import {
   buildLayoutPickerState,
   getSelectedLayout,
@@ -37,6 +38,7 @@ let currentBasePlate = null;
 let currentModel = null;
 let currentLayouts = [];
 let currentLayoutIndex = 0;
+let currentOsmVenueNames = [];
 let currentPrimaryOrientationDeg = normalizePrimaryOrientationDeg(orientationSelect?.value);
 let currentTextPositionRank = normalizeTextPositionRank(textPositionSelect?.value ?? DEFAULT_TEXT_POSITION_RANK);
 let isGeneratingStl = false;
@@ -63,6 +65,17 @@ function slugifyFileName(value) {
     .replace(/^-+|-+$/g, '') || 'racetrack';
 }
 
+function getSelectedTrackNameState(layout = getSelectedLayout(currentLayouts, currentLayoutIndex)) {
+  return selectPrintedTrackName({
+    wikidataLabel: currentTrack?.wikidataLabel ?? currentTrack?.name,
+    wikidataAliases: currentTrack?.wikidataAliases,
+    wikidataShortName: currentTrack?.wikidataShortName,
+    description: currentTrack?.wikidataDescription,
+    osmVenueNames: currentOsmVenueNames,
+    selectedLayoutName: layout?.name,
+  });
+}
+
 function updateLayoutSelector() {
   const pickerState = buildLayoutPickerState(currentLayouts, currentLayoutIndex);
   currentLayoutIndex = pickerState.selectedIndex;
@@ -81,12 +94,8 @@ function updateLayoutSelector() {
 }
 
 function buildDownloadFileName(extension) {
-  const layout = getSelectedLayout(currentLayouts, currentLayoutIndex);
-  const layoutSuffix = currentLayouts.length > 1
-    ? `-${slugifyFileName(layout?.name || `layout-${currentLayoutIndex + 1}`)}`
-    : '';
-
-  return `${slugifyFileName(currentTrack.name)}${layoutSuffix}.${extension}`;
+  const { printedName } = getSelectedTrackNameState();
+  return `${slugifyFileName(printedName)}.${extension}`;
 }
 
 function triggerDownload(blob, fileName) {
@@ -116,10 +125,11 @@ function buildSelectedLayoutModel(elevations = null) {
   }
 
   const projected = projectNodes(layout.nodes, elevations);
+  const trackNameState = getSelectedTrackNameState(layout);
   const model = buildTrackModel({
     outlinePoints: null,
     basePlate: null,
-    trackName: currentTrack?.name,
+    trackName: trackNameState.printedName,
     projectedNodes: projected,
     primaryOrientationDeg: currentPrimaryOrientationDeg,
     textPositionRank: currentTextPositionRank,
@@ -131,7 +141,6 @@ function buildSelectedLayoutModel(elevations = null) {
   currentBasePlate = model.basePlate;
   currentModel = model;
 
-  const layoutLabel = layout.name || `Layout ${currentLayoutIndex + 1}`;
   const segmentCount = layout.stats?.segmentCount;
   const lengthKm = layout.stats?.lengthMetres ? layout.stats.lengthMetres / 1000 : null;
   const detailParts = [
@@ -140,7 +149,7 @@ function buildSelectedLayoutModel(elevations = null) {
     `${model.basePlate.width.toFixed(0)}m×${model.basePlate.height.toFixed(0)}m`,
     currentPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO ? 'Auto orientation' : `${currentPrimaryOrientationDeg}° orientation`,
   ].filter(Boolean);
-  setStatus(`${currentTrack.name}: ${layoutLabel} · ${detailParts.join(' · ')}`);
+  setStatus(`${trackNameState.printedName} · ${detailParts.join(' · ')}`);
 
   updatePreview(currentModel);
   updateGenerateButton();
@@ -174,6 +183,7 @@ async function handleSelect(track) {
   currentModel = null;
   currentLayouts = [];
   currentLayoutIndex = 0;
+  currentOsmVenueNames = [];
   updateLayoutSelector();
   updatePreview(null);
   updateGenerateButton();
@@ -181,6 +191,7 @@ async function handleSelect(track) {
     const geometry = await fetchTrackGeometry(track.lat, track.lon, undefined, track.name);
     currentLayouts = geometry.layouts ?? [];
     currentLayoutIndex = normalizeSelectedLayoutIndex(currentLayouts, geometry.selectedLayoutIndex ?? 0);
+    currentOsmVenueNames = geometry.osmVenueNames ?? [];
     currentTrack = track;
     updateLayoutSelector();
     buildSelectedLayoutModel();
@@ -191,6 +202,7 @@ async function handleSelect(track) {
     currentNodes = null;
     currentProjectedNodes = null;
     currentLayouts = [];
+    currentOsmVenueNames = [];
     currentModel = null;
     updateLayoutSelector();
     updatePreview(null);
@@ -212,7 +224,7 @@ generateStlButton.addEventListener('click', async () => {
     const model = currentModel ?? buildTrackModel({
       outlinePoints: currentProjectedNodes ? null : currentOutline,
       basePlate: currentProjectedNodes ? null : currentBasePlate,
-      trackName: currentTrack.name,
+      trackName: getSelectedTrackNameState().printedName,
       projectedNodes: currentProjectedNodes,
       textPositionRank: currentTextPositionRank,
       primaryOrientationDeg: currentProjectedNodes
@@ -246,7 +258,7 @@ generate3mfButton.addEventListener('click', async () => {
     const model = currentModel ?? buildTrackModel({
       outlinePoints: currentProjectedNodes ? null : currentOutline,
       basePlate: currentProjectedNodes ? null : currentBasePlate,
-      trackName: currentTrack.name,
+      trackName: getSelectedTrackNameState().printedName,
       projectedNodes: currentProjectedNodes,
       textPositionRank: currentTextPositionRank,
       primaryOrientationDeg: currentProjectedNodes
