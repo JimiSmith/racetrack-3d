@@ -144,6 +144,53 @@ function textBounds(model) {
   return triangleBounds(textTriangles(model));
 }
 
+function uniqueVertices(triangles, minZ = -Infinity) {
+  const vertices = new Map();
+
+  for (const triangle of triangles) {
+    for (const vertex of triangle) {
+      if (vertex.z < minZ) {
+        continue;
+      }
+
+      vertices.set(
+        `${vertex.x.toFixed(6)},${vertex.y.toFixed(6)},${vertex.z.toFixed(6)}`,
+        vertex,
+      );
+    }
+  }
+
+  return [...vertices.values()];
+}
+
+function topTrackVertices(model) {
+  return uniqueVertices(trackTriangles(model), BASE_THICKNESS_MM + 1);
+}
+
+function crossSectionEdgeVertices(vertices, targetX, tolerance = 1e-3) {
+  const sectionVertices = vertices
+    .filter(vertex => Math.abs(vertex.x - targetX) <= tolerance)
+    .sort((a, b) => a.y - b.y);
+
+  assert.ok(sectionVertices.length >= 2, `expected at least two vertices near x=${targetX}`);
+
+  return {
+    minY: sectionVertices[0],
+    maxY: sectionVertices[sectionVertices.length - 1],
+  };
+}
+
+function buildElevatedStraightTrackModel() {
+  return buildTrackModel({
+    outlinePoints: null,
+    basePlate: null,
+    projectedNodes: [
+      { x: 0, y: 0, elevation: 0 },
+      { x: 100, y: 0, elevation: 20 },
+    ],
+  });
+}
+
 function parseBinaryStlBounds(buffer) {
   const view = new DataView(buffer);
   const triangleCount = view.getUint32(80, true);
@@ -255,26 +302,38 @@ test('buildTrackModel keeps base plate triangles at or below the base thickness 
   assert.ok(trackTriangles.some(triangle => triangle.some(vertex => vertex.z > BASE_THICKNESS_MM)));
 });
 
-test('buildTrackModel keeps the raised track top surface planar when elevations vary', () => {
-  const projectedNodes = [
-    { x: 0, y: 0, elevation: 0 },
-    { x: 120, y: 0, elevation: 6 },
-    { x: 120, y: 80, elevation: 14 },
-    { x: 0, y: 80, elevation: 28 },
-  ];
+test('buildTrackModel preserves longitudinal elevation along the track top surface', () => {
+  const model = buildElevatedStraightTrackModel();
+  const topVertices = topTrackVertices(model);
+  const startSection = crossSectionEdgeVertices(topVertices, 0, 1e-3);
+  const endSection = crossSectionEdgeVertices(topVertices, 100 * model.scale, 1e-3);
+  const expectedRise = 20 * model.scale;
 
-  const model = buildTrackModel({
-    outlinePoints: null,
-    basePlate: null,
-    projectedNodes,
-  });
-  const raisedTrackTriangles = trackTriangles(model);
-  const topZ = Math.max(...raisedTrackTriangles.flat().map(vertex => vertex.z));
-  const topFaceTriangles = raisedTrackTriangles.filter(triangle => triangle.every(vertex => vertex.z === topZ));
+  approxEqual(endSection.minY.z - startSection.minY.z, expectedRise, 1e-3);
+  assert.ok(endSection.minY.z > startSection.minY.z);
+});
 
-  assert.ok(topFaceTriangles.length > 0);
-  assert.ok(topFaceTriangles.every(triangle => triangle.every(vertex => vertex.z === topZ)));
-  assert.equal(topZ, triangleBounds(raisedTrackTriangles).maxZ);
+test('buildTrackModel keeps each local top cross-section level across the track width', () => {
+  const model = buildElevatedStraightTrackModel();
+  const topVertices = topTrackVertices(model);
+  const startSection = crossSectionEdgeVertices(topVertices, 0, 1e-3);
+  const endSection = crossSectionEdgeVertices(topVertices, 100 * model.scale, 1e-3);
+
+  approxEqual(startSection.minY.z, startSection.maxY.z, 1e-6);
+  approxEqual(endSection.minY.z, endSection.maxY.z, 1e-6);
+});
+
+test('buildTrackModel keeps elevated preview geometry aligned with STL export bounds', () => {
+  const model = buildElevatedStraightTrackModel();
+  const previewBounds = triangleBounds(model.triangles);
+  const exportBounds = parseBinaryStlBounds(exportStl(model, 'elevated-track').buffer);
+
+  approxEqual(previewBounds.minX, exportBounds.minX, 1e-4);
+  approxEqual(previewBounds.maxX, exportBounds.maxX, 1e-4);
+  approxEqual(previewBounds.minY, exportBounds.minY, 1e-4);
+  approxEqual(previewBounds.maxY, exportBounds.maxY, 1e-4);
+  approxEqual(previewBounds.minZ, exportBounds.minZ, 1e-4);
+  approxEqual(previewBounds.maxZ, exportBounds.maxZ, 1e-4);
 });
 
 test('buildTrackModel keeps embossed text after the track segment and out of the base segment', () => {

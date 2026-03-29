@@ -93,6 +93,10 @@ function addQuad(triangles, a, b, c, d) {
   addTriangle(triangles, a, c, d);
 }
 
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
 function boundsFromPoints(points) {
   let minX = Infinity;
   let maxX = -Infinity;
@@ -212,24 +216,53 @@ function buildTrackPrismMesh(outline, scale, projectedNodes = null) {
 
   const bottomZ = BASE_THICKNESS_MM;
 
-  // Nearest-node elevation lookup (in mm after scale)
+  // Sample elevation from the nearest point along the path so each
+  // cross-section stays level while the ribbon still rises and falls.
   function elevOffsetMm(px, py) {
     if (!projectedNodes?.length) return 0;
-    let minDist = Infinity;
-    let elev = 0;
-    for (const node of projectedNodes) {
-      const dx = node.x - px;
-      const dy = node.y - py;
-      const d2 = dx * dx + dy * dy;
-      if (d2 < minDist) { minDist = d2; elev = node.elevation ?? 0; }
+    if (projectedNodes.length === 1) {
+      return toScaled(projectedNodes[0].elevation ?? 0, scale);
     }
+
+    let minDist = Infinity;
+    let elev = projectedNodes[0].elevation ?? 0;
+
+    for (let index = 0; index < projectedNodes.length; index += 1) {
+      const start = projectedNodes[index];
+      const end = projectedNodes[(index + 1) % projectedNodes.length];
+      const dx = end.x - start.x;
+      const dy = end.y - start.y;
+      const lengthSquared = dx * dx + dy * dy;
+
+      if (lengthSquared === 0) {
+        continue;
+      }
+
+      const t = clamp(((px - start.x) * dx + (py - start.y) * dy) / lengthSquared, 0, 1);
+      const nearestX = start.x + dx * t;
+      const nearestY = start.y + dy * t;
+      const distX = px - nearestX;
+      const distY = py - nearestY;
+      const distanceSquared = distX * distX + distY * distY;
+
+      if (distanceSquared < minDist) {
+        const startElevation = start.elevation ?? 0;
+        const endElevation = end.elevation ?? startElevation;
+        minDist = distanceSquared;
+        elev = startElevation + (endElevation - startElevation) * t;
+      }
+    }
+
     return toScaled(elev, scale);
   }
 
   const elevationOffsets = allVertices.map(p => elevOffsetMm(p.x, p.y));
-  const topZ = bottomZ + TRACK_HEIGHT_MM + Math.max(0, ...elevationOffsets);
   const bottom = allVertices.map(p => createVertex(toScaled(p.x, scale), toScaled(p.y, scale), bottomZ));
-  const top = allVertices.map(p => createVertex(toScaled(p.x, scale), toScaled(p.y, scale), topZ));
+  const top = allVertices.map((p, index) => createVertex(
+    toScaled(p.x, scale),
+    toScaled(p.y, scale),
+    bottomZ + TRACK_HEIGHT_MM + elevationOffsets[index],
+  ));
   const triangles = [];
 
   // Top and bottom faces
