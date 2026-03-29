@@ -117,6 +117,10 @@ function textTriangles(model) {
   return model.triangles.slice(model.baseTriangleCount + model.trackTriangleCount);
 }
 
+function trackTriangles(model) {
+  return model.triangles.slice(model.baseTriangleCount, model.baseTriangleCount + model.trackTriangleCount);
+}
+
 function rotateTrianglesByOrientation(triangles, orientationDeg) {
   return triangles.map(triangle => triangle.map(vertex => {
     switch (orientationDeg) {
@@ -249,6 +253,28 @@ test('buildTrackModel keeps base plate triangles at or below the base thickness 
   assert.ok(model.textTriangleCount > 0);
   assert.ok(basePlateTriangles.every(triangle => triangle.every(vertex => vertex.z <= BASE_THICKNESS_MM)));
   assert.ok(trackTriangles.some(triangle => triangle.some(vertex => vertex.z > BASE_THICKNESS_MM)));
+});
+
+test('buildTrackModel keeps the raised track top surface planar when elevations vary', () => {
+  const projectedNodes = [
+    { x: 0, y: 0, elevation: 0 },
+    { x: 120, y: 0, elevation: 6 },
+    { x: 120, y: 80, elevation: 14 },
+    { x: 0, y: 80, elevation: 28 },
+  ];
+
+  const model = buildTrackModel({
+    outlinePoints: null,
+    basePlate: null,
+    projectedNodes,
+  });
+  const raisedTrackTriangles = trackTriangles(model);
+  const topZ = Math.max(...raisedTrackTriangles.flat().map(vertex => vertex.z));
+  const topFaceTriangles = raisedTrackTriangles.filter(triangle => triangle.every(vertex => vertex.z === topZ));
+
+  assert.ok(topFaceTriangles.length > 0);
+  assert.ok(topFaceTriangles.every(triangle => triangle.every(vertex => vertex.z === topZ)));
+  assert.equal(topZ, triangleBounds(raisedTrackTriangles).maxZ);
 });
 
 test('buildTrackModel keeps embossed text after the track segment and out of the base segment', () => {

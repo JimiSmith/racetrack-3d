@@ -226,11 +226,10 @@ function buildTrackPrismMesh(outline, scale, projectedNodes = null) {
     return toScaled(elev, scale);
   }
 
+  const elevationOffsets = allVertices.map(p => elevOffsetMm(p.x, p.y));
+  const topZ = bottomZ + TRACK_HEIGHT_MM + Math.max(0, ...elevationOffsets);
   const bottom = allVertices.map(p => createVertex(toScaled(p.x, scale), toScaled(p.y, scale), bottomZ));
-  const top    = allVertices.map(p => {
-    const elevMm = elevOffsetMm(p.x, p.y);
-    return createVertex(toScaled(p.x, scale), toScaled(p.y, scale), bottomZ + TRACK_HEIGHT_MM + elevMm);
-  });
+  const top = allVertices.map(p => createVertex(toScaled(p.x, scale), toScaled(p.y, scale), topZ));
   const triangles = [];
 
   // Top and bottom faces
