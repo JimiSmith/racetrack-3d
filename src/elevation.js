@@ -2,6 +2,7 @@ const TERRARIUM_BASE = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium'
 const TILE_SIZE = 256;
 const ZOOM = 13;
 const MAX_LATITUDE = 85.05112878;
+const SMOOTHING_BLEND = 0.35;
 
 const tileCache = new Map();
 
@@ -45,7 +46,11 @@ export async function fetchElevations(nodes, exaggeration = 15) {
     }),
   );
 
-  return applyExaggeration(sampledElevations, exaggeration);
+  return buildElevationProfile(sampledElevations, exaggeration);
+}
+
+export function buildElevationProfile(elevations, exaggeration = 1) {
+  return smoothElevationProfile(applyExaggeration(elevations, exaggeration));
 }
 
 function normalizeNode(node, index) {
@@ -154,11 +159,31 @@ async function decodeTileImage(blob) {
   });
 }
 
-function applyExaggeration(elevations, exaggeration) {
+export function applyExaggeration(elevations, exaggeration) {
+  if (!Array.isArray(elevations) || elevations.length === 0) {
+    return [];
+  }
+
   const scale = Number.isFinite(exaggeration) ? exaggeration : 1;
   const minElevation = Math.min(...elevations);
 
   return elevations.map((elevation) => (elevation - minElevation) * scale);
+}
+
+export function smoothElevationProfile(elevations) {
+  if (!Array.isArray(elevations) || elevations.length < 3) {
+    return Array.isArray(elevations) ? [...elevations] : [];
+  }
+
+  const length = elevations.length;
+
+  return elevations.map((elevation, index) => {
+    const previous = elevations[(index - 1 + length) % length];
+    const next = elevations[(index + 1) % length];
+    const weightedAverage = (previous + elevation * 2 + next) / 4;
+
+    return elevation + (weightedAverage - elevation) * SMOOTHING_BLEND;
+  });
 }
 
 function normalizeLongitude(lon) {

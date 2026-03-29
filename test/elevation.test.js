@@ -1,7 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-// Pure helper functions extracted for testing (replicated here to avoid DOM deps)
+import {
+  applyExaggeration,
+  buildElevationProfile,
+  smoothElevationProfile,
+} from '../src/elevation.js';
 
 function latLonToTileXY(lat, lon, zoom) {
   const n = 2 ** zoom;
@@ -29,6 +33,17 @@ function tilePixelCoords(lat, lon, zoom, tileSize = 256) {
 
 function terrariumDecode(r, g, b) {
   return (r * 256 + g + b / 256) - 32768;
+}
+
+function maxAdjacentDelta(values) {
+  let maxDelta = 0;
+
+  for (let index = 0; index < values.length; index += 1) {
+    const nextIndex = (index + 1) % values.length;
+    maxDelta = Math.max(maxDelta, Math.abs(values[index] - values[nextIndex]));
+  }
+
+  return maxDelta;
 }
 
 // --- Tests ---
@@ -93,4 +108,39 @@ test('latLonToTileXY: different circuits fall in different tiles at zoom 13', ()
   const spa = latLonToTileXY(50.4372, 5.9714, 13);
   const monaco = latLonToTileXY(43.7338, 7.4211, 13);
   assert.ok(spa.x !== monaco.x || spa.y !== monaco.y, 'Spa and Monaco should be in different tiles');
+});
+
+test('buildElevationProfile smooths after exaggeration instead of before it', () => {
+  const raw = [10, 10, 14, 10, 10];
+  const exaggeration = 5;
+
+  const exaggeratedThenSmoothed = smoothElevationProfile(applyExaggeration(raw, exaggeration));
+  const smoothedThenExaggerated = applyExaggeration(smoothElevationProfile(raw), exaggeration);
+
+  assert.deepEqual(buildElevationProfile(raw, exaggeration), exaggeratedThenSmoothed);
+  assert.notDeepEqual(buildElevationProfile(raw, exaggeration), smoothedThenExaggerated);
+});
+
+test('smoothElevationProfile reduces sharp step changes conservatively', () => {
+  const stepped = [0, 0, 0, 60, 60, 60];
+  const smoothed = smoothElevationProfile(stepped);
+
+  assert.ok(maxAdjacentDelta(smoothed) < maxAdjacentDelta(stepped));
+  assert.equal(smoothed[0], 5.25);
+  assert.equal(smoothed[3], 54.75);
+  assert.equal(smoothed[4], 60);
+});
+
+test('smoothElevationProfile keeps flat elevation flat', () => {
+  assert.deepEqual(smoothElevationProfile([12, 12, 12, 12]), [12, 12, 12, 12]);
+  assert.deepEqual(buildElevationProfile([42, 42, 42, 42], 7), [0, 0, 0, 0]);
+});
+
+test('smoothElevationProfile wraps around loop ends', () => {
+  const loop = [40, 0, 0, 0];
+  const smoothed = smoothElevationProfile(loop);
+
+  assert.equal(smoothed[0], 33);
+  assert.equal(smoothed[3], 3.5);
+  assert.ok(smoothed[3] > 0, 'expected wrap-around smoothing at the loop seam');
 });
