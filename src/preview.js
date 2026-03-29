@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
+import { buildPreviewGeometry } from './preview-geometry.js';
 import { splitModelTriangles } from './triangle-groups.js';
 
 const PREVIEW_BACKGROUND = '#0f0f13';
@@ -54,26 +55,6 @@ function resizeRenderer() {
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
   renderFrame();
-}
-
-function buildGeometry(triangles) {
-  const positions = new Float32Array(triangles.length * 9);
-  let offset = 0;
-
-  for (const triangle of triangles) {
-    for (const vertex of triangle) {
-      positions[offset] = vertex.x;
-      positions[offset + 1] = vertex.y;
-      positions[offset + 2] = vertex.z;
-      offset += 3;
-    }
-  }
-
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geometry.computeVertexNormals();
-
-  return geometry;
 }
 
 function fitCameraToModel() {
@@ -175,15 +156,15 @@ export function updatePreview(model) {
 
   if (baseTriangles.length > 0) {
     modelGroup.add(new THREE.Mesh(
-      buildGeometry(baseTriangles),
-      new THREE.MeshStandardMaterial({ color: '#000000', flatShading: true, roughness: 0.85, metalness: 0.05 }),
+      buildPreviewGeometry(baseTriangles),
+      new THREE.MeshStandardMaterial({ color: '#000000', roughness: 0.85, metalness: 0.05 }),
     ));
   }
 
   if (trackTriangles.length > 0) {
     modelGroup.add(new THREE.Mesh(
-      buildGeometry(trackTriangles),
-      new THREE.MeshStandardMaterial({ color: '#E8002D', flatShading: true, roughness: 0.7, metalness: 0.08 }),
+      buildPreviewGeometry(trackTriangles),
+      new THREE.MeshStandardMaterial({ color: '#E8002D', roughness: 0.7, metalness: 0.08 }),
     ));
   }
 
