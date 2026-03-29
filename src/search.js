@@ -498,6 +498,88 @@ function buildCandidateFromWays(ways) {
   };
 }
 
+function normalizeCircuitName(name) {
+  return String(name ?? '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function namesLikelyMatchCircuit(candidateName, trackName) {
+  const candidateKey = normalizeCircuitName(candidateName);
+  const trackKey = normalizeCircuitName(trackName);
+
+  if (!candidateKey || !trackKey) {
+    return false;
+  }
+
+  return candidateKey === trackKey
+    || candidateKey.includes(trackKey)
+    || trackKey.includes(candidateKey);
+}
+
+function selectBestComponentWays(ways, trackName = null) {
+  if (ways.length <= 1) {
+    return ways;
+  }
+
+  const components = buildComponents(ways);
+  if (components.length <= 1) {
+    return ways;
+  }
+
+  const rankedComponents = components.map(component => {
+    const componentWays = component.map(index => ways[index]);
+    const candidate = buildCandidateFromWays(componentWays);
+    const matchedWays = componentWays.filter(way => namesLikelyMatchCircuit(way.tags?.name, trackName));
+    const matchedLength = measureWaySetLength(matchedWays);
+    const gapRatio = candidate?.length > 0
+      ? candidate.endpointGap / candidate.length
+      : Infinity;
+
+    return {
+      componentWays,
+      candidate,
+      matchedLength,
+      hasTrackNameMatch: matchedWays.length > 0,
+      gapRatio,
+      totalLength: measureWaySetLength(componentWays),
+      totalNodes: componentWays.reduce((sum, way) => sum + way.nodes.length, 0),
+      area: candidate?.area ?? 0,
+    };
+  });
+
+  rankedComponents.sort((a, b) => {
+    if (a.hasTrackNameMatch !== b.hasTrackNameMatch) {
+      return Number(b.hasTrackNameMatch) - Number(a.hasTrackNameMatch);
+    }
+
+    const matchedLengthDelta = b.matchedLength - a.matchedLength;
+    if (Math.abs(matchedLengthDelta) > 1) {
+      return matchedLengthDelta;
+    }
+
+    const gapRatioDelta = a.gapRatio - b.gapRatio;
+    if (Math.abs(gapRatioDelta) > 0.05) {
+      return gapRatioDelta;
+    }
+
+    const lengthDelta = b.totalLength - a.totalLength;
+    if (Math.abs(lengthDelta) > 1) {
+      return lengthDelta;
+    }
+
+    const areaDelta = b.area - a.area;
+    if (Math.abs(areaDelta) > 1) {
+      return areaDelta;
+    }
+
+    return b.totalNodes - a.totalNodes;
+  });
+
+  return rankedComponents[0]?.componentWays ?? ways;
+}
+
 function buildWeightedNames(edgeIds, graph, trackName) {
   const names = new Map();
   let namedLength = 0;
@@ -1264,21 +1346,7 @@ function stitchWays(ways) {
   if (ways.length === 0) return [];
   if (ways.length === 1) return ways[0].nodes;
 
-  const components = buildComponents(ways);
-
-  // Pick the component whose centroid is closest to the known circuit coordinates.
-  // Falls back to largest-by-nodes if no ref coords available.
-  // Use the largest component by total node count.
-  // The main racing circuit will always have far more nodes than
-  // adjacent karting tracks, theme park rides, rallycross, etc.
-  const best = components.reduce((a, b) => {
-    const an = a.reduce((s, i) => s + ways[i].nodes.length, 0);
-    const bn = b.reduce((s, i) => s + ways[i].nodes.length, 0);
-    return bn > an ? b : a;
-  });
-
-  const mainWays = best.map(i => ways[i]);
-  return stitchWaysOrdered(mainWays);
+  return stitchWaysOrdered(selectBestComponentWays(ways));
 }
 
 const PIT_PATTERN = /pit[\s\-_]*lane|pit[\s\-_]*road|pitlane|pitroad|support[\s\-_]*pit|\bpit\s*$/i;
@@ -1356,14 +1424,7 @@ export async function fetchTrackGeometry(lat, lon, signal, trackName) {
   });
   const racingWays = mainWays.length > 0 ? mainWays : ways; // fallback if over-filtered
 
-  const components = buildComponents(racingWays);
-  const bestComponent = components.reduce((a, b) => {
-    const an = a.reduce((sum, index) => sum + racingWays[index].nodes.length, 0);
-    const bn = b.reduce((sum, index) => sum + racingWays[index].nodes.length, 0);
-    return bn > an ? b : a;
-  });
-
-  const componentWays = bestComponent.map(index => racingWays[index]);
+  const componentWays = selectBestComponentWays(racingWays, trackName);
   const osmVenueNames = collectOsmVenueNames(componentWays);
 
   // Pre-pass: if the component contains multiple explicitly-named distinct circuits

@@ -215,6 +215,20 @@ test('fetchTrackGeometry keeps Silverstone branch layouts from a frozen fixture'
   expectDistinctLayouts(result.layouts[0], result.layouts[1]);
 });
 
+test('fetchTrackGeometry prefers the named Shanghai circuit over a denser stray component', async () => {
+  const fixture = loadFixture('shanghai.json');
+
+  const result = await withMockedFetch(fixture, () =>
+    fetchTrackGeometry(31.3389, 121.2197, undefined, 'Shanghai International Circuit'));
+
+  assert.equal(result.selectedLayoutIndex, 0);
+  assertLayoutNames(result.layouts, ['Main']);
+  assert.deepEqual(result.osmVenueNames, ['Shanghai International Circuit']);
+  assertLayoutInvariants(result.layouts[0], { maxGapMeters: 1 });
+  expectApproxLength(result.layouts[0].nodes, 5.5, 0.2);
+  assert.ok(result.layouts[0].stats.lengthMetres > 5000);
+});
+
 test('fetchTrackGeometry returns named Bahrain layouts from frozen fixture data', async () => {
   const fixture = loadFixture('bahrain.json');
 
