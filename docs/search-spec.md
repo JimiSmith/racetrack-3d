@@ -115,11 +115,22 @@ over:
 
 ---
 
-## Rule 1 — Prefer base-query matches over suffix-only rescue matches
+## Rule 1 — Prefer stronger branch/query quality
+
+Branch provenance should influence ranking.
 
 If a good circuit candidate is returned from the raw query `q`, it should generally outrank a candidate found only via a suffix-expanded branch.
 
-However, suffix-only matches are still extremely valuable as fallback recovery.
+Suffix-only matches are still valuable as fallback recovery, but branch quality should guide ordering.
+
+Example rough preference order:
+1. raw query exact good circuit match
+2. `q + " circuit"`
+3. `q + " street circuit"`
+4. `q + " international circuit"`
+5. `q + " track"`
+
+This ordering is heuristic, but the idea is that some suffixes are more venue-specific than others.
 
 ---
 
@@ -162,32 +173,6 @@ These may still be useful later in layout logic, but should not dominate top-lev
 
 ---
 
-## Rule 4 — Prefer stronger branch/query quality
-
-A candidate matched from a more semantically precise branch may outrank a weaker one.
-
-Example rough preference order:
-1. raw query exact good circuit match
-2. `q + " circuit"`
-3. `q + " street circuit"`
-4. `q + " international circuit"`
-5. `q + " track"`
-
-This ordering is heuristic, but the idea is that some suffixes are more venue-specific than others.
-
----
-
-## Rule 5 — Prefer canonical venue over related-but-wrong motorsport venue
-
-Even after P31 filtering, multiple motorsport venues can appear.
-
-Example:
-- query: `las vegas`
-- possible wrong-but-valid result: `Las Vegas Motor Speedway`
-
-The ranking layer must prefer the venue that best semantically matches the user query intent, not just any motorsport venue in the city.
-
-This means matching quality still matters even after type filtering.
 
 ---
 
@@ -287,7 +272,7 @@ This spec does **not** require:
 3. Merge raw candidate IDs per branch.
 4. Use SPARQL on each branch candidate set to apply `P31 in {Q2338524, Q926439}` and coordinate filtering.
 5. Merge surviving candidates by item ID.
-6. Rank by branch quality + venue cleanliness.
+6. Rank by branch/query quality + venue cleanliness.
 7. Return ranked results.
 
 This keeps the implementation focused and testable while materially improving search precision and recall.
