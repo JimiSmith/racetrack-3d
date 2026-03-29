@@ -1,9 +1,9 @@
 import earcut from 'earcut';
 
 import { buildBasePlate, buildTrackOutline } from './geometry.js';
-import { normalizeOrientationDeg } from './orientation.js';
+import { PRIMARY_ORIENTATION_AUTO, normalizeOrientationDeg, normalizePrimaryOrientationDeg } from './orientation.js';
 import { rotateOutlineByOrientation, rotatePointsByOrientation } from './orientation.js';
-import { buildTextMesh } from './text3d.js';
+import { buildTextMesh, TEXT_ORIENTATION_AUTO, TEXT_ORIENTATION_FIXED } from './text3d.js';
 
 export const BASE_THICKNESS_MM = 8;
 const TRACK_HEIGHT_MM = 3;
@@ -253,19 +253,34 @@ export function buildTrackModel({
   basePlate,
   trackName,
   projectedNodes = null,
-  orientationDeg = 0,
+  primaryOrientationDeg = undefined,
+  orientationDeg = undefined,
+  textOrientationMode = undefined,
 }) {
+  const normalizedPrimaryOrientationDeg = normalizePrimaryOrientationDeg(
+    primaryOrientationDeg === undefined
+      ? (orientationDeg === undefined ? PRIMARY_ORIENTATION_AUTO : orientationDeg)
+      : primaryOrientationDeg,
+  );
+  const resolvedOrientationDeg = normalizedPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO
+    ? 0
+    : normalizedPrimaryOrientationDeg;
+  const resolvedTextOrientationMode = textOrientationMode
+    ?? (normalizedPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO ? TEXT_ORIENTATION_AUTO : TEXT_ORIENTATION_FIXED);
   const orientedGeometry = orientTrackGeometry({
     outlinePoints,
     basePlate,
     projectedNodes,
-    orientationDeg,
+    orientationDeg: resolvedOrientationDeg,
   });
   const scale = computeScale(orientedGeometry.basePlate);
   const basePlateTriangles = buildBasePlateMesh(orientedGeometry.basePlate, scale);
   const trackTriangles = buildTrackPrismMesh(orientedGeometry.outlinePoints, scale, orientedGeometry.projectedNodes);
   const textTriangles = trackName
-    ? buildTextMesh(trackName, orientedGeometry.outlinePoints, orientedGeometry.basePlate, scale, { baseThickness: BASE_THICKNESS_MM })
+    ? buildTextMesh(trackName, orientedGeometry.outlinePoints, orientedGeometry.basePlate, scale, {
+      baseThickness: BASE_THICKNESS_MM,
+      textOrientationMode: resolvedTextOrientationMode,
+    })
     : [];
 
   return {
@@ -274,6 +289,8 @@ export function buildTrackModel({
     trackTriangleCount: trackTriangles.length,
     textTriangleCount: textTriangles.length,
     scale,
+    primaryOrientationDeg: normalizedPrimaryOrientationDeg,
+    textOrientationMode: resolvedTextOrientationMode,
     orientationDeg: orientedGeometry.orientationDeg,
     outlinePoints: orientedGeometry.outlinePoints,
     basePlate: orientedGeometry.basePlate,

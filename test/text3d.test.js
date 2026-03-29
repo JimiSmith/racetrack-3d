@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { BASE_THICKNESS_MM } from '../src/model.js';
 import { rotateOutlineByOrientation } from '../src/orientation.js';
-import { TEXT_HEIGHT_MM, buildTextMesh } from '../src/text3d.js';
+import { TEXT_HEIGHT_MM, TEXT_ORIENTATION_FIXED, buildTextMesh } from '../src/text3d.js';
 
 function rectangleCommands(x, y, width, height) {
   return [
@@ -247,7 +247,7 @@ test('buildTextMesh uses multiline fitting when a single line would be unreadabl
   assert.ok(triangles.length > 0);
 });
 
-test('buildTextMesh tries 90 degree text orientation for tall narrow placements', () => {
+test('buildTextMesh auto mode can choose 90 degree text orientation when fixed mode cannot fit', () => {
   const outline = centeredHoleOutline({
     width: 1000,
     height: 2000,
@@ -257,15 +257,23 @@ test('buildTextMesh tries 90 degree text orientation for tall narrow placements'
     holeMaxY: 1800,
   });
 
-  const triangles = buildTextMesh(
+  const autoTriangles = buildTextMesh(
     'IMOLA',
     outline,
     { minX: 0, maxX: 1000, minY: 0, maxY: 2000, width: 1000, height: 2000 },
     0.05,
     { font: createMockFont(), baseThickness: BASE_THICKNESS_MM },
   );
+  const fixedTriangles = buildTextMesh(
+    'IMOLA',
+    outline,
+    { minX: 0, maxX: 1000, minY: 0, maxY: 2000, width: 1000, height: 2000 },
+    0.05,
+    { font: createMockFont(), baseThickness: BASE_THICKNESS_MM, textOrientationMode: TEXT_ORIENTATION_FIXED },
+  );
 
-  assert.ok(triangles.length > 0);
+  assert.ok(autoTriangles.length > 0);
+  assert.deepEqual(fixedTriangles, []);
 });
 
 test('buildTextMesh recomputes placement in the rotated search space', () => {

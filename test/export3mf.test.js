@@ -160,7 +160,7 @@ test('export3mf deduplicates vertices in the model XML', async () => {
 test('export3mf keeps preview geometry bounds aligned for rotated models', async () => {
   const outlinePoints = syntheticOutline();
   const basePlate = buildBasePlate(outlinePoints, 20);
-  const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway', orientationDeg: 90 });
+  const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway', primaryOrientationDeg: 90 });
 
   const result = export3mf(model, 'Synthetic Raceway');
   const archive = unzipSync(new Uint8Array(await result.blob.arrayBuffer()));

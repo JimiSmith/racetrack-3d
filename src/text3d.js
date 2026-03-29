@@ -4,6 +4,8 @@ import opentype from 'opentype.js';
 import { LABEL_FONT_BASE64 } from './label-font-data.js';
 
 export const TEXT_HEIGHT_MM = 0.8;
+export const TEXT_ORIENTATION_AUTO = 'auto';
+export const TEXT_ORIENTATION_FIXED = 'fixed';
 const CURVE_SEGMENTS = 8;
 const MIN_TEXT_HEIGHT_MM = 2;
 const MAX_TEXT_LINES = 4;
@@ -738,6 +740,14 @@ function computeCenterBias(rect, basePlate) {
   return 1 - 0.12 * Math.min(1, distance / maxDistance);
 }
 
+function normalizeTextOrientationMode(value) {
+  return value === TEXT_ORIENTATION_FIXED ? TEXT_ORIENTATION_FIXED : TEXT_ORIENTATION_AUTO;
+}
+
+function getTextRotationCandidates(textOrientationMode) {
+  return normalizeTextOrientationMode(textOrientationMode) === TEXT_ORIENTATION_FIXED ? [0] : [0, 90];
+}
+
 function scoreTextFit(rect, layout, scaledBounds, basePlate) {
   const fittedWidth = scaledBounds.width;
   const fittedHeight = scaledBounds.height;
@@ -757,7 +767,7 @@ function scoreTextFit(rect, layout, scaledBounds, basePlate) {
     * centerBias;
 }
 
-function fitTextToRectangle(text, font, rect, basePlate, cache) {
+function fitTextToRectangle(text, font, rect, basePlate, cache, textOrientationMode = TEXT_ORIENTATION_AUTO) {
   const words = String(text).split(/\s+/u).filter(Boolean);
   if (!words.length) {
     return null;
@@ -774,7 +784,7 @@ function fitTextToRectangle(text, font, rect, basePlate, cache) {
         continue;
       }
 
-      for (const rotation of [0, 90]) {
+      for (const rotation of getTextRotationCandidates(textOrientationMode)) {
         const oriented = rotation === 0
           ? multiline
           : { ...multiline, ...normalizeContoursToOrigin(rotateContours90(multiline.contours)) };
@@ -810,12 +820,12 @@ function fitTextToRectangle(text, font, rect, basePlate, cache) {
   return bestLayout;
 }
 
-function chooseTextPlacement(text, font, candidates, basePlate) {
+function chooseTextPlacement(text, font, candidates, basePlate, textOrientationMode = TEXT_ORIENTATION_AUTO) {
   const cache = new Map();
   let bestPlacement = null;
 
   for (const candidate of candidates) {
-    const layout = fitTextToRectangle(text, font, candidate.bounds, basePlate, cache);
+    const layout = fitTextToRectangle(text, font, candidate.bounds, basePlate, cache, textOrientationMode);
     if (!layout) {
       continue;
     }
@@ -880,7 +890,13 @@ export function buildTextMesh(text, outlinePoints, basePlate, scale, options = {
     return [];
   }
 
-  const placement = chooseTextPlacement(normalizedText, font, candidates, scaledBasePlate);
+  const placement = chooseTextPlacement(
+    normalizedText,
+    font,
+    candidates,
+    scaledBasePlate,
+    options.textOrientationMode,
+  );
   if (!placement?.contours?.length) {
     return [];
   }

@@ -54,6 +54,23 @@ function offsetHoleOutline() {
   };
 }
 
+function tallNarrowHoleOutline() {
+  return {
+    outerRing: [
+      { x: 0, y: 0 },
+      { x: 1000, y: 0 },
+      { x: 1000, y: 2000 },
+      { x: 0, y: 2000 },
+    ],
+    holes: [[
+      { x: 425, y: 200 },
+      { x: 575, y: 200 },
+      { x: 575, y: 1800 },
+      { x: 425, y: 1800 },
+    ]],
+  };
+}
+
 function textTriangles(model) {
   return model.triangles.slice(model.baseTriangleCount + model.trackTriangleCount);
 }
@@ -224,6 +241,29 @@ test('buildTrackModel reruns text placement when primary orientation changes', (
       || Math.abs(bounds0.minY - derotatedBounds90.minY) > 1
       || Math.abs(bounds0.maxY - derotatedBounds90.maxY) > 1,
     'expected text placement to be recomputed instead of only rotating the final mesh',
+  );
+});
+
+test('buildTrackModel keeps auto text orientation flexible but makes explicit rotations strict', () => {
+  const outlinePoints = tallNarrowHoleOutline();
+  const basePlate = buildBasePlate(outlinePoints, 50);
+
+  const autoModel = buildTrackModel({ outlinePoints, basePlate, trackName: 'IMOLA' });
+  const explicitModel = buildTrackModel({ outlinePoints, basePlate, trackName: 'IMOLA', primaryOrientationDeg: 0 });
+
+  assert.equal(autoModel.primaryOrientationDeg, 'auto');
+  assert.equal(autoModel.textOrientationMode, 'auto');
+  assert.equal(explicitModel.primaryOrientationDeg, 0);
+  assert.equal(explicitModel.textOrientationMode, 'fixed');
+  assert.ok(autoModel.textTriangleCount > 0);
+  assert.ok(explicitModel.textTriangleCount > 0);
+
+  const autoBounds = triangleBounds(textTriangles(autoModel));
+  const explicitBounds = triangleBounds(textTriangles(explicitModel));
+
+  assert.ok(
+    autoBounds.maxY - autoBounds.minY > (explicitBounds.maxY - explicitBounds.minY) * 5,
+    'expected auto mode to use the taller 90 degree fit while explicit mode stays in the fixed orientation',
   );
 });
 

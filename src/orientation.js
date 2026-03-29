@@ -1,8 +1,14 @@
+export const PRIMARY_ORIENTATION_AUTO = 'auto';
+
 const ORIENTATION_STEPS = [0, 90, 180, 270];
 
 export function normalizeOrientationDeg(value) {
   const normalized = Number(value);
   return ORIENTATION_STEPS.includes(normalized) ? normalized : 0;
+}
+
+export function normalizePrimaryOrientationDeg(value) {
+  return value === PRIMARY_ORIENTATION_AUTO ? PRIMARY_ORIENTATION_AUTO : normalizeOrientationDeg(value);
 }
 
 export function rotatePointByOrientation(point, orientationDeg) {
