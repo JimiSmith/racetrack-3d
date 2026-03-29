@@ -647,28 +647,43 @@ function rotateContours90(contours) {
   })));
 }
 
-function createLineGrouping(words, breakpoints) {
+function createSequentialLineGrouping(words, breakpoints) {
   const lines = [];
   let start = 0;
 
   for (const breakpoint of [...breakpoints, words.length]) {
-    lines.push(words.slice(start, breakpoint).join(' '));
+    const lineWords = words.slice(start, breakpoint);
+    if (!lineWords.length) {
+      return null;
+    }
+    lines.push(lineWords);
     start = breakpoint;
   }
 
   return lines;
 }
 
-function enumerateLineGroupings(words, lineCount) {
+function lineWordsToText(lineWords) {
+  return lineWords.map(words => words.join(' '));
+}
+
+function createRenderedMultilineText(lines) {
+  return lines.join('\n');
+}
+
+function enumerateSequentialLineGroupings(words, lineCount) {
   if (lineCount <= 1) {
-    return [[words.join(' ')]];
+    return [lineWordsToText([words])];
   }
 
   const groupings = [];
 
   function visit(nextIndex, chosen) {
     if (chosen.length === lineCount - 1) {
-      groupings.push(createLineGrouping(words, chosen));
+      const grouping = createSequentialLineGrouping(words, chosen);
+      if (grouping) {
+        groupings.push(lineWordsToText(grouping));
+      }
       return;
     }
 
@@ -680,6 +695,17 @@ function enumerateLineGroupings(words, lineCount) {
 
   visit(1, []);
   return groupings;
+}
+
+export function __enumerateSequentialTextLineBreaks(text, lineCount) {
+  const words = String(text).split(/\s+/u).filter(Boolean);
+  if (!words.length) {
+    return [];
+  }
+
+  const maxLines = Math.min(MAX_TEXT_LINES, words.length);
+  const targetLineCount = clamp(Math.trunc(Number(lineCount)) || 1, 1, maxLines);
+  return enumerateSequentialLineGroupings(words, targetLineCount).map(createRenderedMultilineText);
 }
 
 function measureLine(font, line, cache) {
@@ -727,6 +753,8 @@ function buildMultilineContours(lines, font, cache) {
   const normalized = normalizeContoursToOrigin(contours);
 
   return {
+    text: createRenderedMultilineText(lines),
+    lines: [...lines],
     contours: normalized.contours,
     bounds: normalized.bounds,
     averageLineHeight: averageHeight,
@@ -783,7 +811,7 @@ function fitTextToRectangle(text, font, rect, basePlate, cache, textOrientationM
   const maxLines = Math.min(MAX_TEXT_LINES, words.length);
 
   for (let lineCount = 1; lineCount <= maxLines; lineCount += 1) {
-    const groupings = enumerateLineGroupings(words, lineCount);
+    const groupings = enumerateSequentialLineGroupings(words, lineCount);
     for (const grouping of groupings) {
       const multiline = buildMultilineContours(grouping, font, cache);
       if (!multiline || multiline.bounds.width <= 0 || multiline.bounds.height <= 0) {
@@ -810,7 +838,8 @@ function fitTextToRectangle(text, font, rect, basePlate, cache, textOrientationM
         if (!bestLayout || score > bestLayout.score) {
           bestLayout = {
             score,
-            lines: grouping,
+            text: multiline.text,
+            lines: multiline.lines,
             rotation,
             scale: fittedScale,
             bounds: oriented.bounds,
@@ -824,6 +853,62 @@ function fitTextToRectangle(text, font, rect, basePlate, cache, textOrientationM
   }
 
   return bestLayout;
+}
+
+function computeTextPlacement(text, outlinePoints, basePlate, scale, options = {}) {
+  const normalizedText = String(text ?? '').trim();
+  if (!normalizedText) {
+    return null;
+  }
+
+  const font = getLabelFont(options.font ?? null);
+  const scaledOutline = scaleOutline(outlinePoints, scale);
+  const scaledBasePlate = createScaledBounds(basePlate, scale);
+  const placementMask = computePlacementMask(scaledOutline, scaledBasePlate);
+  const candidates = findPlacementCandidates(scaledBasePlate, placementMask);
+  if (!candidates.length) {
+    return null;
+  }
+
+  const candidateIndex = Math.min(
+    normalizeTextPositionRank(options.textPositionRank) - 1,
+    candidates.length - 1,
+  );
+  const selectedCandidate = candidates[candidateIndex];
+
+  const placement = chooseTextPlacement(
+    normalizedText,
+    font,
+    selectedCandidate,
+    scaledBasePlate,
+    options.textOrientationMode,
+  );
+  if (!placement?.contours?.length) {
+    return null;
+  }
+
+  return {
+    ...placement,
+    candidateIndex,
+    candidateCount: candidates.length,
+    normalizedText,
+  };
+}
+
+export function __debugTextPlacement(text, outlinePoints, basePlate, scale, options = {}) {
+  const placement = computeTextPlacement(text, outlinePoints, basePlate, scale, options);
+  if (!placement) {
+    return null;
+  }
+
+  return {
+    text: placement.text,
+    lines: [...placement.lines],
+    rotation: placement.rotation,
+    scale: placement.scale,
+    candidateIndex: placement.candidateIndex,
+    candidateCount: placement.candidateCount,
+  };
 }
 
 function chooseTextPlacement(text, font, candidate, basePlate, textOrientationMode = TEXT_ORIENTATION_AUTO) {
@@ -869,33 +954,7 @@ function computeTextBounds(contours) {
 }
 
 export function buildTextMesh(text, outlinePoints, basePlate, scale, options = {}) {
-  const normalizedText = String(text ?? '').trim();
-  if (!normalizedText) {
-    return [];
-  }
-
-  const font = getLabelFont(options.font ?? null);
-  const scaledOutline = scaleOutline(outlinePoints, scale);
-  const scaledBasePlate = createScaledBounds(basePlate, scale);
-  const placementMask = computePlacementMask(scaledOutline, scaledBasePlate);
-  const candidates = findPlacementCandidates(scaledBasePlate, placementMask);
-  if (!candidates.length) {
-    return [];
-  }
-
-  const candidateIndex = Math.min(
-    normalizeTextPositionRank(options.textPositionRank) - 1,
-    candidates.length - 1,
-  );
-  const selectedCandidate = candidates[candidateIndex];
-
-  const placement = chooseTextPlacement(
-    normalizedText,
-    font,
-    selectedCandidate,
-    scaledBasePlate,
-    options.textOrientationMode,
-  );
+  const placement = computeTextPlacement(text, outlinePoints, basePlate, scale, options);
   if (!placement?.contours?.length) {
     return [];
   }

@@ -3,7 +3,13 @@ import test from 'node:test';
 
 import { BASE_THICKNESS_MM } from '../src/model.js';
 import { rotateOutlineByOrientation } from '../src/orientation.js';
-import { TEXT_HEIGHT_MM, TEXT_ORIENTATION_FIXED, buildTextMesh } from '../src/text3d.js';
+import {
+  TEXT_HEIGHT_MM,
+  TEXT_ORIENTATION_FIXED,
+  __debugTextPlacement,
+  __enumerateSequentialTextLineBreaks,
+  buildTextMesh,
+} from '../src/text3d.js';
 
 function rectangleCommands(x, y, width, height) {
   return [
@@ -80,6 +86,10 @@ function boundsCenter(bounds) {
     x: (bounds.minX + bounds.maxX) / 2,
     y: (bounds.minY + bounds.maxY) / 2,
   };
+}
+
+function collapseWhitespace(text) {
+  return String(text).trim().split(/\s+/u).filter(Boolean).join(' ');
 }
 
 function rotateTrianglesByOrientation(triangles, orientationDeg) {
@@ -308,6 +318,105 @@ test('buildTextMesh uses multiline fitting when a single line would be unreadabl
   );
 
   assert.ok(triangles.length > 0);
+});
+
+test('line-break candidate generation preserves exact sequential word order', () => {
+  const candidates = __enumerateSequentialTextLineBreaks('Las Vegas Strip Circuit', 2);
+
+  assert.deepEqual(candidates, [
+    'Las\nVegas Strip Circuit',
+    'Las Vegas\nStrip Circuit',
+    'Las Vegas Strip\nCircuit',
+  ]);
+  assert.ok(candidates.every(candidate => collapseWhitespace(candidate) === 'Las Vegas Strip Circuit'));
+});
+
+test('multiline fitting preserves exact word order across different line counts', () => {
+  const wideOutline = centeredHoleOutline({
+    width: 240,
+    height: 140,
+    holeMinX: 20,
+    holeMaxX: 220,
+    holeMinY: 40,
+    holeMaxY: 100,
+  });
+  const narrowOutline = centeredHoleOutline({
+    width: 150,
+    height: 220,
+    holeMinX: 40,
+    holeMaxX: 110,
+    holeMinY: 20,
+    holeMaxY: 200,
+  });
+  const wideBasePlate = { minX: 0, minY: 0, maxX: 240, maxY: 140, width: 240, height: 140 };
+  const narrowBasePlate = { minX: 0, minY: 0, maxX: 150, maxY: 220, width: 150, height: 220 };
+  const font = createMockFont();
+
+  const wideLayout = __debugTextPlacement(
+    'Las Vegas Strip Circuit',
+    wideOutline,
+    wideBasePlate,
+    1,
+    { font, baseThickness: BASE_THICKNESS_MM },
+  );
+  const narrowLayout = __debugTextPlacement(
+    'Las Vegas Strip Circuit',
+    narrowOutline,
+    narrowBasePlate,
+    1,
+    { font, baseThickness: BASE_THICKNESS_MM },
+  );
+
+  assert.ok(wideLayout);
+  assert.ok(narrowLayout);
+  assert.equal(collapseWhitespace(wideLayout.text), 'Las Vegas Strip Circuit');
+  assert.equal(collapseWhitespace(narrowLayout.text), 'Las Vegas Strip Circuit');
+  assert.ok(narrowLayout.lines.length >= wideLayout.lines.length);
+});
+
+test('placement rank and orientation mode do not alter word order', () => {
+  const outline = rankedHoleOutline();
+  const basePlate = { minX: 0, maxX: 2400, minY: 0, maxY: 1800, width: 2400, height: 1800 };
+  const rankText = 'Las Vegas Strip Circuit';
+  const orientationText = 'Imola Circuit';
+
+  const firstRank = __debugTextPlacement(rankText, outline, basePlate, 0.05, {
+    font: createMockFont(),
+    baseThickness: BASE_THICKNESS_MM,
+    textPositionRank: 1,
+  });
+  const secondRank = __debugTextPlacement(rankText, outline, basePlate, 0.05, {
+    font: createMockFont(),
+    baseThickness: BASE_THICKNESS_MM,
+    textPositionRank: 2,
+  });
+  const autoOrientation = __debugTextPlacement(orientationText, centeredHoleOutline({
+    width: 1000,
+    height: 2000,
+    holeMinX: 425,
+    holeMaxX: 575,
+    holeMinY: 200,
+    holeMaxY: 1800,
+  }), { minX: 0, maxX: 1000, minY: 0, maxY: 2000, width: 1000, height: 2000 }, 0.05, {
+    font: createMockFont(),
+    baseThickness: BASE_THICKNESS_MM,
+  });
+  const fixedOrientation = __debugTextPlacement(orientationText, rankedHoleOutline(), basePlate, 0.05, {
+    font: createMockFont(),
+    baseThickness: BASE_THICKNESS_MM,
+    textOrientationMode: TEXT_ORIENTATION_FIXED,
+  });
+
+  for (const [layout, expectedText] of [
+    [firstRank, rankText],
+    [secondRank, rankText],
+    [autoOrientation, orientationText],
+    [fixedOrientation, orientationText],
+  ]) {
+    assert.ok(layout);
+    assert.equal(collapseWhitespace(layout.text), expectedText);
+    assert.equal(layout.text, layout.lines.join('\n'));
+  }
 });
 
 test('buildTextMesh auto mode can choose 90 degree text orientation when fixed mode cannot fit', () => {
