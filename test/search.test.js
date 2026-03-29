@@ -3,14 +3,18 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 
 import {
+  buildTrackSearchEntry,
   buildCycleFromEdges,
   buildLayoutsFromWays,
   buildVariantLayouts,
   buildWayGraph,
   detectForkSections,
   fetchTrackGeometry,
+  normalizeSearchText,
+  searchLocalTrackIndex,
   searchTracks,
   stitchWaysOrdered,
+  tokenizeNormalizedText,
 } from '../src/search.js';
 import {
   expectApproxLength,
@@ -103,72 +107,14 @@ function withFetchMock(fetchImpl, callback) {
   });
 }
 
-function makeSearchBinding(id, label, country, lat, lon) {
-  return {
-    item: { value: `http://www.wikidata.org/entity/${id}` },
-    itemLabel: { value: label },
-    countryLabel: country ? { value: country } : undefined,
-    lat: { value: String(lat) },
-    lon: { value: String(lon) },
-  };
-}
-
-function createSearchFetchMock({ searches, sparqlBindings, entities, calls }) {
-  return async (url, options = {}) => {
-    const requestUrl = typeof url === 'string' ? url : url.url;
-    calls.push({ url: requestUrl, options });
-    const parsedUrl = new URL(requestUrl);
-
-    if (parsedUrl.hostname === 'www.wikidata.org') {
-      const action = parsedUrl.searchParams.get('action');
-
-      if (action === 'wbsearchentities') {
-        const search = parsedUrl.searchParams.get('search');
-        return {
-          ok: true,
-          async json() {
-            return { search: searches[search] ?? [] };
-          },
-        };
-      }
-
-      if (action === 'wbgetentities') {
-        const ids = (parsedUrl.searchParams.get('ids') ?? '').split('|').filter(Boolean);
-        return {
-          ok: true,
-          async json() {
-            return {
-              entities: Object.fromEntries(ids.map(id => [id, entities[id] ?? {}])),
-            };
-          },
-        };
-      }
-    }
-
-    if (parsedUrl.hostname === 'query.wikidata.org') {
-      const sparql = parsedUrl.searchParams.get('query') ?? '';
-      assert.match(sparql, /\?item\s+wdt:P31\s+\?instance/);
-      assert.match(sparql, /wd:Q2338524/);
-      assert.match(sparql, /wd:Q926439/);
-
-      const valuesSection = sparql.match(/VALUES\s+\?item\s*\{([^}]+)\}/)?.[1] ?? '';
-      const ids = [...valuesSection.matchAll(/wd:([A-Z][A-Z0-9]+)/g)].map(match => match[1]);
-      const key = ids.join('|');
-
-      return {
-        ok: true,
-        async json() {
-          return { results: { bindings: sparqlBindings[key] ?? [] } };
-        },
-      };
-    }
-
-    throw new Error(`Unhandled fetch URL: ${requestUrl}`);
-  };
-}
-
 function n(lat, lon) {
   return { lat, lon };
+}
+
+function makeIndexedTrack(record) {
+  const entry = buildTrackSearchEntry(record);
+  assert.ok(entry, `expected valid search entry for ${record.wikidataId}`);
+  return entry;
 }
 
 function syntheticForkWays() {
@@ -268,133 +214,121 @@ test('buildLayoutsFromWays keeps the same two fork-based layouts for a Spa-style
   expectDistinctLayouts(layouts[0], layouts[1]);
 });
 
-test('searchTracks merges branch survivors and ranks the cleaner base venue first', async () => {
-  const calls = [];
-  const fetchMock = createSearchFetchMock({
-    calls,
-    searches: {
-      spa: [
-        { id: 'QCITY', label: 'Spa', description: 'Belgian municipality' },
-        { id: 'QTRACK', label: 'Circuit de Spa-Francorchamps', description: 'motorsport racing track in Belgium' },
-        { id: 'QLAYOUT', label: 'Spa-Francorchamps 2021 Grand Prix layout', description: 'Grand Prix layout' },
-      ],
-      'spa circuit': [
-        { id: 'QTRACK', label: 'Circuit de Spa-Francorchamps', description: 'motorsport racing track in Belgium' },
-      ],
-      'spa track': [
-        { id: 'QLAYOUT', label: 'Spa-Francorchamps 2021 Grand Prix layout', description: 'Grand Prix layout' },
-        { id: 'QTRACK', label: 'Circuit de Spa-Francorchamps', description: 'motorsport racing track in Belgium' },
-      ],
-      'spa street circuit': [],
-      'spa international circuit': [],
-    },
-    sparqlBindings: {
-      'QCITY|QTRACK|QLAYOUT': [
-        makeSearchBinding('QTRACK', 'Circuit de Spa-Francorchamps', 'Belgium', 50.4372, 5.9714),
-        makeSearchBinding('QLAYOUT', 'Spa-Francorchamps 2021 Grand Prix layout', 'Belgium', 50.437, 5.972),
-      ],
-      QTRACK: [
-        makeSearchBinding('QTRACK', 'Circuit de Spa-Francorchamps', 'Belgium', 50.4372, 5.9714),
-      ],
-      'QLAYOUT|QTRACK': [
-        makeSearchBinding('QLAYOUT', 'Spa-Francorchamps 2021 Grand Prix layout', 'Belgium', 50.437, 5.972),
-        makeSearchBinding('QTRACK', 'Circuit de Spa-Francorchamps', 'Belgium', 50.4372, 5.9714),
-      ],
-    },
-    entities: {
-      QTRACK: {
-        labels: { en: { value: 'Circuit de Spa-Francorchamps' } },
-        aliases: { en: [{ value: 'Spa' }] },
-        descriptions: { en: { value: 'motorsport racing track in Belgium' } },
-        claims: { P1813: [{ mainsnak: { datavalue: { value: { text: 'Spa' } } } }] },
-      },
-      QLAYOUT: {
-        labels: { en: { value: 'Spa-Francorchamps 2021 Grand Prix layout' } },
-        aliases: { en: [{ value: 'Spa GP layout' }] },
-        descriptions: { en: { value: 'Grand Prix layout' } },
-        claims: {},
-      },
-    },
+test('normalizeSearchText removes diacritics and punctuation for search', () => {
+  assert.equal(
+    normalizeSearchText('  Autodromo Hermanos-Rodriguez, Mexico City  '),
+    'autodromo hermanos rodriguez mexico city',
+  );
+  assert.equal(normalizeSearchText('Circuit de Spa-Francorchamps'), 'circuit de spa francorchamps');
+});
+
+test('tokenizeNormalizedText splits normalized phrases into deduped tokens', () => {
+  assert.deepEqual(
+    tokenizeNormalizedText('mexico city mexico'),
+    ['mexico', 'city'],
+  );
+});
+
+test('buildTrackSearchEntry keeps normalized label alias city and country material', () => {
+  const entry = makeIndexedTrack({
+    wikidataId: 'Q173099',
+    label: 'Autodromo Hermanos Rodriguez',
+    aliases: ['Rodriguez Brothers Autodrome'],
+    description: 'motorsport track in Mexico',
+    type: 'motorsport racing track',
+    country: 'Mexico',
+    city: 'Mexico City',
+    lat: 19.4042,
+    lon: -99.0907,
   });
 
-  const results = await withFetchMock(fetchMock, () => searchTracks('spa'));
+  assert.equal(entry.normalized.label, 'autodromo hermanos rodriguez');
+  assert.deepEqual(entry.normalized.aliases, ['rodriguez brothers autodrome']);
+  assert.equal(entry.normalized.city, 'mexico city');
+  assert.equal(entry.normalized.country, 'mexico');
+  assert.ok(entry.tokens.includes('mexico'));
+  assert.ok(entry.tokens.includes('city'));
+  assert.ok(entry.phrases.includes('mexico city'));
+});
+
+test('searchLocalTrackIndex prefers direct venue-name matches over layout-like variants', () => {
+  const index = [
+    makeIndexedTrack({
+      wikidataId: 'QTRACK',
+      label: 'Circuit de Spa-Francorchamps',
+      aliases: ['Spa'],
+      description: 'motorsport racing track in Belgium',
+      type: 'motorsport racing track',
+      country: 'Belgium',
+      city: 'Stavelot',
+      lat: 50.4372,
+      lon: 5.9714,
+    }),
+    makeIndexedTrack({
+      wikidataId: 'QLAYOUT',
+      label: 'Spa-Francorchamps 2021 Grand Prix layout',
+      aliases: ['Spa GP layout'],
+      description: 'Grand Prix layout',
+      type: 'motorsport racing track',
+      country: 'Belgium',
+      city: 'Stavelot',
+      lat: 50.4370,
+      lon: 5.9720,
+    }),
+  ];
+
+  const results = searchLocalTrackIndex('spa', index);
 
   assert.equal(results.length, 2);
   assert.equal(results[0].wikidataId, 'QTRACK');
-  assert.deepEqual(results[0].matchedBranches, ['spa', 'spa circuit', 'spa track']);
-  assert.equal(results[0].baseQueryMatch, true);
-  assert.equal(results[0].suffixExpandedOnly, false);
-  assert.equal(results[0].primaryMatchType, 'base');
+  assert.equal(results[0].matchCategory, 'exact-alias');
   assert.ok(results[0].rankScore > results[1].rankScore);
-  assert.equal(results[1].wikidataId, 'QLAYOUT');
-
-  const searchCalls = calls.filter(call => call.url.includes('action=wbsearchentities'));
-  assert.equal(searchCalls.length, 5);
 });
 
-test('searchTracks recovers suffix-only street-circuit matches after filtering base junk', async () => {
-  const fetchMock = createSearchFetchMock({
-    calls: [],
-    searches: {
-      monaco: [
-        { id: 'QCITY', label: 'Monaco', description: 'city-state' },
-      ],
-      'monaco circuit': [],
-      'monaco track': [],
-      'monaco street circuit': [
-        { id: 'QMONACO', label: 'Circuit de Monaco', description: 'street circuit in Monaco' },
-      ],
-      'monaco international circuit': [],
-    },
-    sparqlBindings: {
-      QCITY: [],
-      QMONACO: [
-        makeSearchBinding('QMONACO', 'Circuit de Monaco', 'Monaco', 43.7347, 7.4206),
-      ],
-    },
-    entities: {
-      QMONACO: {
-        labels: { en: { value: 'Circuit de Monaco' } },
-        aliases: { en: [{ value: 'Monaco' }] },
-        descriptions: { en: { value: 'street circuit in Monaco' } },
-        claims: { P1813: [{ mainsnak: { datavalue: { value: { text: 'Monaco' } } } }] },
-      },
-    },
-  });
+test('searchLocalTrackIndex uses city and country phrases for recall', () => {
+  const index = [
+    makeIndexedTrack({
+      wikidataId: 'QMEXICO',
+      label: 'Autodromo Hermanos Rodriguez',
+      aliases: ['Rodriguez Brothers Autodrome'],
+      description: 'motorsport track in Mexico',
+      type: 'motorsport racing track',
+      country: 'Mexico',
+      city: 'Mexico City',
+      lat: 19.4042,
+      lon: -99.0907,
+    }),
+    makeIndexedTrack({
+      wikidataId: 'QMONZA',
+      label: 'Autodromo Nazionale Monza',
+      aliases: ['Monza Circuit'],
+      description: 'motorsport track in Italy',
+      type: 'motorsport racing track',
+      country: 'Italy',
+      city: 'Monza',
+      lat: 45.6156,
+      lon: 9.2811,
+    }),
+  ];
 
-  const results = await withFetchMock(fetchMock, () => searchTracks('monaco'));
+  const cityResults = searchLocalTrackIndex('mexico city', index);
+  const countryResults = searchLocalTrackIndex('mexico', index);
 
-  assert.equal(results.length, 1);
-  assert.equal(results[0].wikidataId, 'QMONACO');
-  assert.deepEqual(results[0].matchedBranches, ['monaco street circuit']);
-  assert.equal(results[0].baseQueryMatch, false);
-  assert.equal(results[0].suffixExpandedOnly, true);
-  assert.equal(results[0].primaryMatchType, 'street-circuit');
+  assert.equal(cityResults[0].wikidataId, 'QMEXICO');
+  assert.equal(cityResults[0].matchCategory, 'exact-city');
+  assert.equal(countryResults[0].wikidataId, 'QMEXICO');
+  assert.equal(countryResults[0].displayName, 'Autodromo Hermanos Rodriguez - Mexico City, Mexico');
 });
 
-test('searchTracks returns no results when every branch filters to non-tracks', async () => {
-  const calls = [];
-  const fetchMock = createSearchFetchMock({
-    calls,
-    searches: {
-      shanghai: [{ id: 'QCITY', label: 'Shanghai', description: 'municipality in China' }],
-      'shanghai circuit': [{ id: 'QEVENT', label: 'Chinese Grand Prix', description: 'motor race' }],
-      'shanghai track': [],
-      'shanghai street circuit': [],
-      'shanghai international circuit': [{ id: 'QDISTRICT', label: 'Jiading District', description: 'district in Shanghai' }],
-    },
-    sparqlBindings: {
-      QCITY: [],
-      QEVENT: [],
-      QDISTRICT: [],
-    },
-    entities: {},
-  });
+test('searchTracks uses the shipped local search index and returns compatible fields', async () => {
+  const results = await searchTracks('monaco');
 
-  const results = await withFetchMock(fetchMock, () => searchTracks('shanghai'));
-
-  assert.deepEqual(results, []);
-  assert.equal(calls.some(call => call.url.includes('action=wbgetentities')), false);
+  assert.ok(results.length >= 1);
+  assert.equal(typeof results[0].name, 'string');
+  assert.equal(typeof results[0].displayName, 'string');
+  assert.equal(typeof results[0].wikidataId, 'string');
+  assert.equal(typeof results[0].lat, 'number');
+  assert.equal(typeof results[0].lon, 'number');
 });
 
 test('fetchTrackGeometry keeps Silverstone branch layouts from a frozen fixture', async () => {
