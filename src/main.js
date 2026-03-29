@@ -6,6 +6,7 @@ import { buildTrackModel, exportStl } from './model.js';
 import { export3mf } from './export3mf.js';
 import { PRIMARY_ORIENTATION_AUTO, normalizePrimaryOrientationDeg } from './orientation.js';
 import { initPreview, updatePreview } from './preview.js';
+import { DEFAULT_TEXT_POSITION_RANK, normalizeTextPositionRank } from './text3d.js';
 import {
   buildLayoutPickerState,
   getSelectedLayout,
@@ -26,6 +27,7 @@ const layoutWrap = document.getElementById('layout-wrap');
 const layoutSelect = document.getElementById('layout-select');
 const layoutHint = document.getElementById('layout-hint');
 const orientationSelect = document.getElementById('orientation-select');
+const textPositionSelect = document.getElementById('text-position-select');
 
 let currentNodes = null;
 let currentProjectedNodes = null;
@@ -36,6 +38,7 @@ let currentModel = null;
 let currentLayouts = [];
 let currentLayoutIndex = 0;
 let currentPrimaryOrientationDeg = normalizePrimaryOrientationDeg(orientationSelect?.value);
+let currentTextPositionRank = normalizeTextPositionRank(textPositionSelect?.value ?? DEFAULT_TEXT_POSITION_RANK);
 let isGeneratingStl = false;
 let isGenerating3mf = false;
 
@@ -119,6 +122,7 @@ function buildSelectedLayoutModel(elevations = null) {
     trackName: currentTrack?.name,
     projectedNodes: projected,
     primaryOrientationDeg: currentPrimaryOrientationDeg,
+    textPositionRank: currentTextPositionRank,
   });
 
   currentNodes = layout.nodes;
@@ -210,6 +214,7 @@ generateStlButton.addEventListener('click', async () => {
       basePlate: currentProjectedNodes ? null : currentBasePlate,
       trackName: currentTrack.name,
       projectedNodes: currentProjectedNodes,
+      textPositionRank: currentTextPositionRank,
       primaryOrientationDeg: currentProjectedNodes
         ? currentPrimaryOrientationDeg
         : (currentModel?.primaryOrientationDeg ?? currentPrimaryOrientationDeg),
@@ -243,6 +248,7 @@ generate3mfButton.addEventListener('click', async () => {
       basePlate: currentProjectedNodes ? null : currentBasePlate,
       trackName: currentTrack.name,
       projectedNodes: currentProjectedNodes,
+      textPositionRank: currentTextPositionRank,
       primaryOrientationDeg: currentProjectedNodes
         ? currentPrimaryOrientationDeg
         : (currentModel?.primaryOrientationDeg ?? currentPrimaryOrientationDeg),
@@ -323,6 +329,16 @@ orientationSelect?.addEventListener('change', async () => {
 
   const exaggeration = Number(exaggerationSlider.value);
   await loadElevations(getSelectedLayout(currentLayouts, currentLayoutIndex)?.nodes ?? [], exaggeration);
+});
+
+textPositionSelect?.addEventListener('change', () => {
+  currentTextPositionRank = normalizeTextPositionRank(textPositionSelect.value);
+
+  if (!currentLayouts.length || !currentTrack) {
+    return;
+  }
+
+  buildSelectedLayoutModel();
 });
 
 let debounceTimer;

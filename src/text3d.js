@@ -6,6 +6,7 @@ import { LABEL_FONT_BASE64 } from './label-font-data.js';
 export const TEXT_HEIGHT_MM = 0.8;
 export const TEXT_ORIENTATION_AUTO = 'auto';
 export const TEXT_ORIENTATION_FIXED = 'fixed';
+export const DEFAULT_TEXT_POSITION_RANK = 1;
 const CURVE_SEGMENTS = 8;
 const MIN_TEXT_HEIGHT_MM = 2;
 const MAX_TEXT_LINES = 4;
@@ -423,6 +424,11 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
+export function normalizeTextPositionRank(value) {
+  const normalized = Math.trunc(Number(value));
+  return Number.isFinite(normalized) && normalized >= 1 ? normalized : DEFAULT_TEXT_POSITION_RANK;
+}
+
 function createPlacementGrid(basePlate) {
   const longSide = Math.max(basePlate.width, basePlate.height);
   const shortSide = Math.min(basePlate.width, basePlate.height);
@@ -820,35 +826,22 @@ function fitTextToRectangle(text, font, rect, basePlate, cache, textOrientationM
   return bestLayout;
 }
 
-function chooseTextPlacement(text, font, candidates, basePlate, textOrientationMode = TEXT_ORIENTATION_AUTO) {
+function chooseTextPlacement(text, font, candidate, basePlate, textOrientationMode = TEXT_ORIENTATION_AUTO) {
   const cache = new Map();
-  let bestPlacement = null;
-
-  for (const candidate of candidates) {
-    const layout = fitTextToRectangle(text, font, candidate.bounds, basePlate, cache, textOrientationMode);
-    if (!layout) {
-      continue;
-    }
-
-    const offsetX = candidate.bounds.minX + (candidate.bounds.width - layout.fittedWidth) / 2 - layout.bounds.minX * layout.scale;
-    const offsetY = candidate.bounds.minY + (candidate.bounds.height - layout.fittedHeight) / 2 - layout.bounds.minY * layout.scale;
-    const positionedContours = translateAndScaleContours(layout.contours, layout.scale, offsetX, offsetY);
-
-    if (
-      !bestPlacement
-      || layout.score > bestPlacement.score
-      || (layout.score === bestPlacement.score && candidate.area > bestPlacement.area)
-    ) {
-      bestPlacement = {
-        ...layout,
-        area: candidate.area,
-        candidate: candidate.bounds,
-        contours: positionedContours,
-      };
-    }
+  const layout = fitTextToRectangle(text, font, candidate.bounds, basePlate, cache, textOrientationMode);
+  if (!layout) {
+    return null;
   }
 
-  return bestPlacement;
+  const offsetX = candidate.bounds.minX + (candidate.bounds.width - layout.fittedWidth) / 2 - layout.bounds.minX * layout.scale;
+  const offsetY = candidate.bounds.minY + (candidate.bounds.height - layout.fittedHeight) / 2 - layout.bounds.minY * layout.scale;
+
+  return {
+    ...layout,
+    area: candidate.area,
+    candidate: candidate.bounds,
+    contours: translateAndScaleContours(layout.contours, layout.scale, offsetX, offsetY),
+  };
 }
 
 function computeTextBounds(contours) {
@@ -890,10 +883,16 @@ export function buildTextMesh(text, outlinePoints, basePlate, scale, options = {
     return [];
   }
 
+  const candidateIndex = Math.min(
+    normalizeTextPositionRank(options.textPositionRank) - 1,
+    candidates.length - 1,
+  );
+  const selectedCandidate = candidates[candidateIndex];
+
   const placement = chooseTextPlacement(
     normalizedText,
     font,
-    candidates,
+    selectedCandidate,
     scaledBasePlate,
     options.textOrientationMode,
   );

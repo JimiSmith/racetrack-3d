@@ -75,6 +75,13 @@ function triangleBounds(triangles) {
   });
 }
 
+function boundsCenter(bounds) {
+  return {
+    x: (bounds.minX + bounds.maxX) / 2,
+    y: (bounds.minY + bounds.maxY) / 2,
+  };
+}
+
 function rotateTrianglesByOrientation(triangles, orientationDeg) {
   return triangles.map(triangle => triangle.map(vertex => {
     switch (orientationDeg) {
@@ -158,6 +165,62 @@ function centeredHoleOutline({ width = 2000, height = 2000, holeMinX, holeMaxX, 
       { x: holeMaxX, y: holeMaxY },
       { x: holeMinX, y: holeMaxY },
     ]],
+  };
+}
+
+function rankedHoleOutline() {
+  return {
+    outerRing: [
+      { x: 0, y: 0 },
+      { x: 2400, y: 0 },
+      { x: 2400, y: 1800 },
+      { x: 0, y: 1800 },
+    ],
+    holes: [
+      [
+        { x: 200, y: 200 },
+        { x: 900, y: 200 },
+        { x: 900, y: 700 },
+        { x: 200, y: 700 },
+      ],
+      [
+        { x: 1500, y: 200 },
+        { x: 2200, y: 200 },
+        { x: 2200, y: 700 },
+        { x: 1500, y: 700 },
+      ],
+      [
+        { x: 850, y: 1000 },
+        { x: 1550, y: 1000 },
+        { x: 1550, y: 1500 },
+        { x: 850, y: 1500 },
+      ],
+    ],
+  };
+}
+
+function fallbackHoleOutline() {
+  return {
+    outerRing: [
+      { x: 0, y: 0 },
+      { x: 2000, y: 0 },
+      { x: 2000, y: 1200 },
+      { x: 0, y: 1200 },
+    ],
+    holes: [
+      [
+        { x: 200, y: 200 },
+        { x: 800, y: 200 },
+        { x: 800, y: 800 },
+        { x: 200, y: 800 },
+      ],
+      [
+        { x: 1200, y: 200 },
+        { x: 1800, y: 200 },
+        { x: 1800, y: 800 },
+        { x: 1200, y: 800 },
+      ],
+    ],
   };
 }
 
@@ -317,4 +380,54 @@ test('buildTextMesh recomputes placement in the rotated search space', () => {
       || Math.abs(bounds0.maxY - derotatedBounds90.maxY) > 1,
     'expected rotated placement search to produce a different fitted result',
   );
+});
+
+test('buildTextMesh uses the selected ranked placement candidate', () => {
+  const outline = rankedHoleOutline();
+  const basePlate = { minX: 0, maxX: 2400, minY: 0, maxY: 1800, width: 2400, height: 1800 };
+
+  const first = buildTextMesh('GO', outline, basePlate, 0.05, {
+    font: createMockFont(),
+    baseThickness: BASE_THICKNESS_MM,
+    textPositionRank: 1,
+  });
+  const second = buildTextMesh('GO', outline, basePlate, 0.05, {
+    font: createMockFont(),
+    baseThickness: BASE_THICKNESS_MM,
+    textPositionRank: 2,
+  });
+  const third = buildTextMesh('GO', outline, basePlate, 0.05, {
+    font: createMockFont(),
+    baseThickness: BASE_THICKNESS_MM,
+    textPositionRank: 3,
+  });
+
+  const firstCenter = boundsCenter(triangleBounds(first));
+  const secondCenter = boundsCenter(triangleBounds(second));
+  const thirdCenter = boundsCenter(triangleBounds(third));
+
+  assert.ok(first.length > 0);
+  assert.ok(second.length > 0);
+  assert.ok(third.length > 0);
+  assert.ok(firstCenter.x < secondCenter.x, `expected rank 1 to sit left of rank 2, got ${firstCenter.x} and ${secondCenter.x}`);
+  assert.ok(thirdCenter.y > firstCenter.y, `expected rank 3 to sit below rank 1, got ${thirdCenter.y} and ${firstCenter.y}`);
+});
+
+test('buildTextMesh falls back to the best available ranked candidate', () => {
+  const outline = fallbackHoleOutline();
+  const basePlate = { minX: 0, maxX: 2000, minY: 0, maxY: 1200, width: 2000, height: 1200 };
+
+  const second = buildTextMesh('GO', outline, basePlate, 0.05, {
+    font: createMockFont(),
+    baseThickness: BASE_THICKNESS_MM,
+    textPositionRank: 2,
+  });
+  const third = buildTextMesh('GO', outline, basePlate, 0.05, {
+    font: createMockFont(),
+    baseThickness: BASE_THICKNESS_MM,
+    textPositionRank: 3,
+  });
+
+  assert.ok(second.length > 0);
+  assert.deepEqual(third, second);
 });

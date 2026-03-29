@@ -20,6 +20,37 @@ function syntheticOutline() {
   };
 }
 
+function rankedHoleOutline() {
+  return {
+    outerRing: [
+      { x: 0, y: 0 },
+      { x: 2400, y: 0 },
+      { x: 2400, y: 1800 },
+      { x: 0, y: 1800 },
+    ],
+    holes: [
+      [
+        { x: 200, y: 200 },
+        { x: 900, y: 200 },
+        { x: 900, y: 700 },
+        { x: 200, y: 700 },
+      ],
+      [
+        { x: 1500, y: 200 },
+        { x: 2200, y: 200 },
+        { x: 2200, y: 700 },
+        { x: 1500, y: 700 },
+      ],
+      [
+        { x: 850, y: 1000 },
+        { x: 1550, y: 1000 },
+        { x: 1550, y: 1500 },
+        { x: 850, y: 1500 },
+      ],
+    ],
+  };
+}
+
 function extractModelXml(archive) {
   return strFromU8(archive['3D/3dmodel.model']);
 }
@@ -158,9 +189,15 @@ test('export3mf deduplicates vertices in the model XML', async () => {
 });
 
 test('export3mf keeps preview geometry bounds aligned for rotated models', async () => {
-  const outlinePoints = syntheticOutline();
-  const basePlate = buildBasePlate(outlinePoints, 20);
-  const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway', primaryOrientationDeg: 90 });
+  const outlinePoints = rankedHoleOutline();
+  const basePlate = buildBasePlate(outlinePoints, 60);
+  const model = buildTrackModel({
+    outlinePoints,
+    basePlate,
+    trackName: 'GO',
+    primaryOrientationDeg: 90,
+    textPositionRank: 2,
+  });
 
   const result = export3mf(model, 'Synthetic Raceway');
   const archive = unzipSync(new Uint8Array(await result.blob.arrayBuffer()));

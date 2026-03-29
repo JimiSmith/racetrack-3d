@@ -22,11 +22,15 @@ function triangleBounds(triangles) {
     maxX: Math.max(bounds.maxX, vertex.x),
     minY: Math.min(bounds.minY, vertex.y),
     maxY: Math.max(bounds.maxY, vertex.y),
+    minZ: Math.min(bounds.minZ, vertex.z),
+    maxZ: Math.max(bounds.maxZ, vertex.z),
   }), {
     minX: Infinity,
     maxX: -Infinity,
     minY: Infinity,
     maxY: -Infinity,
+    minZ: Infinity,
+    maxZ: -Infinity,
   });
 }
 
@@ -34,6 +38,13 @@ function span(bounds) {
   return {
     width: bounds.maxX - bounds.minX,
     height: bounds.maxY - bounds.minY,
+  };
+}
+
+function boundsCenter(bounds) {
+  return {
+    x: (bounds.minX + bounds.maxX) / 2,
+    y: (bounds.minY + bounds.maxY) / 2,
   };
 }
 
@@ -71,6 +82,37 @@ function tallNarrowHoleOutline() {
   };
 }
 
+function rankedHoleOutline() {
+  return {
+    outerRing: [
+      { x: 0, y: 0 },
+      { x: 2400, y: 0 },
+      { x: 2400, y: 1800 },
+      { x: 0, y: 1800 },
+    ],
+    holes: [
+      [
+        { x: 200, y: 200 },
+        { x: 900, y: 200 },
+        { x: 900, y: 700 },
+        { x: 200, y: 700 },
+      ],
+      [
+        { x: 1500, y: 200 },
+        { x: 2200, y: 200 },
+        { x: 2200, y: 700 },
+        { x: 1500, y: 700 },
+      ],
+      [
+        { x: 850, y: 1000 },
+        { x: 1550, y: 1000 },
+        { x: 1550, y: 1500 },
+        { x: 850, y: 1500 },
+      ],
+    ],
+  };
+}
+
 function textTriangles(model) {
   return model.triangles.slice(model.baseTriangleCount + model.trackTriangleCount);
 }
@@ -92,6 +134,43 @@ function rotateTrianglesByOrientation(triangles, orientationDeg) {
 
 function approxEqual(actual, expected, tolerance = 1e-6) {
   assert.ok(Math.abs(actual - expected) <= tolerance, `expected ${actual} to be within ${tolerance} of ${expected}`);
+}
+
+function textBounds(model) {
+  return triangleBounds(textTriangles(model));
+}
+
+function parseBinaryStlBounds(buffer) {
+  const view = new DataView(buffer);
+  const triangleCount = view.getUint32(80, true);
+  const bounds = {
+    minX: Infinity,
+    maxX: -Infinity,
+    minY: Infinity,
+    maxY: -Infinity,
+    minZ: Infinity,
+    maxZ: -Infinity,
+  };
+  let offset = 84;
+
+  for (let triangleIndex = 0; triangleIndex < triangleCount; triangleIndex += 1) {
+    offset += 12;
+    for (let vertexIndex = 0; vertexIndex < 3; vertexIndex += 1) {
+      const x = view.getFloat32(offset, true);
+      const y = view.getFloat32(offset + 4, true);
+      const z = view.getFloat32(offset + 8, true);
+      bounds.minX = Math.min(bounds.minX, x);
+      bounds.maxX = Math.max(bounds.maxX, x);
+      bounds.minY = Math.min(bounds.minY, y);
+      bounds.maxY = Math.max(bounds.maxY, y);
+      bounds.minZ = Math.min(bounds.minZ, z);
+      bounds.maxZ = Math.max(bounds.maxZ, z);
+      offset += 12;
+    }
+    offset += 2;
+  }
+
+  return bounds;
 }
 
 function withMockedDownloadDom(callback) {
@@ -225,8 +304,8 @@ test('buildTrackModel reruns text placement when primary orientation changes', (
   const outlinePoints = offsetHoleOutline();
   const basePlate = buildBasePlate(outlinePoints, 50);
 
-  const model0 = buildTrackModel({ outlinePoints, basePlate, trackName: 'DAYTONA ROAD COURSE', orientationDeg: 0 });
-  const model90 = buildTrackModel({ outlinePoints, basePlate, trackName: 'DAYTONA ROAD COURSE', orientationDeg: 90 });
+  const model0 = buildTrackModel({ outlinePoints, basePlate, trackName: 'DAYTONA ROAD COURSE', orientationDeg: 0, textPositionRank: 3 });
+  const model90 = buildTrackModel({ outlinePoints, basePlate, trackName: 'DAYTONA ROAD COURSE', orientationDeg: 90, textPositionRank: 3 });
 
   const bounds0 = triangleBounds(textTriangles(model0));
   const bounds90 = triangleBounds(textTriangles(model90));
@@ -265,6 +344,30 @@ test('buildTrackModel keeps auto text orientation flexible but makes explicit ro
     autoBounds.maxY - autoBounds.minY > (explicitBounds.maxY - explicitBounds.minY) * 5,
     'expected auto mode to use the taller 90 degree fit while explicit mode stays in the fixed orientation',
   );
+});
+
+test('buildTrackModel threads text position rank through preview and STL export geometry', () => {
+  const outlinePoints = rankedHoleOutline();
+  const basePlate = buildBasePlate(outlinePoints, 60);
+
+  const firstModel = buildTrackModel({ outlinePoints, basePlate, trackName: 'GO', textPositionRank: 1 });
+  const secondModel = buildTrackModel({ outlinePoints, basePlate, trackName: 'GO', textPositionRank: 2 });
+  const exportedSecond = exportStl(secondModel, 'ranked-position');
+
+  const firstCenter = boundsCenter(textBounds(firstModel));
+  const secondCenter = boundsCenter(textBounds(secondModel));
+  const previewBounds = triangleBounds(secondModel.triangles);
+  const exportBounds = parseBinaryStlBounds(exportedSecond.buffer);
+
+  assert.equal(firstModel.textPositionRank, 1);
+  assert.equal(secondModel.textPositionRank, 2);
+  assert.ok(firstCenter.x < secondCenter.x, `expected rank 2 text to move right, got ${firstCenter.x} and ${secondCenter.x}`);
+  approxEqual(previewBounds.minX, exportBounds.minX, 1e-4);
+  approxEqual(previewBounds.maxX, exportBounds.maxX, 1e-4);
+  approxEqual(previewBounds.minY, exportBounds.minY, 1e-4);
+  approxEqual(previewBounds.maxY, exportBounds.maxY, 1e-4);
+  approxEqual(previewBounds.minZ, exportBounds.minZ, 1e-4);
+  approxEqual(previewBounds.maxZ, exportBounds.maxZ, 1e-4);
 });
 
 test('exportStl returns download metadata with a blob, buffer, and filename', async () => {

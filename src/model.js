@@ -3,7 +3,13 @@ import earcut from 'earcut';
 import { buildBasePlate, buildTrackOutline } from './geometry.js';
 import { PRIMARY_ORIENTATION_AUTO, normalizeOrientationDeg, normalizePrimaryOrientationDeg } from './orientation.js';
 import { rotateOutlineByOrientation, rotatePointsByOrientation } from './orientation.js';
-import { buildTextMesh, TEXT_ORIENTATION_AUTO, TEXT_ORIENTATION_FIXED } from './text3d.js';
+import {
+  buildTextMesh,
+  DEFAULT_TEXT_POSITION_RANK,
+  normalizeTextPositionRank,
+  TEXT_ORIENTATION_AUTO,
+  TEXT_ORIENTATION_FIXED,
+} from './text3d.js';
 
 export const BASE_THICKNESS_MM = 8;
 const TRACK_HEIGHT_MM = 3;
@@ -256,6 +262,7 @@ export function buildTrackModel({
   primaryOrientationDeg = undefined,
   orientationDeg = undefined,
   textOrientationMode = undefined,
+  textPositionRank = DEFAULT_TEXT_POSITION_RANK,
 }) {
   const normalizedPrimaryOrientationDeg = normalizePrimaryOrientationDeg(
     primaryOrientationDeg === undefined
@@ -267,6 +274,7 @@ export function buildTrackModel({
     : normalizedPrimaryOrientationDeg;
   const resolvedTextOrientationMode = textOrientationMode
     ?? (normalizedPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO ? TEXT_ORIENTATION_AUTO : TEXT_ORIENTATION_FIXED);
+  const resolvedTextPositionRank = normalizeTextPositionRank(textPositionRank);
   const orientedGeometry = orientTrackGeometry({
     outlinePoints,
     basePlate,
@@ -279,6 +287,7 @@ export function buildTrackModel({
   const textTriangles = trackName
     ? buildTextMesh(trackName, orientedGeometry.outlinePoints, orientedGeometry.basePlate, scale, {
       baseThickness: BASE_THICKNESS_MM,
+      textPositionRank: resolvedTextPositionRank,
       textOrientationMode: resolvedTextOrientationMode,
     })
     : [];
@@ -291,6 +300,7 @@ export function buildTrackModel({
     scale,
     primaryOrientationDeg: normalizedPrimaryOrientationDeg,
     textOrientationMode: resolvedTextOrientationMode,
+    textPositionRank: resolvedTextPositionRank,
     orientationDeg: orientedGeometry.orientationDeg,
     outlinePoints: orientedGeometry.outlinePoints,
     basePlate: orientedGeometry.basePlate,
