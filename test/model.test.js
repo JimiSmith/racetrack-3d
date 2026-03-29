@@ -167,6 +167,42 @@ function topTrackVertices(model) {
   return uniqueVertices(trackTriangles(model), BASE_THICKNESS_MM + 1);
 }
 
+function topTrackSurfaceTriangles(model) {
+  return trackTriangles(model).filter(triangle => triangle.every(vertex => vertex.z > BASE_THICKNESS_MM));
+}
+
+function barycentricWeights2d(point, a, b, c) {
+  const determinant = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
+
+  if (Math.abs(determinant) <= 1e-9) {
+    return null;
+  }
+
+  const w1 = ((b.y - c.y) * (point.x - c.x) + (c.x - b.x) * (point.y - c.y)) / determinant;
+  const w2 = ((c.y - a.y) * (point.x - c.x) + (a.x - c.x) * (point.y - c.y)) / determinant;
+  const w3 = 1 - w1 - w2;
+
+  if (w1 < -1e-6 || w2 < -1e-6 || w3 < -1e-6) {
+    return null;
+  }
+
+  return { w1, w2, w3 };
+}
+
+function sampleTopSurfaceZ(model, point) {
+  for (const [a, b, c] of topTrackSurfaceTriangles(model)) {
+    const weights = barycentricWeights2d(point, a, b, c);
+
+    if (!weights) {
+      continue;
+    }
+
+    return a.z * weights.w1 + b.z * weights.w2 + c.z * weights.w3;
+  }
+
+  assert.fail(`expected to find a top-face triangle at ${point.x}, ${point.y}`);
+}
+
 function crossSectionEdgeVertices(vertices, targetX, tolerance = 1e-3) {
   const sectionVertices = vertices
     .filter(vertex => Math.abs(vertex.x - targetX) <= tolerance)
@@ -321,6 +357,51 @@ test('buildTrackModel keeps each local top cross-section level across the track 
 
   approxEqual(startSection.minY.z, startSection.maxY.z, 1e-6);
   approxEqual(endSection.minY.z, endSection.maxY.z, 1e-6);
+});
+
+test('buildTrackModel prevents the raised top cap from sagging at the center of curved sections', () => {
+  const projectedNodes = [
+    { x: 0, y: 0, elevation: 0 },
+    { x: 100, y: 0, elevation: 10 },
+    { x: 180, y: 40, elevation: 25 },
+    { x: 220, y: 120, elevation: 45 },
+    { x: 200, y: 220, elevation: 55 },
+    { x: 120, y: 300, elevation: 70 },
+    { x: 0, y: 320, elevation: 75 },
+    { x: -120, y: 280, elevation: 65 },
+    { x: -180, y: 180, elevation: 45 },
+    { x: -160, y: 80, elevation: 20 },
+  ];
+  const model = buildTrackModel({ outlinePoints: null, basePlate: null, projectedNodes });
+  const segmentStart = projectedNodes[8];
+  const segmentEnd = projectedNodes[9];
+  const segmentDx = segmentEnd.x - segmentStart.x;
+  const segmentDy = segmentEnd.y - segmentStart.y;
+  const segmentLength = Math.hypot(segmentDx, segmentDy);
+  const segmentNormal = {
+    x: -segmentDy / segmentLength,
+    y: segmentDx / segmentLength,
+  };
+  const centerPoint = {
+    x: (segmentStart.x + segmentDx * 0.5) * model.scale,
+    y: (segmentStart.y + segmentDy * 0.5) * model.scale,
+  };
+  const leftPoint = {
+    x: centerPoint.x - segmentNormal.x * 5 * model.scale,
+    y: centerPoint.y - segmentNormal.y * 5 * model.scale,
+  };
+  const rightPoint = {
+    x: centerPoint.x + segmentNormal.x * 5 * model.scale,
+    y: centerPoint.y + segmentNormal.y * 5 * model.scale,
+  };
+
+  const leftZ = sampleTopSurfaceZ(model, leftPoint);
+  const centerZ = sampleTopSurfaceZ(model, centerPoint);
+  const rightZ = sampleTopSurfaceZ(model, rightPoint);
+  const edgeAverageZ = (leftZ + rightZ) / 2;
+
+  approxEqual(centerZ, edgeAverageZ, 0.03);
+  assert.ok(centerZ >= Math.min(leftZ, rightZ) - 0.03);
 });
 
 test('buildTrackModel keeps elevated preview geometry aligned with STL export bounds', () => {

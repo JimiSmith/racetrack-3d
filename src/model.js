@@ -13,7 +13,9 @@ import {
 
 export const BASE_THICKNESS_MM = 8;
 const TRACK_HEIGHT_MM = 3;
+const TRACK_WIDTH_METRES = 12;
 const TARGET_MAX_SIZE_MM = 200; // fit model within this bounding box dimension
+const MAX_RIBBON_SECTION_STEP_METRES = 4;
 
 // Compute a scale factor so the outline fits within TARGET_MAX_SIZE_MM
 export function computeScale(basePlate) {
@@ -95,6 +97,130 @@ function addQuad(triangles, a, b, c, d) {
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function normalizeProjectedPath(projectedNodes) {
+  if (!projectedNodes?.length) {
+    return [];
+  }
+
+  const normalized = [];
+
+  for (const node of projectedNodes) {
+    if (!Number.isFinite(node?.x) || !Number.isFinite(node?.y)) {
+      continue;
+    }
+
+    const previous = normalized[normalized.length - 1];
+    if (previous && previous.x === node.x && previous.y === node.y) {
+      continue;
+    }
+
+    normalized.push(node);
+  }
+
+  if (normalized.length > 2) {
+    const first = normalized[0];
+    const last = normalized[normalized.length - 1];
+    if (first.x === last.x && first.y === last.y) {
+      normalized.pop();
+    }
+  }
+
+  return normalized;
+}
+
+function normalizeVector(dx, dy) {
+  const length = Math.hypot(dx, dy);
+  if (length === 0) {
+    return null;
+  }
+
+  return { x: dx / length, y: dy / length };
+}
+
+function buildRaisedRibbonMesh(projectedNodes, scale) {
+  const path = normalizeProjectedPath(projectedNodes);
+
+  if (path.length < 2) {
+    return null;
+  }
+
+  const isClosed = path.length > 2;
+  const bottomZ = BASE_THICKNESS_MM;
+  const halfWidth = TRACK_WIDTH_METRES / 2;
+  const sections = [];
+  const segmentCount = isClosed ? path.length : path.length - 1;
+
+  for (let index = 0; index < segmentCount; index += 1) {
+    const start = path[index];
+    const end = path[(index + 1) % path.length];
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const direction = normalizeVector(dx, dy);
+    const segmentLength = Math.hypot(dx, dy);
+
+    if (!direction || segmentLength === 0) {
+      continue;
+    }
+
+    const offsetX = -direction.y * halfWidth;
+    const offsetY = direction.x * halfWidth;
+    const sampleCount = Math.max(1, Math.ceil(segmentLength / MAX_RIBBON_SECTION_STEP_METRES));
+
+    for (let sampleIndex = 0; sampleIndex <= sampleCount; sampleIndex += 1) {
+      const t = sampleIndex / sampleCount;
+      const x = start.x + dx * t;
+      const y = start.y + dy * t;
+      const elevation = (start.elevation ?? 0) + ((end.elevation ?? start.elevation ?? 0) - (start.elevation ?? 0)) * t;
+      const section = {
+        topLeft: createVertex(toScaled(x + offsetX, scale), toScaled(y + offsetY, scale), bottomZ + TRACK_HEIGHT_MM + toScaled(elevation, scale)),
+        topRight: createVertex(toScaled(x - offsetX, scale), toScaled(y - offsetY, scale), bottomZ + TRACK_HEIGHT_MM + toScaled(elevation, scale)),
+        bottomLeft: createVertex(toScaled(x + offsetX, scale), toScaled(y + offsetY, scale), bottomZ),
+        bottomRight: createVertex(toScaled(x - offsetX, scale), toScaled(y - offsetY, scale), bottomZ),
+      };
+      const previous = sections[sections.length - 1];
+
+      if (
+        previous
+        && previous.topLeft.x === section.topLeft.x
+        && previous.topLeft.y === section.topLeft.y
+        && previous.topRight.x === section.topRight.x
+        && previous.topRight.y === section.topRight.y
+      ) {
+        continue;
+      }
+
+      sections.push(section);
+    }
+  }
+
+  if (sections.length < 2) {
+    return null;
+  }
+
+  const triangles = [];
+  const sectionSegmentCount = isClosed ? sections.length : sections.length - 1;
+
+  for (let index = 0; index < sectionSegmentCount; index += 1) {
+    const current = sections[index];
+    const next = sections[(index + 1) % sections.length];
+
+    addQuad(triangles, current.topLeft, current.topRight, next.topRight, next.topLeft);
+    addQuad(triangles, current.bottomLeft, next.bottomLeft, next.bottomRight, current.bottomRight);
+    addQuad(triangles, current.bottomLeft, current.topLeft, next.topLeft, next.bottomLeft);
+    addQuad(triangles, current.bottomRight, next.bottomRight, next.topRight, current.topRight);
+  }
+
+  if (!isClosed) {
+    const start = sections[0];
+    const end = sections[sections.length - 1];
+
+    addQuad(triangles, start.bottomRight, start.bottomLeft, start.topLeft, start.topRight);
+    addQuad(triangles, end.bottomLeft, end.bottomRight, end.topRight, end.topLeft);
+  }
+
+  return triangles;
 }
 
 function boundsFromPoints(points) {
@@ -191,6 +317,11 @@ function buildBasePlateMesh(basePlate, scale) {
 }
 
 function buildTrackPrismMesh(outline, scale, projectedNodes = null) {
+  const raisedRibbonMesh = buildRaisedRibbonMesh(projectedNodes, scale);
+  if (raisedRibbonMesh) {
+    return raisedRibbonMesh;
+  }
+
   // Accept {outerRing, holes} or plain array (fallback)
   const outerRing = ensureCounterClockwise(normalizeRing(outline?.outerRing ?? outline));
   const holeRings = (outline?.holes ?? []).map(h => normalizeRing(h));
