@@ -14,6 +14,7 @@ const COMPACT_BASE_SUFFIX_PATTERN = /\s+(International Circuit|Motor Speedway|Pa
 const PREFIX_BASE_PATTERN = /^(Circuit de|Autodromo(?: Internazionale)?|Autodrome)\s+(.+)$/i;
 const GENERIC_LAYOUT_PATTERN = /^(main|alternate|layout\s+\d+)$/i;
 const LAYOUT_ONLY_BASE_PATTERN = /^(grand prix circuit|inner circuit|national circuit|main|alternate|layout\s+\d+)$/i;
+const LAYOUT_VARIANT_PATTERN = /\b(grand\s*prix|gp|layout|oval|national|endurance|inner|outer|short|alternate|club|kart|moto|rallycross|test|main)\b/i;
 const EVENT_STYLE_PATTERN = /\bgrand\s*prix\b|\bgp\b/i;
 const DESCRIPTION_LIKE_PATTERN = /\b(circuit|raceway|track)\b.*\b(in|on|near|at)\b.*,/i;
 
@@ -38,6 +39,10 @@ function isLayoutOnlyBaseName(value) {
 
 function isGenericLayoutName(value) {
   return GENERIC_LAYOUT_PATTERN.test(normalizeWhitespace(value));
+}
+
+function looksLikeDistinctLayoutName(value) {
+  return LAYOUT_VARIANT_PATTERN.test(normalizeWhitespace(value));
 }
 
 function looksLikeDescription(value, description) {
@@ -172,7 +177,31 @@ function pickBaseVenueName(candidates, wikidataLabel) {
   };
 }
 
-function buildMeaningfulLayoutSuffix(selectedLayoutName, baseVenueName) {
+function dedupeCandidates(candidates) {
+  const bestCandidatesByKey = new Map();
+
+  for (const candidate of candidates) {
+    const existing = bestCandidatesByKey.get(candidate.normalizedKey);
+    if (!existing) {
+      bestCandidatesByKey.set(candidate.normalizedKey, candidate);
+      continue;
+    }
+
+    const scoreDelta = candidateScore(candidate) - candidateScore(existing);
+    if (scoreDelta > 0) {
+      bestCandidatesByKey.set(candidate.normalizedKey, candidate);
+      continue;
+    }
+
+    if (scoreDelta === 0 && candidate.index < existing.index) {
+      bestCandidatesByKey.set(candidate.normalizedKey, candidate);
+    }
+  }
+
+  return [...bestCandidatesByKey.values()];
+}
+
+function buildMeaningfulLayoutSuffix(selectedLayoutName, baseVenueName, candidates) {
   const layoutName = normalizeWhitespace(selectedLayoutName);
   if (!layoutName || isGenericLayoutName(layoutName)) {
     return null;
@@ -184,6 +213,17 @@ function buildMeaningfulLayoutSuffix(selectedLayoutName, baseVenueName) {
     return null;
   }
   if (baseKey.includes(layoutKey) || layoutKey.includes(baseKey)) {
+    return null;
+  }
+
+  const matchingVenueAlias = candidates.find(candidate => {
+    if (candidate.value === baseVenueName || candidate.value !== layoutName) {
+      return false;
+    }
+
+    return !looksLikeDistinctLayoutName(candidate.value);
+  });
+  if (matchingVenueAlias) {
     return null;
   }
 
@@ -226,7 +266,7 @@ export function selectPrintedTrackName({
     buildCandidate(wikidataShortName, 'shortName', 0),
   ].filter(Boolean);
 
-  const uniqueCandidates = [...new Map(candidates.map(candidate => [candidate.normalizedKey, candidate])).values()];
+  const uniqueCandidates = dedupeCandidates(candidates);
   const filteredCandidates = filterCandidates(uniqueCandidates, description);
   const baseSelection = pickBaseVenueName(filteredCandidates, wikidataLabel);
   const fallbackLabel = [wikidataShortName, wikidataLabel]
@@ -234,7 +274,7 @@ export function selectPrintedTrackName({
     .find(value => value && !looksLikeDescription(value, description))
     ?? 'Unknown';
   const baseVenueName = baseSelection?.candidate?.value ?? fallbackLabel;
-  const layoutSuffix = buildMeaningfulLayoutSuffix(selectedLayoutName, baseVenueName);
+  const layoutSuffix = buildMeaningfulLayoutSuffix(selectedLayoutName, baseVenueName, filteredCandidates);
   const printedName = composePrintedName(baseVenueName, layoutSuffix);
 
   return {

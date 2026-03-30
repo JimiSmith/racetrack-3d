@@ -101,3 +101,27 @@ test('result is deterministic and independent of placement', () => {
   assert.deepEqual(second, first);
   assert.equal(first.printedName, 'Bahrain Grand Prix Circuit');
 });
+
+test('suppresses redundant venue-alias layout names for Le Mans', () => {
+  const result = selectPrintedTrackName({
+    wikidataLabel: 'Circuit de la Sarthe',
+    wikidataAliases: ['Circuit des 24 Heures du Mans', 'Circuit des 24 Heures'],
+    description: 'race course in Le Mans',
+    osmVenueNames: ['Circuit de la Sarthe', 'Circuit des 24 Heures du Mans'],
+    selectedLayoutName: 'Circuit des 24 Heures du Mans',
+  });
+
+  assert.equal(result.baseVenueName, 'Circuit de la Sarthe');
+  assert.equal(result.layoutSuffix, null);
+  assert.equal(result.printedName, 'Circuit de la Sarthe');
+});
+
+test('deduping equivalent venue names keeps the strongest candidate source', () => {
+  const result = selectPrintedTrackName({
+    wikidataLabel: 'Circuit de la Sarthe',
+    osmVenueNames: ['Circuit de la Sarthe'],
+  });
+
+  assert.equal(result.baseVenueName, 'Circuit de la Sarthe');
+  assert.equal(result.reason, 'selected best label venue candidate');
+});
