@@ -6,7 +6,7 @@ const SMOOTHING_BLEND = 0.35;
 
 const tileCache = new Map();
 
-export async function fetchElevations(nodes, exaggeration = 15) {
+export async function fetchElevations(nodes, exaggeration = 1) {
   if (!Array.isArray(nodes) || nodes.length === 0) {
     return [];
   }
