@@ -11,8 +11,8 @@ The dataset should contain:
 
 The app should use this local geometry dataset as the **primary geometry source**.
 
-Overpass or other live OSM access may remain as:
-- a build-time source
+The main OpenStreetMap API should be the preferred build-time acquisition source, while Overpass may remain as:
+- a secondary build-time fallback/debug source
 - a manual refresh source
 - a fallback for tracks not yet included
 
@@ -46,7 +46,7 @@ This matches the local-search-index direction already adopted for search.
 ## Build-time pipeline
 1. start with the shipped track search index
 2. select track items to include in geometry generation
-3. fetch source geometry using OSM/Overpass during a build script
+3. fetch source geometry from the main OpenStreetMap API during a build script (with Overpass only as a secondary fallback/debug path)
 4. run the existing geometry/layout extraction pipeline offline
 5. validate and normalize layout outputs
 6. write a generated static geometry dataset into the repo/app
@@ -163,14 +163,26 @@ Optional but useful:
 
 # Build-time source of truth
 
-## Input source
-The build step may still use live OSM/Overpass to construct the prebuilt dataset.
+## Primary input source
+The preferred build-time source for this option is the **main OpenStreetMap API**, for example:
+- `https://api.openstreetmap.org/api/0.6/map?bbox=...`
 
-That is acceptable because the reliability problem is at **runtime**, not necessarily at build time.
+The rationale is:
+- public Overpass mirrors are operationally unreliable
+- build time can tolerate larger payloads and heavier parsing
+- raw XML/OSM parsing cost is acceptable offline
+- reliability matters more than query elegance during generation
+
+## Secondary/fallback source
+Overpass may still be used as:
+- a fallback if the main OSM API path fails
+- a debugging/comparison source
+- a temporary compatibility path during migration
 
 ## Important separation
-This option does **not** require solving the build source problem first.
-The requirement is only that runtime no longer depends on Overpass.
+Even if the build source is the raw OSM API, the normalization and source-specific cleanup should stay in the **build pipeline**, not leak into runtime lookup behavior unless intentionally adopted as a global geometry rule.
+
+The requirement remains that runtime no longer depends on Overpass.
 
 ---
 
@@ -181,8 +193,10 @@ Use the local search index or a curated track list as the input universe.
 
 ## Step 2 — Resolve source geometry
 For each track:
-- fetch candidate OSM geometry
-- use the existing extraction logic
+- fetch a bbox-scoped raw OSM payload from the main OSM API
+- parse nodes, ways, and relations from the returned XML/data
+- extract candidate raceway/circuit geometry
+- use the existing extraction logic or a build-only preprocessing layer
 - build candidate layouts
 
 ## Step 3 — Normalize layout outputs
@@ -354,11 +368,11 @@ This option does **not** require:
 
 # Recommended first implementation
 
-1. Build a geometry-index generator using the current extraction logic.
-2. Prebuild only the current F1 set first.
-3. Ship generated local geometry for those tracks.
-4. Use local geometry preferentially at runtime.
-5. Keep Overpass only as an optional fallback for uncached tracks.
+1. Build a geometry-index generator using the main OSM API as the primary build-time source.
+2. Keep Overpass only as a secondary fallback/debug source during generation.
+3. Prebuild only the current F1 set first.
+4. Ship generated local geometry for those tracks.
+5. Use local geometry preferentially at runtime.
 6. Expand coverage iteratively.
 
 This provides a strong reliability win with manageable implementation complexity.
