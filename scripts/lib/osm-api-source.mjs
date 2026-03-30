@@ -2,10 +2,112 @@ const OSM_API_BASE_URL = 'https://api.openstreetmap.org/api/0.6/map';
 const OSM_API_TIMEOUT_MS = 20000;
 const DEFAULT_BBOX_MARGIN = 0.02;
 const OSM_API_NODE_LIMIT_PATTERN = /too many nodes \(limit is 50000\)/i;
+const OSM_API_RATE_LIMIT_PATTERN = /(downloaded too much data|rate limit|quota exceeded|too many requests|bandwidth limit exceeded|please wait)/i;
+const OSM_API_RETRY_AFTER_PATTERN = /(?:please\s+)?wait\s+(\d+)\s*(second|seconds|minute|minutes|hour|hours)/i;
+const OSM_API_RATE_LIMIT_STATUS_CODES = new Set([429, 509]);
+const DEFAULT_OSM_API_REQUEST_PACE_MS = 1200;
+const DEFAULT_OSM_API_RATE_LIMIT_RETRY_DELAYS_MS = [5000, 15000];
+const sharedOsmApiPacingState = {
+  nextRequestAt: 0,
+};
 const DEFAULT_ADAPTIVE_START_DIVISOR = 8;
 const DEFAULT_ADAPTIVE_GROWTH_FACTOR = 2;
 const DEFAULT_ADAPTIVE_MIN_MARGIN = 0.001;
 const DEFAULT_ADAPTIVE_MAX_ATTEMPTS = 8;
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function getNow(options = {}) {
+  return typeof options.now === 'function' ? options.now() : Date.now();
+}
+
+function parseRetryAfterHeader(retryAfterValue, now) {
+  if (!retryAfterValue) {
+    return null;
+  }
+
+  const seconds = Number(retryAfterValue);
+  if (Number.isFinite(seconds) && seconds >= 0) {
+    return Math.round(seconds * 1000);
+  }
+
+  const dateMs = Date.parse(retryAfterValue);
+  if (Number.isFinite(dateMs)) {
+    return Math.max(0, dateMs - now);
+  }
+
+  return null;
+}
+
+function parseRetryDelayFromText(details) {
+  const match = String(details ?? '').match(OSM_API_RETRY_AFTER_PATTERN);
+  if (!match) {
+    return null;
+  }
+
+  const amount = Number(match[1]);
+  if (!Number.isFinite(amount) || amount < 0) {
+    return null;
+  }
+
+  const unit = match[2].toLowerCase();
+  if (unit.startsWith('hour')) {
+    return amount * 60 * 60 * 1000;
+  }
+
+  if (unit.startsWith('minute')) {
+    return amount * 60 * 1000;
+  }
+
+  return amount * 1000;
+}
+
+function resolveRateLimitRetryDelayMs(response, details, attemptIndex, options = {}) {
+  const now = getNow(options);
+  const retryAfterMs = parseRetryAfterHeader(response.headers.get('retry-after'), now)
+    ?? parseRetryDelayFromText(details);
+  if (Number.isFinite(retryAfterMs)) {
+    return retryAfterMs;
+  }
+
+  const fallbackDelays = Array.isArray(options.rateLimitRetryDelaysMs) && options.rateLimitRetryDelaysMs.length > 0
+    ? options.rateLimitRetryDelaysMs
+    : DEFAULT_OSM_API_RATE_LIMIT_RETRY_DELAYS_MS;
+  return fallbackDelays[Math.min(attemptIndex, fallbackDelays.length - 1)];
+}
+
+async function waitForOsmApiRequestSlot(options = {}) {
+  const paceMs = Number.isFinite(options.paceMs) && options.paceMs >= 0
+    ? options.paceMs
+    : DEFAULT_OSM_API_REQUEST_PACE_MS;
+  if (paceMs === 0) {
+    return 0;
+  }
+
+  const pacingState = options.pacingState ?? sharedOsmApiPacingState;
+  const now = getNow(options);
+  const waitMs = Math.max(0, (pacingState.nextRequestAt ?? 0) - now);
+  pacingState.nextRequestAt = Math.max(pacingState.nextRequestAt ?? 0, now) + paceMs;
+
+  if (waitMs > 0) {
+    await (options.sleep ?? sleep)(waitMs);
+  }
+
+  return waitMs;
+}
+
+function createOsmApiRateLimitError(status, details, options = {}) {
+  const retryAfterMs = Number.isFinite(options.retryAfterMs) ? options.retryAfterMs : null;
+  const retryAfterText = retryAfterMs != null ? `; retry after ${Math.ceil(retryAfterMs / 1000)}s` : '';
+  const error = new Error(`OSM API map request rate-limited (${status}): ${(details || 'rate limited by upstream').trim()}${retryAfterText}`);
+  error.name = 'OsmApiRateLimitError';
+  error.status = status;
+  error.retryAfterMs = retryAfterMs;
+  error.rateLimited = true;
+  return error;
+}
 
 function roundMargin(value) {
   return Number(value.toFixed(6));
@@ -21,6 +123,17 @@ function normalizeMarginList(margins) {
 
 export function isOsmApiNodeLimitError(error) {
   return OSM_API_NODE_LIMIT_PATTERN.test(String(error instanceof Error ? error.message : error));
+}
+
+export function isOsmApiRateLimitError(error) {
+  if (error && typeof error === 'object' && error.rateLimited === true) {
+    return true;
+  }
+
+  const message = String(error instanceof Error ? error.message : error);
+  const statusMatch = message.match(/\((\d{3})\)/);
+  const status = Number(statusMatch?.[1]);
+  return OSM_API_RATE_LIMIT_STATUS_CODES.has(status) || OSM_API_RATE_LIMIT_PATTERN.test(message);
 }
 
 export function buildAdaptiveOsmApiMargins(margins, options = {}) {
@@ -275,29 +388,58 @@ export function parseOsmApiMapXml(xmlSource) {
 export async function fetchOsmApiMapPayload(lat, lon, options = {}) {
   const margin = options.margin ?? DEFAULT_BBOX_MARGIN;
   const url = buildOsmApiMapUrl(lat, lon, margin);
-  const timeoutSignal = AbortSignal.timeout(options.timeoutMs ?? OSM_API_TIMEOUT_MS);
-  const signal = options.signal
-    ? AbortSignal.any([options.signal, timeoutSignal])
-    : timeoutSignal;
+  const maxRateLimitRetries = Number.isInteger(options.maxRateLimitRetries) && options.maxRateLimitRetries >= 0
+    ? options.maxRateLimitRetries
+    : DEFAULT_OSM_API_RATE_LIMIT_RETRY_DELAYS_MS.length;
+  let retryCount = 0;
+  let totalRetryDelayMs = 0;
+  let totalPacingDelayMs = 0;
 
-  const response = await fetch(url, {
-    headers: {
-      Accept: 'application/xml, text/xml;q=0.9, */*;q=0.1',
-    },
-    signal,
-  });
+  while (true) {
+    totalPacingDelayMs += await waitForOsmApiRequestSlot(options);
+    const timeoutSignal = AbortSignal.timeout(options.timeoutMs ?? OSM_API_TIMEOUT_MS);
+    const signal = options.signal
+      ? AbortSignal.any([options.signal, timeoutSignal])
+      : timeoutSignal;
 
-  if (!response.ok) {
-    const details = (await response.text()).trim();
-    throw new Error(`OSM API map request failed (${response.status}): ${details || response.statusText}`);
+    const response = await fetch(url, {
+      headers: {
+        Accept: 'application/xml, text/xml;q=0.9, */*;q=0.1',
+      },
+      signal,
+    });
+
+    if (!response.ok) {
+      const details = (await response.text()).trim();
+
+      if (!isOsmApiNodeLimitError(details) && (OSM_API_RATE_LIMIT_STATUS_CODES.has(response.status) || OSM_API_RATE_LIMIT_PATTERN.test(details))) {
+        const retryAfterMs = resolveRateLimitRetryDelayMs(response, details, retryCount, options);
+        if (retryCount < maxRateLimitRetries) {
+          totalRetryDelayMs += retryAfterMs;
+          retryCount += 1;
+          await (options.sleep ?? sleep)(retryAfterMs);
+          continue;
+        }
+
+        throw createOsmApiRateLimitError(response.status, details || response.statusText, { retryAfterMs });
+      }
+
+      throw new Error(`OSM API map request failed (${response.status}): ${details || response.statusText}`);
+    }
+
+    const xml = await response.text();
+    return {
+      url,
+      xml,
+      payload: parseOsmApiMapXml(xml),
+      metadata: {
+        requestAttempts: retryCount + 1,
+        retryCount,
+        pacingDelayMs: totalPacingDelayMs,
+        retryDelayMs: totalRetryDelayMs,
+      },
+    };
   }
-
-  const xml = await response.text();
-  return {
-    url,
-    xml,
-    payload: parseOsmApiMapXml(xml),
-  };
 }
 
 export async function fetchAdaptiveOsmApiMapPayload(lat, lon, options = {}) {

@@ -88,6 +88,19 @@ function buildDefaultOsmApiMargins(track) {
   return DEFAULT_OSM_API_MARGINS;
 }
 
+function formatDelayMs(delayMs) {
+  if (!Number.isFinite(delayMs) || delayMs <= 0) {
+    return null;
+  }
+
+  if (delayMs < 1000) {
+    return `${Math.round(delayMs)}ms`;
+  }
+
+  const seconds = delayMs / 1000;
+  return Number.isInteger(seconds) ? `${seconds}s` : `${seconds.toFixed(1)}s`;
+}
+
 function buildTrackQueryCandidates(track) {
   return [
     track.key,
@@ -296,6 +309,7 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
         return {
           ...resolvedResponse,
           metadata: {
+            ...(resolvedResponse.metadata ?? {}),
             cacheHit: Boolean(cachedResponse),
           },
         };
@@ -328,6 +342,10 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
         cacheHit: Boolean(response.metadata.cacheHit),
         stopReason: response.metadata.stopReason,
         attempts: response.metadata.attempts,
+        requestAttempts: response.metadata.requestAttempts,
+        retryCount: response.metadata.retryCount,
+        pacingDelayMs: response.metadata.pacingDelayMs,
+        retryDelayMs: response.metadata.retryDelayMs,
       },
     };
   } catch (error) {
@@ -648,6 +666,19 @@ export async function main(argv = process.argv.slice(2)) {
           sourceDetails = primaryResult.metadata.cacheHit
             ? `osm-api cache margin=${primaryResult.metadata.margin}`
             : `osm-api live margin=${primaryResult.metadata.margin}`;
+          if (primaryResult.metadata.retryCount > 0) {
+            const retryDelay = formatDelayMs(primaryResult.metadata.retryDelayMs);
+            sourceDetails += ` retries=${primaryResult.metadata.retryCount}`;
+            if (retryDelay) {
+              sourceDetails += ` backoff=${retryDelay}`;
+            }
+          }
+          if (primaryResult.metadata.pacingDelayMs > 0 && !primaryResult.metadata.cacheHit) {
+            const pacingDelay = formatDelayMs(primaryResult.metadata.pacingDelayMs);
+            if (pacingDelay) {
+              sourceDetails += ` paced=${pacingDelay}`;
+            }
+          }
           if (primaryResult.metadata.stopReason === 'node-limit') {
             sourceDetails += ' (stopped at node limit)';
           }
