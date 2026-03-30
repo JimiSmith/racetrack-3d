@@ -13,6 +13,7 @@ const silverstoneFixturePath = path.join(projectRoot, 'test', 'fixtures', 'silve
 const TARGET_TRACK_LABEL = 'Silverstone Circuit';
 const MIN_LAYOUT_LENGTH_METRES = 500;
 const MAX_LAYOUT_LENGTH_METRES = 100000;
+const MIN_LAYOUT_NODE_COUNT = 50;
 
 function parseArgs(argv) {
   const options = {
@@ -95,6 +96,10 @@ function validateLayout(layout, trackName) {
 
   if (!Array.isArray(layout.nodes) || layout.nodes.length < 2) {
     throw new Error(`${trackName} / ${layout.name}: expected at least 2 nodes`);
+  }
+
+  if (layout.nodes.length < MIN_LAYOUT_NODE_COUNT) {
+    throw new Error(`${trackName} / ${layout.name}: expected at least ${MIN_LAYOUT_NODE_COUNT} real geometry nodes, received ${layout.nodes.length}`);
   }
 
   layout.nodes.forEach((node, index) => validateNode(node, trackName, layout.name, index));

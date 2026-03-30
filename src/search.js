@@ -79,6 +79,10 @@ function measurePolylineLength(nodes) {
   return length;
 }
 
+function measureDistanceMetres(a, b) {
+  return measurePolylineLength([a, b]);
+}
+
 function computeBoundingBoxArea(nodes) {
   if (!nodes.length) {
     return 0;
@@ -163,6 +167,56 @@ function fixChainReversals(nodes) {
     const section = result.slice(start + 1, end + 1).reverse();
     result.splice(start + 1, end - start, ...section);
   }
+  return result;
+}
+
+function isImmediateBacktrack(prev, current, next) {
+  const lenA = measureDistanceMetres(prev, current);
+  const lenB = measureDistanceMetres(current, next);
+  if (lenA < 0.01 || lenB < 0.01) {
+    return false;
+  }
+
+  const d1x = current.lon - prev.lon;
+  const d1y = current.lat - prev.lat;
+  const d2x = next.lon - current.lon;
+  const d2y = next.lat - current.lat;
+  const dot = (d1x * d2x + d1y * d2y) / (Math.hypot(d1x, d1y) * Math.hypot(d2x, d2y));
+  const returnGap = measureDistanceMetres(prev, next);
+  if (dot < -0.98 && returnGap <= Math.max(lenA, lenB) * 0.25) {
+    return true;
+  }
+
+  return Math.max(lenA, lenB) <= 10
+    && dot < -0.8
+    && returnGap <= Math.max(lenA, lenB) * 0.75;
+}
+
+function collapseImmediateBacktracks(nodes) {
+  let result = [...nodes];
+  let changed = true;
+
+  while (changed && result.length >= 3) {
+    changed = false;
+    const collapsed = [result[0]];
+
+    for (let index = 1; index < result.length - 1; index += 1) {
+      const prev = collapsed[collapsed.length - 1];
+      const current = result[index];
+      const next = result[index + 1];
+
+      if (isImmediateBacktrack(prev, current, next)) {
+        changed = true;
+        continue;
+      }
+
+      collapsed.push(current);
+    }
+
+    collapsed.push(result[result.length - 1]);
+    result = dedupeSequentialNodes(collapsed);
+  }
+
   return result;
 }
 
@@ -1234,6 +1288,22 @@ function canonicalizeLayoutNames(layouts) {
   }));
 }
 
+function normalizeLayoutGeometry(layouts) {
+  return layouts.map(layout => {
+    const nodes = closeNodeChainIfNearClosed(collapseImmediateBacktracks(dedupeSequentialNodes(fixChainReversals(layout.nodes ?? []))));
+    return {
+      ...layout,
+      nodes,
+      stats: layout.stats
+        ? {
+            ...layout.stats,
+            lengthMetres: measurePolylineLength(nodes),
+          }
+        : layout.stats,
+    };
+  });
+}
+
 function dedupeLayoutsByName(layouts, trackName) {
   const bestLayoutsByName = new Map();
 
@@ -1745,7 +1815,7 @@ function buildTrackGeometryResult(elements, trackName) {
 
   const namedLayouts = buildNamedCircuitLayouts(namedLayoutWays, trackName, componentWays);
   if (namedLayouts.length > 0) {
-    const normalizedLayouts = dedupeLayoutsByName(canonicalizeLayoutNames(namedLayouts), trackName);
+    const normalizedLayouts = dedupeLayoutsByName(normalizeLayoutGeometry(canonicalizeLayoutNames(namedLayouts)), trackName);
     return {
       layouts: dedupeLayoutsByGeometry(normalizedLayouts, trackName),
       selectedLayoutIndex: 0,
@@ -1771,7 +1841,7 @@ function buildTrackGeometryResult(elements, trackName) {
     };
   }
 
-  const normalizedLayouts = dedupeLayoutsByName(canonicalizeLayoutNames(layouts), trackName);
+  const normalizedLayouts = dedupeLayoutsByName(normalizeLayoutGeometry(canonicalizeLayoutNames(layouts)), trackName);
   return {
     layouts: dedupeLayoutsByGeometry(normalizedLayouts, trackName),
     selectedLayoutIndex: 0,

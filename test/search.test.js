@@ -440,7 +440,7 @@ test('getLocalTrackGeometry returns the prebuilt Silverstone layouts', () => {
   assert.ok(result);
   assert.equal(result.trackId, 'Q171402');
   assert.equal(result.name, 'Silverstone Circuit');
-  assertLayoutNames(result.layouts, ['Main', 'National Circuit']);
+  assertLayoutNames(result.layouts, ['Main', 'Alternate']);
   result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 20 }));
 });
 
@@ -455,7 +455,7 @@ test('fetchTrackGeometry uses local geometry when a known wikidata id is availab
       wikidataId: 'Q171402',
     });
 
-    assertLayoutNames(result.layouts, ['Main', 'National Circuit']);
+    assertLayoutNames(result.layouts, ['Main', 'Alternate']);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -468,7 +468,7 @@ test('fetchTrackGeometry keeps Silverstone branch layouts from a frozen fixture'
     fetchTrackGeometry(52.0786, -1.0169, undefined, 'Silverstone Circuit'));
 
   assert.equal(result.selectedLayoutIndex, 0);
-  assertLayoutNames(result.layouts, ['Main', 'National Circuit']);
+  assertLayoutNames(result.layouts, ['Main', 'Alternate']);
   result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 20 }));
   expectDistinctLayouts(result.layouts[0], result.layouts[1]);
 });
@@ -657,7 +657,7 @@ test('near-identical duplicate named layouts are filtered out', async () => {
 test('multi-layout fixtures keep their expected layout counts', async () => {
   const cases = [
     ['brands-hatch.json', 51.3562, 0.2631, 'Brands Hatch', ['Brands Hatch Grand Prix', 'Brands Hatch Indy']],
-    ['silverstone.json', 52.0786, -1.0169, 'Silverstone Circuit', ['Main', 'National Circuit']],
+    ['silverstone.json', 52.0786, -1.0169, 'Silverstone Circuit', ['Main', 'Alternate']],
     ['spa.json', 50.4372, 5.9714, 'Circuit de Spa-Francorchamps', ['Main', 'Moto']],
     ['bahrain.json', 26.0325, 50.5106, 'Bahrain International Circuit', ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit']],
   ];
