@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import trackSearchIndex from '../src/generated/track-search-index.json' with { type: 'json' };
 import { buildTrackGeometryFromOverpassPayload, fetchTrackGeometry } from '../src/search.js';
+import { fetchOsmApiMapPayload } from './lib/osm-api-source.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -18,7 +19,8 @@ const MIN_LAYOUT_NODE_COUNT = 50;
 function parseArgs(argv) {
   const options = {
     track: null,
-    live: false,
+    source: 'osm-api',
+    allowOverpassFallback: true,
     validateOnly: false,
   };
 
@@ -35,12 +37,61 @@ function parseArgs(argv) {
       continue;
     }
 
+    if (arg === '--source') {
+      options.source = argv[index + 1] ?? options.source;
+      index += 1;
+      continue;
+    }
+
     if (arg === '--live') {
-      options.live = true;
+      options.source = 'osm-api';
+      continue;
+    }
+
+    if (arg === '--fixture') {
+      options.source = 'fixture';
+      continue;
+    }
+
+    if (arg === '--overpass-only') {
+      options.source = 'overpass';
+      options.allowOverpassFallback = false;
+      continue;
+    }
+
+    if (arg === '--no-overpass-fallback') {
+      options.allowOverpassFallback = false;
     }
   }
 
   return options;
+}
+
+async function loadFixtureGeometry(track) {
+  const fixturePayload = JSON.parse(await readFile(silverstoneFixturePath, 'utf8'));
+  const geometryResult = buildTrackGeometryFromOverpassPayload(fixturePayload, track.label);
+  if (!geometryResult) {
+    throw new Error(`Fixture source did not yield geometry for ${track.label}`);
+  }
+
+  return geometryResult;
+}
+
+async function fetchPrimaryGeometryFromOsmApi(track) {
+  const { payload } = await fetchOsmApiMapPayload(track.lat, track.lon);
+  const geometryResult = buildTrackGeometryFromOverpassPayload(payload, track.label);
+  if (!geometryResult) {
+    throw new Error(`OSM API payload did not yield geometry for ${track.label}`);
+  }
+
+  return geometryResult;
+}
+
+async function fetchFallbackGeometryFromOverpass(track) {
+  return fetchTrackGeometry(track.lat, track.lon, undefined, track.label, {
+    wikidataId: track.wikidataId,
+    skipLocal: true,
+  });
 }
 
 function normalizeText(value) {
@@ -187,36 +238,42 @@ async function main() {
 
   try {
     let geometryResult;
+    let sourceUsed = options.source;
 
-    if (options.live) {
+    if (options.source === 'fixture') {
+      geometryResult = await loadFixtureGeometry(track);
+      report.flaggedForManualReview.push({
+        wikidataId: track.wikidataId,
+        name: track.label,
+        message: 'Built from the frozen Silverstone fixture debug path',
+      });
+    } else if (options.source === 'overpass') {
+      geometryResult = await fetchFallbackGeometryFromOverpass(track);
+      report.flaggedForManualReview.push({
+        wikidataId: track.wikidataId,
+        name: track.label,
+        message: 'Built from the Overpass debug path',
+      });
+    } else {
       try {
-        geometryResult = await fetchTrackGeometry(track.lat, track.lon, undefined, track.label, {
-          wikidataId: track.wikidataId,
-          skipLocal: true,
-        });
+        geometryResult = await fetchPrimaryGeometryFromOsmApi(track);
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        if (!/All Overpass endpoints failed/i.test(message)) {
+        if (!options.allowOverpassFallback) {
           throw error;
         }
 
+        geometryResult = await fetchFallbackGeometryFromOverpass(track);
+        sourceUsed = 'overpass-fallback';
         report.flaggedForManualReview.push({
           wikidataId: track.wikidataId,
           name: track.label,
-          message: 'Live Overpass refresh failed; falling back to frozen fixture payload',
+          message: `OSM API build path failed; used Overpass fallback (${error instanceof Error ? error.message : String(error)})`,
         });
-      }
-    }
-
-    if (!geometryResult) {
-      const fixturePayload = JSON.parse(await readFile(silverstoneFixturePath, 'utf8'));
-      geometryResult = buildTrackGeometryFromOverpassPayload(fixturePayload, track.label);
-      if (!geometryResult) {
-        throw new Error(`Fixture source did not yield geometry for ${track.label}`);
       }
     }
 
     const artifact = buildTrackArtifact(track, geometryResult, generatedAt);
+    artifact[track.wikidataId].source.buildSource = sourceUsed;
     report.builtSuccessfully.push({
       wikidataId: track.wikidataId,
       name: track.label,

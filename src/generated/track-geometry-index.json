@@ -4,8 +4,9 @@
     "name": "Silverstone Circuit",
     "source": {
       "kind": "osm-prebuilt",
-      "generatedAt": "2026-03-30T16:00:04.181Z",
-      "osmQueryVersion": 1
+      "generatedAt": "2026-03-30T17:11:18.209Z",
+      "osmQueryVersion": 1,
+      "buildSource": "osm-api"
     },
     "center": {
       "lat": 52.075,
@@ -1132,6 +1133,14 @@
             "lon": -1.0240046
           },
           {
+            "lat": 52.0682609,
+            "lon": -1.0234867
+          },
+          {
+            "lat": 52.0693366,
+            "lon": -1.0221521
+          },
+          {
             "lat": 52.0705464,
             "lon": -1.020651
           },
@@ -2065,7 +2074,7 @@
           }
         ],
         "stats": {
-          "lengthMetres": 5887.2293729932935,
+          "lengthMetres": 5887.22937299208,
           "segmentCount": 29,
           "variantSectionCount": 0
         }
@@ -2879,6 +2888,14 @@
             "lon": -1.0240046
           },
           {
+            "lat": 52.0682609,
+            "lon": -1.0234867
+          },
+          {
+            "lat": 52.0693366,
+            "lon": -1.0221521
+          },
+          {
             "lat": 52.0705464,
             "lon": -1.020651
           },
@@ -3428,7 +3445,7 @@
           }
         ],
         "stats": {
-          "lengthMetres": 3540.0641196027664,
+          "lengthMetres": 3540.064119601552,
           "segmentCount": 20,
           "variantSectionCount": 1
         }
