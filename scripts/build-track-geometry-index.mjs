@@ -21,6 +21,8 @@ const MAX_LAYOUT_LENGTH_METRES = 100000;
 const MIN_LAYOUT_NODE_COUNT = 2;
 const DEFAULT_OSM_API_MARGINS = [0.015, 0.025, 0.04, 0.08];
 const DEFAULT_CACHE_TTL_HOURS = 24 * 14;
+const GEOMETRY_STALE_AFTER_MS = 14 * 24 * 60 * 60 * 1000;
+const GEOMETRY_STALE_JITTER_MS = 3 * 24 * 60 * 60 * 1000;
 const BUILD_SOURCES = new Set(['osm-api', 'overpass']);
 
 const TRACK_BUILD_OVERRIDES = new Map([
@@ -98,6 +100,7 @@ function buildTrackQueryCandidates(track) {
 export function parseArgs(argv) {
   const options = {
     track: null,
+    limit: Number.POSITIVE_INFINITY,
     source: 'osm-api',
     allowOverpassFallback: true,
     validateOnly: false,
@@ -111,6 +114,12 @@ export function parseArgs(argv) {
     const arg = argv[index];
     if (arg === '--track') {
       options.track = argv[index + 1] ?? null;
+      index += 1;
+      continue;
+    }
+
+    if (arg === '--limit') {
+      options.limit = parseNumber(argv[index + 1], options.limit);
       index += 1;
       continue;
     }
@@ -170,6 +179,14 @@ export function parseArgs(argv) {
 
   if (!BUILD_SOURCES.has(options.source)) {
     throw new Error(`Unsupported build source "${options.source}"; expected one of ${[...BUILD_SOURCES].join(', ')}`);
+  }
+
+  if (!Number.isInteger(options.limit) && options.limit !== Number.POSITIVE_INFINITY) {
+    throw new Error(`Expected --limit to be an integer, received ${String(options.limit)}`);
+  }
+
+  if (options.limit < 0) {
+    throw new Error(`Expected --limit to be non-negative, received ${options.limit}`);
   }
 
   return options;
@@ -439,7 +456,72 @@ function buildTrackArtifact(track, geometryResult, generatedAt, sourceUsed) {
   };
 }
 
+function computeStableHash(value) {
+  let hash = 0;
+
+  for (const char of String(value ?? '')) {
+    hash = ((hash * 31) + char.charCodeAt(0)) >>> 0;
+  }
+
+  return hash;
+}
+
+export function computeTrackStaleThresholdMs(trackId) {
+  const hash = computeStableHash(trackId);
+  const normalized = hash / 0xffffffff;
+  const jitterMs = Math.round((normalized * 2 * GEOMETRY_STALE_JITTER_MS) - GEOMETRY_STALE_JITTER_MS);
+  return GEOMETRY_STALE_AFTER_MS + jitterMs;
+}
+
+export function isTrackGeometryEntryFresh(entry, now = Date.now()) {
+  const generatedAt = entry?.source?.generatedAt;
+  const generatedAtMs = Date.parse(generatedAt);
+  const trackId = entry?.trackId;
+
+  if (!trackId || !Number.isFinite(generatedAtMs)) {
+    return false;
+  }
+
+  const ageMs = now - generatedAtMs;
+  if (!Number.isFinite(ageMs) || ageMs < 0) {
+    return false;
+  }
+
+  return ageMs < computeTrackStaleThresholdMs(trackId);
+}
+
+export function partitionTracksByStaleness(tracks, existingArtifact, options = {}) {
+  const now = options.now ?? Date.now();
+  const limit = options.limit ?? Number.POSITIVE_INFINITY;
+  const freshTracks = [];
+  const staleTracks = [];
+  const deferredTracks = [];
+
+  for (const track of tracks) {
+    const existingEntry = existingArtifact?.[track.wikidataId] ?? null;
+    if (existingEntry && isTrackGeometryEntryFresh(existingEntry, now)) {
+      freshTracks.push(track);
+      continue;
+    }
+
+    if (staleTracks.length < limit) {
+      staleTracks.push(track);
+      continue;
+    }
+
+    deferredTracks.push(track);
+  }
+
+  return {
+    freshTracks,
+    staleTracks,
+    deferredTracks,
+  };
+}
+
 export function determineExitCode(report, options) {
+  const skippedCount = report.skipped?.length ?? 0;
+
   if (report.targetedTrackFailed) {
     return 1;
   }
@@ -448,7 +530,7 @@ export function determineExitCode(report, options) {
     return 1;
   }
 
-  if (report.builtSuccessfully.length === 0 && report.reusedExisting.length === 0) {
+  if (report.builtSuccessfully.length === 0 && report.reusedExisting.length === 0 && skippedCount === 0) {
     return 1;
   }
 
@@ -459,6 +541,7 @@ export async function main(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
   const tracks = resolveSupportedTracks(options.track);
   const existingArtifact = await loadExistingGeometryIndex();
+  const { freshTracks, staleTracks, deferredTracks } = partitionTracksByStaleness(tracks, existingArtifact, options);
   const generatedAt = new Date().toISOString();
   const report = {
     builtSuccessfully: [],
@@ -468,12 +551,36 @@ export async function main(argv = process.argv.slice(2)) {
     failed: [],
     targetedTrackFailed: false,
   };
-  const artifact = {};
+  const artifact = cloneJson(existingArtifact) ?? {};
 
   console.log(`Building geometry index for ${tracks.length} track${tracks.length === 1 ? '' : 's'} from the local search index`);
 
-  for (const [index, track] of tracks.entries()) {
-    const progressLabel = `[${index + 1}/${tracks.length}] ${track.trackName} (${track.wikidataId})`;
+  for (const track of freshTracks) {
+    const existingEntry = existingArtifact[track.wikidataId];
+    artifact[track.wikidataId] = cloneJson(existingEntry);
+    report.skipped.push({
+      wikidataId: track.wikidataId,
+      name: track.trackName,
+      reason: 'fresh',
+    });
+    console.log(`${track.trackName} (${track.wikidataId}) - skipped (fresh)`);
+  }
+
+  for (const track of deferredTracks) {
+    if (existingArtifact[track.wikidataId]) {
+      artifact[track.wikidataId] = cloneJson(existingArtifact[track.wikidataId]);
+    }
+
+    report.skipped.push({
+      wikidataId: track.wikidataId,
+      name: track.trackName,
+      reason: 'limit',
+    });
+    console.log(`${track.trackName} (${track.wikidataId}) - skipped (limit reached)`);
+  }
+
+  for (const [index, track] of staleTracks.entries()) {
+    const progressLabel = `[${index + 1}/${staleTracks.length}] ${track.trackName} (${track.wikidataId})`;
     const existingEntry = existingArtifact[track.wikidataId] ? cloneJson(existingArtifact[track.wikidataId]) : null;
     console.log(`${progressLabel} - start`);
 
@@ -533,7 +640,7 @@ export async function main(argv = process.argv.slice(2)) {
         layoutCount: trackArtifact.layouts.length,
         sourceUsed,
       });
-      console.log(`${progressLabel} - ok (${trackArtifact.layouts.length} layouts, ${sourceDetails || sourceUsed})`);
+      console.log(`${progressLabel} - built successfully (${trackArtifact.layouts.length} layouts, ${sourceDetails || sourceUsed})`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       if (existingEntry) {
@@ -581,6 +688,9 @@ export async function main(argv = process.argv.slice(2)) {
   }
 
   console.log(`Skipped: ${report.skipped.length}`);
+  for (const item of report.skipped) {
+    console.log(`- ${item.name} (${item.wikidataId}) -> ${item.reason}`);
+  }
   console.log(`Flagged for manual review: ${report.flaggedForManualReview.length}`);
   for (const item of report.flaggedForManualReview) {
     console.log(`- ${item.name} (${item.wikidataId}) -> ${item.message}`);

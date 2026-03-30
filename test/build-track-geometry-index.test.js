@@ -3,8 +3,11 @@ import test from 'node:test';
 
 import {
   SUPPORTED_TRACKS,
+  computeTrackStaleThresholdMs,
   determineExitCode,
+  isTrackGeometryEntryFresh,
   parseArgs,
+  partitionTracksByStaleness,
   resolveSupportedTracks,
 } from '../scripts/build-track-geometry-index.mjs';
 
@@ -26,12 +29,18 @@ test('geometry index build keeps Overpass as an explicit debug-only source', () 
 });
 
 test('geometry index build accepts strict cache options', () => {
-  const options = parseArgs(['--strict', '--cache-dir', '/tmp/geometry-cache', '--cache-ttl-hours', '12', '--no-cache']);
+  const options = parseArgs(['--strict', '--cache-dir', '/tmp/geometry-cache', '--cache-ttl-hours', '12', '--no-cache', '--limit', '10']);
 
   assert.equal(options.strict, true);
   assert.equal(options.cacheDir, '/tmp/geometry-cache');
   assert.equal(options.cacheTtlHours, 12);
   assert.equal(options.noCache, true);
+  assert.equal(options.limit, 10);
+});
+
+test('geometry index build rejects invalid limit values', () => {
+  assert.throws(() => parseArgs(['--limit', '-1']), /Expected --limit to be non-negative/);
+  assert.throws(() => parseArgs(['--limit', '1.5']), /Expected --limit to be an integer/);
 });
 
 test('geometry index build rejects the removed fixture source mode', () => {
@@ -63,6 +72,78 @@ test('geometry index build reports a useful error for unknown tracks', () => {
 test('geometry index build exit policy only fails on policy-worthy outcomes by default', () => {
   assert.equal(determineExitCode({ builtSuccessfully: [{ name: 'Track' }], reusedExisting: [], failed: [], flaggedForManualReview: [], targetedTrackFailed: false }, { strict: false }), 0);
   assert.equal(determineExitCode({ builtSuccessfully: [], reusedExisting: [{ name: 'Track' }], failed: [], flaggedForManualReview: [], targetedTrackFailed: false }, { strict: false }), 0);
+  assert.equal(determineExitCode({ builtSuccessfully: [], reusedExisting: [], skipped: [{ name: 'Track' }], failed: [], flaggedForManualReview: [], targetedTrackFailed: false }, { strict: false }), 0);
   assert.equal(determineExitCode({ builtSuccessfully: [], reusedExisting: [], failed: [{ name: 'Track' }], flaggedForManualReview: [], targetedTrackFailed: false }, { strict: false }), 1);
   assert.equal(determineExitCode({ builtSuccessfully: [{ name: 'Track' }], reusedExisting: [], failed: [], flaggedForManualReview: [{ name: 'Track' }], targetedTrackFailed: false }, { strict: true }), 1);
+});
+
+test('geometry index build uses deterministic per-track stale thresholds with jitter', () => {
+  const silverstoneThreshold = computeTrackStaleThresholdMs('Q171402');
+  const spaThreshold = computeTrackStaleThresholdMs('Q172851');
+  const baseThreshold = 14 * 24 * 60 * 60 * 1000;
+  const jitterWindow = 3 * 24 * 60 * 60 * 1000;
+
+  assert.ok(silverstoneThreshold >= baseThreshold - jitterWindow);
+  assert.ok(silverstoneThreshold <= baseThreshold + jitterWindow);
+  assert.ok(spaThreshold >= baseThreshold - jitterWindow);
+  assert.ok(spaThreshold <= baseThreshold + jitterWindow);
+  assert.notEqual(silverstoneThreshold, spaThreshold);
+});
+
+test('geometry index build treats entries inside the jittered threshold as fresh', () => {
+  const trackId = 'Q171402';
+  const now = Date.parse('2026-03-30T00:00:00.000Z');
+  const thresholdMs = computeTrackStaleThresholdMs(trackId);
+  const freshEntry = {
+    trackId,
+    source: {
+      generatedAt: new Date(now - thresholdMs + 1).toISOString(),
+    },
+  };
+  const staleEntry = {
+    trackId,
+    source: {
+      generatedAt: new Date(now - thresholdMs).toISOString(),
+    },
+  };
+
+  assert.equal(isTrackGeometryEntryFresh(freshEntry, now), true);
+  assert.equal(isTrackGeometryEntryFresh(staleEntry, now), false);
+  assert.equal(isTrackGeometryEntryFresh({ trackId, source: { generatedAt: 'invalid' } }, now), false);
+});
+
+test('geometry index build limits stale processing without counting fresh tracks', () => {
+  const now = Date.parse('2026-03-30T00:00:00.000Z');
+  const tracks = [
+    { wikidataId: 'Q1', trackName: 'Fresh Track' },
+    { wikidataId: 'Q2', trackName: 'Stale Track 1' },
+    { wikidataId: 'Q3', trackName: 'Stale Track 2' },
+    { wikidataId: 'Q4', trackName: 'Missing Track' },
+  ];
+  const existingArtifact = {
+    Q1: {
+      trackId: 'Q1',
+      source: {
+        generatedAt: new Date(now - computeTrackStaleThresholdMs('Q1') + 1).toISOString(),
+      },
+    },
+    Q2: {
+      trackId: 'Q2',
+      source: {
+        generatedAt: new Date(now - computeTrackStaleThresholdMs('Q2')).toISOString(),
+      },
+    },
+    Q3: {
+      trackId: 'Q3',
+      source: {
+        generatedAt: new Date(now - computeTrackStaleThresholdMs('Q3') - 1).toISOString(),
+      },
+    },
+  };
+
+  const result = partitionTracksByStaleness(tracks, existingArtifact, { now, limit: 2 });
+
+  assert.deepEqual(result.freshTracks.map(track => track.wikidataId), ['Q1']);
+  assert.deepEqual(result.staleTracks.map(track => track.wikidataId), ['Q2', 'Q3']);
+  assert.deepEqual(result.deferredTracks.map(track => track.wikidataId), ['Q4']);
 });
