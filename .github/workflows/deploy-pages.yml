@@ -35,6 +35,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Restore geometry source cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/track-geometry/osm-api
+          key: ${{ runner.os }}-track-geometry-${{ hashFiles('src/generated/track-search-index.json', 'scripts/build-track-geometry-index.mjs', 'scripts/lib/osm-api-source.mjs', 'src/search.js') }}
+          restore-keys: |
+            ${{ runner.os }}-track-geometry-
+
+      - name: Rebuild geometry index
+        run: npm run build:geometry-index:ci
+
       - name: Run tests
         run: npm test
 

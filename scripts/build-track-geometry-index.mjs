@@ -1,44 +1,99 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import trackSearchIndex from '../src/generated/track-search-index.json' with { type: 'json' };
-import { buildTrackGeometryFromOverpassPayload, fetchTrackGeometry, normalizeTrackGeometryResult } from '../src/search.js';
-import { fetchOsmApiMapPayload } from './lib/osm-api-source.mjs';
+import {
+  buildTrackGeometryFromOverpassPayload,
+  fetchTrackGeometry,
+  normalizeTrackGeometryResult,
+} from '../src/search.js';
+import { fetchOsmApiMapPayload, parseOsmApiMapXml } from './lib/osm-api-source.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const outputDir = path.join(projectRoot, 'src', 'generated');
 const outputPath = path.join(outputDir, 'track-geometry-index.json');
+const defaultCacheDir = path.join(projectRoot, '.cache', 'track-geometry', 'osm-api');
+
 const MIN_LAYOUT_LENGTH_METRES = 500;
 const MAX_LAYOUT_LENGTH_METRES = 100000;
 const MIN_LAYOUT_NODE_COUNT = 2;
-
-export const SUPPORTED_TRACKS = [
-  {
-    key: 'silverstone',
-    trackName: 'Silverstone Circuit',
-    searchLabel: 'Silverstone Circuit',
-    osmApiMargin: 0.02,
-    expectedLayoutNames: ['Main', 'Alternate'],
-  },
-  {
-    key: 'spa',
-    trackName: 'Circuit de Spa-Francorchamps',
-    searchLabel: 'Spa-Francochamps Circuit',
-    osmApiMargin: 0.03,
-    expectedLayoutNames: ['Main', 'Moto'],
-  },
-  {
-    key: 'bahrain',
-    trackName: 'Bahrain International Circuit',
-    searchLabel: 'Bahrain International Circuit',
-    osmApiMargin: 0.02,
-    expectedLayoutNames: ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit'],
-  },
-];
-
+const DEFAULT_OSM_API_MARGINS = [0.015, 0.025, 0.04, 0.08];
+const DEFAULT_CACHE_TTL_HOURS = 24 * 14;
 const BUILD_SOURCES = new Set(['osm-api', 'overpass']);
+
+const TRACK_BUILD_OVERRIDES = new Map([
+  ['Q171402', {
+    key: 'silverstone',
+    osmApiMargins: [0.02, 0.04, 0.08],
+    expectedLayoutNames: ['Main', 'Alternate'],
+  }],
+  ['Q172851', {
+    key: 'spa',
+    osmApiMargins: [0.03, 0.05, 0.08],
+    expectedLayoutNames: ['Main', 'Moto'],
+  }],
+  ['Q171332', {
+    key: 'bahrain',
+    osmApiMargins: [0.02, 0.04, 0.08],
+    expectedLayoutNames: ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit'],
+  }],
+]);
+
+export const SUPPORTED_TRACKS = trackSearchIndex
+  .filter(track => Number.isFinite(track.lat) && Number.isFinite(track.lon) && track.wikidataId)
+  .map(track => ({
+    ...track,
+    ...(TRACK_BUILD_OVERRIDES.get(track.wikidataId) ?? {}),
+  }));
+
+function cloneJson(value) {
+  return value == null ? value : JSON.parse(JSON.stringify(value));
+}
+
+function normalizeText(value) {
+  return String(value ?? '')
+    .trim()
+    .toLowerCase();
+}
+
+function slugify(value) {
+  return String(value ?? '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    || 'layout';
+}
+
+function parseNumber(value, fallback) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function buildDefaultOsmApiMargins(track) {
+  const type = normalizeText(track.type);
+  if (type.includes('street')) {
+    return [0.02, 0.04, 0.08];
+  }
+
+  return DEFAULT_OSM_API_MARGINS;
+}
+
+function buildTrackQueryCandidates(track) {
+  return [
+    track.key,
+    track.wikidataId,
+    track.label,
+    track.trackName,
+    track.wikidataShortName,
+    ...(track.aliases ?? []),
+  ]
+    .filter(Boolean)
+    .map(normalizeText);
+}
 
 export function parseArgs(argv) {
   const options = {
@@ -46,6 +101,10 @@ export function parseArgs(argv) {
     source: 'osm-api',
     allowOverpassFallback: true,
     validateOnly: false,
+    strict: false,
+    cacheDir: defaultCacheDir,
+    cacheTtlHours: DEFAULT_CACHE_TTL_HOURS,
+    noCache: false,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -80,6 +139,28 @@ export function parseArgs(argv) {
 
     if (arg === '--no-overpass-fallback') {
       options.allowOverpassFallback = false;
+      continue;
+    }
+
+    if (arg === '--strict') {
+      options.strict = true;
+      continue;
+    }
+
+    if (arg === '--cache-dir') {
+      options.cacheDir = argv[index + 1] ?? options.cacheDir;
+      index += 1;
+      continue;
+    }
+
+    if (arg === '--cache-ttl-hours') {
+      options.cacheTtlHours = parseNumber(argv[index + 1], options.cacheTtlHours);
+      index += 1;
+      continue;
+    }
+
+    if (arg === '--no-cache') {
+      options.noCache = true;
     }
   }
 
@@ -94,19 +175,124 @@ export function parseArgs(argv) {
   return options;
 }
 
-async function fetchPrimaryGeometryFromOsmApi(track) {
-  const { payload } = await fetchOsmApiMapPayload(track.lat, track.lon, {
-    margin: track.osmApiMargin,
-  });
-  const geometryResult = normalizeTrackGeometryResult(
-    buildTrackGeometryFromOverpassPayload(payload, track.trackName),
-    track.trackName,
-  );
-  if (!geometryResult) {
-    throw new Error(`OSM API payload did not yield geometry for ${track.trackName}`);
+export function resolveSupportedTracks(requestedTrack, searchIndex = SUPPORTED_TRACKS) {
+  const supportedTracks = searchIndex
+    .filter(track => Number.isFinite(track.lat) && Number.isFinite(track.lon) && track.wikidataId)
+    .map(track => ({
+      ...track,
+      trackName: track.trackName ?? track.label,
+      key: track.key ?? slugify(track.label),
+      osmApiMargins: track.osmApiMargins ?? buildDefaultOsmApiMargins(track),
+      expectedLayoutNames: track.expectedLayoutNames ?? [],
+    }));
+
+  if (!requestedTrack) {
+    return supportedTracks;
   }
 
-  return geometryResult;
+  const requestedKey = normalizeText(requestedTrack);
+  const matchingTrack = supportedTracks.find(track => buildTrackQueryCandidates(track).includes(requestedKey));
+
+  if (!matchingTrack) {
+    throw new Error(`Could not find a supported track matching "${requestedTrack}" in the local track search index`);
+  }
+
+  return [matchingTrack];
+}
+
+async function readJsonFile(filePath, fallbackValue) {
+  try {
+    const source = await readFile(filePath, 'utf8');
+    return JSON.parse(source);
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
+      return fallbackValue;
+    }
+
+    throw error;
+  }
+}
+
+async function loadExistingGeometryIndex() {
+  return readJsonFile(outputPath, {});
+}
+
+async function readCachedOsmPayload(track, margin, options) {
+  if (options.noCache || !options.cacheDir) {
+    return null;
+  }
+
+  const cacheFilePath = path.join(options.cacheDir, `${track.wikidataId}-${String(margin).replace(/[^0-9.]+/g, '_')}.json`);
+  const cachedEntry = await readJsonFile(cacheFilePath, null);
+  if (!cachedEntry?.xml || !cachedEntry.cachedAt) {
+    return null;
+  }
+
+  const ageMs = Date.now() - Date.parse(cachedEntry.cachedAt);
+  if (!Number.isFinite(ageMs) || ageMs > options.cacheTtlHours * 60 * 60 * 1000) {
+    return null;
+  }
+
+  return {
+    cacheHit: true,
+    url: cachedEntry.url,
+    xml: cachedEntry.xml,
+    payload: parseOsmApiMapXml(cachedEntry.xml),
+  };
+}
+
+async function writeCachedOsmPayload(track, margin, response, options) {
+  if (options.noCache || !options.cacheDir || !response?.xml) {
+    return;
+  }
+
+  await mkdir(options.cacheDir, { recursive: true });
+  const cacheFilePath = path.join(options.cacheDir, `${track.wikidataId}-${String(margin).replace(/[^0-9.]+/g, '_')}.json`);
+  await writeFile(cacheFilePath, `${JSON.stringify({
+    trackId: track.wikidataId,
+    margin,
+    url: response.url,
+    cachedAt: new Date().toISOString(),
+    xml: response.xml,
+  }, null, 2)}\n`);
+}
+
+async function fetchPrimaryGeometryFromOsmApi(track, options) {
+  const margins = Array.isArray(track.osmApiMargins) && track.osmApiMargins.length > 0
+    ? track.osmApiMargins
+    : buildDefaultOsmApiMargins(track);
+  const errors = [];
+
+  for (const margin of margins) {
+    try {
+      const cachedResponse = await readCachedOsmPayload(track, margin, options);
+      const response = cachedResponse ?? await fetchOsmApiMapPayload(track.lat, track.lon, { margin });
+      if (!cachedResponse) {
+        await writeCachedOsmPayload(track, margin, response, options);
+      }
+
+      const geometryResult = normalizeTrackGeometryResult(
+        buildTrackGeometryFromOverpassPayload(response.payload, track.trackName),
+        track.trackName,
+      );
+      if (!geometryResult) {
+        throw new Error(`margin ${margin} did not yield geometry`);
+      }
+
+      return {
+        geometryResult,
+        metadata: {
+          sourceUsed: 'osm-api',
+          margin,
+          cacheHit: Boolean(cachedResponse),
+        },
+      };
+    } catch (error) {
+      errors.push(`margin ${margin}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  throw new Error(`OSM API build path failed for ${track.trackName} (${errors.join('; ')})`);
 }
 
 async function fetchFallbackGeometryFromOverpass(track) {
@@ -117,56 +303,6 @@ async function fetchFallbackGeometryFromOverpass(track) {
     }),
     track.trackName,
   );
-}
-
-function normalizeText(value) {
-  return String(value ?? '')
-    .trim()
-    .toLowerCase();
-}
-
-function slugify(value) {
-  return String(value ?? '')
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    || 'layout';
-}
-
-export function resolveSupportedTracks(requestedTrack) {
-  const supportedTracks = SUPPORTED_TRACKS.map(config => {
-    const searchTrack = trackSearchIndex.find(entry => entry.label === config.searchLabel);
-    if (!searchTrack) {
-      throw new Error(`Could not find ${config.searchLabel} in the local track search index`);
-    }
-
-    return {
-      ...searchTrack,
-      ...config,
-    };
-  });
-
-  if (!requestedTrack) {
-    return supportedTracks;
-  }
-
-  const requestedKey = normalizeText(requestedTrack);
-  const matchingTrack = supportedTracks.find(track => [
-    track.key,
-    track.wikidataId,
-    track.trackName,
-    track.searchLabel,
-    track.wikidataShortName,
-    ...(track.aliases ?? []),
-  ].some(value => normalizeText(value) === requestedKey));
-
-  if (!matchingTrack) {
-    throw new Error(`This prototype only supports ${SUPPORTED_TRACKS.map(track => track.trackName).join(', ')}; received ${requestedTrack}`);
-  }
-
-  return [matchingTrack];
 }
 
 function validateNode(node, trackName, layoutName, nodeIndex) {
@@ -266,7 +402,7 @@ function buildStableLayoutIds(layouts) {
   });
 }
 
-function buildTrackArtifact(track, geometryResult, generatedAt) {
+function buildTrackArtifact(track, geometryResult, generatedAt, sourceUsed) {
   const layouts = buildStableLayoutIds(geometryResult.layouts).map(layout => {
     validateLayout(layout, track.trackName);
     return {
@@ -282,44 +418,69 @@ function buildTrackArtifact(track, geometryResult, generatedAt) {
   });
 
   return {
-    [track.wikidataId]: {
-      trackId: track.wikidataId,
-      name: track.trackName,
-      source: {
-        kind: 'osm-prebuilt',
-        generatedAt,
-        osmQueryVersion: 1,
-      },
-      center: {
-        lat: track.lat,
-        lon: track.lon,
-      },
-      names: {
-        searchLabel: track.label,
-        shortName: track.wikidataShortName ?? null,
-        osmVenueNames: [...(geometryResult.osmVenueNames ?? [])],
-      },
-      layouts,
+    trackId: track.wikidataId,
+    name: track.trackName,
+    source: {
+      kind: 'osm-prebuilt',
+      generatedAt,
+      osmQueryVersion: 1,
+      buildSource: sourceUsed,
     },
+    center: {
+      lat: track.lat,
+      lon: track.lon,
+    },
+    names: {
+      searchLabel: track.label,
+      shortName: track.wikidataShortName ?? null,
+      osmVenueNames: [...(geometryResult.osmVenueNames ?? [])],
+    },
+    layouts,
   };
+}
+
+export function determineExitCode(report, options) {
+  if (report.targetedTrackFailed) {
+    return 1;
+  }
+
+  if (options.strict && (report.failed.length > 0 || report.reusedExisting.length > 0 || report.flaggedForManualReview.length > 0)) {
+    return 1;
+  }
+
+  if (report.builtSuccessfully.length === 0 && report.reusedExisting.length === 0) {
+    return 1;
+  }
+
+  return 0;
 }
 
 export async function main(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
   const tracks = resolveSupportedTracks(options.track);
+  const existingArtifact = await loadExistingGeometryIndex();
   const generatedAt = new Date().toISOString();
   const report = {
     builtSuccessfully: [],
+    reusedExisting: [],
     skipped: [],
     flaggedForManualReview: [],
     failed: [],
+    targetedTrackFailed: false,
   };
   const artifact = {};
 
-  for (const track of tracks) {
+  console.log(`Building geometry index for ${tracks.length} track${tracks.length === 1 ? '' : 's'} from the local search index`);
+
+  for (const [index, track] of tracks.entries()) {
+    const progressLabel = `[${index + 1}/${tracks.length}] ${track.trackName} (${track.wikidataId})`;
+    const existingEntry = existingArtifact[track.wikidataId] ? cloneJson(existingArtifact[track.wikidataId]) : null;
+    console.log(`${progressLabel} - start`);
+
     try {
       let geometryResult;
       let sourceUsed = options.source;
+      let sourceDetails = '';
 
       if (options.source === 'overpass') {
         geometryResult = await fetchFallbackGeometryFromOverpass(track);
@@ -330,11 +491,16 @@ export async function main(argv = process.argv.slice(2)) {
           name: track.trackName,
           message: 'Built from the Overpass debug path',
         });
+        sourceDetails = 'debug overpass';
       } else {
         try {
-          geometryResult = await fetchPrimaryGeometryFromOsmApi(track);
-          geometryResult = applyStableLayoutNames(track, geometryResult);
+          const primaryResult = await fetchPrimaryGeometryFromOsmApi(track, options);
+          geometryResult = applyStableLayoutNames(track, primaryResult.geometryResult);
           validateGeometryResultForTrack(track, geometryResult);
+          sourceUsed = primaryResult.metadata.sourceUsed;
+          sourceDetails = primaryResult.metadata.cacheHit
+            ? `osm-api cache margin=${primaryResult.metadata.margin}`
+            : `osm-api live margin=${primaryResult.metadata.margin}`;
         } catch (error) {
           const primaryError = error;
 
@@ -344,13 +510,14 @@ export async function main(argv = process.argv.slice(2)) {
               geometryResult = applyStableLayoutNames(track, geometryResult);
               validateGeometryResultForTrack(track, geometryResult);
               sourceUsed = 'overpass-fallback';
+              sourceDetails = 'overpass fallback';
               report.flaggedForManualReview.push({
                 wikidataId: track.wikidataId,
                 name: track.trackName,
                 message: `OSM API build path failed validation; used Overpass fallback (${primaryError instanceof Error ? primaryError.message : String(primaryError)})`,
               });
             } catch (fallbackError) {
-              throw new Error(`OSM API and Overpass build paths failed validation (${primaryError instanceof Error ? primaryError.message : String(primaryError)}; ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)})`);
+              throw new Error(`OSM API and Overpass build paths failed (${primaryError instanceof Error ? primaryError.message : String(primaryError)}; ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)})`);
             }
           } else {
             throw primaryError;
@@ -358,31 +525,59 @@ export async function main(argv = process.argv.slice(2)) {
         }
       }
 
-      const trackArtifact = buildTrackArtifact(track, geometryResult, generatedAt);
-      trackArtifact[track.wikidataId].source.buildSource = sourceUsed;
-      Object.assign(artifact, trackArtifact);
+      const trackArtifact = buildTrackArtifact(track, geometryResult, generatedAt, sourceUsed);
+      artifact[track.wikidataId] = trackArtifact;
       report.builtSuccessfully.push({
         wikidataId: track.wikidataId,
         name: track.trackName,
-        layoutCount: trackArtifact[track.wikidataId].layouts.length,
+        layoutCount: trackArtifact.layouts.length,
+        sourceUsed,
       });
+      console.log(`${progressLabel} - ok (${trackArtifact.layouts.length} layouts, ${sourceDetails || sourceUsed})`);
     } catch (error) {
-      report.failed.push({
-        wikidataId: track.wikidataId,
-        name: track.trackName,
-        message: error instanceof Error ? error.message : String(error),
-      });
+      const message = error instanceof Error ? error.message : String(error);
+      if (existingEntry) {
+        artifact[track.wikidataId] = existingEntry;
+        report.reusedExisting.push({
+          wikidataId: track.wikidataId,
+          name: track.trackName,
+          message,
+        });
+        report.flaggedForManualReview.push({
+          wikidataId: track.wikidataId,
+          name: track.trackName,
+          message: `Reused existing generated geometry after build failure (${message})`,
+        });
+        console.log(`${progressLabel} - reused existing geometry (${message})`);
+      } else {
+        report.failed.push({
+          wikidataId: track.wikidataId,
+          name: track.trackName,
+          message,
+        });
+        console.log(`${progressLabel} - failed (${message})`);
+      }
+
+      if (options.track) {
+        report.targetedTrackFailed = true;
+      }
     }
   }
 
-  if (!options.validateOnly && report.failed.length === 0) {
+  if (!options.validateOnly) {
     await mkdir(outputDir, { recursive: true });
     await writeFile(outputPath, `${JSON.stringify(artifact, null, 2)}\n`);
   }
 
+  console.log('');
   console.log(`Built successfully: ${report.builtSuccessfully.length}`);
   for (const item of report.builtSuccessfully) {
-    console.log(`- ${item.name} (${item.wikidataId}) -> ${item.layoutCount} layouts`);
+    console.log(`- ${item.name} (${item.wikidataId}) -> ${item.layoutCount} layouts via ${item.sourceUsed}`);
+  }
+
+  console.log(`Reused existing: ${report.reusedExisting.length}`);
+  for (const item of report.reusedExisting) {
+    console.log(`- ${item.name} (${item.wikidataId}) -> ${item.message}`);
   }
 
   console.log(`Skipped: ${report.skipped.length}`);
@@ -390,18 +585,17 @@ export async function main(argv = process.argv.slice(2)) {
   for (const item of report.flaggedForManualReview) {
     console.log(`- ${item.name} (${item.wikidataId}) -> ${item.message}`);
   }
+
   console.log(`Failed: ${report.failed.length}`);
   for (const item of report.failed) {
     console.log(`- ${item.name} (${item.wikidataId}) -> ${item.message}`);
   }
 
-  if (report.failed.length > 0) {
-    process.exitCode = 1;
-  }
-
-  if (!options.validateOnly && report.failed.length === 0 && report.builtSuccessfully.length > 0) {
+  if (!options.validateOnly) {
     console.log(`Wrote ${path.relative(projectRoot, outputPath)}`);
   }
+
+  process.exitCode = determineExitCode(report, options);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
