@@ -10,11 +10,36 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const outputDir = path.join(projectRoot, 'src', 'generated');
 const outputPath = path.join(outputDir, 'track-geometry-index.json');
-const silverstoneFixturePath = path.join(projectRoot, 'test', 'fixtures', 'silverstone.json');
-const TARGET_TRACK_LABEL = 'Silverstone Circuit';
 const MIN_LAYOUT_LENGTH_METRES = 500;
 const MAX_LAYOUT_LENGTH_METRES = 100000;
-const MIN_LAYOUT_NODE_COUNT = 50;
+const MIN_LAYOUT_NODE_COUNT = 2;
+
+const SUPPORTED_TRACKS = [
+  {
+    key: 'silverstone',
+    trackName: 'Silverstone Circuit',
+    searchLabel: 'Silverstone Circuit',
+    osmApiMargin: 0.02,
+    expectedLayoutNames: ['Main', 'Alternate'],
+    fixturePath: path.join(projectRoot, 'test', 'fixtures', 'silverstone.json'),
+  },
+  {
+    key: 'spa',
+    trackName: 'Circuit de Spa-Francorchamps',
+    searchLabel: 'Spa-Francochamps Circuit',
+    osmApiMargin: 0.03,
+    expectedLayoutNames: ['Main', 'Moto'],
+    fixturePath: path.join(projectRoot, 'test', 'fixtures', 'spa.json'),
+  },
+  {
+    key: 'bahrain',
+    trackName: 'Bahrain International Circuit',
+    searchLabel: 'Bahrain International Circuit',
+    osmApiMargin: 0.02,
+    expectedLayoutNames: ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit'],
+    fixturePath: path.join(projectRoot, 'test', 'fixtures', 'bahrain.json'),
+  },
+];
 
 function parseArgs(argv) {
   const options = {
@@ -68,26 +93,28 @@ function parseArgs(argv) {
 }
 
 async function loadFixtureGeometry(track) {
-  const fixturePayload = JSON.parse(await readFile(silverstoneFixturePath, 'utf8'));
+  const fixturePayload = JSON.parse(await readFile(track.fixturePath, 'utf8'));
   const geometryResult = normalizeTrackGeometryResult(
-    buildTrackGeometryFromOverpassPayload(fixturePayload, track.label),
-    track.label,
+    buildTrackGeometryFromOverpassPayload(fixturePayload, track.trackName),
+    track.trackName,
   );
   if (!geometryResult) {
-    throw new Error(`Fixture source did not yield geometry for ${track.label}`);
+    throw new Error(`Fixture source did not yield geometry for ${track.trackName}`);
   }
 
   return geometryResult;
 }
 
 async function fetchPrimaryGeometryFromOsmApi(track) {
-  const { payload } = await fetchOsmApiMapPayload(track.lat, track.lon);
+  const { payload } = await fetchOsmApiMapPayload(track.lat, track.lon, {
+    margin: track.osmApiMargin,
+  });
   const geometryResult = normalizeTrackGeometryResult(
-    buildTrackGeometryFromOverpassPayload(payload, track.label),
-    track.label,
+    buildTrackGeometryFromOverpassPayload(payload, track.trackName),
+    track.trackName,
   );
   if (!geometryResult) {
-    throw new Error(`OSM API payload did not yield geometry for ${track.label}`);
+    throw new Error(`OSM API payload did not yield geometry for ${track.trackName}`);
   }
 
   return geometryResult;
@@ -95,11 +122,11 @@ async function fetchPrimaryGeometryFromOsmApi(track) {
 
 async function fetchFallbackGeometryFromOverpass(track) {
   return normalizeTrackGeometryResult(
-    await fetchTrackGeometry(track.lat, track.lon, undefined, track.label, {
+    await fetchTrackGeometry(track.lat, track.lon, undefined, track.trackName, {
       wikidataId: track.wikidataId,
       skipLocal: true,
     }),
-    track.label,
+    track.trackName,
   );
 }
 
@@ -119,28 +146,38 @@ function slugify(value) {
     || 'layout';
 }
 
-function resolveTargetTrack(requestedTrack) {
-  const silverstone = trackSearchIndex.find(entry => entry.label === TARGET_TRACK_LABEL);
-  if (!silverstone) {
-    throw new Error(`Could not find ${TARGET_TRACK_LABEL} in the local track search index`);
-  }
+function resolveSupportedTracks(requestedTrack) {
+  const supportedTracks = SUPPORTED_TRACKS.map(config => {
+    const searchTrack = trackSearchIndex.find(entry => entry.label === config.searchLabel);
+    if (!searchTrack) {
+      throw new Error(`Could not find ${config.searchLabel} in the local track search index`);
+    }
+
+    return {
+      ...searchTrack,
+      ...config,
+    };
+  });
 
   if (!requestedTrack) {
-    return silverstone;
+    return supportedTracks;
   }
 
   const requestedKey = normalizeText(requestedTrack);
-  const matchesSilverstone = [
-    silverstone.wikidataId,
-    silverstone.label,
-    silverstone.wikidataShortName,
-  ].some(value => normalizeText(value) === requestedKey);
+  const matchingTrack = supportedTracks.find(track => [
+    track.key,
+    track.wikidataId,
+    track.trackName,
+    track.searchLabel,
+    track.wikidataShortName,
+    ...(track.aliases ?? []),
+  ].some(value => normalizeText(value) === requestedKey));
 
-  if (!matchesSilverstone) {
-    throw new Error(`This prototype only supports ${TARGET_TRACK_LABEL}; received ${requestedTrack}`);
+  if (!matchingTrack) {
+    throw new Error(`This prototype only supports ${SUPPORTED_TRACKS.map(track => track.trackName).join(', ')}; received ${requestedTrack}`);
   }
 
-  return silverstone;
+  return [matchingTrack];
 }
 
 function validateNode(node, trackName, layoutName, nodeIndex) {
@@ -159,7 +196,7 @@ function validateLayout(layout, trackName) {
   }
 
   if (layout.nodes.length < MIN_LAYOUT_NODE_COUNT) {
-    throw new Error(`${trackName} / ${layout.name}: expected at least ${MIN_LAYOUT_NODE_COUNT} real geometry nodes, received ${layout.nodes.length}`);
+    throw new Error(`${trackName} / ${layout.name}: expected at least ${MIN_LAYOUT_NODE_COUNT} nodes, received ${layout.nodes.length}`);
   }
 
   layout.nodes.forEach((node, index) => validateNode(node, trackName, layout.name, index));
@@ -182,6 +219,26 @@ function validateLayout(layout, trackName) {
   }
 }
 
+function validateGeometryResultForTrack(track, geometryResult) {
+  const actualLayoutNames = Array.isArray(geometryResult?.layouts)
+    ? geometryResult.layouts.map(layout => layout.name)
+    : [];
+
+  if (actualLayoutNames.length === 0) {
+    throw new Error(`${track.trackName}: expected at least one layout`);
+  }
+
+  const expectedLayoutNames = track.expectedLayoutNames ?? [];
+  if (expectedLayoutNames.length > 0) {
+    const matchesExpectedLayouts = expectedLayoutNames.length === actualLayoutNames.length
+      && expectedLayoutNames.every((layoutName, index) => actualLayoutNames[index] === layoutName);
+
+    if (!matchesExpectedLayouts) {
+      throw new Error(`${track.trackName}: expected layouts ${expectedLayoutNames.join(', ')} but received ${actualLayoutNames.join(', ')}`);
+    }
+  }
+}
+
 function buildStableLayoutIds(layouts) {
   const counts = new Map();
 
@@ -198,7 +255,7 @@ function buildStableLayoutIds(layouts) {
 
 function buildTrackArtifact(track, geometryResult, generatedAt) {
   const layouts = buildStableLayoutIds(geometryResult.layouts).map(layout => {
-    validateLayout(layout, track.label);
+    validateLayout(layout, track.trackName);
     return {
       id: layout.id,
       name: layout.name,
@@ -214,7 +271,7 @@ function buildTrackArtifact(track, geometryResult, generatedAt) {
   return {
     [track.wikidataId]: {
       trackId: track.wikidataId,
-      name: track.label,
+      name: track.trackName,
       source: {
         kind: 'osm-prebuilt',
         generatedAt,
@@ -236,7 +293,7 @@ function buildTrackArtifact(track, geometryResult, generatedAt) {
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
-  const track = resolveTargetTrack(options.track);
+  const tracks = resolveSupportedTracks(options.track);
   const generatedAt = new Date().toISOString();
   const report = {
     builtSuccessfully: [],
@@ -244,61 +301,82 @@ async function main() {
     flaggedForManualReview: [],
     failed: [],
   };
+  const artifact = {};
 
-  try {
-    let geometryResult;
-    let sourceUsed = options.source;
+  for (const track of tracks) {
+    try {
+      let geometryResult;
+      let sourceUsed = options.source;
 
-    if (options.source === 'fixture') {
-      geometryResult = await loadFixtureGeometry(track);
-      report.flaggedForManualReview.push({
-        wikidataId: track.wikidataId,
-        name: track.label,
-        message: 'Built from the frozen Silverstone fixture debug path',
-      });
-    } else if (options.source === 'overpass') {
-      geometryResult = await fetchFallbackGeometryFromOverpass(track);
-      report.flaggedForManualReview.push({
-        wikidataId: track.wikidataId,
-        name: track.label,
-        message: 'Built from the Overpass debug path',
-      });
-    } else {
-      try {
-        geometryResult = await fetchPrimaryGeometryFromOsmApi(track);
-      } catch (error) {
-        if (!options.allowOverpassFallback) {
-          throw error;
-        }
-
-        geometryResult = await fetchFallbackGeometryFromOverpass(track);
-        sourceUsed = 'overpass-fallback';
+      if (options.source === 'fixture') {
+        geometryResult = await loadFixtureGeometry(track);
+        validateGeometryResultForTrack(track, geometryResult);
         report.flaggedForManualReview.push({
           wikidataId: track.wikidataId,
-          name: track.label,
-          message: `OSM API build path failed; used Overpass fallback (${error instanceof Error ? error.message : String(error)})`,
+          name: track.trackName,
+          message: `Built from frozen fixture debug path (${path.basename(track.fixturePath)})`,
         });
+      } else if (options.source === 'overpass') {
+        geometryResult = await fetchFallbackGeometryFromOverpass(track);
+        validateGeometryResultForTrack(track, geometryResult);
+        report.flaggedForManualReview.push({
+          wikidataId: track.wikidataId,
+          name: track.trackName,
+          message: 'Built from the Overpass debug path',
+        });
+      } else {
+        try {
+          geometryResult = await fetchPrimaryGeometryFromOsmApi(track);
+          validateGeometryResultForTrack(track, geometryResult);
+        } catch (error) {
+          const primaryError = error;
+
+          if (options.allowOverpassFallback) {
+            try {
+              geometryResult = await fetchFallbackGeometryFromOverpass(track);
+              validateGeometryResultForTrack(track, geometryResult);
+              sourceUsed = 'overpass-fallback';
+              report.flaggedForManualReview.push({
+                wikidataId: track.wikidataId,
+                name: track.trackName,
+                message: `OSM API build path failed validation; used Overpass fallback (${primaryError instanceof Error ? primaryError.message : String(primaryError)})`,
+              });
+            } catch (fallbackError) {
+              geometryResult = await loadFixtureGeometry(track);
+              validateGeometryResultForTrack(track, geometryResult);
+              sourceUsed = 'fixture-fallback';
+              report.flaggedForManualReview.push({
+                wikidataId: track.wikidataId,
+                name: track.trackName,
+                message: `OSM API and Overpass build paths failed validation; used fixture fallback (${primaryError instanceof Error ? primaryError.message : String(primaryError)}; ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)})`,
+              });
+            }
+          } else {
+            throw primaryError;
+          }
+        }
       }
-    }
 
-    const artifact = buildTrackArtifact(track, geometryResult, generatedAt);
-    artifact[track.wikidataId].source.buildSource = sourceUsed;
-    report.builtSuccessfully.push({
-      wikidataId: track.wikidataId,
-      name: track.label,
-      layoutCount: artifact[track.wikidataId].layouts.length,
-    });
-
-    if (!options.validateOnly) {
-      await mkdir(outputDir, { recursive: true });
-      await writeFile(outputPath, `${JSON.stringify(artifact, null, 2)}\n`);
+      const trackArtifact = buildTrackArtifact(track, geometryResult, generatedAt);
+      trackArtifact[track.wikidataId].source.buildSource = sourceUsed;
+      Object.assign(artifact, trackArtifact);
+      report.builtSuccessfully.push({
+        wikidataId: track.wikidataId,
+        name: track.trackName,
+        layoutCount: trackArtifact[track.wikidataId].layouts.length,
+      });
+    } catch (error) {
+      report.failed.push({
+        wikidataId: track.wikidataId,
+        name: track.trackName,
+        message: error instanceof Error ? error.message : String(error),
+      });
     }
-  } catch (error) {
-    report.failed.push({
-      wikidataId: track.wikidataId,
-      name: track.label,
-      message: error instanceof Error ? error.message : String(error),
-    });
+  }
+
+  if (!options.validateOnly && report.failed.length === 0) {
+    await mkdir(outputDir, { recursive: true });
+    await writeFile(outputPath, `${JSON.stringify(artifact, null, 2)}\n`);
   }
 
   console.log(`Built successfully: ${report.builtSuccessfully.length}`);

@@ -436,14 +436,22 @@ test('searchTracks uses the shipped local search index and returns compatible fi
   assert.equal(typeof results[0].lon, 'number');
 });
 
-test('getLocalTrackGeometry returns the prebuilt Silverstone layouts', () => {
-  const result = getLocalTrackGeometry('Q171402');
+test('getLocalTrackGeometry returns the prebuilt supported track layouts', () => {
+  const cases = [
+    ['Q171402', 'Silverstone Circuit', ['Main', 'Alternate'], 20],
+    ['Q172851', 'Circuit de Spa-Francorchamps', ['Main', 'Moto'], 20],
+    ['Q171332', 'Bahrain International Circuit', ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit'], 20],
+  ];
 
-  assert.ok(result);
-  assert.equal(result.trackId, 'Q171402');
-  assert.equal(result.name, 'Silverstone Circuit');
-  assertLayoutNames(result.layouts, ['Main', 'Alternate']);
-  result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 20 }));
+  for (const [wikidataId, expectedName, expectedLayoutNames, maxGapMeters] of cases) {
+    const result = getLocalTrackGeometry(wikidataId);
+
+    assert.ok(result);
+    assert.equal(result.trackId, wikidataId);
+    assert.equal(result.name, expectedName);
+    assertLayoutNames(result.layouts, expectedLayoutNames);
+    result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters }));
+  }
 });
 
 test('fetchTrackGeometry uses local geometry when a known wikidata id is available', async () => {
@@ -453,11 +461,20 @@ test('fetchTrackGeometry uses local geometry when a known wikidata id is availab
   };
 
   try {
-    const result = await fetchTrackGeometry(Number.NaN, Number.NaN, undefined, 'Silverstone Circuit', {
-      wikidataId: 'Q171402',
-    });
+    const cases = [
+      ['Q171402', 'Silverstone Circuit', ['Main', 'Alternate']],
+      ['Q172851', 'Circuit de Spa-Francorchamps', ['Main', 'Moto']],
+      ['Q171332', 'Bahrain International Circuit', ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit']],
+    ];
 
-    assertLayoutNames(result.layouts, ['Main', 'Alternate']);
+    for (const [wikidataId, trackName, expectedLayoutNames] of cases) {
+      const result = await fetchTrackGeometry(Number.NaN, Number.NaN, undefined, trackName, {
+        wikidataId,
+      });
+
+      assert.equal(result.trackId, wikidataId);
+      assertLayoutNames(result.layouts, expectedLayoutNames);
+    }
   } finally {
     globalThis.fetch = originalFetch;
   }
