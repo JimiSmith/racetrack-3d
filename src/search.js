@@ -26,9 +26,10 @@ const OVERPASS_ENDPOINTS = [
 
 const ENDPOINT_TIMEOUT_MS = 12000;
 
-async function runOverpassQuery(query, signal) {
+async function runOverpassQueries(query, signal) {
   const body = `data=${encodeURIComponent(query)}`;
   const errors = [];
+  const results = [];
 
   for (const endpoint of OVERPASS_ENDPOINTS) {
     const timeoutSignal = AbortSignal.timeout(ENDPOINT_TIMEOUT_MS);
@@ -47,11 +48,14 @@ async function runOverpassQuery(query, signal) {
         errors.push(`${endpoint}: ${response.status}`);
         continue;
       }
-      return await response.json();
+      results.push({ endpoint, data: await response.json() });
     } catch (err) {
       if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
       errors.push(`${endpoint}: ${err.name === 'TimeoutError' ? 'timed out' : err.message}`);
     }
+  }
+  if (results.length > 0) {
+    return results;
   }
   throw new Error(`All Overpass endpoints failed: ${errors.join('; ')}`);
 }
@@ -459,6 +463,21 @@ function namesLikelyMatchCircuit(candidateName, trackName) {
     || trackKey.includes(candidateKey);
 }
 
+function getWayCandidateNames(way) {
+  const relationNames = Array.isArray(way?.tags?.relationNames)
+    ? way.tags.relationNames
+    : [];
+
+  return [...new Set([
+    way?.tags?.name,
+    ...relationNames,
+  ].map(name => name?.trim()).filter(Boolean))];
+}
+
+function wayLikelyMatchesCircuit(way, trackName) {
+  return getWayCandidateNames(way).some(name => namesLikelyMatchCircuit(name, trackName));
+}
+
 function selectBestComponentWays(ways, trackName = null) {
   if (ways.length <= 1) {
     return ways;
@@ -472,18 +491,24 @@ function selectBestComponentWays(ways, trackName = null) {
   const rankedComponents = components.map(component => {
     const componentWays = component.map(index => ways[index]);
     const candidate = buildCandidateFromWays(componentWays);
-    const matchedWays = componentWays.filter(way => namesLikelyMatchCircuit(way.tags?.name, trackName));
+    const matchedWays = componentWays.filter(way => wayLikelyMatchesCircuit(way, trackName));
     const matchedLength = measureWaySetLength(matchedWays);
     const gapRatio = candidate?.length > 0
       ? candidate.endpointGap / candidate.length
       : Infinity;
+    const candidateLength = candidate?.length ?? 0;
+    const strongTrackNameMatch = matchedLength >= Math.max(250, Math.min(1500, candidateLength * 0.18));
+    const nearClosed = gapRatio <= 0.16;
 
     return {
       componentWays,
       candidate,
       matchedLength,
       hasTrackNameMatch: matchedWays.length > 0,
+      strongTrackNameMatch,
       gapRatio,
+      nearClosed,
+      candidateLength,
       totalLength: measureWaySetLength(componentWays),
       totalNodes: componentWays.reduce((sum, way) => sum + way.nodes.length, 0),
       area: candidate?.area ?? 0,
@@ -491,18 +516,31 @@ function selectBestComponentWays(ways, trackName = null) {
   });
 
   rankedComponents.sort((a, b) => {
+    if (a.strongTrackNameMatch !== b.strongTrackNameMatch) {
+      return Number(b.strongTrackNameMatch) - Number(a.strongTrackNameMatch);
+    }
+
+    const candidateLengthDelta = b.candidateLength - a.candidateLength;
+    if (Math.abs(candidateLengthDelta) > 500) {
+      return candidateLengthDelta;
+    }
+
+    if (a.nearClosed !== b.nearClosed) {
+      return Number(b.nearClosed) - Number(a.nearClosed);
+    }
+
     if (a.hasTrackNameMatch !== b.hasTrackNameMatch) {
       return Number(b.hasTrackNameMatch) - Number(a.hasTrackNameMatch);
+    }
+
+    const gapRatioDelta = a.gapRatio - b.gapRatio;
+    if (Math.abs(gapRatioDelta) > 0.08) {
+      return gapRatioDelta;
     }
 
     const matchedLengthDelta = b.matchedLength - a.matchedLength;
     if (Math.abs(matchedLengthDelta) > 1) {
       return matchedLengthDelta;
-    }
-
-    const gapRatioDelta = a.gapRatio - b.gapRatio;
-    if (Math.abs(gapRatioDelta) > 0.05) {
-      return gapRatioDelta;
     }
 
     const lengthDelta = b.totalLength - a.totalLength;
@@ -527,16 +565,87 @@ function buildWeightedNames(edgeIds, graph, trackName) {
 
   for (const edgeId of edgeIds) {
     const edge = graph.edges[edgeId];
-    const name = edge?.tags?.name?.trim();
-    if (!name || name.toLowerCase() === trackName?.toLowerCase()) {
-      continue;
-    }
+    for (const name of getWayCandidateNames(edge)) {
+      if (name.toLowerCase() === trackName?.toLowerCase()) {
+        continue;
+      }
 
-    namedLength += edge.length;
-    names.set(name, (names.get(name) ?? 0) + edge.length);
+      namedLength += edge.length;
+      names.set(name, (names.get(name) ?? 0) + edge.length);
+    }
   }
 
   return { names, namedLength };
+}
+
+const PRIMARY_LAYOUT_PATTERN = /\b(main|grand[\s_-]*prix)\b/i;
+const SECONDARY_LAYOUT_PATTERN = /\b(alternate|alternative|club|corkscrew|endurance|formula\s*e|e[\s_-]*prix|inner|joker|kart|moto|national|outer|rallycross|short)\b/i;
+
+function scoreLayoutChoice(layout, trackName) {
+  const name = layout?.name?.trim() ?? '';
+  let score = 0;
+
+  if (namesLikelyMatchCircuit(name, trackName)) {
+    score += 420;
+  }
+  if (PRIMARY_LAYOUT_PATTERN.test(name)) {
+    score += 520;
+  }
+  if (name === 'Main') {
+    score += 260;
+  }
+  if (SECONDARY_LAYOUT_PATTERN.test(name)) {
+    score -= 360;
+  }
+
+  score += Math.min(layout?.stats?.lengthMetres ?? 0, 9000) / 20;
+  return score;
+}
+
+function rankLayoutsForTrack(layouts, trackName) {
+  return [...layouts].sort((a, b) => {
+    const scoreDelta = scoreLayoutChoice(b, trackName) - scoreLayoutChoice(a, trackName);
+    if (Math.abs(scoreDelta) > 1) {
+      return scoreDelta;
+    }
+
+    const lengthDelta = (b?.stats?.lengthMetres ?? 0) - (a?.stats?.lengthMetres ?? 0);
+    if (Math.abs(lengthDelta) > 1) {
+      return lengthDelta;
+    }
+
+    return a.name.localeCompare(b.name);
+  });
+}
+
+function compareLayoutsForTrack(trackName, a, b) {
+  const scoreDelta = scoreLayoutChoice(b, trackName) - scoreLayoutChoice(a, trackName);
+  if (Math.abs(scoreDelta) > 1) {
+    return scoreDelta;
+  }
+
+  const lengthDelta = (b?.stats?.lengthMetres ?? 0) - (a?.stats?.lengthMetres ?? 0);
+  if (Math.abs(lengthDelta) > 1) {
+    return lengthDelta;
+  }
+
+  return a.name.localeCompare(b.name);
+}
+
+function scoreGeometryResult(result, trackName) {
+  const selectedLayout = result.layouts[result.selectedLayoutIndex] ?? result.layouts[0];
+  const bestVenueNameScore = result.osmVenueNames.reduce((bestScore, name) => {
+    if (namesLikelyMatchCircuit(name, trackName)) {
+      return Math.max(bestScore, 600);
+    }
+
+    return bestScore;
+  }, 0);
+
+  return bestVenueNameScore
+    + scoreLayoutChoice(selectedLayout, trackName)
+    + (selectedLayout?.stats?.lengthMetres ?? 0) / 10
+    + result.layouts.length * 20;
 }
 
 function inferBranchName(branch, graph, trackName) {
@@ -1154,10 +1263,11 @@ function buildNamedCircuitLayouts(ways, trackName) {
 
   const nameGroups = new Map();
   for (const way of ways) {
-    const name = (way.tags?.name ?? '').trim();
-    if (!name || !CIRCUIT_KEYWORD.test(name)) continue;
-    if (!nameGroups.has(name)) nameGroups.set(name, []);
-    nameGroups.get(name).push(way);
+    for (const name of getWayCandidateNames(way)) {
+      if (!CIRCUIT_KEYWORD.test(name)) continue;
+      if (!nameGroups.has(name)) nameGroups.set(name, []);
+      nameGroups.get(name).push(way);
+    }
   }
 
   if (nameGroups.size < 2) return [];
@@ -1187,11 +1297,7 @@ function buildNamedCircuitLayouts(ways, trackName) {
 
   // Need at least 2 valid standalone circuits to show a picker
   if (standaloneLayouts.length >= 2) {
-    standaloneLayouts.sort((a, b) => (
-      b.stats.lengthMetres - a.stats.lengthMetres
-      || a.name.length - b.name.length
-      || a.name.localeCompare(b.name)
-    ));
+    standaloneLayouts.sort((a, b) => compareLayoutsForTrack(trackName, a, b));
     const dedupedLayouts = [];
     const seenCandidates = [];
 
@@ -1214,7 +1320,7 @@ function buildNamedCircuitLayouts(ways, trackName) {
       dedupedLayouts.push(publicLayout);
     }
 
-    return dedupedLayouts.length >= 2 ? dedupedLayouts : [];
+    return dedupedLayouts.length >= 2 ? rankLayoutsForTrack(dedupedLayouts, trackName) : [];
   }
 
   if (standaloneLayouts.length !== 1) {
@@ -1229,8 +1335,7 @@ function buildNamedCircuitLayouts(ways, trackName) {
     backboneLayout.candidate,
   );
   if (substitutionLayouts.length >= 2) {
-    substitutionLayouts.sort((a, b) => b.stats.lengthMetres - a.stats.lengthMetres);
-    return substitutionLayouts;
+    return rankLayoutsForTrack(substitutionLayouts, trackName);
   }
 
   return [];
@@ -1258,7 +1363,7 @@ export function buildLayoutsFromWays(ways, trackName) {
   const variantLayouts = buildVariantLayouts(ways, graph, sections, trackName, variantBackbone);
 
   if (variantLayouts.length > 1) {
-    return variantLayouts.slice(0, 8).map(({ area, ...layout }) => layout);
+    return rankLayoutsForTrack(variantLayouts.slice(0, 8), trackName).map(({ area, ...layout }) => layout);
   }
 
   const singleLayout = variantBackbone
@@ -1295,14 +1400,32 @@ const PIT_PATTERN = /pit[\s\-_]*lane|pit[\s\-_]*road|pitlane|pitroad|support[\s\
 function extractOverpassWays(elements) {
   const waysById = new Map();
 
+  function mergeRelationTags(existingTags, relationTags) {
+    const relationNames = [...new Set([
+      ...(Array.isArray(existingTags?.relationNames) ? existingTags.relationNames : []),
+      relationTags?.name,
+    ].map(name => name?.trim()).filter(Boolean))];
+
+    return {
+      ...(relationTags ?? {}),
+      ...(existingTags ?? {}),
+      ...(relationNames.length > 0 ? { relationNames } : {}),
+    };
+  }
+
   function addWay(id, tags, geometry, overwrite = false) {
-    if (!Number.isFinite(id) || !Array.isArray(geometry) || geometry.length < 2 || (waysById.has(id) && !overwrite)) {
+    if (!Number.isFinite(id) || !Array.isArray(geometry) || geometry.length < 2) {
+      return;
+    }
+
+    const existing = waysById.get(id);
+    if (existing && !overwrite) {
       return;
     }
 
     waysById.set(id, {
       id,
-      tags: tags ?? {},
+      tags: overwrite ? mergeRelationTags(existing?.tags, tags) : (tags ?? {}),
       nodes: geometry.map(({ lat: wayLat, lon: wayLon }) => ({ lat: wayLat, lon: wayLon })),
     });
   }
@@ -1332,29 +1455,16 @@ function extractOverpassWays(elements) {
 function collectOsmVenueNames(ways) {
   return [...new Set(
     ways
-      .map(way => way.tags?.name)
-      .map(name => name?.trim())
+      .flatMap(way => getWayCandidateNames(way))
       .filter(Boolean),
   )].sort((a, b) => a.localeCompare(b));
 }
 
-// Fetch raceway geometry using Overpass bbox query around Wikidata P625 coordinates.
-// Much more reliable than P402 (stale OSM relation IDs) or name searches (timeouts).
-export async function fetchTrackGeometry(lat, lon, signal, trackName) {
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    throw new Error('No coordinates available for this circuit');
-  }
-
-  // ~9km margin — covers any F1 circuit layout but avoids pulling in distant tracks
-  const MARGIN = 0.08;
-  const bbox = `${lat - MARGIN},${lon - MARGIN},${lat + MARGIN},${lon + MARGIN}`;
-  const query = `[out:json][timeout:30];(way["highway"="raceway"](${bbox});relation["highway"="raceway"](${bbox});relation["type"="circuit"](${bbox}););out geom;`;
-
-  const data = await runOverpassQuery(query, signal);
-  const ways = extractOverpassWays(data.elements || []);
+function buildTrackGeometryResult(elements, trackName) {
+  const ways = extractOverpassWays(elements || []);
 
   if (ways.length === 0) {
-    throw new Error(`No raceway found near ${trackName ?? 'this location'}`);
+    return null;
   }
 
   // Exclude pit lanes and service roads — but NOT straights that merely contain "pit"
@@ -1364,13 +1474,15 @@ export async function fetchTrackGeometry(lat, lon, signal, trackName) {
     return !PIT_PATTERN.test(name);
   });
   const racingWays = mainWays.length > 0 ? mainWays : ways; // fallback if over-filtered
+  const motorWays = racingWays.filter(way => {
+    const sport = String(way.tags?.sport ?? '').trim().toLowerCase();
+    return !sport || sport === 'motor';
+  });
+  const filteredWays = motorWays.length > 0 ? motorWays : racingWays;
 
-  const componentWays = selectBestComponentWays(racingWays, trackName);
+  const componentWays = selectBestComponentWays(filteredWays, trackName);
   const osmVenueNames = collectOsmVenueNames(componentWays);
 
-  // Pre-pass: if the component contains multiple explicitly-named distinct circuits
-  // (e.g. Bahrain's "Grand Prix Circuit", "Inner Circuit", "Endurance Circuit"),
-  // offer each as a named layout before falling through to fork-based detection.
   const namedLayouts = buildNamedCircuitLayouts(componentWays, trackName);
   if (namedLayouts.length > 1) {
     return { layouts: namedLayouts, selectedLayoutIndex: 0, osmVenueNames };
@@ -1395,8 +1507,32 @@ export async function fetchTrackGeometry(lat, lon, signal, trackName) {
   }
 
   return {
-    layouts,
+    layouts: rankLayoutsForTrack(layouts, trackName),
     selectedLayoutIndex: 0,
     osmVenueNames,
   };
+}
+
+// Fetch raceway geometry using Overpass bbox query around Wikidata P625 coordinates.
+// Much more reliable than P402 (stale OSM relation IDs) or name searches (timeouts).
+export async function fetchTrackGeometry(lat, lon, signal, trackName) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    throw new Error('No coordinates available for this circuit');
+  }
+
+  // ~9km margin — covers any F1 circuit layout but avoids pulling in distant tracks
+  const MARGIN = 0.08;
+  const bbox = `${lat - MARGIN},${lon - MARGIN},${lat + MARGIN},${lon + MARGIN}`;
+  const query = `[out:json][timeout:30];(way["highway"="raceway"](${bbox});relation["highway"="raceway"](${bbox});relation["type"="circuit"](${bbox}););out geom;`;
+
+  const queryResults = await runOverpassQueries(query, signal);
+  const geometryResults = queryResults
+    .map(({ data }) => buildTrackGeometryResult(data.elements, trackName))
+    .filter(Boolean);
+
+  if (geometryResults.length === 0) {
+    throw new Error(`No raceway found near ${trackName ?? 'this location'}`);
+  }
+
+  return geometryResults.sort((a, b) => scoreGeometryResult(b, trackName) - scoreGeometryResult(a, trackName))[0];
 }

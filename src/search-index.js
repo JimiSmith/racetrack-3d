@@ -49,12 +49,14 @@ export function buildTrackDisplayName({ label, city, country }) {
 export function buildTrackSearchEntry(record) {
   const label = collapseWhitespace(String(record?.label ?? ''));
   const aliases = dedupeStrings((record?.aliases ?? []).map(alias => collapseWhitespace(String(alias ?? ''))).filter(Boolean));
+  const shortName = collapseWhitespace(String(record?.wikidataShortName ?? '')) || null;
   const country = collapseWhitespace(String(record?.country ?? '')) || null;
   const city = collapseWhitespace(String(record?.city ?? '')) || null;
 
   const normalized = {
     label: normalizeSearchText(label),
     aliases: normalizeStringArray(aliases),
+    shortName: normalizeSearchText(shortName),
     city: normalizeSearchText(city),
     country: normalizeSearchText(country),
   };
@@ -62,6 +64,7 @@ export function buildTrackSearchEntry(record) {
   const phrases = dedupeStrings([
     normalized.label,
     ...normalized.aliases,
+    normalized.shortName,
     normalized.city,
     normalized.country,
   ]);
@@ -91,7 +94,7 @@ export function buildTrackSearchEntry(record) {
     city,
     lat: record.lat,
     lon: record.lon,
-    wikidataShortName: record.wikidataShortName ?? null,
+    wikidataShortName: shortName,
     normalized,
     tokens,
     phrases,
@@ -132,6 +135,7 @@ function scoreTrackSearchEntry(entry, normalizedQuery, queryTokens) {
   const normalized = entry.normalized ?? {};
   const label = normalized.label ?? '';
   const aliases = normalized.aliases ?? [];
+  const shortName = normalized.shortName ?? '';
   const city = normalized.city ?? '';
   const country = normalized.country ?? '';
   const phrases = entry.phrases ?? [];
@@ -146,6 +150,9 @@ function scoreTrackSearchEntry(entry, normalizedQuery, queryTokens) {
   } else if (aliases.includes(normalizedQuery)) {
     score = 4700;
     matchCategory = 'exact-alias';
+  } else if (shortName && shortName === normalizedQuery) {
+    score = 4550;
+    matchCategory = 'exact-short-name';
   } else if (city && city === normalizedQuery) {
     score = 4300;
     matchCategory = 'exact-city';
@@ -158,6 +165,9 @@ function scoreTrackSearchEntry(entry, normalizedQuery, queryTokens) {
   } else if (aliases.some(alias => alias.startsWith(normalizedQuery))) {
     score = 3350;
     matchCategory = 'prefix-alias';
+  } else if (shortName && shortName.startsWith(normalizedQuery)) {
+    score = 3825;
+    matchCategory = 'prefix-short-name';
   } else if (phrases.some(phrase => phrase.startsWith(normalizedQuery))) {
     score = 3100;
     matchCategory = 'prefix-phrase';
@@ -178,9 +188,11 @@ function scoreTrackSearchEntry(entry, normalizedQuery, queryTokens) {
 
   const labelTokens = tokenizeNormalizedText(label);
   const aliasTokens = aliases.flatMap(tokenizeNormalizedText);
+  const shortNameTokens = tokenizeNormalizedText(shortName);
   const locationTokens = [...tokenizeNormalizedText(city), ...tokenizeNormalizedText(country)];
   const labelTokenOverlap = scoreTokenOverlap(queryTokens, labelTokens);
   const aliasTokenOverlap = scoreTokenOverlap(queryTokens, aliasTokens);
+  const shortNameTokenOverlap = scoreTokenOverlap(queryTokens, shortNameTokens);
   const locationTokenOverlap = scoreTokenOverlap(queryTokens, locationTokens);
 
   if (labelTokenOverlap?.coversAllTokens) {
@@ -188,6 +200,9 @@ function scoreTrackSearchEntry(entry, normalizedQuery, queryTokens) {
   }
   if (aliasTokenOverlap?.coversAllTokens) {
     score += 180;
+  }
+  if (shortNameTokenOverlap?.coversAllTokens) {
+    score += 240;
   }
   if (locationTokenOverlap?.coversAllTokens) {
     score += 80;
@@ -198,10 +213,17 @@ function scoreTrackSearchEntry(entry, normalizedQuery, queryTokens) {
   }
 
   if (VENUE_NAME_PATTERN.test(entry.label ?? '')) {
-    score += 30;
+    score += 120;
   }
   if (LAYOUT_VARIANT_PATTERN.test(entry.label ?? '')) {
     score -= 260;
+  }
+  if (entry.type === 'street circuit') {
+    score += 60;
+  }
+
+  if (matchCategory === 'exact-city' && labelTokenOverlap?.coversAllTokens && !VENUE_NAME_PATTERN.test(entry.label ?? '')) {
+    score -= 420;
   }
 
   score -= Math.max(0, (entry.labelWordCount ?? 0) - 4) * 12;

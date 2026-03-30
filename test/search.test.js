@@ -234,6 +234,7 @@ test('buildTrackSearchEntry keeps normalized label alias city and country materi
     wikidataId: 'Q173099',
     label: 'Autodromo Hermanos Rodriguez',
     aliases: ['Rodriguez Brothers Autodrome'],
+    wikidataShortName: 'Mexico GP',
     description: 'motorsport track in Mexico',
     type: 'motorsport racing track',
     country: 'Mexico',
@@ -244,6 +245,7 @@ test('buildTrackSearchEntry keeps normalized label alias city and country materi
 
   assert.equal(entry.normalized.label, 'autodromo hermanos rodriguez');
   assert.deepEqual(entry.normalized.aliases, ['rodriguez brothers autodrome']);
+  assert.equal(entry.normalized.shortName, 'mexico gp');
   assert.equal(entry.normalized.city, 'mexico city');
   assert.equal(entry.normalized.country, 'mexico');
   assert.ok(entry.tokens.includes('mexico'));
@@ -320,6 +322,106 @@ test('searchLocalTrackIndex uses city and country phrases for recall', () => {
   assert.equal(countryResults[0].displayName, 'Autodromo Hermanos Rodriguez - Mexico City, Mexico');
 });
 
+test('searchLocalTrackIndex promotes short names, city venue matches, and street-circuit ties for current F1 venues', () => {
+  const index = [
+    makeIndexedTrack({
+      wikidataId: 'QSHANGHAI',
+      label: 'Shanghai International Circuit',
+      aliases: [],
+      wikidataShortName: 'Shanghai',
+      description: 'motorsport racing track in China',
+      type: 'motorsport racing track',
+      country: 'People\'s Republic of China',
+      city: 'Jiading',
+      lat: 31.3389,
+      lon: 121.2197,
+    }),
+    makeIndexedTrack({
+      wikidataId: 'QSHANGHAI_STREET',
+      label: 'Shanghai Street Circuit',
+      aliases: [],
+      description: 'street circuit in China',
+      type: 'street circuit',
+      country: 'People\'s Republic of China',
+      city: null,
+      lat: 31.23,
+      lon: 121.47,
+    }),
+    makeIndexedTrack({
+      wikidataId: 'QBARCELONA',
+      label: 'Circuit de Barcelona-Catalunya',
+      aliases: ['Circuit de Barcelona'],
+      wikidataShortName: 'Barcelona-Catalunya',
+      description: 'motorsport racing track in Spain',
+      type: 'motorsport racing track',
+      country: 'Spain',
+      city: 'Montmelo',
+      lat: 41.57,
+      lon: 2.261,
+    }),
+    makeIndexedTrack({
+      wikidataId: 'QMONTJUIC',
+      label: 'Montjuic circuit',
+      aliases: [],
+      description: 'street circuit in Spain',
+      type: 'street circuit',
+      country: 'Spain',
+      city: 'Barcelona',
+      lat: 41.36,
+      lon: 2.15,
+    }),
+    makeIndexedTrack({
+      wikidataId: 'QAUSTIN_F1',
+      label: 'Circuit of the Americas',
+      aliases: ['COTA'],
+      description: 'motorsport racing track in the United States',
+      type: 'motorsport racing track',
+      country: 'United States',
+      city: 'Austin',
+      lat: 30.1328,
+      lon: -97.6411,
+    }),
+    makeIndexedTrack({
+      wikidataId: 'QDRIVEWAY',
+      label: 'Driveway Austin',
+      aliases: ['The Driveway'],
+      description: 'motorsport racing track in the United States',
+      type: 'motorsport racing track',
+      country: 'United States',
+      city: 'Austin',
+      lat: 30.37,
+      lon: -97.72,
+    }),
+    makeIndexedTrack({
+      wikidataId: 'QLV_STRIP',
+      label: 'Las Vegas Strip Circuit',
+      aliases: [],
+      description: 'street circuit in the United States',
+      type: 'street circuit',
+      country: 'United States',
+      city: 'Paradise',
+      lat: 36.1162,
+      lon: -115.1741,
+    }),
+    makeIndexedTrack({
+      wikidataId: 'QLV_PARK',
+      label: 'Las Vegas Park Speedway',
+      aliases: [],
+      description: 'motorsport racing track in the United States',
+      type: 'motorsport racing track',
+      country: 'United States',
+      city: 'Nevada',
+      lat: 36.17,
+      lon: -115.14,
+    }),
+  ];
+
+  assert.equal(searchLocalTrackIndex('Shanghai', index)[0].wikidataId, 'QSHANGHAI');
+  assert.equal(searchLocalTrackIndex('Barcelona', index)[0].wikidataId, 'QBARCELONA');
+  assert.equal(searchLocalTrackIndex('Austin', index)[0].wikidataId, 'QAUSTIN_F1');
+  assert.equal(searchLocalTrackIndex('Las Vegas', index)[0].wikidataId, 'QLV_STRIP');
+});
+
 test('searchTracks uses the shipped local search index and returns compatible fields', async () => {
   const results = await searchTracks('monaco');
 
@@ -364,25 +466,72 @@ test('fetchTrackGeometry returns named Bahrain layouts from frozen fixture data'
     fetchTrackGeometry(26.0325, 50.5106, undefined, 'Bahrain International Circuit'));
 
   assert.equal(result.selectedLayoutIndex, 0);
-  assertLayoutNames(result.layouts, ['Endurance Circuit', 'Grand Prix Circuit', 'Inner Circuit']);
+  assertLayoutNames(result.layouts, ['Grand Prix Circuit', 'Endurance Circuit', 'Inner Circuit']);
   result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 1 }));
   expectDistinctLayouts(result.layouts[0], result.layouts[1]);
   expectDistinctLayouts(result.layouts[0], result.layouts[2]);
   expectDistinctLayouts(result.layouts[1], result.layouts[2]);
 });
 
+test('fetchTrackGeometry restores Mexico City grand prix geometry from frozen fixture data', async () => {
+  const fixture = loadFixture('mexico-city.json');
+
+  const result = await withMockedFetch(fixture, () =>
+    fetchTrackGeometry(19.4042, -99.0907, undefined, 'Autódromo Hermanos Rodríguez'));
+
+  assert.equal(result.selectedLayoutIndex, 0);
+  assert.equal(result.layouts[0].name, 'Main');
+  assertLayoutInvariants(result.layouts[0], { maxGapMeters: 120 });
+  expectApproxLength(result.layouts[0].nodes, 4.7, 0.4);
+  assert.ok(result.osmVenueNames.includes('Autódromo Hermanos Rodríguez'));
+  assert.ok(result.osmVenueNames.includes('Mexican Grand Prix'));
+});
+
+test('fetchTrackGeometry avoids Monaco mini-loops and keeps the full street circuit', async () => {
+  const fixture = loadFixture('monaco.json');
+
+  const result = await withMockedFetch(fixture, () =>
+    fetchTrackGeometry(43.7347, 7.4206, undefined, 'Circuit de Monaco'));
+
+  assert.equal(result.selectedLayoutIndex, 0);
+  assert.equal(result.layouts[0].name, 'Main');
+  assertLayoutInvariants(result.layouts[0], { maxGapMeters: 400 });
+  expectApproxLength(result.layouts[0].nodes, 3.3, 0.3);
+});
+
+test('fetchTrackGeometry keeps the current Monza road course from frozen fixture data', async () => {
+  const fixture = loadFixture('monza.json');
+
+  const result = await withMockedFetch(fixture, () =>
+    fetchTrackGeometry(45.6213, 9.2812, undefined, 'Autodromo Nazionale Monza'));
+
+  assert.equal(result.selectedLayoutIndex, 0);
+  assertLayoutInvariants(result.layouts[0], { maxGapMeters: 120 });
+  expectApproxLength(result.layouts[0].nodes, 5.8, 0.3);
+});
+
+test('fetchTrackGeometry keeps the current Zandvoort grand prix circuit from frozen fixture data', async () => {
+  const fixture = loadFixture('zandvoort.json');
+
+  const result = await withMockedFetch(fixture, () =>
+    fetchTrackGeometry(52.3888, 4.5409, undefined, 'Circuit Zandvoort'));
+
+  assert.equal(result.selectedLayoutIndex, 0);
+  assertLayoutInvariants(result.layouts[0], { maxGapMeters: 120 });
+  expectApproxLength(result.layouts[0].nodes, 4.3, 0.3);
+  assert.ok(/Grand Prix|Circuit Zandvoort/.test(result.layouts[0].name));
+});
+
 test('named-circuit detection distinguishes Bahrain standalone layouts from Spa branch alternates', async () => {
   const bahrain = loadFixture('bahrain.json');
   const spa = loadFixture('spa.json');
 
-  const [bahrainResult, spaResult] = await Promise.all([
-    withMockedFetch(bahrain, () =>
-      fetchTrackGeometry(26.0325, 50.5106, undefined, 'Bahrain International Circuit')),
-    withMockedFetch(spa, () =>
-      fetchTrackGeometry(50.4372, 5.9714, undefined, 'Circuit de Spa-Francorchamps')),
-  ]);
+  const bahrainResult = await withMockedFetch(bahrain, () =>
+    fetchTrackGeometry(26.0325, 50.5106, undefined, 'Bahrain International Circuit'));
+  const spaResult = await withMockedFetch(spa, () =>
+    fetchTrackGeometry(50.4372, 5.9714, undefined, 'Circuit de Spa-Francorchamps'));
 
-  assertLayoutNames(bahrainResult.layouts, ['Endurance Circuit', 'Grand Prix Circuit', 'Inner Circuit']);
+  assertLayoutNames(bahrainResult.layouts, ['Grand Prix Circuit', 'Endurance Circuit', 'Inner Circuit']);
   assertLayoutNames(spaResult.layouts, ['Main', 'Moto']);
   bahrainResult.layouts.forEach(layout => assert.equal(layout.stats.variantSectionCount, 0));
   assert.equal(spaResult.layouts[0].stats.variantSectionCount, 0);
@@ -504,11 +653,69 @@ test('fetchTrackGeometry falls back to the next Overpass endpoint when the first
   }, async () => {
     const result = await fetchTrackGeometry(0, 0, undefined, 'Fallback Circuit');
 
-    assert.equal(calls.length, 2);
+    assert.equal(calls.length, 3);
     assert.match(calls[0], /overpass-api\.de/);
     assert.match(calls[1], /overpass\.kumi\.systems/);
+    assert.match(calls[2], /overpass\.private\.coffee/);
     assert.equal(result.layouts.length, 1);
     assert.equal(result.layouts[0].name, 'Main');
+  });
+});
+
+test('fetchTrackGeometry compares successful Overpass responses and keeps the stronger geometry', async () => {
+  const shortPayload = {
+    elements: [
+      {
+        type: 'way',
+        id: 1,
+        tags: { name: 'Endpoint Circuit', highway: 'raceway', sport: 'motor' },
+        geometry: [n(0, 0), n(0, 0.02), n(0.02, 0), n(0, 0)],
+      },
+    ],
+  };
+  const longPayload = {
+    elements: [
+      {
+        type: 'way',
+        id: 1,
+        tags: { name: 'Endpoint Circuit', highway: 'raceway', sport: 'motor' },
+        geometry: [n(0, 0), n(0, 0.02)],
+      },
+      {
+        type: 'way',
+        id: 2,
+        tags: { name: 'Endpoint Circuit', highway: 'raceway', sport: 'motor' },
+        geometry: [n(0, 0.02), n(0.02, 0.02)],
+      },
+      {
+        type: 'way',
+        id: 3,
+        tags: { name: 'Endpoint Circuit', highway: 'raceway', sport: 'motor' },
+        geometry: [n(0.02, 0.02), n(0.02, 0)],
+      },
+      {
+        type: 'way',
+        id: 4,
+        tags: { name: 'Endpoint Circuit', highway: 'raceway', sport: 'motor' },
+        geometry: [n(0.02, 0), n(0, 0)],
+      },
+    ],
+  };
+  const payloads = [shortPayload, longPayload, shortPayload];
+  let callIndex = 0;
+
+  await withFetchMock(async () => ({
+    ok: true,
+    status: 200,
+    headers: new Headers({ 'content-type': 'application/json' }),
+    async json() {
+      return payloads[callIndex++] ?? shortPayload;
+    },
+  }), async () => {
+    const result = await fetchTrackGeometry(0, 0, undefined, 'Endpoint Circuit');
+
+    assert.equal(result.layouts.length, 1);
+    assert.ok(result.layouts[0].stats.lengthMetres > 8000);
   });
 });
 
