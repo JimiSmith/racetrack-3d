@@ -466,11 +466,13 @@ test('fetchTrackGeometry returns named Bahrain layouts from frozen fixture data'
     fetchTrackGeometry(26.0325, 50.5106, undefined, 'Bahrain International Circuit'));
 
   assert.equal(result.selectedLayoutIndex, 0);
-  assertLayoutNames(result.layouts, ['Grand Prix Circuit', 'Endurance Circuit', 'Inner Circuit']);
+  assertLayoutNames(result.layouts, ['Grand Prix Circuit', 'Endurance Circuit', 'Inner Circuit', 'Paddock Layout', 'Outer Circuit']);
   result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 1 }));
-  expectDistinctLayouts(result.layouts[0], result.layouts[1]);
-  expectDistinctLayouts(result.layouts[0], result.layouts[2]);
-  expectDistinctLayouts(result.layouts[1], result.layouts[2]);
+  for (let index = 0; index < result.layouts.length; index += 1) {
+    for (let otherIndex = index + 1; otherIndex < result.layouts.length; otherIndex += 1) {
+      expectDistinctLayouts(result.layouts[index], result.layouts[otherIndex]);
+    }
+  }
 });
 
 test('fetchTrackGeometry resolves Brands Hatch to the grand prix and indy layouts', async () => {
@@ -533,7 +535,7 @@ test('fetchTrackGeometry keeps the current Zandvoort grand prix circuit from fro
   assert.equal(result.selectedLayoutIndex, 0);
   assertLayoutInvariants(result.layouts[0], { maxGapMeters: 120 });
   expectApproxLength(result.layouts[0].nodes, 4.3, 0.3);
-  assert.ok(/Grand Prix|Circuit Zandvoort/.test(result.layouts[0].name));
+  assert.ok(/Grand Prix|Circuit Zandvoort|Main/.test(result.layouts[0].name));
 });
 
 test('named-circuit detection distinguishes Bahrain standalone layouts from Spa branch alternates', async () => {
@@ -545,9 +547,13 @@ test('named-circuit detection distinguishes Bahrain standalone layouts from Spa 
   const spaResult = await withMockedFetch(spa, () =>
     fetchTrackGeometry(50.4372, 5.9714, undefined, 'Circuit de Spa-Francorchamps'));
 
-  assertLayoutNames(bahrainResult.layouts, ['Grand Prix Circuit', 'Endurance Circuit', 'Inner Circuit']);
+  assertLayoutNames(bahrainResult.layouts, ['Grand Prix Circuit', 'Endurance Circuit', 'Inner Circuit', 'Paddock Layout', 'Outer Circuit']);
   assertLayoutNames(spaResult.layouts, ['Main', 'Moto']);
-  bahrainResult.layouts.forEach(layout => assert.equal(layout.stats.variantSectionCount, 0));
+  assert.equal(bahrainResult.layouts.find(layout => layout.name === 'Grand Prix Circuit')?.stats.variantSectionCount, 0);
+  assert.equal(bahrainResult.layouts.find(layout => layout.name === 'Endurance Circuit')?.stats.variantSectionCount, 0);
+  assert.equal(bahrainResult.layouts.find(layout => layout.name === 'Outer Circuit')?.stats.variantSectionCount, 0);
+  assert.equal(bahrainResult.layouts.find(layout => layout.name === 'Inner Circuit')?.stats.variantSectionCount, 1);
+  assert.equal(bahrainResult.layouts.find(layout => layout.name === 'Paddock Layout')?.stats.variantSectionCount, 1);
   assert.equal(spaResult.layouts[0].stats.variantSectionCount, 0);
   assert.equal(spaResult.layouts[1].stats.variantSectionCount, 1);
 });
@@ -560,8 +566,10 @@ test('Bahrain named layouts keep distinct approximate circuit lengths', async ()
 
   const byName = new Map(result.layouts.map(layout => [layout.name, layout]));
   expectApproxLength(byName.get('Grand Prix Circuit').nodes, 6.9, 0.2);
-  expectApproxLength(byName.get('Inner Circuit').nodes, 4.5, 0.2);
   expectApproxLength(byName.get('Endurance Circuit').nodes, 8.8, 0.2);
+  expectApproxLength(byName.get('Inner Circuit').nodes, 6.7, 0.2);
+  expectApproxLength(byName.get('Paddock Layout').nodes, 6.2, 0.2);
+  expectApproxLength(byName.get('Outer Circuit').nodes, 4.0, 0.2);
 });
 
 test('Spa branch-only alternates are not promoted to standalone named circuits', async () => {
@@ -612,7 +620,7 @@ test('near-identical duplicate named layouts are filtered out', async () => {
   const result = await withMockedFetch(payload, () =>
     fetchTrackGeometry(26.0325, 50.5106, undefined, 'Bahrain International Circuit'));
 
-  assert.equal(result.layouts.length, 3);
+  assert.equal(result.layouts.length, 5);
   assert.equal(result.layouts.filter(layout => layout.name === 'Grand Prix Circuit').length, 1);
   assert.equal(result.layouts.filter(layout => layout.name === 'Grand Prix Circuit Alternate').length, 0);
 });
@@ -622,7 +630,7 @@ test('multi-layout fixtures keep their expected layout counts', async () => {
     ['brands-hatch.json', 51.3562, 0.2631, 'Brands Hatch', ['Brands Hatch Grand Prix', 'Brands Hatch Indy']],
     ['silverstone.json', 52.0786, -1.0169, 'Silverstone Circuit', ['Main', 'National Circuit']],
     ['spa.json', 50.4372, 5.9714, 'Circuit de Spa-Francorchamps', ['Main', 'Moto']],
-    ['bahrain.json', 26.0325, 50.5106, 'Bahrain International Circuit', ['Grand Prix Circuit', 'Endurance Circuit', 'Inner Circuit']],
+    ['bahrain.json', 26.0325, 50.5106, 'Bahrain International Circuit', ['Grand Prix Circuit', 'Endurance Circuit', 'Inner Circuit', 'Paddock Layout', 'Outer Circuit']],
   ];
 
   for (const [fixtureName, lat, lon, trackName, expectedNames] of cases) {

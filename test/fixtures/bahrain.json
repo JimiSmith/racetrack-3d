@@ -42,12 +42,21 @@
       "tags": { "name": "Grand Prix Circuit" },
       "geometry": [
         { "lat": 26.0325, "lon": 50.5106 },
-        { "lat": 26.0325, "lon": 50.53 }
+        { "lat": 26.0325, "lon": 50.52 }
       ]
     },
     {
       "type": "way",
       "id": 306,
+      "tags": { "name": "Grand Prix Circuit" },
+      "geometry": [
+        { "lat": 26.0325, "lon": 50.52 },
+        { "lat": 26.0325, "lon": 50.53 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 307,
       "tags": { "name": "Grand Prix Circuit" },
       "geometry": [
         { "lat": 26.0325, "lon": 50.53 },
@@ -56,7 +65,7 @@
     },
     {
       "type": "way",
-      "id": 307,
+      "id": 308,
       "tags": { "name": "Grand Prix Circuit" },
       "geometry": [
         { "lat": 26.046, "lon": 50.53 },
@@ -65,7 +74,7 @@
     },
     {
       "type": "way",
-      "id": 308,
+      "id": 309,
       "tags": { "name": "Grand Prix Circuit" },
       "geometry": [
         { "lat": 26.046, "lon": 50.5106 },
@@ -74,38 +83,149 @@
     },
     {
       "type": "way",
-      "id": 309,
-      "tags": { "name": "Inner Circuit" },
+      "id": 310,
+      "tags": { "name": "Outer Circuit" },
       "geometry": [
         { "lat": 26.0325, "lon": 50.5106 },
-        { "lat": 26.0325, "lon": 50.523 }
-      ]
-    },
-    {
-      "type": "way",
-      "id": 310,
-      "tags": { "name": "Inner Circuit" },
-      "geometry": [
-        { "lat": 26.0325, "lon": 50.523 },
-        { "lat": 26.0415, "lon": 50.523 }
+        { "lat": 26.0325, "lon": 50.5202 }
       ]
     },
     {
       "type": "way",
       "id": 311,
-      "tags": { "name": "Inner Circuit" },
+      "tags": { "name": "Outer Circuit" },
       "geometry": [
-        { "lat": 26.0415, "lon": 50.523 },
-        { "lat": 26.0415, "lon": 50.5106 }
+        { "lat": 26.0325, "lon": 50.5202 },
+        { "lat": 26.042, "lon": 50.5202 }
       ]
     },
     {
       "type": "way",
       "id": 312,
+      "tags": { "name": "Outer Circuit" },
+      "geometry": [
+        { "lat": 26.042, "lon": 50.5202 },
+        { "lat": 26.042, "lon": 50.5106 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 313,
+      "tags": { "name": "Outer Circuit" },
+      "geometry": [
+        { "lat": 26.042, "lon": 50.5106 },
+        { "lat": 26.0325, "lon": 50.5106 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 314,
       "tags": { "name": "Inner Circuit" },
       "geometry": [
-        { "lat": 26.0415, "lon": 50.5106 },
-        { "lat": 26.0325, "lon": 50.5106 }
+        { "lat": 26.0325, "lon": 50.52 },
+        { "lat": 26.0405, "lon": 50.5228 },
+        { "lat": 26.046, "lon": 50.5106 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 315,
+      "tags": { "name": "Paddock Layout" },
+      "geometry": [
+        { "lat": 26.0325, "lon": 50.52 },
+        { "lat": 26.0375, "lon": 50.5165 },
+        { "lat": 26.046, "lon": 50.5106 }
+      ]
+    },
+    {
+      "type": "relation",
+      "id": 11987742,
+      "tags": { "name": "Bahrain Outer Circuit", "type": "circuit" },
+      "members": [
+        {
+          "type": "way",
+          "ref": 310,
+          "role": "",
+          "geometry": [
+            { "lat": 26.0325, "lon": 50.5106 },
+            { "lat": 26.0325, "lon": 50.5202 }
+          ]
+        },
+        {
+          "type": "way",
+          "ref": 311,
+          "role": "",
+          "geometry": [
+            { "lat": 26.0325, "lon": 50.5202 },
+            { "lat": 26.042, "lon": 50.5202 }
+          ]
+        },
+        {
+          "type": "way",
+          "ref": 312,
+          "role": "",
+          "geometry": [
+            { "lat": 26.042, "lon": 50.5202 },
+            { "lat": 26.042, "lon": 50.5106 }
+          ]
+        },
+        {
+          "type": "way",
+          "ref": 313,
+          "role": "",
+          "geometry": [
+            { "lat": 26.042, "lon": 50.5106 },
+            { "lat": 26.0325, "lon": 50.5106 }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "relation",
+      "id": 11987743,
+      "tags": {
+        "highway": "raceway",
+        "name": "Bahrain International Circuit",
+        "sport": "motor",
+        "type": "circuit"
+      },
+      "members": [
+        {
+          "type": "way",
+          "ref": 301,
+          "role": "",
+          "geometry": [
+            { "lat": 26.0325, "lon": 50.5106 },
+            { "lat": 26.0325, "lon": 50.535 }
+          ]
+        },
+        {
+          "type": "way",
+          "ref": 302,
+          "role": "",
+          "geometry": [
+            { "lat": 26.0325, "lon": 50.535 },
+            { "lat": 26.05, "lon": 50.535 }
+          ]
+        },
+        {
+          "type": "way",
+          "ref": 303,
+          "role": "",
+          "geometry": [
+            { "lat": 26.05, "lon": 50.535 },
+            { "lat": 26.05, "lon": 50.5106 }
+          ]
+        },
+        {
+          "type": "way",
+          "ref": 304,
+          "role": "",
+          "geometry": [
+            { "lat": 26.05, "lon": 50.5106 },
+            { "lat": 26.0325, "lon": 50.5106 }
+          ]
+        }
       ]
     }
   ]

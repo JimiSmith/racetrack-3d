@@ -480,15 +480,36 @@ function namesLikelyMatchCircuit(candidateName, trackName) {
     || trackKey.includes(candidateKey);
 }
 
-function getWayCandidateNames(way) {
+const NAMED_LAYOUT_KEYWORD_PATTERN = /\b(circuit|layout|oval|grand[\s_-]*prix|indy|national|endurance|inner|outer|short)\b/i;
+
+function getWayCandidateNameEntries(way) {
+  const entries = [];
+  const seenNames = new Set();
+
+  const wayName = way?.tags?.name?.trim();
+  if (wayName) {
+    seenNames.add(wayName);
+    entries.push({ name: wayName, source: 'way' });
+  }
+
   const relationNames = Array.isArray(way?.tags?.relationNames)
     ? way.tags.relationNames
     : [];
+  for (const relationName of relationNames) {
+    const trimmedName = relationName?.trim();
+    if (!trimmedName || seenNames.has(trimmedName)) {
+      continue;
+    }
 
-  return [...new Set([
-    way?.tags?.name,
-    ...relationNames,
-  ].map(name => name?.trim()).filter(Boolean))];
+    seenNames.add(trimmedName);
+    entries.push({ name: trimmedName, source: 'relation' });
+  }
+
+  return entries;
+}
+
+function getWayCandidateNames(way) {
+  return getWayCandidateNameEntries(way).map(({ name }) => name);
 }
 
 function wayLikelyMatchesCircuit(way, trackName) {
@@ -596,7 +617,7 @@ function buildWeightedNames(edgeIds, graph, trackName) {
 }
 
 const PRIMARY_LAYOUT_PATTERN = /\b(main|grand[\s_-]*prix)\b/i;
-const SECONDARY_LAYOUT_PATTERN = /\b(alternate|alternative|club|corkscrew|endurance|formula\s*e|e[\s_-]*prix|inner|joker|kart|moto|national|outer|rallycross|short)\b/i;
+const SECONDARY_LAYOUT_PATTERN = /\b(alternate|alternative|club|corkscrew|endurance|formula\s*e|e[\s_-]*prix|flat|inner|joker|kart|moto|national|outer|oval|paddock|rallycross|short|test)\b/i;
 
 function scoreLayoutChoice(layout, trackName) {
   const name = layout?.name?.trim() ?? '';
@@ -621,6 +642,11 @@ function scoreLayoutChoice(layout, trackName) {
 
 function rankLayoutsForTrack(layouts, trackName) {
   return [...layouts].sort((a, b) => {
+    const sourceRankDelta = (b?.nameSourceRank ?? 0) - (a?.nameSourceRank ?? 0);
+    if (sourceRankDelta !== 0) {
+      return sourceRankDelta;
+    }
+
     const scoreDelta = scoreLayoutChoice(b, trackName) - scoreLayoutChoice(a, trackName);
     if (Math.abs(scoreDelta) > 1) {
       return scoreDelta;
@@ -636,6 +662,11 @@ function rankLayoutsForTrack(layouts, trackName) {
 }
 
 function compareLayoutsForTrack(trackName, a, b) {
+  const sourceRankDelta = (b?.nameSourceRank ?? 0) - (a?.nameSourceRank ?? 0);
+  if (sourceRankDelta !== 0) {
+    return sourceRankDelta;
+  }
+
   const scoreDelta = scoreLayoutChoice(b, trackName) - scoreLayoutChoice(a, trackName);
   if (Math.abs(scoreDelta) > 1) {
     return scoreDelta;
@@ -1103,6 +1134,20 @@ function buildNamedGroupChain(namedWays) {
   return dedupeSequentialNodes(stitchWaysOrdered(namedWays));
 }
 
+function isWaySetNearReference(namedWays, referenceNodes, maxDistance = SNAP_FUZZY * 8) {
+  if (!namedWays.length || !referenceNodes?.length) {
+    return false;
+  }
+
+  const candidate = buildCandidateFromWays(namedWays);
+  if (!candidate?.nodes?.length) {
+    return false;
+  }
+
+  return sampleChainNodes(candidate.nodes, 12)
+    .some(node => findClosestNodePositions(referenceNodes, node, maxDistance, 1).length > 0);
+}
+
 function sampleChainNodes(nodes, sampleCount = 24) {
   const baseNodes = nodes.length > 1 ? nodes.slice(0, -1) : nodes;
   if (baseNodes.length <= sampleCount) {
@@ -1153,6 +1198,154 @@ function dedupeLayoutsByGeometry(layouts, trackName) {
   return dedupedLayouts;
 }
 
+function resolveGenericRelationLayoutNames(layouts, trackName) {
+  const seenLayoutNames = new Set(layouts.map(layout => normalizeCircuitName(layout.name)));
+
+  return layouts.map(layout => {
+    if ((layout?.nameSourceRank ?? 0) > 0 || !namesLikelyMatchCircuit(layout?.name, trackName)) {
+      return layout;
+    }
+
+    const candidateWayNames = [...new Set((layout.groupWayNames ?? [])
+      .filter(name => NAMED_LAYOUT_KEYWORD_PATTERN.test(name))
+      .filter(name => normalizeCircuitName(name) !== normalizeCircuitName(layout.name)))];
+    const missingWayNames = candidateWayNames.filter(name => !seenLayoutNames.has(normalizeCircuitName(name)));
+    if (missingWayNames.length !== 1) {
+      return layout;
+    }
+
+    return {
+      ...layout,
+      name: missingWayNames[0],
+      nameSourceRank: 1,
+    };
+  });
+}
+
+function buildImplicitRelationLayouts(nameGroups, eligibleNameGroups, existingLayouts, trackName, minLength, maxGapFraction) {
+  const existingNames = new Set(existingLayouts.map(layout => normalizeCircuitName(layout.name)));
+  const implicitLayouts = [];
+
+  for (const [groupName, group] of nameGroups) {
+    if (eligibleNameGroups.has(groupName) || group.sourceRank > 0 || !namesLikelyMatchCircuit(groupName, trackName)) {
+      continue;
+    }
+
+    const layoutLikeWayNames = [...new Set(group.ways
+      .map(way => way.tags?.name?.trim())
+      .filter(name => name && NAMED_LAYOUT_KEYWORD_PATTERN.test(name)))];
+    const missingWayNames = layoutLikeWayNames
+      .filter(name => normalizeCircuitName(name) !== normalizeCircuitName(groupName))
+      .filter(name => !existingNames.has(normalizeCircuitName(name)));
+    if (missingWayNames.length !== 1) {
+      continue;
+    }
+
+    const candidate = buildCandidateFromWays(group.ways);
+    if (!candidate || candidate.nodes.length < 4 || candidate.length < minLength) {
+      continue;
+    }
+    if (candidate.endpointGap > candidate.length * maxGapFraction) {
+      continue;
+    }
+
+    implicitLayouts.push({
+      id: `layout-${existingLayouts.length + implicitLayouts.length + 1}`,
+      name: missingWayNames[0],
+      nameSourceRank: 1,
+      groupWayNames: layoutLikeWayNames,
+      nodes: candidate.nodes,
+      stats: {
+        lengthMetres: candidate.length,
+        segmentCount: group.ways.length,
+        variantSectionCount: 1,
+      },
+    });
+    existingNames.add(normalizeCircuitName(missingWayNames[0]));
+  }
+
+  return implicitLayouts;
+}
+
+function substituteVariantIntoLayout(baseNodes, variantNodes, variantLength, label, backboneLength) {
+  const MAX_ENDPOINT_MATCH_DISTANCE = SNAP_FUZZY * 8;
+  const MIN_LENGTH = 1000;
+  const MAX_GAP_FRACTION = 0.2;
+  const startMatches = findClosestNodePositions(baseNodes, variantNodes[0], MAX_ENDPOINT_MATCH_DISTANCE);
+  const endMatches = findClosestNodePositions(baseNodes, variantNodes[variantNodes.length - 1], MAX_ENDPOINT_MATCH_DISTANCE);
+
+  if (!startMatches.length || !endMatches.length) {
+    return null;
+  }
+
+  let bestLayout = null;
+
+  for (const startMatch of startMatches) {
+    for (const endMatch of endMatches) {
+      if (startMatch.index === endMatch.index) {
+        continue;
+      }
+
+      const forwardReplacementNodes = sliceClosedNodeChain(baseNodes, startMatch.index, endMatch.index);
+      const reverseReplacementNodes = sliceClosedNodeChain(baseNodes, endMatch.index, startMatch.index);
+      const replacementCandidates = [
+        {
+          replacementNodes: forwardReplacementNodes,
+          preservedNodes: reverseReplacementNodes,
+          variantNodes: orientVariantNodes(variantNodes, forwardReplacementNodes[0], forwardReplacementNodes[forwardReplacementNodes.length - 1]),
+        },
+        {
+          replacementNodes: reverseReplacementNodes,
+          preservedNodes: forwardReplacementNodes,
+          variantNodes: orientVariantNodes(variantNodes, reverseReplacementNodes[0], reverseReplacementNodes[reverseReplacementNodes.length - 1]),
+        },
+      ].map(option => ({
+        ...option,
+        replacementLength: measurePolylineLength(option.replacementNodes),
+      })).sort((a, b) => {
+        const delta = Math.abs(a.replacementLength - variantLength) - Math.abs(b.replacementLength - variantLength);
+        if (Math.abs(delta) > 1) {
+          return delta;
+        }
+        return a.replacementLength - b.replacementLength;
+      });
+
+      const replacement = replacementCandidates[0];
+      if (!replacement?.preservedNodes?.length || replacement.preservedNodes.length < 2) {
+        continue;
+      }
+
+      const selectedWays = [
+        { nodes: replacement.preservedNodes, tags: { name: 'Main' } },
+        { nodes: replacement.variantNodes, tags: { name: label } },
+      ];
+      const candidate = buildCandidateFromWays(selectedWays);
+      if (!candidate || candidate.nodes.length < 4) {
+        continue;
+      }
+      if (candidate.length < MIN_LENGTH) {
+        continue;
+      }
+      if (candidate.endpointGap > candidate.length * MAX_GAP_FRACTION) {
+        continue;
+      }
+
+      const score = (startMatch.distance + endMatch.distance) * 1000000
+        + Math.abs(candidate.length - backboneLength)
+        + Math.abs(replacement.replacementLength - variantLength);
+      if (!bestLayout || score < bestLayout.score) {
+        bestLayout = {
+          score,
+          candidate,
+          selectedWays,
+        };
+      }
+    }
+  }
+
+  return bestLayout;
+}
+
 function buildSubstitutionLayouts(nameGroups, backboneGroupName, backboneWays, backboneCandidate) {
   const backboneGraph = buildWayGraph(backboneWays);
   const cycleMetadata = buildOrderedCycleMetadata(backboneGraph, backboneGraph.edges.map(edge => edge.id));
@@ -1160,12 +1353,11 @@ function buildSubstitutionLayouts(nameGroups, backboneGroupName, backboneWays, b
     return [];
   }
 
-  const MAX_ENDPOINT_MATCH_DISTANCE = SNAP_FUZZY * 8;
-  const MIN_LENGTH = 1000;
-  const MAX_GAP_FRACTION = 0.2;
   const layouts = [{
     id: 'layout-1',
     name: backboneGroupName,
+    nameSourceRank: nameGroups.get(backboneGroupName)?.sourceRank ?? 0,
+    groupWayNames: [...new Set(backboneWays.map(way => way.tags?.name?.trim()).filter(Boolean))],
     nodes: backboneCandidate.nodes,
     stats: {
       lengthMetres: backboneCandidate.length,
@@ -1174,97 +1366,23 @@ function buildSubstitutionLayouts(nameGroups, backboneGroupName, backboneWays, b
     },
   }];
 
-  for (const [groupName, namedWays] of nameGroups) {
+  for (const [groupName, group] of nameGroups) {
     if (groupName === backboneGroupName) {
       continue;
     }
 
+    const namedWays = group.ways;
     const variantNodes = buildNamedGroupChain(namedWays);
     if (variantNodes.length < 2) {
       continue;
     }
-
-    const startMatches = findClosestNodePositions(
+    const bestLayout = substituteVariantIntoLayout(
       cycleMetadata.nodes,
-      variantNodes[0],
-      MAX_ENDPOINT_MATCH_DISTANCE,
+      variantNodes,
+      measureWaySetLength(namedWays),
+      groupName,
+      backboneCandidate.length,
     );
-    const endMatches = findClosestNodePositions(
-      cycleMetadata.nodes,
-      variantNodes[variantNodes.length - 1],
-      MAX_ENDPOINT_MATCH_DISTANCE,
-    );
-
-    if (!startMatches.length || !endMatches.length) {
-      continue;
-    }
-
-    const variantLength = measureWaySetLength(namedWays);
-    let bestLayout = null;
-
-    for (const startMatch of startMatches) {
-      for (const endMatch of endMatches) {
-        if (startMatch.index === endMatch.index) {
-          continue;
-        }
-
-        const forwardReplacementNodes = sliceClosedNodeChain(cycleMetadata.nodes, startMatch.index, endMatch.index);
-        const reverseReplacementNodes = sliceClosedNodeChain(cycleMetadata.nodes, endMatch.index, startMatch.index);
-        const replacementCandidates = [
-          {
-            replacementNodes: forwardReplacementNodes,
-            preservedNodes: reverseReplacementNodes,
-            variantNodes: orientVariantNodes(variantNodes, forwardReplacementNodes[0], forwardReplacementNodes[forwardReplacementNodes.length - 1]),
-          },
-          {
-            replacementNodes: reverseReplacementNodes,
-            preservedNodes: forwardReplacementNodes,
-            variantNodes: orientVariantNodes(variantNodes, reverseReplacementNodes[0], reverseReplacementNodes[reverseReplacementNodes.length - 1]),
-          },
-        ].map(option => ({
-          ...option,
-          replacementLength: measurePolylineLength(option.replacementNodes),
-        })).sort((a, b) => {
-          const delta = Math.abs(a.replacementLength - variantLength) - Math.abs(b.replacementLength - variantLength);
-          if (Math.abs(delta) > 1) {
-            return delta;
-          }
-          return a.replacementLength - b.replacementLength;
-        });
-
-        const replacement = replacementCandidates[0];
-        if (!replacement?.preservedNodes?.length || replacement.preservedNodes.length < 2) {
-          continue;
-        }
-
-        const selectedWays = [
-          { nodes: replacement.preservedNodes, tags: { name: backboneGroupName } },
-          { nodes: replacement.variantNodes, tags: { name: groupName } },
-        ];
-
-        const candidate = buildCandidateFromWays(selectedWays);
-        if (!candidate || candidate.nodes.length < 4) {
-          continue;
-        }
-        if (candidate.length < MIN_LENGTH) {
-          continue;
-        }
-        if (candidate.endpointGap > candidate.length * MAX_GAP_FRACTION) {
-          continue;
-        }
-
-        const score = (startMatch.distance + endMatch.distance) * 1000000
-          + Math.abs(candidate.length - backboneCandidate.length)
-          + Math.abs(replacement.replacementLength - variantLength);
-        if (!bestLayout || score < bestLayout.score) {
-          bestLayout = {
-            score,
-            candidate,
-            selectedWays,
-          };
-        }
-      }
-    }
 
     if (!bestLayout) {
       continue;
@@ -1273,6 +1391,8 @@ function buildSubstitutionLayouts(nameGroups, backboneGroupName, backboneWays, b
     layouts.push({
       id: `layout-${layouts.length + 1}`,
       name: groupName,
+      nameSourceRank: nameGroups.get(groupName)?.sourceRank ?? 0,
+      groupWayNames: [...new Set(namedWays.map(way => way.tags?.name?.trim()).filter(Boolean))],
       nodes: bestLayout.candidate.nodes,
       stats: {
         lengthMetres: bestLayout.candidate.length,
@@ -1296,24 +1416,45 @@ function buildSubstitutionLayouts(nameGroups, backboneGroupName, backboneWays, b
 // the fork-based detector handles them downstream.
 //
 // Returns [] if no two named groups independently form valid closed circuits.
-function buildNamedCircuitLayouts(ways, trackName) {
-  const CIRCUIT_KEYWORD = /\b(circuit|layout|oval|grand[\s_-]*prix|indy|national|endurance|inner|outer|short)\b/i;
+function buildNamedCircuitLayouts(ways, trackName, referenceWays = ways) {
   const MIN_LENGTH = 1500; // metres — ignore sub-km stubs
   const MAX_GAP_FRACTION = 0.15; // endpoint gap must be < 15% of total length
+  const referenceNodes = buildCandidateFromWays(referenceWays)?.nodes ?? [];
 
   const nameGroups = new Map();
   for (const way of ways) {
-    for (const name of getWayCandidateNames(way)) {
-      if (!CIRCUIT_KEYWORD.test(name)) continue;
-      if (!nameGroups.has(name)) nameGroups.set(name, []);
-      nameGroups.get(name).push(way);
+    for (const { name, source } of getWayCandidateNameEntries(way)) {
+      if (!NAMED_LAYOUT_KEYWORD_PATTERN.test(name)) continue;
+      if (!nameGroups.has(name)) {
+        nameGroups.set(name, { ways: [], sourceRank: source === 'way' ? 1 : 0 });
+      }
+
+      const group = nameGroups.get(name);
+      group.ways.push(way);
+      group.sourceRank = Math.max(group.sourceRank, source === 'way' ? 1 : 0);
     }
   }
 
   if (nameGroups.size < 2) return [];
 
+  const eligibleNameGroups = new Map();
   const standaloneLayouts = [];
-  for (const [groupName, namedWays] of nameGroups) {
+  for (const [groupName, group] of nameGroups) {
+    const namedWays = group.ways;
+    const wayNames = new Set(namedWays.map(way => way.tags?.name?.trim()).filter(Boolean));
+    const competingLayoutWayNames = [...wayNames].filter(name =>
+      NAMED_LAYOUT_KEYWORD_PATTERN.test(name)
+      && normalizeCircuitName(name) !== normalizeCircuitName(groupName)
+    );
+    if (group.sourceRank === 0 && competingLayoutWayNames.length > 1) {
+      continue;
+    }
+    if (!isWaySetNearReference(namedWays, referenceNodes)) {
+      continue;
+    }
+
+    eligibleNameGroups.set(groupName, group);
+
     // Only use the named ways — no shared backbone mixing
     const candidate = buildCandidateFromWays(namedWays);
     if (!candidate || candidate.nodes.length < 4) continue;
@@ -1324,6 +1465,8 @@ function buildNamedCircuitLayouts(ways, trackName) {
     standaloneLayouts.push({
       id: `layout-${standaloneLayouts.length + 1}`,
       name: groupName,
+      nameSourceRank: group.sourceRank,
+      groupWayNames: [...wayNames],
       nodes: candidate.nodes,
       candidate,
       ways: namedWays,
@@ -1335,26 +1478,37 @@ function buildNamedCircuitLayouts(ways, trackName) {
     });
   }
 
-  // Need at least 2 valid standalone circuits to show a picker
-  if (standaloneLayouts.length >= 2) {
-    const publicLayouts = standaloneLayouts.map(({ candidate, ways: groupedWays, ...publicLayout }) => publicLayout);
-    const dedupedLayouts = dedupeLayoutsByGeometry(publicLayouts, trackName);
-    return dedupedLayouts.length >= 2 ? dedupedLayouts : [];
-  }
-
-  if (standaloneLayouts.length !== 1) {
+  if (eligibleNameGroups.size < 2 || standaloneLayouts.length === 0) {
     return [];
   }
 
-  const backboneLayout = standaloneLayouts[0];
-  const substitutionLayouts = buildSubstitutionLayouts(
+  const backboneLayout = rankLayoutsForTrack(standaloneLayouts, trackName)[0];
+  const substitutionLayouts = backboneLayout
+    ? buildSubstitutionLayouts(
+        eligibleNameGroups,
+        backboneLayout.name,
+        backboneLayout.ways,
+        backboneLayout.candidate,
+      )
+    : [];
+
+  const publicLayouts = standaloneLayouts.map(({ candidate, ways: groupedWays, ...publicLayout }) => publicLayout);
+  const dedupedCombinedLayouts = dedupeLayoutsByGeometry([...publicLayouts, ...substitutionLayouts], trackName);
+  const implicitRelationLayouts = buildImplicitRelationLayouts(
     nameGroups,
-    backboneLayout.name,
-    backboneLayout.ways,
-    backboneLayout.candidate,
+    eligibleNameGroups,
+    dedupedCombinedLayouts,
+    trackName,
+    MIN_LENGTH,
+    MAX_GAP_FRACTION,
   );
-  if (substitutionLayouts.length >= 2) {
-    return dedupeLayoutsByGeometry(substitutionLayouts, trackName);
+  const combinedLayouts = resolveGenericRelationLayoutNames(
+    dedupeLayoutsByGeometry([...dedupedCombinedLayouts, ...implicitRelationLayouts], trackName),
+    trackName,
+  );
+
+  if (combinedLayouts.length >= 2) {
+    return combinedLayouts;
   }
 
   return [];
@@ -1452,9 +1606,10 @@ function extractOverpassWays(elements) {
   for (const element of elements || []) {
     if (element.type === 'way') {
       addWay(element.id, element.tags, element.geometry);
-      continue;
     }
+  }
 
+  for (const element of elements || []) {
     if (element.type !== 'relation') {
       continue;
     }
@@ -1479,6 +1634,36 @@ function collectOsmVenueNames(ways) {
   )].sort((a, b) => a.localeCompare(b));
 }
 
+function collectNamedLayoutWays(filteredWays, componentWays) {
+  const componentWayIds = new Set(componentWays.map(way => way.id));
+  const referenceNodes = buildCandidateFromWays(componentWays)?.nodes ?? [];
+  const excludedPeripheralPattern = /\b(oval|test)\b/i;
+
+  const extraWays = filteredWays.filter(way => {
+    if (componentWayIds.has(way.id)) {
+      return false;
+    }
+
+    const wayName = way.tags?.name?.trim() ?? '';
+    if (!NAMED_LAYOUT_KEYWORD_PATTERN.test(wayName)) {
+      return false;
+    }
+    if (excludedPeripheralPattern.test(wayName)) {
+      return false;
+    }
+
+    if (way.nodes.length < 2 || referenceNodes.length === 0) {
+      return false;
+    }
+
+    const firstNodeNearReference = findClosestNodePositions(referenceNodes, way.nodes[0], SNAP_FUZZY * 8, 1).length > 0;
+    const lastNodeNearReference = findClosestNodePositions(referenceNodes, way.nodes[way.nodes.length - 1], SNAP_FUZZY * 8, 1).length > 0;
+    return firstNodeNearReference && lastNodeNearReference;
+  });
+
+  return [...componentWays, ...extraWays];
+}
+
 function buildTrackGeometryResult(elements, trackName) {
   const ways = extractOverpassWays(elements || []);
 
@@ -1500,9 +1685,10 @@ function buildTrackGeometryResult(elements, trackName) {
   const filteredWays = motorWays.length > 0 ? motorWays : racingWays;
 
   const componentWays = selectBestComponentWays(filteredWays, trackName);
+  const namedLayoutWays = collectNamedLayoutWays(filteredWays, componentWays);
   const osmVenueNames = collectOsmVenueNames(componentWays);
 
-  const namedLayouts = buildNamedCircuitLayouts(componentWays, trackName);
+  const namedLayouts = buildNamedCircuitLayouts(namedLayoutWays, trackName, componentWays);
   if (namedLayouts.length > 0) {
     return { layouts: namedLayouts, selectedLayoutIndex: 0, osmVenueNames };
   }
