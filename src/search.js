@@ -1304,6 +1304,23 @@ function normalizeLayoutGeometry(layouts) {
   });
 }
 
+export function normalizeTrackGeometryResult(result, trackName = null) {
+  if (!result || !Array.isArray(result.layouts)) {
+    return result;
+  }
+
+  const normalizedLayouts = dedupeLayoutsByName(
+    normalizeLayoutGeometry(canonicalizeLayoutNames(result.layouts)),
+    trackName,
+  );
+
+  return {
+    ...result,
+    layouts: dedupeLayoutsByGeometry(normalizedLayouts, trackName),
+    selectedLayoutIndex: Math.min(result.selectedLayoutIndex ?? 0, Math.max(normalizedLayouts.length - 1, 0)),
+  };
+}
+
 function dedupeLayoutsByName(layouts, trackName) {
   const bestLayoutsByName = new Map();
 
@@ -1815,9 +1832,8 @@ function buildTrackGeometryResult(elements, trackName) {
 
   const namedLayouts = buildNamedCircuitLayouts(namedLayoutWays, trackName, componentWays);
   if (namedLayouts.length > 0) {
-    const normalizedLayouts = dedupeLayoutsByName(normalizeLayoutGeometry(canonicalizeLayoutNames(namedLayouts)), trackName);
     return {
-      layouts: dedupeLayoutsByGeometry(normalizedLayouts, trackName),
+      layouts: dedupeLayoutsByGeometry(dedupeLayoutsByName(canonicalizeLayoutNames(namedLayouts), trackName), trackName),
       selectedLayoutIndex: 0,
       osmVenueNames,
     };
@@ -1841,9 +1857,8 @@ function buildTrackGeometryResult(elements, trackName) {
     };
   }
 
-  const normalizedLayouts = dedupeLayoutsByName(normalizeLayoutGeometry(canonicalizeLayoutNames(layouts)), trackName);
   return {
-    layouts: dedupeLayoutsByGeometry(normalizedLayouts, trackName),
+    layouts: dedupeLayoutsByGeometry(dedupeLayoutsByName(canonicalizeLayoutNames(layouts), trackName), trackName),
     selectedLayoutIndex: 0,
     osmVenueNames,
   };

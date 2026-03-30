@@ -3,6 +3,7 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 
 import {
+  buildTrackGeometryFromOverpassPayload,
   buildTrackSearchEntry,
   buildCycleFromEdges,
   buildLayoutsFromWays,
@@ -10,6 +11,7 @@ import {
   buildWayGraph,
   detectForkSections,
   fetchTrackGeometry,
+  normalizeTrackGeometryResult,
   normalizeSearchText,
   searchLocalTrackIndex,
   searchTracks,
@@ -461,16 +463,44 @@ test('fetchTrackGeometry uses local geometry when a known wikidata id is availab
   }
 });
 
-test('fetchTrackGeometry keeps Silverstone branch layouts from a frozen fixture', async () => {
+test('build-only geometry cleanup is not applied to runtime payload parsing by default', () => {
+  const payload = {
+    elements: [
+      {
+        type: 'way',
+        id: 1,
+        tags: { name: 'Synthetic Circuit', highway: 'raceway', sport: 'motor' },
+        geometry: [n(0, 0), n(0, 0.01), n(0.01, 0.01), n(0, 0.01), n(0.01, 0), n(0, 0)],
+      },
+    ],
+  };
+
+  const runtimeResult = buildTrackGeometryFromOverpassPayload(payload, 'Synthetic Circuit');
+  const buildResult = normalizeTrackGeometryResult(runtimeResult, 'Synthetic Circuit');
+
+  assert.ok(runtimeResult);
+  assert.ok(buildResult);
+  assert.equal(runtimeResult.layouts.length, 1);
+  assert.equal(buildResult.layouts.length, 1);
+  assert.equal(runtimeResult.layouts[0].nodes.length, 6);
+  assert.equal(buildResult.layouts[0].nodes.length, 4);
+  assert.deepEqual(runtimeResult.layouts[0].nodes[2], n(0.01, 0.01));
+  assert.deepEqual(buildResult.layouts[0].nodes, [n(0, 0), n(0, 0.01), n(0.01, 0), n(0, 0)]);
+});
+
+test('fetchTrackGeometry leaves Silverstone fixture cleanup to the build path', async () => {
   const fixture = loadFixture('silverstone.json');
 
   const result = await withMockedFetch(fixture, () =>
     fetchTrackGeometry(52.0786, -1.0169, undefined, 'Silverstone Circuit'));
+  const normalized = normalizeTrackGeometryResult(result, 'Silverstone Circuit');
 
   assert.equal(result.selectedLayoutIndex, 0);
   assertLayoutNames(result.layouts, ['Main', 'Alternate']);
-  result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 20 }));
   expectDistinctLayouts(result.layouts[0], result.layouts[1]);
+  assertLayoutNames(normalized.layouts, ['Main', 'Alternate']);
+  normalized.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 20 }));
+  assert.ok(result.layouts.some((layout, index) => JSON.stringify(layout.nodes) !== JSON.stringify(normalized.layouts[index]?.nodes)));
 });
 
 test('fetchTrackGeometry prefers the named Shanghai circuit over a denser stray component', async () => {

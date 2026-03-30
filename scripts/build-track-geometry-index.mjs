@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import trackSearchIndex from '../src/generated/track-search-index.json' with { type: 'json' };
-import { buildTrackGeometryFromOverpassPayload, fetchTrackGeometry } from '../src/search.js';
+import { buildTrackGeometryFromOverpassPayload, fetchTrackGeometry, normalizeTrackGeometryResult } from '../src/search.js';
 import { fetchOsmApiMapPayload } from './lib/osm-api-source.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -69,7 +69,10 @@ function parseArgs(argv) {
 
 async function loadFixtureGeometry(track) {
   const fixturePayload = JSON.parse(await readFile(silverstoneFixturePath, 'utf8'));
-  const geometryResult = buildTrackGeometryFromOverpassPayload(fixturePayload, track.label);
+  const geometryResult = normalizeTrackGeometryResult(
+    buildTrackGeometryFromOverpassPayload(fixturePayload, track.label),
+    track.label,
+  );
   if (!geometryResult) {
     throw new Error(`Fixture source did not yield geometry for ${track.label}`);
   }
@@ -79,7 +82,10 @@ async function loadFixtureGeometry(track) {
 
 async function fetchPrimaryGeometryFromOsmApi(track) {
   const { payload } = await fetchOsmApiMapPayload(track.lat, track.lon);
-  const geometryResult = buildTrackGeometryFromOverpassPayload(payload, track.label);
+  const geometryResult = normalizeTrackGeometryResult(
+    buildTrackGeometryFromOverpassPayload(payload, track.label),
+    track.label,
+  );
   if (!geometryResult) {
     throw new Error(`OSM API payload did not yield geometry for ${track.label}`);
   }
@@ -88,10 +94,13 @@ async function fetchPrimaryGeometryFromOsmApi(track) {
 }
 
 async function fetchFallbackGeometryFromOverpass(track) {
-  return fetchTrackGeometry(track.lat, track.lon, undefined, track.label, {
-    wikidataId: track.wikidataId,
-    skipLocal: true,
-  });
+  return normalizeTrackGeometryResult(
+    await fetchTrackGeometry(track.lat, track.lon, undefined, track.label, {
+      wikidataId: track.wikidataId,
+      skipLocal: true,
+    }),
+    track.label,
+  );
 }
 
 function normalizeText(value) {
