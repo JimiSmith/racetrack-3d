@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -14,14 +14,13 @@ const MIN_LAYOUT_LENGTH_METRES = 500;
 const MAX_LAYOUT_LENGTH_METRES = 100000;
 const MIN_LAYOUT_NODE_COUNT = 2;
 
-const SUPPORTED_TRACKS = [
+export const SUPPORTED_TRACKS = [
   {
     key: 'silverstone',
     trackName: 'Silverstone Circuit',
     searchLabel: 'Silverstone Circuit',
     osmApiMargin: 0.02,
     expectedLayoutNames: ['Main', 'Alternate'],
-    fixturePath: path.join(projectRoot, 'test', 'fixtures', 'silverstone.json'),
   },
   {
     key: 'spa',
@@ -29,7 +28,6 @@ const SUPPORTED_TRACKS = [
     searchLabel: 'Spa-Francochamps Circuit',
     osmApiMargin: 0.03,
     expectedLayoutNames: ['Main', 'Moto'],
-    fixturePath: path.join(projectRoot, 'test', 'fixtures', 'spa.json'),
   },
   {
     key: 'bahrain',
@@ -37,11 +35,12 @@ const SUPPORTED_TRACKS = [
     searchLabel: 'Bahrain International Circuit',
     osmApiMargin: 0.02,
     expectedLayoutNames: ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit'],
-    fixturePath: path.join(projectRoot, 'test', 'fixtures', 'bahrain.json'),
   },
 ];
 
-function parseArgs(argv) {
+const BUILD_SOURCES = new Set(['osm-api', 'overpass']);
+
+export function parseArgs(argv) {
   const options = {
     track: null,
     source: 'osm-api',
@@ -73,11 +72,6 @@ function parseArgs(argv) {
       continue;
     }
 
-    if (arg === '--fixture') {
-      options.source = 'fixture';
-      continue;
-    }
-
     if (arg === '--overpass-only') {
       options.source = 'overpass';
       options.allowOverpassFallback = false;
@@ -89,20 +83,15 @@ function parseArgs(argv) {
     }
   }
 
-  return options;
-}
-
-async function loadFixtureGeometry(track) {
-  const fixturePayload = JSON.parse(await readFile(track.fixturePath, 'utf8'));
-  const geometryResult = normalizeTrackGeometryResult(
-    buildTrackGeometryFromOverpassPayload(fixturePayload, track.trackName),
-    track.trackName,
-  );
-  if (!geometryResult) {
-    throw new Error(`Fixture source did not yield geometry for ${track.trackName}`);
+  if (options.source === 'fixture') {
+    throw new Error('Fixture source mode has been removed; use the default OSM API build path or --overpass-only for debug');
   }
 
-  return geometryResult;
+  if (!BUILD_SOURCES.has(options.source)) {
+    throw new Error(`Unsupported build source "${options.source}"; expected one of ${[...BUILD_SOURCES].join(', ')}`);
+  }
+
+  return options;
 }
 
 async function fetchPrimaryGeometryFromOsmApi(track) {
@@ -146,7 +135,7 @@ function slugify(value) {
     || 'layout';
 }
 
-function resolveSupportedTracks(requestedTrack) {
+export function resolveSupportedTracks(requestedTrack) {
   const supportedTracks = SUPPORTED_TRACKS.map(config => {
     const searchTrack = trackSearchIndex.find(entry => entry.label === config.searchLabel);
     if (!searchTrack) {
@@ -239,6 +228,30 @@ function validateGeometryResultForTrack(track, geometryResult) {
   }
 }
 
+function applyStableLayoutNames(track, geometryResult) {
+  if (!geometryResult || !Array.isArray(geometryResult.layouts)) {
+    return geometryResult;
+  }
+
+  const expectedLayoutNames = track.expectedLayoutNames ?? [];
+  if (expectedLayoutNames.length === 0 || geometryResult.layouts.length !== expectedLayoutNames.length) {
+    return geometryResult;
+  }
+
+  const alreadyMatches = geometryResult.layouts.every((layout, index) => layout.name === expectedLayoutNames[index]);
+  if (alreadyMatches) {
+    return geometryResult;
+  }
+
+  return {
+    ...geometryResult,
+    layouts: geometryResult.layouts.map((layout, index) => ({
+      ...layout,
+      name: expectedLayoutNames[index],
+    })),
+  };
+}
+
 function buildStableLayoutIds(layouts) {
   const counts = new Map();
 
@@ -291,8 +304,8 @@ function buildTrackArtifact(track, geometryResult, generatedAt) {
   };
 }
 
-async function main() {
-  const options = parseArgs(process.argv.slice(2));
+export async function main(argv = process.argv.slice(2)) {
+  const options = parseArgs(argv);
   const tracks = resolveSupportedTracks(options.track);
   const generatedAt = new Date().toISOString();
   const report = {
@@ -308,16 +321,9 @@ async function main() {
       let geometryResult;
       let sourceUsed = options.source;
 
-      if (options.source === 'fixture') {
-        geometryResult = await loadFixtureGeometry(track);
-        validateGeometryResultForTrack(track, geometryResult);
-        report.flaggedForManualReview.push({
-          wikidataId: track.wikidataId,
-          name: track.trackName,
-          message: `Built from frozen fixture debug path (${path.basename(track.fixturePath)})`,
-        });
-      } else if (options.source === 'overpass') {
+      if (options.source === 'overpass') {
         geometryResult = await fetchFallbackGeometryFromOverpass(track);
+        geometryResult = applyStableLayoutNames(track, geometryResult);
         validateGeometryResultForTrack(track, geometryResult);
         report.flaggedForManualReview.push({
           wikidataId: track.wikidataId,
@@ -327,6 +333,7 @@ async function main() {
       } else {
         try {
           geometryResult = await fetchPrimaryGeometryFromOsmApi(track);
+          geometryResult = applyStableLayoutNames(track, geometryResult);
           validateGeometryResultForTrack(track, geometryResult);
         } catch (error) {
           const primaryError = error;
@@ -334,6 +341,7 @@ async function main() {
           if (options.allowOverpassFallback) {
             try {
               geometryResult = await fetchFallbackGeometryFromOverpass(track);
+              geometryResult = applyStableLayoutNames(track, geometryResult);
               validateGeometryResultForTrack(track, geometryResult);
               sourceUsed = 'overpass-fallback';
               report.flaggedForManualReview.push({
@@ -342,14 +350,7 @@ async function main() {
                 message: `OSM API build path failed validation; used Overpass fallback (${primaryError instanceof Error ? primaryError.message : String(primaryError)})`,
               });
             } catch (fallbackError) {
-              geometryResult = await loadFixtureGeometry(track);
-              validateGeometryResultForTrack(track, geometryResult);
-              sourceUsed = 'fixture-fallback';
-              report.flaggedForManualReview.push({
-                wikidataId: track.wikidataId,
-                name: track.trackName,
-                message: `OSM API and Overpass build paths failed validation; used fixture fallback (${primaryError instanceof Error ? primaryError.message : String(primaryError)}; ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)})`,
-              });
+              throw new Error(`OSM API and Overpass build paths failed validation (${primaryError instanceof Error ? primaryError.message : String(primaryError)}; ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)})`);
             }
           } else {
             throw primaryError;
@@ -398,9 +399,11 @@ async function main() {
     process.exitCode = 1;
   }
 
-  if (!options.validateOnly && report.builtSuccessfully.length > 0) {
+  if (!options.validateOnly && report.failed.length === 0 && report.builtSuccessfully.length > 0) {
     console.log(`Wrote ${path.relative(projectRoot, outputPath)}`);
   }
 }
 
-await main();
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  await main();
+}
