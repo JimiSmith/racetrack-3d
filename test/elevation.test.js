@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   applyExaggeration,
   buildElevationProfile,
+  fetchElevations,
   smoothElevationProfile,
 } from '../src/elevation.js';
 
@@ -143,4 +144,14 @@ test('smoothElevationProfile wraps around loop ends', () => {
   assert.equal(smoothed[0], 33);
   assert.equal(smoothed[3], 3.5);
   assert.ok(smoothed[3] > 0, 'expected wrap-around smoothing at the loop seam');
+});
+
+test('fetchElevations returns a hardcoded flat profile for 0x exaggeration', async () => {
+  const profile = await fetchElevations([
+    { lat: 50.4372, lon: 5.9714 },
+    { lat: 50.4373, lon: 5.9715 },
+    { lat: 50.4374, lon: 5.9716 },
+  ], 0);
+
+  assert.deepEqual(profile, [1, 1, 1]);
 });

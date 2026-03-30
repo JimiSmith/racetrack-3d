@@ -11,6 +11,10 @@ export async function fetchElevations(nodes, exaggeration = 1) {
     return [];
   }
 
+  if (Number(exaggeration) === 0) {
+    return new Array(nodes.length).fill(1);
+  }
+
   const tileGroups = new Map();
 
   nodes.forEach((node, index) => {
