@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildOsmApiMapUrl, parseOsmApiMapXml } from '../scripts/lib/osm-api-source.mjs';
+import {
+  buildAdaptiveOsmApiMargins,
+  buildOsmApiMapUrl,
+  fetchAdaptiveOsmApiMapPayload,
+  isOsmApiNodeLimitError,
+  parseOsmApiMapXml,
+} from '../scripts/lib/osm-api-source.mjs';
 
 test('buildOsmApiMapUrl uses the main OSM map endpoint and bbox order', () => {
   const url = new URL(buildOsmApiMapUrl(52.075, -1.0166666666667, 0.02));
@@ -62,4 +68,61 @@ test('parseOsmApiMapXml hydrates way geometry and relation member geometry', () 
       { lat: 52.1, lon: -1.1 },
     ],
   });
+});
+
+test('buildAdaptiveOsmApiMargins grows from a smaller starting bbox up to the requested cap', () => {
+  assert.deepEqual(buildAdaptiveOsmApiMargins([0.02, 0.04, 0.08]), [0.0025, 0.005, 0.01, 0.02, 0.04, 0.08]);
+  assert.deepEqual(buildAdaptiveOsmApiMargins([0.015, 0.03, 0.06]), [0.001875, 0.00375, 0.0075, 0.015, 0.03, 0.06]);
+});
+
+test('isOsmApiNodeLimitError matches the OSM API 50k node failure', () => {
+  assert.equal(isOsmApiNodeLimitError(new Error('OSM API map request failed (400): You requested too many nodes (limit is 50000). Either request a smaller area, or use planet.osm')), true);
+  assert.equal(isOsmApiNodeLimitError(new Error('OSM API map request failed (504): timed out')), false);
+});
+
+test('fetchAdaptiveOsmApiMapPayload returns the last usable response when a larger bbox hits the node limit', async () => {
+  const attemptedMargins = [];
+  const response = await fetchAdaptiveOsmApiMapPayload(-34.930466, 138.620609, {
+    margins: [0.02, 0.04, 0.08],
+    fetchForMargin: async margin => {
+      attemptedMargins.push(margin);
+      if (margin >= 0.02) {
+        throw new Error('OSM API map request failed (400): You requested too many nodes (limit is 50000). Either request a smaller area, or use planet.osm');
+      }
+
+      return {
+        url: `https://example.test/${margin}`,
+        xml: `<osm margin="${margin}" />`,
+        payload: { margin },
+      };
+    },
+    evaluateResponse: resolvedResponse => ({
+      usable: resolvedResponse.payload.margin >= 0.01,
+      geometryResult: { margin: resolvedResponse.payload.margin },
+    }),
+  });
+
+  assert.deepEqual(attemptedMargins, [0.0025, 0.005, 0.01, 0.02]);
+  assert.equal(response.metadata.margin, 0.01);
+  assert.equal(response.metadata.stopReason, 'node-limit');
+  assert.deepEqual(response.metadata.attempts, [0.0025, 0.005, 0.01, 0.02, 0.04, 0.08]);
+  assert.deepEqual(response.evaluation.geometryResult, { margin: 0.01 });
+});
+
+test('fetchAdaptiveOsmApiMapPayload throws when no bbox yields usable geometry', async () => {
+  await assert.rejects(
+    () => fetchAdaptiveOsmApiMapPayload(52, -1, {
+      margins: [0.02],
+      fetchForMargin: async margin => ({
+        url: `https://example.test/${margin}`,
+        xml: '<osm />',
+        payload: { margin },
+      }),
+      evaluateResponse: () => ({
+        usable: false,
+        reason: 'did not yield geometry',
+      }),
+    }),
+    /Adaptive OSM API map request failed \(margin 0\.0025: did not yield geometry; margin 0\.005: did not yield geometry; margin 0\.01: did not yield geometry; margin 0\.02: did not yield geometry\)/,
+  );
 });

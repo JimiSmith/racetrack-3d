@@ -8,7 +8,11 @@ import {
   fetchTrackGeometry,
   normalizeTrackGeometryResult,
 } from '../src/search.js';
-import { fetchOsmApiMapPayload, parseOsmApiMapXml } from './lib/osm-api-source.mjs';
+import {
+  fetchAdaptiveOsmApiMapPayload,
+  fetchOsmApiMapPayload,
+  parseOsmApiMapXml,
+} from './lib/osm-api-source.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -278,48 +282,67 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
   const margins = Array.isArray(track.osmApiMargins) && track.osmApiMargins.length > 0
     ? track.osmApiMargins
     : buildDefaultOsmApiMargins(track);
-  const errors = [];
 
-  for (const margin of margins) {
-    try {
-      const cachedResponse = await readCachedOsmPayload(track, margin, options);
-      const response = cachedResponse ?? await fetchOsmApiMapPayload(track.lat, track.lon, { margin });
-      if (!cachedResponse) {
-        await writeCachedOsmPayload(track, margin, response, options);
-      }
+  try {
+    const response = await fetchAdaptiveOsmApiMapPayload(track.lat, track.lon, {
+      margins,
+      fetchForMargin: async margin => {
+        const cachedResponse = await readCachedOsmPayload(track, margin, options);
+        const resolvedResponse = cachedResponse ?? await fetchOsmApiMapPayload(track.lat, track.lon, { margin });
+        if (!cachedResponse) {
+          await writeCachedOsmPayload(track, margin, resolvedResponse, options);
+        }
 
-      const geometryResult = normalizeTrackGeometryResult(
-        buildTrackGeometryFromOverpassPayload(response.payload, track.trackName),
-        track.trackName,
-      );
-      if (!geometryResult) {
-        throw new Error(`margin ${margin} did not yield geometry`);
-      }
+        return {
+          ...resolvedResponse,
+          metadata: {
+            cacheHit: Boolean(cachedResponse),
+          },
+        };
+      },
+      evaluateResponse: resolvedResponse => {
+        const geometryResult = sanitizeBuildGeometryResult(normalizeTrackGeometryResult(
+          buildTrackGeometryFromOverpassPayload(resolvedResponse.payload, track.trackName),
+          track.trackName,
+        ));
 
-      return {
-        geometryResult,
-        metadata: {
-          sourceUsed: 'osm-api',
-          margin,
-          cacheHit: Boolean(cachedResponse),
-        },
-      };
-    } catch (error) {
-      errors.push(`margin ${margin}: ${error instanceof Error ? error.message : String(error)}`);
-    }
+        if (!geometryResult?.layouts?.length) {
+          return {
+            usable: false,
+            reason: 'did not yield geometry',
+          };
+        }
+
+        return {
+          usable: true,
+          geometryResult,
+        };
+      },
+    });
+
+    return {
+      geometryResult: response.evaluation.geometryResult,
+      metadata: {
+        sourceUsed: 'osm-api',
+        margin: response.metadata.margin,
+        cacheHit: Boolean(response.metadata.cacheHit),
+        stopReason: response.metadata.stopReason,
+        attempts: response.metadata.attempts,
+      },
+    };
+  } catch (error) {
+    throw new Error(`OSM API build path failed for ${track.trackName} (${error instanceof Error ? error.message : String(error)})`);
   }
-
-  throw new Error(`OSM API build path failed for ${track.trackName} (${errors.join('; ')})`);
 }
 
 async function fetchFallbackGeometryFromOverpass(track) {
-  return normalizeTrackGeometryResult(
+  return sanitizeBuildGeometryResult(normalizeTrackGeometryResult(
     await fetchTrackGeometry(track.lat, track.lon, undefined, track.trackName, {
       wikidataId: track.wikidataId,
       skipLocal: true,
     }),
     track.trackName,
-  );
+  ));
 }
 
 function validateNode(node, trackName, layoutName, nodeIndex) {
@@ -402,6 +425,23 @@ function applyStableLayoutNames(track, geometryResult) {
       ...layout,
       name: expectedLayoutNames[index],
     })),
+  };
+}
+
+export function sanitizeBuildGeometryResult(geometryResult) {
+  if (!geometryResult || !Array.isArray(geometryResult.layouts)) {
+    return geometryResult;
+  }
+
+  const layouts = geometryResult.layouts.filter(layout => Array.isArray(layout?.nodes) && layout.nodes.length >= 2);
+  if (layouts.length === geometryResult.layouts.length) {
+    return geometryResult;
+  }
+
+  return {
+    ...geometryResult,
+    layouts,
+    selectedLayoutIndex: Math.min(geometryResult.selectedLayoutIndex ?? 0, Math.max(layouts.length - 1, 0)),
   };
 }
 
@@ -608,6 +648,9 @@ export async function main(argv = process.argv.slice(2)) {
           sourceDetails = primaryResult.metadata.cacheHit
             ? `osm-api cache margin=${primaryResult.metadata.margin}`
             : `osm-api live margin=${primaryResult.metadata.margin}`;
+          if (primaryResult.metadata.stopReason === 'node-limit') {
+            sourceDetails += ' (stopped at node limit)';
+          }
         } catch (error) {
           const primaryError = error;
 

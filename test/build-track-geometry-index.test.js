@@ -9,6 +9,7 @@ import {
   parseArgs,
   partitionTracksByStaleness,
   resolveSupportedTracks,
+  sanitizeBuildGeometryResult,
 } from '../scripts/build-track-geometry-index.mjs';
 
 test('geometry index build defaults to OSM API with Overpass fallback enabled', () => {
@@ -146,4 +147,26 @@ test('geometry index build limits stale processing without counting fresh tracks
   assert.deepEqual(result.freshTracks.map(track => track.wikidataId), ['Q1']);
   assert.deepEqual(result.staleTracks.map(track => track.wikidataId), ['Q2', 'Q3']);
   assert.deepEqual(result.deferredTracks.map(track => track.wikidataId), ['Q4']);
+});
+
+test('geometry index build strips degenerate layouts before artifact validation', () => {
+  const result = sanitizeBuildGeometryResult({
+    layouts: [
+      {
+        name: 'Main',
+        nodes: [{ lat: 1, lon: 2 }, { lat: 3, lon: 4 }],
+        stats: { lengthMetres: 1000, segmentCount: 1, variantSectionCount: 0 },
+      },
+      {
+        name: 'Broken',
+        nodes: [{ lat: 5, lon: 6 }],
+        stats: { lengthMetres: 0, segmentCount: 0, variantSectionCount: 0 },
+      },
+    ],
+    selectedLayoutIndex: 1,
+  });
+
+  assert.equal(result.layouts.length, 1);
+  assert.equal(result.layouts[0].name, 'Main');
+  assert.equal(result.selectedLayoutIndex, 0);
 });
