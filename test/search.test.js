@@ -16,6 +16,7 @@ import {
   stitchWaysOrdered,
   tokenizeNormalizedText,
 } from '../src/search.js';
+import { getLocalTrackGeometry } from '../src/geometry-index.js';
 import {
   expectApproxLength,
   expectClosedish,
@@ -431,6 +432,33 @@ test('searchTracks uses the shipped local search index and returns compatible fi
   assert.equal(typeof results[0].wikidataId, 'string');
   assert.equal(typeof results[0].lat, 'number');
   assert.equal(typeof results[0].lon, 'number');
+});
+
+test('getLocalTrackGeometry returns the prebuilt Silverstone layouts', () => {
+  const result = getLocalTrackGeometry('Q171402');
+
+  assert.ok(result);
+  assert.equal(result.trackId, 'Q171402');
+  assert.equal(result.name, 'Silverstone Circuit');
+  assertLayoutNames(result.layouts, ['Main', 'National Circuit']);
+  result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 20 }));
+});
+
+test('fetchTrackGeometry uses local geometry when a known wikidata id is available', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => {
+    throw new Error('fetch should not run for local geometry');
+  };
+
+  try {
+    const result = await fetchTrackGeometry(Number.NaN, Number.NaN, undefined, 'Silverstone Circuit', {
+      wikidataId: 'Q171402',
+    });
+
+    assertLayoutNames(result.layouts, ['Main', 'National Circuit']);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test('fetchTrackGeometry keeps Silverstone branch layouts from a frozen fixture', async () => {

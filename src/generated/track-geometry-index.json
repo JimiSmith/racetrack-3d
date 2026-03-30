@@ -1,0 +1,97 @@
+{
+  "Q171402": {
+    "trackId": "Q171402",
+    "name": "Silverstone Circuit",
+    "source": {
+      "kind": "osm-prebuilt",
+      "generatedAt": "2026-03-30T15:36:27.683Z",
+      "osmQueryVersion": 1
+    },
+    "center": {
+      "lat": 52.075,
+      "lon": -1.0166666666667
+    },
+    "names": {
+      "searchLabel": "Silverstone Circuit",
+      "shortName": "Silverstone",
+      "osmVenueNames": [
+        "Access Road",
+        "National Circuit",
+        "National Pit Straight",
+        "Silverstone Circuit"
+      ]
+    },
+    "layouts": [
+      {
+        "id": "main",
+        "name": "Main",
+        "nodes": [
+          {
+            "lat": 52.078,
+            "lon": -1.02
+          },
+          {
+            "lat": 52.078,
+            "lon": -0.999
+          },
+          {
+            "lat": 52.092,
+            "lon": -0.987
+          },
+          {
+            "lat": 52.105,
+            "lon": -0.999
+          },
+          {
+            "lat": 52.105,
+            "lon": -1.02
+          },
+          {
+            "lat": 52.078,
+            "lon": -1.02
+          }
+        ],
+        "stats": {
+          "lengthMetres": 9303.316663770896,
+          "segmentCount": 5,
+          "variantSectionCount": 0
+        }
+      },
+      {
+        "id": "national-circuit",
+        "name": "National Circuit",
+        "nodes": [
+          {
+            "lat": 52.105,
+            "lon": -0.999
+          },
+          {
+            "lat": 52.105,
+            "lon": -1.02
+          },
+          {
+            "lat": 52.078,
+            "lon": -1.02
+          },
+          {
+            "lat": 52.078,
+            "lon": -0.999
+          },
+          {
+            "lat": 52.09,
+            "lon": -0.993
+          },
+          {
+            "lat": 52.105,
+            "lon": -0.999
+          }
+        ],
+        "stats": {
+          "lengthMetres": 8995.187712621373,
+          "segmentCount": 5,
+          "variantSectionCount": 1
+        }
+      }
+    ]
+  }
+}

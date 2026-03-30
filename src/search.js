@@ -1,4 +1,5 @@
 import trackSearchIndex from './generated/track-search-index.json' with { type: 'json' };
+import { getLocalTrackGeometry } from './geometry-index.js';
 
 export {
   buildTrackDisplayName,
@@ -1778,9 +1779,18 @@ function buildTrackGeometryResult(elements, trackName) {
   };
 }
 
+export function buildTrackGeometryFromOverpassPayload(payload, trackName) {
+  return buildTrackGeometryResult(payload?.elements ?? [], trackName);
+}
+
 // Fetch raceway geometry using Overpass bbox query around Wikidata P625 coordinates.
 // Much more reliable than P402 (stale OSM relation IDs) or name searches (timeouts).
-export async function fetchTrackGeometry(lat, lon, signal, trackName) {
+export async function fetchTrackGeometry(lat, lon, signal, trackName, options = {}) {
+  const localGeometry = options.skipLocal ? null : getLocalTrackGeometry(options.wikidataId);
+  if (localGeometry) {
+    return localGeometry;
+  }
+
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
     throw new Error('No coordinates available for this circuit');
   }
@@ -1792,7 +1802,7 @@ export async function fetchTrackGeometry(lat, lon, signal, trackName) {
 
   const queryResults = await runOverpassQueries(query, signal);
   const geometryResults = queryResults
-    .map(({ data }) => buildTrackGeometryResult(data.elements, trackName))
+    .map(({ data }) => buildTrackGeometryFromOverpassPayload(data, trackName))
     .filter(Boolean);
 
   if (geometryResults.length === 0) {

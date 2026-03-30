@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build:geometry-index": "node scripts/build-track-geometry-index.mjs",
     "build:track-search-index": "node scripts/build-track-search-index.mjs",
     "test": "node --test",
     "build": "vite build",
