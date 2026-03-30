@@ -473,6 +473,20 @@ test('fetchTrackGeometry returns named Bahrain layouts from frozen fixture data'
   expectDistinctLayouts(result.layouts[1], result.layouts[2]);
 });
 
+test('fetchTrackGeometry resolves Brands Hatch to the grand prix and indy layouts', async () => {
+  const fixture = loadFixture('brands-hatch.json');
+
+  const result = await withMockedFetch(fixture, () =>
+    fetchTrackGeometry(51.3562, 0.2631, undefined, 'Brands Hatch'));
+
+  assert.equal(result.selectedLayoutIndex, 0);
+  assertLayoutNames(result.layouts, ['Brands Hatch Grand Prix', 'Brands Hatch Indy']);
+  result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 20 }));
+  expectDistinctLayouts(result.layouts[0], result.layouts[1]);
+  expectApproxLength(result.layouts[0].nodes, 3.9, 0.3);
+  expectApproxLength(result.layouts[1].nodes, 1.9, 0.2);
+});
+
 test('fetchTrackGeometry restores Mexico City grand prix geometry from frozen fixture data', async () => {
   const fixture = loadFixture('mexico-city.json');
 
@@ -601,6 +615,22 @@ test('near-identical duplicate named layouts are filtered out', async () => {
   assert.equal(result.layouts.length, 3);
   assert.equal(result.layouts.filter(layout => layout.name === 'Grand Prix Circuit').length, 1);
   assert.equal(result.layouts.filter(layout => layout.name === 'Grand Prix Circuit Alternate').length, 0);
+});
+
+test('multi-layout fixtures keep their expected layout counts', async () => {
+  const cases = [
+    ['brands-hatch.json', 51.3562, 0.2631, 'Brands Hatch', ['Brands Hatch Grand Prix', 'Brands Hatch Indy']],
+    ['silverstone.json', 52.0786, -1.0169, 'Silverstone Circuit', ['Main', 'National Circuit']],
+    ['spa.json', 50.4372, 5.9714, 'Circuit de Spa-Francorchamps', ['Main', 'Moto']],
+    ['bahrain.json', 26.0325, 50.5106, 'Bahrain International Circuit', ['Grand Prix Circuit', 'Endurance Circuit', 'Inner Circuit']],
+  ];
+
+  for (const [fixtureName, lat, lon, trackName, expectedNames] of cases) {
+    const fixture = loadFixture(fixtureName);
+    const result = await withMockedFetch(fixture, () => fetchTrackGeometry(lat, lon, undefined, trackName));
+
+    assertLayoutNames(result.layouts, expectedNames);
+  }
 });
 
 test('fetchTrackGeometry throws a useful error when no raceways are found in the bbox', async () => {

@@ -114,6 +114,22 @@ function computeEndpointGap(nodes) {
   return Math.hypot(dx, dy);
 }
 
+function closeNodeChainIfNearClosed(nodes, maxGapMetres = 80) {
+  if (nodes.length < 2) {
+    return nodes;
+  }
+
+  const first = nodes[0];
+  const last = nodes[nodes.length - 1];
+  if (first.lat === last.lat && first.lon === last.lon) {
+    return nodes;
+  }
+
+  return computeEndpointGap(nodes) <= maxGapMetres
+    ? [...nodes, first]
+    : nodes;
+}
+
 // Fix "spikes" in a node chain where a section is traversed backwards.
 // A spike shows up as two near-180° reversals — the chain goes forward, then
 // abruptly backward (reversal 1), then forward again (reversal 2).
@@ -432,7 +448,8 @@ function buildCandidateFromWays(ways) {
   const edgeIds = graph.edges.map(edge => edge.id);
   const isSimpleLoop = graph.edges.length > 0 && [...graph.vertices.values()].every(vertex => vertex.edges.length === 2);
   const cycleCandidate = isSimpleLoop ? buildCycleFromEdges(graph, edgeIds) : null;
-  const nodes = cycleCandidate?.nodes ?? dedupeSequentialNodes(stitchWaysOrdered(ways));
+  const stitchedNodes = cycleCandidate?.nodes ?? dedupeSequentialNodes(stitchWaysOrdered(ways));
+  const nodes = closeNodeChainIfNearClosed(stitchedNodes);
 
   return {
     nodes,
@@ -960,11 +977,12 @@ export function buildVariantLayouts(ways, graph, sections, trackName, backboneCy
       }
     }
 
+    const candidateNodes = closeNodeChainIfNearClosed(layoutNodes);
     const candidate = {
-      nodes: layoutNodes,
-      length: measurePolylineLength(layoutNodes),
-      area: computeBoundingBoxArea(layoutNodes),
-      endpointGap: computeEndpointGap(layoutNodes),
+      nodes: candidateNodes,
+      length: measurePolylineLength(candidateNodes),
+      area: computeBoundingBoxArea(candidateNodes),
+      endpointGap: computeEndpointGap(candidateNodes),
     };
 
     if (candidate.nodes.length < 4 || candidate.length < MIN_LAYOUT_LENGTH || candidate.endpointGap > 80) {
@@ -1113,6 +1131,28 @@ function isNearDuplicateLayoutCandidate(candidate, existingCandidates) {
   });
 }
 
+function dedupeLayoutsByGeometry(layouts, trackName) {
+  const rankedLayouts = rankLayoutsForTrack(layouts, trackName);
+  const dedupedLayouts = [];
+  const seenCandidates = [];
+
+  for (const layout of rankedLayouts) {
+    const candidate = {
+      nodes: layout.nodes,
+      length: layout?.stats?.lengthMetres ?? measurePolylineLength(layout.nodes ?? []),
+    };
+
+    if (isNearDuplicateLayoutCandidate(candidate, seenCandidates) >= 0) {
+      continue;
+    }
+
+    seenCandidates.push(candidate);
+    dedupedLayouts.push(layout);
+  }
+
+  return dedupedLayouts;
+}
+
 function buildSubstitutionLayouts(nameGroups, backboneGroupName, backboneWays, backboneCandidate) {
   const backboneGraph = buildWayGraph(backboneWays);
   const cycleMetadata = buildOrderedCycleMetadata(backboneGraph, backboneGraph.edges.map(edge => edge.id));
@@ -1257,7 +1297,7 @@ function buildSubstitutionLayouts(nameGroups, backboneGroupName, backboneWays, b
 //
 // Returns [] if no two named groups independently form valid closed circuits.
 function buildNamedCircuitLayouts(ways, trackName) {
-  const CIRCUIT_KEYWORD = /\b(circuit|layout|oval|grand[\s_-]*prix|national|endurance|inner|outer|short)\b/i;
+  const CIRCUIT_KEYWORD = /\b(circuit|layout|oval|grand[\s_-]*prix|indy|national|endurance|inner|outer|short)\b/i;
   const MIN_LENGTH = 1500; // metres — ignore sub-km stubs
   const MAX_GAP_FRACTION = 0.15; // endpoint gap must be < 15% of total length
 
@@ -1297,30 +1337,9 @@ function buildNamedCircuitLayouts(ways, trackName) {
 
   // Need at least 2 valid standalone circuits to show a picker
   if (standaloneLayouts.length >= 2) {
-    standaloneLayouts.sort((a, b) => compareLayoutsForTrack(trackName, a, b));
-    const dedupedLayouts = [];
-    const seenCandidates = [];
-
-    for (const layout of standaloneLayouts) {
-      const duplicateIndex = isNearDuplicateLayoutCandidate(layout.candidate, seenCandidates);
-      if (duplicateIndex >= 0) {
-        const existingLayout = dedupedLayouts[duplicateIndex];
-        const shouldReplace = layout.name.length < existingLayout.name.length
-          || (layout.name.length === existingLayout.name.length && layout.name.localeCompare(existingLayout.name) < 0);
-        if (shouldReplace) {
-          seenCandidates[duplicateIndex] = layout.candidate;
-          const { candidate, ways: groupedWays, ...publicLayout } = layout;
-          dedupedLayouts[duplicateIndex] = publicLayout;
-        }
-        continue;
-      }
-
-      seenCandidates.push(layout.candidate);
-      const { candidate, ways: groupedWays, ...publicLayout } = layout;
-      dedupedLayouts.push(publicLayout);
-    }
-
-    return dedupedLayouts.length >= 2 ? rankLayoutsForTrack(dedupedLayouts, trackName) : [];
+    const publicLayouts = standaloneLayouts.map(({ candidate, ways: groupedWays, ...publicLayout }) => publicLayout);
+    const dedupedLayouts = dedupeLayoutsByGeometry(publicLayouts, trackName);
+    return dedupedLayouts.length >= 2 ? dedupedLayouts : [];
   }
 
   if (standaloneLayouts.length !== 1) {
@@ -1335,7 +1354,7 @@ function buildNamedCircuitLayouts(ways, trackName) {
     backboneLayout.candidate,
   );
   if (substitutionLayouts.length >= 2) {
-    return rankLayoutsForTrack(substitutionLayouts, trackName);
+    return dedupeLayoutsByGeometry(substitutionLayouts, trackName);
   }
 
   return [];
@@ -1363,7 +1382,7 @@ export function buildLayoutsFromWays(ways, trackName) {
   const variantLayouts = buildVariantLayouts(ways, graph, sections, trackName, variantBackbone);
 
   if (variantLayouts.length > 1) {
-    return rankLayoutsForTrack(variantLayouts.slice(0, 8), trackName).map(({ area, ...layout }) => layout);
+    return dedupeLayoutsByGeometry(variantLayouts.slice(0, 8), trackName).map(({ area, ...layout }) => layout);
   }
 
   const singleLayout = variantBackbone
@@ -1484,7 +1503,7 @@ function buildTrackGeometryResult(elements, trackName) {
   const osmVenueNames = collectOsmVenueNames(componentWays);
 
   const namedLayouts = buildNamedCircuitLayouts(componentWays, trackName);
-  if (namedLayouts.length > 1) {
+  if (namedLayouts.length > 0) {
     return { layouts: namedLayouts, selectedLayoutIndex: 0, osmVenueNames };
   }
 
@@ -1507,7 +1526,7 @@ function buildTrackGeometryResult(elements, trackName) {
   }
 
   return {
-    layouts: rankLayoutsForTrack(layouts, trackName),
+    layouts: dedupeLayoutsByGeometry(layouts, trackName),
     selectedLayoutIndex: 0,
     osmVenueNames,
   };
