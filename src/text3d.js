@@ -13,6 +13,8 @@ const MAX_TEXT_LINES = 4;
 const MAX_CANDIDATES = 16;
 const LONG_SIDE_GRID_CELLS = 96;
 const MIN_GRID_CELLS = 48;
+const TEXT_TRACK_CLEARANCE_MM = 0.4;
+const PLACEMENT_SCALE_SEARCH_STEPS = 12;
 
 let cachedFont = null;
 
@@ -500,6 +502,74 @@ function pointInTrackFootprint(point, outlinePoints) {
   return !(outlinePoints.holes ?? []).some(hole => hole.length >= 3 && pointInPolygon(point, hole));
 }
 
+function distancePointToSegment(point, start, end) {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const lengthSquared = dx * dx + dy * dy;
+  if (lengthSquared <= Number.EPSILON) {
+    return Math.hypot(point.x - start.x, point.y - start.y);
+  }
+
+  const t = clamp(
+    ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared,
+    0,
+    1,
+  );
+  const nearestX = start.x + dx * t;
+  const nearestY = start.y + dy * t;
+  return Math.hypot(point.x - nearestX, point.y - nearestY);
+}
+
+function distanceToRing(point, ring) {
+  if (!ring?.length) {
+    return Infinity;
+  }
+
+  let minDistance = Infinity;
+
+  for (let index = 0; index < ring.length; index += 1) {
+    const start = ring[index];
+    const end = ring[(index + 1) % ring.length];
+    minDistance = Math.min(minDistance, distancePointToSegment(point, start, end));
+  }
+
+  return minDistance;
+}
+
+function pointHasTrackClearance(point, outlinePoints, clearance = TEXT_TRACK_CLEARANCE_MM) {
+  if (pointInTrackFootprint(point, outlinePoints)) {
+    return false;
+  }
+
+  let minDistance = distanceToRing(point, outlinePoints?.outerRing ?? []);
+  for (const hole of outlinePoints?.holes ?? []) {
+    minDistance = Math.min(minDistance, distanceToRing(point, hole));
+  }
+
+  return minDistance >= clearance;
+}
+
+function placementHasTrackClearance(contours, outlinePoints, clearance = TEXT_TRACK_CLEARANCE_MM) {
+  const shapes = collectShapes(buildContourTree(contours));
+
+  return shapes.every(shape => {
+    const triangles = triangulateShape(shape, 0, 1);
+
+    return triangles.every(triangle => {
+      if (!triangle.every(vertex => vertex.z === 1)) {
+        return true;
+      }
+
+      const centroid = {
+        x: (triangle[0].x + triangle[1].x + triangle[2].x) / 3,
+        y: (triangle[0].y + triangle[1].y + triangle[2].y) / 3,
+      };
+
+      return pointHasTrackClearance(centroid, outlinePoints, clearance);
+    });
+  });
+}
+
 function dilateBlockedCells(mask, radius) {
   if (radius <= 0) {
     return mask;
@@ -850,7 +920,7 @@ function scoreTextFit(rect, layout, scaledBounds, basePlate) {
     * centerBias;
 }
 
-function fitTextToRectangle(text, font, rect, basePlate, cache, textOrientationMode = TEXT_ORIENTATION_AUTO) {
+function fitTextToRectangle(text, font, rect, basePlate, cache, textOrientationMode = TEXT_ORIENTATION_AUTO, outlinePoints = null) {
   const words = String(text).split(/\s+/u).filter(Boolean);
   if (!words.length) {
     return null;
@@ -884,22 +954,34 @@ function fitTextToRectangle(text, font, rect, basePlate, cache, textOrientationM
           continue;
         }
 
-        const fittedWidth = oriented.bounds.width * fittedScale;
-        const fittedHeight = oriented.bounds.height * fittedScale;
-        const score = scoreTextFit(rect, multiline, { width: fittedWidth, height: fittedHeight }, basePlate);
+        const candidateLayout = {
+          text: multiline.text,
+          lines: multiline.lines,
+          rotation,
+          scale: fittedScale,
+          bounds: oriented.bounds,
+          contours: oriented.contours,
+          lineBounds: oriented.lineBounds,
+          averageLineHeight: multiline.averageLineHeight,
+          fittedWidth: oriented.bounds.width * fittedScale,
+          fittedHeight: oriented.bounds.height * fittedScale,
+        };
+        const resolvedLayout = outlinePoints
+          ? fitLayoutWithinTrackClearance(candidateLayout, rect, outlinePoints)
+          : placeLayoutInCandidate(candidateLayout, rect, fittedScale);
+        if (!resolvedLayout) {
+          continue;
+        }
+
+        const score = scoreTextFit(rect, multiline, {
+          width: resolvedLayout.fittedWidth,
+          height: resolvedLayout.fittedHeight,
+        }, basePlate);
 
         if (!bestLayout || score > bestLayout.score) {
           bestLayout = {
+            ...resolvedLayout,
             score,
-            text: multiline.text,
-            lines: multiline.lines,
-            rotation,
-            scale: fittedScale,
-            bounds: oriented.bounds,
-            contours: oriented.contours,
-            lineBounds: oriented.lineBounds,
-            fittedWidth,
-            fittedHeight,
           };
         }
       }
@@ -924,29 +1006,41 @@ function computeTextPlacement(text, outlinePoints, basePlate, scale, options = {
     return null;
   }
 
-  const candidateIndex = Math.min(
+  const requestedCandidateIndex = Math.min(
     normalizeTextPositionRank(options.textPositionRank) - 1,
     candidates.length - 1,
   );
-  const selectedCandidate = candidates[candidateIndex];
 
-  const placement = chooseTextPlacement(
-    normalizedText,
-    font,
-    selectedCandidate,
-    scaledBasePlate,
-    options.textOrientationMode,
-  );
-  if (!placement?.contours?.length) {
-    return null;
+  const candidateOrder = [];
+  for (let index = requestedCandidateIndex; index < candidates.length; index += 1) {
+    candidateOrder.push(index);
+  }
+  for (let index = requestedCandidateIndex - 1; index >= 0; index -= 1) {
+    candidateOrder.push(index);
   }
 
-  return {
-    ...placement,
-    candidateIndex,
-    candidateCount: candidates.length,
-    normalizedText,
-  };
+  for (const candidateIndex of candidateOrder) {
+    const placement = chooseTextPlacement(
+      normalizedText,
+      font,
+      candidates[candidateIndex],
+      scaledBasePlate,
+      scaledOutline,
+      options.textOrientationMode,
+    );
+    if (!placement?.contours?.length) {
+      continue;
+    }
+
+    return {
+      ...placement,
+      candidateIndex,
+      candidateCount: candidates.length,
+      normalizedText,
+    };
+  }
+
+  return null;
 }
 
 export function __debugTextPlacement(text, outlinePoints, basePlate, scale, options = {}) {
@@ -966,22 +1060,68 @@ export function __debugTextPlacement(text, outlinePoints, basePlate, scale, opti
   };
 }
 
-function chooseTextPlacement(text, font, candidate, basePlate, textOrientationMode = TEXT_ORIENTATION_AUTO) {
-  const cache = new Map();
-  const layout = fitTextToRectangle(text, font, candidate.bounds, basePlate, cache, textOrientationMode);
-  if (!layout) {
+function placeLayoutInCandidate(layout, candidateBounds, appliedScale) {
+  const fittedWidth = layout.bounds.width * appliedScale;
+  const fittedHeight = layout.bounds.height * appliedScale;
+  const offsetX = candidateBounds.minX + (candidateBounds.width - fittedWidth) / 2 - layout.bounds.minX * appliedScale;
+  const offsetY = candidateBounds.minY + (candidateBounds.height - fittedHeight) / 2 - layout.bounds.minY * appliedScale;
+
+  return {
+    ...layout,
+    scale: appliedScale,
+    fittedWidth,
+    fittedHeight,
+    contours: translateAndScaleContours(layout.contours, appliedScale, offsetX, offsetY),
+    lineBounds: layout.lineBounds.map(bounds => translateAndScaleBounds(bounds, appliedScale, offsetX, offsetY)),
+  };
+}
+
+function fitLayoutWithinTrackClearance(layout, candidateBounds, outlinePoints) {
+  const fullSizePlacement = placeLayoutInCandidate(layout, candidateBounds, layout.scale);
+  if (placementHasTrackClearance(fullSizePlacement.contours, outlinePoints)) {
+    return fullSizePlacement;
+  }
+
+  const minReadableScale = MIN_TEXT_HEIGHT_MM / Math.max(layout.averageLineHeight, Number.EPSILON);
+  if (!Number.isFinite(minReadableScale) || minReadableScale > layout.scale) {
     return null;
   }
 
-  const offsetX = candidate.bounds.minX + (candidate.bounds.width - layout.fittedWidth) / 2 - layout.bounds.minX * layout.scale;
-  const offsetY = candidate.bounds.minY + (candidate.bounds.height - layout.fittedHeight) / 2 - layout.bounds.minY * layout.scale;
+  const minReadablePlacement = placeLayoutInCandidate(layout, candidateBounds, minReadableScale);
+  if (!placementHasTrackClearance(minReadablePlacement.contours, outlinePoints)) {
+    return null;
+  }
+
+  let low = minReadableScale;
+  let high = layout.scale;
+  let bestPlacement = minReadablePlacement;
+
+  for (let step = 0; step < PLACEMENT_SCALE_SEARCH_STEPS; step += 1) {
+    const candidateScale = (low + high) / 2;
+    const candidatePlacement = placeLayoutInCandidate(layout, candidateBounds, candidateScale);
+
+    if (placementHasTrackClearance(candidatePlacement.contours, outlinePoints)) {
+      low = candidateScale;
+      bestPlacement = candidatePlacement;
+    } else {
+      high = candidateScale;
+    }
+  }
+
+  return bestPlacement;
+}
+
+function chooseTextPlacement(text, font, candidate, basePlate, outlinePoints, textOrientationMode = TEXT_ORIENTATION_AUTO) {
+  const cache = new Map();
+  const layout = fitTextToRectangle(text, font, candidate.bounds, basePlate, cache, textOrientationMode, outlinePoints);
+  if (!layout) {
+    return null;
+  }
 
   return {
     ...layout,
     area: candidate.area,
     candidate: candidate.bounds,
-    contours: translateAndScaleContours(layout.contours, layout.scale, offsetX, offsetY),
-    lineBounds: layout.lineBounds.map(bounds => translateAndScaleBounds(bounds, layout.scale, offsetX, offsetY)),
   };
 }
 

@@ -10,6 +10,10 @@ import {
   __enumerateSequentialTextLineBreaks,
   buildTextMesh,
 } from '../src/text3d.js';
+import {
+  LE_MANS_SIMPLIFIED_BASE_PLATE,
+  LE_MANS_SIMPLIFIED_OUTLINE,
+} from '../test-data/le-mans-outline.js';
 
 function rectangleCommands(x, y, width, height) {
   return [
@@ -79,6 +83,59 @@ function triangleBounds(triangles) {
     minY: Infinity,
     maxY: -Infinity,
   });
+}
+
+function pointInPolygon(point, polygon) {
+  let inside = false;
+
+  for (let index = 0, previous = polygon.length - 1; index < polygon.length; previous = index, index += 1) {
+    const a = polygon[index];
+    const b = polygon[previous];
+    const intersects = ((a.y > point.y) !== (b.y > point.y))
+      && (point.x < ((b.x - a.x) * (point.y - a.y)) / ((b.y - a.y) || Number.EPSILON) + a.x);
+
+    if (intersects) {
+      inside = !inside;
+    }
+  }
+
+  return inside;
+}
+
+function pointInTrackFootprint(point, outline) {
+  if (!pointInPolygon(point, outline.outerRing)) {
+    return false;
+  }
+
+  return !(outline.holes ?? []).some(hole => hole.length >= 3 && pointInPolygon(point, hole));
+}
+
+function countCollidingTopFaces(triangles, outline) {
+  if (!triangles.length) {
+    return 0;
+  }
+
+  const topZ = Math.max(...triangles.flatMap(triangle => triangle.map(vertex => vertex.z)));
+
+  return triangles.reduce((count, triangle) => {
+    if (!triangle.every(vertex => vertex.z === topZ)) {
+      return count;
+    }
+
+    const centroid = {
+      x: (triangle[0].x + triangle[1].x + triangle[2].x) / 3,
+      y: (triangle[0].y + triangle[1].y + triangle[2].y) / 3,
+    };
+
+    return count + (pointInTrackFootprint(centroid, outline) ? 1 : 0);
+  }, 0);
+}
+
+function scaleOutline(outline, scale) {
+  return {
+    outerRing: outline.outerRing.map(point => ({ x: point.x * scale, y: point.y * scale })),
+    holes: (outline.holes ?? []).map(hole => hole.map(point => ({ x: point.x * scale, y: point.y * scale }))),
+  };
 }
 
 function boundsCenter(bounds) {
@@ -606,4 +663,17 @@ test('buildTextMesh falls back to the best available ranked candidate', () => {
 
   assert.ok(second.length > 0);
   assert.deepEqual(third, second);
+});
+
+test('buildTextMesh keeps the Le Mans label clear of the circuit footprint', () => {
+  const scale = 200 / Math.max(LE_MANS_SIMPLIFIED_BASE_PLATE.width, LE_MANS_SIMPLIFIED_BASE_PLATE.height);
+  const triangles = buildTextMesh(
+    'Circuit de la Sarthe',
+    LE_MANS_SIMPLIFIED_OUTLINE,
+    LE_MANS_SIMPLIFIED_BASE_PLATE,
+    scale,
+  );
+
+  assert.ok(triangles.length > 0);
+  assert.equal(countCollidingTopFaces(triangles, scaleOutline(LE_MANS_SIMPLIFIED_OUTLINE, scale)), 0);
 });
