@@ -618,6 +618,34 @@ function buildWeightedNames(edgeIds, graph, trackName) {
 
 const PRIMARY_LAYOUT_PATTERN = /\b(main|grand[\s_-]*prix)\b/i;
 const SECONDARY_LAYOUT_PATTERN = /\b(alternate|alternative|club|corkscrew|endurance|formula\s*e|e[\s_-]*prix|flat|inner|joker|kart|moto|national|outer|oval|paddock|rallycross|short|test)\b/i;
+const SHORTCUT_LAYOUT_PATTERN = /\b(inner|oasis|oval|test)\b/i;
+
+function canonicalizeLayoutName(name) {
+  const normalizedName = normalizeCircuitName(name);
+
+  if (normalizedName === 'flat oval layout' || normalizedName === 'bahrain oval gp') {
+    return 'Test Oval';
+  }
+
+  return name;
+}
+
+function getKnownLayoutLengthTarget(trackName, label) {
+  const normalizedTrackName = normalizeCircuitName(trackName);
+  const normalizedLabel = normalizeCircuitName(label);
+
+  if (normalizedTrackName === 'bahrain international circuit') {
+    if (normalizedLabel === 'inner circuit') {
+      return 2550;
+    }
+
+    if (normalizedLabel === 'flat oval layout' || normalizedLabel === 'bahrain oval gp' || normalizedLabel === 'test oval') {
+      return 2500;
+    }
+  }
+
+  return null;
+}
 
 function scoreLayoutChoice(layout, trackName) {
   const name = layout?.name?.trim() ?? '';
@@ -1198,6 +1226,27 @@ function dedupeLayoutsByGeometry(layouts, trackName) {
   return dedupedLayouts;
 }
 
+function canonicalizeLayoutNames(layouts) {
+  return layouts.map(layout => ({
+    ...layout,
+    name: canonicalizeLayoutName(layout.name),
+  }));
+}
+
+function dedupeLayoutsByName(layouts, trackName) {
+  const bestLayoutsByName = new Map();
+
+  for (const layout of layouts) {
+    const key = normalizeCircuitName(layout.name);
+    const existing = bestLayoutsByName.get(key);
+    if (!existing || compareLayoutsForTrack(trackName, layout, existing) < 0) {
+      bestLayoutsByName.set(key, layout);
+    }
+  }
+
+  return [...bestLayoutsByName.values()];
+}
+
 function resolveGenericRelationLayoutNames(layouts, trackName) {
   const seenLayoutNames = new Set(layouts.map(layout => normalizeCircuitName(layout.name)));
 
@@ -1267,7 +1316,7 @@ function buildImplicitRelationLayouts(nameGroups, eligibleNameGroups, existingLa
   return implicitLayouts;
 }
 
-function substituteVariantIntoLayout(baseNodes, variantNodes, variantLength, label, backboneLength) {
+function substituteVariantIntoLayout(baseNodes, variantNodes, variantLength, label, backboneLength, trackName = null) {
   const MAX_ENDPOINT_MATCH_DISTANCE = SNAP_FUZZY * 8;
   const MIN_LENGTH = 1000;
   const MAX_GAP_FRACTION = 0.2;
@@ -1302,43 +1351,49 @@ function substituteVariantIntoLayout(baseNodes, variantNodes, variantLength, lab
       ].map(option => ({
         ...option,
         replacementLength: measurePolylineLength(option.replacementNodes),
-      })).sort((a, b) => {
-        const delta = Math.abs(a.replacementLength - variantLength) - Math.abs(b.replacementLength - variantLength);
-        if (Math.abs(delta) > 1) {
-          return delta;
+      }));
+
+      for (const replacement of replacementCandidates) {
+        if (!replacement?.preservedNodes?.length || replacement.preservedNodes.length < 2) {
+          continue;
         }
-        return a.replacementLength - b.replacementLength;
-      });
 
-      const replacement = replacementCandidates[0];
-      if (!replacement?.preservedNodes?.length || replacement.preservedNodes.length < 2) {
-        continue;
-      }
+        const selectedWays = [
+          { nodes: replacement.preservedNodes, tags: { name: 'Main' } },
+          { nodes: replacement.variantNodes, tags: { name: label } },
+        ];
+        const candidate = buildCandidateFromWays(selectedWays);
+        if (!candidate || candidate.nodes.length < 4) {
+          continue;
+        }
+        if (candidate.length < MIN_LENGTH) {
+          continue;
+        }
+        const maxEndpointGap = SHORTCUT_LAYOUT_PATTERN.test(label)
+          ? Math.min(80, candidate.length * MAX_GAP_FRACTION)
+          : candidate.length * MAX_GAP_FRACTION;
+        if (candidate.endpointGap > maxEndpointGap) {
+          continue;
+        }
 
-      const selectedWays = [
-        { nodes: replacement.preservedNodes, tags: { name: 'Main' } },
-        { nodes: replacement.variantNodes, tags: { name: label } },
-      ];
-      const candidate = buildCandidateFromWays(selectedWays);
-      if (!candidate || candidate.nodes.length < 4) {
-        continue;
-      }
-      if (candidate.length < MIN_LENGTH) {
-        continue;
-      }
-      if (candidate.endpointGap > candidate.length * MAX_GAP_FRACTION) {
-        continue;
-      }
-
-      const score = (startMatch.distance + endMatch.distance) * 1000000
-        + Math.abs(candidate.length - backboneLength)
-        + Math.abs(replacement.replacementLength - variantLength);
-      if (!bestLayout || score < bestLayout.score) {
-        bestLayout = {
-          score,
-          candidate,
-          selectedWays,
-        };
+        const knownTargetLength = getKnownLayoutLengthTarget(trackName, label);
+        if (knownTargetLength != null && Math.abs(candidate.length - knownTargetLength) > 250) {
+          continue;
+        }
+        const prefersShortcutLength = knownTargetLength == null && SHORTCUT_LAYOUT_PATTERN.test(label);
+        const score = (startMatch.distance + endMatch.distance) * 1000000
+          + (knownTargetLength != null
+              ? Math.abs(candidate.length - knownTargetLength)
+              : prefersShortcutLength
+              ? candidate.length
+              : Math.abs(candidate.length - backboneLength) + Math.abs(replacement.replacementLength - variantLength));
+        if (!bestLayout || score < bestLayout.score) {
+          bestLayout = {
+            score,
+            candidate,
+            selectedWays,
+          };
+        }
       }
     }
   }
@@ -1346,7 +1401,7 @@ function substituteVariantIntoLayout(baseNodes, variantNodes, variantLength, lab
   return bestLayout;
 }
 
-function buildSubstitutionLayouts(nameGroups, backboneGroupName, backboneWays, backboneCandidate) {
+function buildSubstitutionLayouts(nameGroups, backboneGroupName, backboneWays, backboneCandidate, trackName) {
   const backboneGraph = buildWayGraph(backboneWays);
   const cycleMetadata = buildOrderedCycleMetadata(backboneGraph, backboneGraph.edges.map(edge => edge.id));
   if (!cycleMetadata || cycleMetadata.orderedEdges.length !== backboneWays.length) {
@@ -1382,6 +1437,7 @@ function buildSubstitutionLayouts(nameGroups, backboneGroupName, backboneWays, b
       measureWaySetLength(namedWays),
       groupName,
       backboneCandidate.length,
+      trackName,
     );
 
     if (!bestLayout) {
@@ -1484,13 +1540,14 @@ function buildNamedCircuitLayouts(ways, trackName, referenceWays = ways) {
 
   const backboneLayout = rankLayoutsForTrack(standaloneLayouts, trackName)[0];
   const substitutionLayouts = backboneLayout
-    ? buildSubstitutionLayouts(
-        eligibleNameGroups,
-        backboneLayout.name,
-        backboneLayout.ways,
-        backboneLayout.candidate,
-      )
-    : [];
+      ? buildSubstitutionLayouts(
+          eligibleNameGroups,
+          backboneLayout.name,
+          backboneLayout.ways,
+          backboneLayout.candidate,
+          trackName,
+        )
+      : [];
 
   const publicLayouts = standaloneLayouts.map(({ candidate, ways: groupedWays, ...publicLayout }) => publicLayout);
   const dedupedCombinedLayouts = dedupeLayoutsByGeometry([...publicLayouts, ...substitutionLayouts], trackName);
@@ -1637,18 +1694,15 @@ function collectOsmVenueNames(ways) {
 function collectNamedLayoutWays(filteredWays, componentWays) {
   const componentWayIds = new Set(componentWays.map(way => way.id));
   const referenceNodes = buildCandidateFromWays(componentWays)?.nodes ?? [];
-  const excludedPeripheralPattern = /\b(oval|test)\b/i;
 
   const extraWays = filteredWays.filter(way => {
     if (componentWayIds.has(way.id)) {
       return false;
     }
 
-    const wayName = way.tags?.name?.trim() ?? '';
-    if (!NAMED_LAYOUT_KEYWORD_PATTERN.test(wayName)) {
-      return false;
-    }
-    if (excludedPeripheralPattern.test(wayName)) {
+    const hasLayoutLikeName = getWayCandidateNames(way)
+      .some(name => NAMED_LAYOUT_KEYWORD_PATTERN.test(name));
+    if (!hasLayoutLikeName) {
       return false;
     }
 
@@ -1690,7 +1744,12 @@ function buildTrackGeometryResult(elements, trackName) {
 
   const namedLayouts = buildNamedCircuitLayouts(namedLayoutWays, trackName, componentWays);
   if (namedLayouts.length > 0) {
-    return { layouts: namedLayouts, selectedLayoutIndex: 0, osmVenueNames };
+    const normalizedLayouts = dedupeLayoutsByName(canonicalizeLayoutNames(namedLayouts), trackName);
+    return {
+      layouts: dedupeLayoutsByGeometry(normalizedLayouts, trackName),
+      selectedLayoutIndex: 0,
+      osmVenueNames,
+    };
   }
 
   const layouts = buildLayoutsFromWays(componentWays, trackName);
@@ -1711,8 +1770,9 @@ function buildTrackGeometryResult(elements, trackName) {
     };
   }
 
+  const normalizedLayouts = dedupeLayoutsByName(canonicalizeLayoutNames(layouts), trackName);
   return {
-    layouts: dedupeLayoutsByGeometry(layouts, trackName),
+    layouts: dedupeLayoutsByGeometry(normalizedLayouts, trackName),
     selectedLayoutIndex: 0,
     osmVenueNames,
   };
