@@ -1,4 +1,5 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { createWriteStream } from 'node:fs';
+import { mkdir, readFile, rename } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -595,6 +596,34 @@ export function determineExitCode(report, options) {
   return 0;
 }
 
+async function writeArtifactToFile(artifact, filePath) {
+  await mkdir(path.dirname(filePath), { recursive: true });
+  const tmpPath = `${filePath}.tmp`;
+
+  await new Promise((resolve, reject) => {
+    const stream = createWriteStream(tmpPath, { encoding: 'utf8' });
+    stream.on('error', reject);
+    stream.on('finish', resolve);
+
+    const entries = Object.entries(artifact);
+    stream.write('{\n');
+
+    entries.forEach(([key, value], index) => {
+      const isLast = index === entries.length - 1;
+      const valueLines = JSON.stringify(value, null, 2).split('\n');
+      const indented = valueLines.map((line, i) => (i === 0 ? line : `  ${line}`)).join('\n');
+      stream.write(`  ${JSON.stringify(key)}: ${indented}${isLast ? '' : ','}\n`);
+    });
+
+    stream.write('}\n');
+    stream.end();
+  });
+
+  await rename(tmpPath, filePath);
+}
+
+const FLUSH_INTERVAL = 25;
+
 export async function main(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
   const tracks = resolveSupportedTracks(options.track);
@@ -609,13 +638,11 @@ export async function main(argv = process.argv.slice(2)) {
     failed: [],
     targetedTrackFailed: false,
   };
-  const artifact = cloneJson(existingArtifact) ?? {};
+  const artifact = existingArtifact ?? {};
 
   console.log(`Building geometry index for ${tracks.length} track${tracks.length === 1 ? '' : 's'} from the local search index`);
 
   for (const track of freshTracks) {
-    const existingEntry = existingArtifact[track.wikidataId];
-    artifact[track.wikidataId] = cloneJson(existingEntry);
     report.skipped.push({
       wikidataId: track.wikidataId,
       name: track.trackName,
@@ -625,10 +652,6 @@ export async function main(argv = process.argv.slice(2)) {
   }
 
   for (const track of deferredTracks) {
-    if (existingArtifact[track.wikidataId]) {
-      artifact[track.wikidataId] = cloneJson(existingArtifact[track.wikidataId]);
-    }
-
     report.skipped.push({
       wikidataId: track.wikidataId,
       name: track.trackName,
@@ -716,6 +739,7 @@ export async function main(argv = process.argv.slice(2)) {
       });
       console.log(`${progressLabel} - built successfully (${trackArtifact.layouts.length} layouts, ${sourceDetails || sourceUsed})`);
     } catch (error) {
+
       const message = error instanceof Error ? error.message : String(error);
       if (existingEntry) {
         artifact[track.wikidataId] = existingEntry;
@@ -743,11 +767,14 @@ export async function main(argv = process.argv.slice(2)) {
         report.targetedTrackFailed = true;
       }
     }
+
+    if (!options.validateOnly && (index + 1) % FLUSH_INTERVAL === 0) {
+      await writeArtifactToFile(artifact, outputPath);
+    }
   }
 
   if (!options.validateOnly) {
-    await mkdir(outputDir, { recursive: true });
-    await writeFile(outputPath, `${JSON.stringify(artifact, null, 2)}\n`);
+    await writeArtifactToFile(artifact, outputPath);
   }
 
   console.log('');
@@ -778,6 +805,7 @@ export async function main(argv = process.argv.slice(2)) {
   if (!options.validateOnly) {
     console.log(`Wrote ${path.relative(projectRoot, outputPath)}`);
   }
+
 
   process.exitCode = determineExitCode(report, options);
 }
