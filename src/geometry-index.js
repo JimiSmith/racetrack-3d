@@ -1,4 +1,4 @@
-import geometryIndex from './generated/track-geometry-index.json' with { type: 'json' };
+const geometryCache = new Map();
 
 function cloneLayout(layout) {
   return {
@@ -12,12 +12,7 @@ function cloneLayout(layout) {
   };
 }
 
-export function getLocalTrackGeometry(wikidataId) {
-  if (!wikidataId) {
-    return null;
-  }
-
-  const entry = geometryIndex[wikidataId];
+function cloneTrackGeometry(entry) {
   if (!entry) {
     return null;
   }
@@ -39,6 +34,29 @@ export function getLocalTrackGeometry(wikidataId) {
   };
 }
 
-export function hasLocalTrackGeometry(wikidataId) {
-  return Boolean(wikidataId && geometryIndex[wikidataId]);
+export function getTrackGeometry(wikidataId) {
+  if (!wikidataId) {
+    return Promise.resolve(null);
+  }
+
+  if (geometryCache.has(wikidataId)) {
+    return geometryCache.get(wikidataId);
+  }
+
+  const promise = (async () => {
+    try {
+      const response = await fetch(`/src/generated/geometry/${encodeURIComponent(wikidataId)}.json`);
+      if (!response.ok) {
+        return null;
+      }
+
+      const entry = await response.json();
+      return cloneTrackGeometry(entry);
+    } catch {
+      return null;
+    }
+  })();
+
+  geometryCache.set(wikidataId, promise);
+  return promise;
 }

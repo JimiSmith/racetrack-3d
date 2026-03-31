@@ -1,5 +1,5 @@
 import trackSearchIndex from './generated/track-search-index.json' with { type: 'json' };
-import { getLocalTrackGeometry } from './geometry-index.js';
+import { getTrackGeometry } from './geometry-index.js';
 
 export {
   buildTrackDisplayName,
@@ -1871,7 +1871,7 @@ export function buildTrackGeometryFromOverpassPayload(payload, trackName) {
 // Fetch raceway geometry using Overpass bbox query around Wikidata P625 coordinates.
 // Much more reliable than P402 (stale OSM relation IDs) or name searches (timeouts).
 export async function fetchTrackGeometry(lat, lon, signal, trackName, options = {}) {
-  const localGeometry = options.skipLocal ? null : getLocalTrackGeometry(options.wikidataId);
+  const localGeometry = options.skipLocal ? null : await getTrackGeometry(options.wikidataId);
   if (localGeometry) {
     return localGeometry;
   }

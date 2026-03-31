@@ -1,5 +1,4 @@
-import { createWriteStream } from 'node:fs';
-import { mkdir, readFile, rename } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -17,8 +16,7 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
-const outputDir = path.join(projectRoot, 'src', 'generated');
-const outputPath = path.join(outputDir, 'track-geometry-index.json');
+const geometryOutputDir = path.join(projectRoot, 'src', 'generated', 'geometry');
 const defaultCacheDir = path.join(projectRoot, '.cache', 'track-geometry', 'osm-api');
 
 const MIN_LAYOUT_LENGTH_METRES = 500;
@@ -54,10 +52,6 @@ export const SUPPORTED_TRACKS = trackSearchIndex
     ...track,
     ...(TRACK_BUILD_OVERRIDES.get(track.wikidataId) ?? {}),
   }));
-
-function cloneJson(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value));
-}
 
 function normalizeText(value) {
   return String(value ?? '')
@@ -248,8 +242,9 @@ async function readJsonFile(filePath, fallbackValue) {
   }
 }
 
-async function loadExistingGeometryIndex() {
-  return readJsonFile(outputPath, {});
+export async function loadExistingTrackEntry(wikidataId) {
+  const filePath = path.join(geometryOutputDir, `${wikidataId}.json`);
+  return readJsonFile(filePath, null);
 }
 
 async function readCachedOsmPayload(track, margin, options) {
@@ -549,15 +544,16 @@ export function isTrackGeometryEntryFresh(entry, now = Date.now()) {
   return ageMs < computeTrackStaleThresholdMs(trackId);
 }
 
-export function partitionTracksByStaleness(tracks, existingArtifact, options = {}) {
+export async function partitionTracksByStaleness(tracks, options = {}) {
   const now = options.now ?? Date.now();
   const limit = options.limit ?? Number.POSITIVE_INFINITY;
+  const loadExistingTrackEntryFn = options.loadExistingTrackEntry ?? loadExistingTrackEntry;
   const freshTracks = [];
   const staleTracks = [];
   const deferredTracks = [];
 
   for (const track of tracks) {
-    const existingEntry = existingArtifact?.[track.wikidataId] ?? null;
+    const existingEntry = await loadExistingTrackEntryFn(track.wikidataId);
     if (existingEntry && isTrackGeometryEntryFresh(existingEntry, now)) {
       freshTracks.push(track);
       continue;
@@ -598,37 +594,13 @@ export function determineExitCode(report, options) {
 
 async function writeArtifactToFile(artifact, filePath) {
   await mkdir(path.dirname(filePath), { recursive: true });
-  const tmpPath = `${filePath}.tmp`;
-
-  await new Promise((resolve, reject) => {
-    const stream = createWriteStream(tmpPath, { encoding: 'utf8' });
-    stream.on('error', reject);
-    stream.on('finish', resolve);
-
-    const entries = Object.entries(artifact);
-    stream.write('{\n');
-
-    entries.forEach(([key, value], index) => {
-      const isLast = index === entries.length - 1;
-      const valueLines = JSON.stringify(value, null, 2).split('\n');
-      const indented = valueLines.map((line, i) => (i === 0 ? line : `  ${line}`)).join('\n');
-      stream.write(`  ${JSON.stringify(key)}: ${indented}${isLast ? '' : ','}\n`);
-    });
-
-    stream.write('}\n');
-    stream.end();
-  });
-
-  await rename(tmpPath, filePath);
+  await writeFile(filePath, `${JSON.stringify(artifact, null, 2)}\n`, 'utf8');
 }
-
-const FLUSH_INTERVAL = 25;
 
 export async function main(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
   const tracks = resolveSupportedTracks(options.track);
-  const existingArtifact = await loadExistingGeometryIndex();
-  const { freshTracks, staleTracks, deferredTracks } = partitionTracksByStaleness(tracks, existingArtifact, options);
+  const { freshTracks, staleTracks, deferredTracks } = await partitionTracksByStaleness(tracks, options);
   const generatedAt = new Date().toISOString();
   const report = {
     builtSuccessfully: [],
@@ -638,8 +610,6 @@ export async function main(argv = process.argv.slice(2)) {
     failed: [],
     targetedTrackFailed: false,
   };
-  const artifact = existingArtifact ?? {};
-
   console.log(`Building geometry index for ${tracks.length} track${tracks.length === 1 ? '' : 's'} from the local search index`);
 
   for (const track of freshTracks) {
@@ -662,7 +632,7 @@ export async function main(argv = process.argv.slice(2)) {
 
   for (const [index, track] of staleTracks.entries()) {
     const progressLabel = `[${index + 1}/${staleTracks.length}] ${track.trackName} (${track.wikidataId})`;
-    const existingEntry = existingArtifact[track.wikidataId] ? cloneJson(existingArtifact[track.wikidataId]) : null;
+    const existingEntry = await loadExistingTrackEntry(track.wikidataId);
     console.log(`${progressLabel} - start`);
 
     try {
@@ -730,7 +700,9 @@ export async function main(argv = process.argv.slice(2)) {
       }
 
       const trackArtifact = buildTrackArtifact(track, geometryResult, generatedAt, sourceUsed);
-      artifact[track.wikidataId] = trackArtifact;
+      if (!options.validateOnly) {
+        await writeArtifactToFile(trackArtifact, path.join(geometryOutputDir, `${track.wikidataId}.json`));
+      }
       report.builtSuccessfully.push({
         wikidataId: track.wikidataId,
         name: track.trackName,
@@ -742,7 +714,6 @@ export async function main(argv = process.argv.slice(2)) {
 
       const message = error instanceof Error ? error.message : String(error);
       if (existingEntry) {
-        artifact[track.wikidataId] = existingEntry;
         report.reusedExisting.push({
           wikidataId: track.wikidataId,
           name: track.trackName,
@@ -768,13 +739,6 @@ export async function main(argv = process.argv.slice(2)) {
       }
     }
 
-    if (!options.validateOnly && (index + 1) % FLUSH_INTERVAL === 0) {
-      await writeArtifactToFile(artifact, outputPath);
-    }
-  }
-
-  if (!options.validateOnly) {
-    await writeArtifactToFile(artifact, outputPath);
   }
 
   console.log('');
@@ -801,11 +765,6 @@ export async function main(argv = process.argv.slice(2)) {
   for (const item of report.failed) {
     console.log(`- ${item.name} (${item.wikidataId}) -> ${item.message}`);
   }
-
-  if (!options.validateOnly) {
-    console.log(`Wrote ${path.relative(projectRoot, outputPath)}`);
-  }
-
 
   process.exitCode = determineExitCode(report, options);
 }

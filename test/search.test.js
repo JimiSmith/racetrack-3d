@@ -18,7 +18,7 @@ import {
   stitchWaysOrdered,
   tokenizeNormalizedText,
 } from '../src/search.js';
-import { getLocalTrackGeometry } from '../src/geometry-index.js';
+import { getTrackGeometry } from '../src/geometry-index.js';
 import {
   expectApproxLength,
   expectClosedish,
@@ -436,45 +436,128 @@ test('searchTracks uses the shipped local search index and returns compatible fi
   assert.equal(typeof results[0].lon, 'number');
 });
 
-test('getLocalTrackGeometry returns the prebuilt supported track layouts', () => {
-  const cases = [
-    ['Q171402', 'Silverstone Circuit', ['Main', 'Alternate'], 20],
-    ['Q172851', 'Circuit de Spa-Francorchamps', ['Main', 'Moto'], 20],
-    ['Q171332', 'Bahrain International Circuit', ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit'], 20],
-  ];
-
-  for (const [wikidataId, expectedName, expectedLayoutNames, maxGapMeters] of cases) {
-    const result = getLocalTrackGeometry(wikidataId);
-
-    assert.ok(result);
-    assert.equal(result.trackId, wikidataId);
-    assert.equal(result.name, expectedName);
-    assertLayoutNames(result.layouts, expectedLayoutNames);
-    result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters }));
-  }
-});
-
-test('fetchTrackGeometry uses local geometry when a known wikidata id is available', async () => {
+test('getTrackGeometry lazily loads and caches the prebuilt supported track layouts', async () => {
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => {
-    throw new Error('fetch should not run for local geometry');
+  const calls = [];
+  globalThis.fetch = async url => {
+    calls.push(url);
+    if (url === '/src/generated/geometry/Q171402.json') {
+      return {
+        ok: true,
+        async json() {
+          return {
+            trackId: 'Q171402',
+            name: 'Silverstone Circuit',
+            source: { kind: 'prebuilt' },
+            layouts: [
+              {
+                name: 'Main',
+                nodes: [
+                  { lat: 1, lon: 2 },
+                  { lat: 3, lon: 4 },
+                  { lat: 5, lon: 6 },
+                  { lat: 1, lon: 2 },
+                ],
+                stats: { lengthMetres: 1000, segmentCount: 1, variantSectionCount: 0 },
+              },
+              {
+                name: 'Alternate',
+                nodes: [
+                  { lat: 5, lon: 6 },
+                  { lat: 7, lon: 8 },
+                  { lat: 9, lon: 10 },
+                  { lat: 5, lon: 6 },
+                ],
+                stats: { lengthMetres: 1100, segmentCount: 1, variantSectionCount: 0 },
+              },
+            ],
+          };
+        },
+      };
+    }
+
+    return { ok: false, status: 404 };
   };
 
   try {
-    const cases = [
-      ['Q171402', 'Silverstone Circuit', ['Main', 'Alternate']],
-      ['Q172851', 'Circuit de Spa-Francorchamps', ['Main', 'Moto']],
-      ['Q171332', 'Bahrain International Circuit', ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit']],
-    ];
+    const result = await getTrackGeometry('Q171402');
 
-    for (const [wikidataId, trackName, expectedLayoutNames] of cases) {
-      const result = await fetchTrackGeometry(Number.NaN, Number.NaN, undefined, trackName, {
-        wikidataId,
-      });
+    assert.ok(result);
+    assert.equal(result.trackId, 'Q171402');
+    assert.equal(result.name, 'Silverstone Circuit');
+    assertLayoutNames(result.layouts, ['Main', 'Alternate']);
+    result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 20 }));
+    assert.equal(calls.length, 1);
 
-      assert.equal(result.trackId, wikidataId);
-      assertLayoutNames(result.layouts, expectedLayoutNames);
+    const cached = await getTrackGeometry('Q171402');
+    assert.equal(cached?.trackId, 'Q171402');
+    assert.equal(calls.length, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('getTrackGeometry returns null when the per-track file is missing', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: false, status: 404 });
+
+  try {
+    assert.equal(await getTrackGeometry('QDOES_NOT_EXIST'), null);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('fetchTrackGeometry uses lazy-loaded local geometry when a known wikidata id is available', async () => {
+  const originalFetch = globalThis.fetch;
+  const localGeometryResponse = {
+    ok: true,
+    async json() {
+      return {
+        trackId: 'Q172851',
+        name: 'Circuit de Spa-Francorchamps',
+        source: { kind: 'prebuilt' },
+        layouts: [
+          {
+            name: 'Main',
+            nodes: [
+              { lat: 1, lon: 2 },
+              { lat: 3, lon: 4 },
+              { lat: 5, lon: 6 },
+              { lat: 1, lon: 2 },
+            ],
+            stats: { lengthMetres: 1000, segmentCount: 1, variantSectionCount: 0 },
+          },
+          {
+            name: 'Alternate',
+            nodes: [
+              { lat: 5, lon: 6 },
+              { lat: 7, lon: 8 },
+              { lat: 9, lon: 10 },
+              { lat: 5, lon: 6 },
+            ],
+            stats: { lengthMetres: 1100, segmentCount: 1, variantSectionCount: 0 },
+          },
+        ],
+      };
+    },
+  };
+
+  globalThis.fetch = async url => {
+    if (url === '/src/generated/geometry/Q172851.json') {
+      return localGeometryResponse;
     }
+
+    throw new Error(`fetch should not run for ${url}`);
+  };
+
+  try {
+    const result = await fetchTrackGeometry(Number.NaN, Number.NaN, undefined, 'Circuit de Spa-Francorchamps', {
+      wikidataId: 'Q172851',
+    });
+
+    assert.equal(result.trackId, 'Q172851');
+    assertLayoutNames(result.layouts, ['Main', 'Alternate']);
   } finally {
     globalThis.fetch = originalFetch;
   }

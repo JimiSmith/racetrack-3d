@@ -1,0 +1,70 @@
+{
+  "trackId": "Q48696889",
+  "name": "Auto Sportsland Sunagawa",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-03-31T09:54:27.100Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 43.4918,
+    "lon": 141.8944
+  },
+  "names": {
+    "searchLabel": "Auto Sportsland Sunagawa",
+    "shortName": null,
+    "osmVenueNames": [
+      "オートスポーツランドスナガワ"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 43.4929444,
+          "lon": 141.892464
+        },
+        {
+          "lat": 43.4886889,
+          "lon": 141.8832656
+        },
+        {
+          "lat": 43.4862064,
+          "lon": 141.8848801
+        },
+        {
+          "lat": 43.4882913,
+          "lon": 141.8904347
+        },
+        {
+          "lat": 43.4898603,
+          "lon": 141.8931454
+        },
+        {
+          "lat": 43.4910316,
+          "lon": 141.8947748
+        },
+        {
+          "lat": 43.4914937,
+          "lon": 141.8953525
+        },
+        {
+          "lat": 43.4931485,
+          "lon": 141.8927751
+        },
+        {
+          "lat": 43.4929444,
+          "lon": 141.892464
+        }
+      ],
+      "stats": {
+        "lengthMetres": 2538.324517979794,
+        "segmentCount": 1,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}

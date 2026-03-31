@@ -15,7 +15,7 @@ description: Runtime geometry selection pipeline — how a track search turns in
 ## How it works
 
 1. User searches → matched against local search index (Wikidata-backed, no live queries)
-2. Geometry loaded from prebuilt index (`src/generated/track-geometry-index.json`) if available
+2. Geometry loaded from prebuilt per-track files (`src/generated/geometry/<wikidataId>.json`) if available
 3. If not in prebuilt index, falls back to live Overpass query
 4. Layouts are ranked and deduplicated
 5. Best layout selected; others remain available for the user to choose

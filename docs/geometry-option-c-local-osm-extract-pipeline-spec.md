@@ -108,7 +108,7 @@ This keeps processing manageable while still avoiding live Overpass.
 The final output should be the same kind of app-consumable geometry dataset described in Option A.
 
 For example:
-- `src/generated/track-geometry-index.json`
+- `src/generated/geometry/<wikidataId>.json`
 - or split per-track generated files
 
 This means Option C is mostly about the **upstream data pipeline**, not the frontend runtime contract.
@@ -213,7 +213,7 @@ data/
     track-associations.json
 src/
   generated/
-    track-geometry-index.json
+    geometry/<wikidataId>.json
 scripts/
   fetch-osm-extracts.mjs
   build-track-geometry-from-extracts.mjs

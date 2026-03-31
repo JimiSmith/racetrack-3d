@@ -113,7 +113,7 @@ test('geometry index build treats entries inside the jittered threshold as fresh
   assert.equal(isTrackGeometryEntryFresh({ trackId, source: { generatedAt: 'invalid' } }, now), false);
 });
 
-test('geometry index build limits stale processing without counting fresh tracks', () => {
+test('geometry index build limits stale processing without counting fresh tracks', async () => {
   const now = Date.parse('2026-03-30T00:00:00.000Z');
   const tracks = [
     { wikidataId: 'Q1', trackName: 'Fresh Track' },
@@ -142,7 +142,11 @@ test('geometry index build limits stale processing without counting fresh tracks
     },
   };
 
-  const result = partitionTracksByStaleness(tracks, existingArtifact, { now, limit: 2 });
+  const result = await partitionTracksByStaleness(tracks, {
+    now,
+    limit: 2,
+    loadExistingTrackEntry: async wikidataId => existingArtifact[wikidataId] ?? null,
+  });
 
   assert.deepEqual(result.freshTracks.map(track => track.wikidataId), ['Q1']);
   assert.deepEqual(result.staleTracks.map(track => track.wikidataId), ['Q2', 'Q3']);

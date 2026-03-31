@@ -88,7 +88,7 @@ Use fallback logic for tracks not yet prebuilt.
 
 ## Generated dataset
 Create a generated file, for example:
-- `src/generated/track-geometry-index.json`
+- `src/generated/geometry/<wikidataId>.json`
 
 Or a directory form if splitting is needed, for example:
 - `src/generated/track-geometry/<id>.json`
