@@ -19,8 +19,8 @@
 
 Read the relevant skill before working in that area:
 
-- `.agents/skills/geometry-pipeline.md` — build-time geometry index (OSM API, staleness, build script)
-- `.agents/skills/search-and-layout.md` — runtime geometry selection and layout ranking
-- `.agents/skills/testing.md` — test framework, frozen fixtures, adding regression tests
-- `.agents/skills/export.md` — STL and 3MF export pipeline
-- `.agents/skills/github-issues.md` — how to use GitHub issues as the project backlog
+- `.agents/skills/geometry-pipeline/SKILL.md` — build-time geometry index (OSM API, staleness, build script)
+- `.agents/skills/search-and-layout/SKILL.md` — runtime geometry selection and layout ranking
+- `.agents/skills/testing/SKILL.md` — test framework, frozen fixtures, adding regression tests
+- `.agents/skills/export/SKILL.md` — STL and 3MF export pipeline
+- `.agents/skills/github-issues/SKILL.md` — how to use GitHub issues as the project backlog

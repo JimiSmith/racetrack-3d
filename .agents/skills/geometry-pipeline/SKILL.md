@@ -1,6 +1,9 @@
-# Skill: Geometry Pipeline
+---
+name: geometry-pipeline
+description: Build-time system that fetches OSM circuit geometry and stores it in a prebuilt local index shipped with the app. Use when working on the geometry build script, OSM API source helper, staleness logic, or the generated track-geometry-index.json artifact. Triggers on tasks like "rebuild geometry", "update the geometry index", "fix OSM fetch", "add a track to the index", or anything touching scripts/build-track-geometry-index.mjs or scripts/lib/osm-api-source.mjs.
+---
 
-Build-time system that fetches OSM circuit geometry and stores it in a prebuilt local index shipped with the app.
+# Geometry Pipeline
 
 ## Key files
 
@@ -35,7 +38,7 @@ Run logs are written to `scripts/run-logs/` (gitignored).
 
 ## Staleness
 
-- Entries are refreshed after **2 weeks** + a ±3-day deterministic per-track jitter (based on Wikidata ID hash)
+- Entries refresh after **2 weeks** + ±3-day deterministic per-track jitter (hash of Wikidata ID)
 - Entries deferred by `--limit` preserve existing geometry unchanged
 - `.cache/` stores raw OSM responses for local acceleration; safe to delete at any time
 

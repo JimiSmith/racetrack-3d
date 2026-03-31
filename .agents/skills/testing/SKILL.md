@@ -1,4 +1,9 @@
-# Skill: Testing
+---
+name: testing
+description: Test framework, frozen OSM fixtures, and regression test conventions for racetrack-3d. Use when writing new tests, adding regression fixtures for broken venues, investigating test failures, or understanding what each test file covers. Triggers on tasks like "add a test", "add a regression fixture", "tests are failing", or anything touching the test/ directory.
+---
+
+# Testing
 
 ## Running tests
 
@@ -6,7 +11,7 @@
 npm test
 ```
 
-All tests must pass before committing. `npm run build` must also pass.
+Both `npm test` and `npm run build` must pass before committing.
 
 ## Test files
 
@@ -26,25 +31,16 @@ All tests must pass before committing. `npm run build` must also pass.
 
 ## Frozen OSM fixtures
 
-`test/fixtures/` contains frozen OSM API responses used for regression tests on previously broken venues. These ensure geometry selection behaviour doesn't regress.
+`test/fixtures/` contains frozen OSM API responses for regression tests on previously broken venues.
 
-Current fixtures:
-- `mexico-city.json`
-- `monaco.json`
-- `monza.json`
-- `zandvoort.json`
-- `brands-hatch.json`
-- `bahrain.json`
-- `silverstone.json`
+Current fixtures: `mexico-city.json`, `monaco.json`, `monza.json`, `zandvoort.json`, `brands-hatch.json`, `bahrain.json`, `silverstone.json`
 
 ## Adding a regression fixture
 
-When fixing a geometry selection bug for a specific venue:
-
-1. Capture the raw OSM API response for that venue (use `--track <wikidataId>` with logging)
-2. Save it to `test/fixtures/<venue-slug>.json`
+1. Capture the raw OSM API response for the venue (use `--track <wikidataId>` with logging)
+2. Save to `test/fixtures/<venue-slug>.json`
 3. Add a test in the relevant test file that loads the fixture and asserts the expected layout set
-4. The fixture freezes the OSM data so future changes can't silently break that venue
+4. The fixture freezes OSM data so future changes can't silently break that venue
 
 ## Test helpers
 
