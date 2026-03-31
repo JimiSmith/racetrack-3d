@@ -1,0 +1,96 @@
+{
+  "trackId": "Q19460795",
+  "name": "Canandaigua Motorsports Park",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-03-31T10:53:16.872Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 42.8947,
+    "lon": -77.2497
+  },
+  "names": {
+    "searchLabel": "Canandaigua Motorsports Park",
+    "shortName": null,
+    "osmVenueNames": []
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 42.8897011,
+          "lon": -77.2489781
+        },
+        {
+          "lat": 42.8905,
+          "lon": -77.2467938
+        },
+        {
+          "lat": 42.8907488,
+          "lon": -77.2465893
+        },
+        {
+          "lat": 42.8910711,
+          "lon": -77.2465082
+        },
+        {
+          "lat": 42.8913565,
+          "lon": -77.2466206
+        },
+        {
+          "lat": 42.8915918,
+          "lon": -77.2469168
+        },
+        {
+          "lat": 42.8916807,
+          "lon": -77.2472464
+        },
+        {
+          "lat": 42.8917106,
+          "lon": -77.2476392
+        },
+        {
+          "lat": 42.8909479,
+          "lon": -77.249815
+        },
+        {
+          "lat": 42.8907067,
+          "lon": -77.250186
+        },
+        {
+          "lat": 42.8904263,
+          "lon": -77.2503661
+        },
+        {
+          "lat": 42.8901279,
+          "lon": -77.2503053
+        },
+        {
+          "lat": 42.8899307,
+          "lon": -77.2501498
+        },
+        {
+          "lat": 42.8897287,
+          "lon": -77.2497224
+        },
+        {
+          "lat": 42.8896766,
+          "lon": -77.249336
+        },
+        {
+          "lat": 42.8897011,
+          "lon": -77.2489781
+        }
+      ],
+      "stats": {
+        "lengthMetres": 830.9358460728132,
+        "segmentCount": 1,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}

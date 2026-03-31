@@ -1,0 +1,90 @@
+{
+  "trackId": "Q1052048",
+  "name": "Jukasa Motor Speedway",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-03-31T10:53:16.872Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 42.9351,
+    "lon": -79.9666
+  },
+  "names": {
+    "searchLabel": "Jukasa Motor Speedway",
+    "shortName": null,
+    "osmVenueNames": [
+      "Cayuga Motor Speedway"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 42.936254,
+          "lon": -79.967917
+        },
+        {
+          "lat": 42.9367328,
+          "lon": -79.9677723
+        },
+        {
+          "lat": 42.9370053,
+          "lon": -79.9673275
+        },
+        {
+          "lat": 42.9370469,
+          "lon": -79.966799
+        },
+        {
+          "lat": 42.9368525,
+          "lon": -79.9663111
+        },
+        {
+          "lat": 42.9364575,
+          "lon": -79.9659625
+        },
+        {
+          "lat": 42.9352672,
+          "lon": -79.9654455
+        },
+        {
+          "lat": 42.934777,
+          "lon": -79.9653733
+        },
+        {
+          "lat": 42.9343698,
+          "lon": -79.9656171
+        },
+        {
+          "lat": 42.9341803,
+          "lon": -79.9660225
+        },
+        {
+          "lat": 42.9341421,
+          "lon": -79.966366
+        },
+        {
+          "lat": 42.9342033,
+          "lon": -79.9667627
+        },
+        {
+          "lat": 42.934386,
+          "lon": -79.9670828
+        },
+        {
+          "lat": 42.936254,
+          "lon": -79.967917
+        }
+      ],
+      "stats": {
+        "lengthMetres": 838.6353401858037,
+        "segmentCount": 1,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}

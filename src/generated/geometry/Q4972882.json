@@ -1,0 +1,102 @@
+{
+  "trackId": "Q4972882",
+  "name": "Brockville Ontario Speedway",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-03-31T10:53:16.872Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 44.6353,
+    "lon": -75.85
+  },
+  "names": {
+    "searchLabel": "Brockville Ontario Speedway",
+    "shortName": null,
+    "osmVenueNames": [
+      "Brockville Ontario Speedway"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 44.6352245,
+          "lon": -75.8509199
+        },
+        {
+          "lat": 44.6360235,
+          "lon": -75.8515641
+        },
+        {
+          "lat": 44.636213,
+          "lon": -75.8516209
+        },
+        {
+          "lat": 44.6363898,
+          "lon": -75.8515644
+        },
+        {
+          "lat": 44.6365399,
+          "lon": -75.8514762
+        },
+        {
+          "lat": 44.6366996,
+          "lon": -75.8512171
+        },
+        {
+          "lat": 44.6367191,
+          "lon": -75.8509246
+        },
+        {
+          "lat": 44.6366832,
+          "lon": -75.8506242
+        },
+        {
+          "lat": 44.6365129,
+          "lon": -75.8503463
+        },
+        {
+          "lat": 44.6359617,
+          "lon": -75.8498883
+        },
+        {
+          "lat": 44.6357457,
+          "lon": -75.8497605
+        },
+        {
+          "lat": 44.6355307,
+          "lon": -75.8497556
+        },
+        {
+          "lat": 44.6352807,
+          "lon": -75.8498355
+        },
+        {
+          "lat": 44.6351226,
+          "lon": -75.8500725
+        },
+        {
+          "lat": 44.6350555,
+          "lon": -75.8503512
+        },
+        {
+          "lat": 44.6350796,
+          "lon": -75.8506627
+        },
+        {
+          "lat": 44.6352245,
+          "lon": -75.8509199
+        }
+      ],
+      "stats": {
+        "lengthMetres": 515.7089668503505,
+        "segmentCount": 1,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}

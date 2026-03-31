@@ -1,0 +1,133 @@
+{
+  "trackId": "Q4827237",
+  "name": "Autódromo Potosino",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-03-31T10:53:16.872Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 22.09138889,
+    "lon": -100.72555556
+  },
+  "names": {
+    "searchLabel": "Autódromo Potosino",
+    "shortName": null,
+    "osmVenueNames": [
+      "Autodromo Potosino - Turns 1 & 2",
+      "Autodromo Potosino - Turns 3 & 4",
+      "Autodromo Potosino Back Stretch",
+      "Autodromo Potosino Front Stretch"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 22.0910019,
+          "lon": -100.7263496
+        },
+        {
+          "lat": 22.0909396,
+          "lon": -100.7265427
+        },
+        {
+          "lat": 22.0908232,
+          "lon": -100.7267041
+        },
+        {
+          "lat": 22.090665,
+          "lon": -100.7268166
+        },
+        {
+          "lat": 22.0904816,
+          "lon": -100.7268683
+        },
+        {
+          "lat": 22.0902926,
+          "lon": -100.7268537
+        },
+        {
+          "lat": 22.0901179,
+          "lon": -100.7267745
+        },
+        {
+          "lat": 22.0899761,
+          "lon": -100.7266389
+        },
+        {
+          "lat": 22.089882,
+          "lon": -100.7264614
+        },
+        {
+          "lat": 22.0898457,
+          "lon": -100.7262564
+        },
+        {
+          "lat": 22.0898735,
+          "lon": -100.7260499
+        },
+        {
+          "lat": 22.0902271,
+          "lon": -100.7252464
+        },
+        {
+          "lat": 22.0905319,
+          "lon": -100.7245592
+        },
+        {
+          "lat": 22.0907262,
+          "lon": -100.7241195
+        },
+        {
+          "lat": 22.0908145,
+          "lon": -100.7239903
+        },
+        {
+          "lat": 22.090937,
+          "lon": -100.7238993
+        },
+        {
+          "lat": 22.0910804,
+          "lon": -100.7238563
+        },
+        {
+          "lat": 22.0912289,
+          "lon": -100.7238661
+        },
+        {
+          "lat": 22.0913663,
+          "lon": -100.7239276
+        },
+        {
+          "lat": 22.0914777,
+          "lon": -100.7240342
+        },
+        {
+          "lat": 22.0915507,
+          "lon": -100.724174
+        },
+        {
+          "lat": 22.0915776,
+          "lon": -100.7243309
+        },
+        {
+          "lat": 22.0915558,
+          "lon": -100.7244887
+        },
+        {
+          "lat": 22.0910019,
+          "lon": -100.7263496
+        }
+      ],
+      "stats": {
+        "lengthMetres": 782.8392923367792,
+        "segmentCount": 4,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}

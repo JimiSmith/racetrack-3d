@@ -1,0 +1,110 @@
+{
+  "trackId": "Q5607586",
+  "name": "Gresham Motorsports Park",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-03-31T10:53:16.872Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 34.1667,
+    "lon": -83.5525
+  },
+  "names": {
+    "searchLabel": "Gresham Motorsports Park",
+    "shortName": null,
+    "osmVenueNames": [
+      "Gresham Motorsport Park"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 34.1659955,
+          "lon": -83.5524777
+        },
+        {
+          "lat": 34.1659178,
+          "lon": -83.551778
+        },
+        {
+          "lat": 34.1658789,
+          "lon": -83.5513742
+        },
+        {
+          "lat": 34.1659916,
+          "lon": -83.5510596
+        },
+        {
+          "lat": 34.1662092,
+          "lon": -83.5508107
+        },
+        {
+          "lat": 34.1665511,
+          "lon": -83.5506933
+        },
+        {
+          "lat": 34.1668425,
+          "lon": -83.5507355
+        },
+        {
+          "lat": 34.1670834,
+          "lon": -83.550914
+        },
+        {
+          "lat": 34.1673049,
+          "lon": -83.5512756
+        },
+        {
+          "lat": 34.1673748,
+          "lon": -83.5518861
+        },
+        {
+          "lat": 34.1674875,
+          "lon": -83.5532385
+        },
+        {
+          "lat": 34.1674254,
+          "lon": -83.5535578
+        },
+        {
+          "lat": 34.1672078,
+          "lon": -83.5538302
+        },
+        {
+          "lat": 34.1669358,
+          "lon": -83.554018
+        },
+        {
+          "lat": 34.1666677,
+          "lon": -83.5540368
+        },
+        {
+          "lat": 34.166419,
+          "lon": -83.5539429
+        },
+        {
+          "lat": 34.1661587,
+          "lon": -83.5536189
+        },
+        {
+          "lat": 34.1660421,
+          "lon": -83.5530647
+        },
+        {
+          "lat": 34.1659955,
+          "lon": -83.5524777
+        }
+      ],
+      "stats": {
+        "lengthMetres": 801.9318143663186,
+        "segmentCount": 1,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}

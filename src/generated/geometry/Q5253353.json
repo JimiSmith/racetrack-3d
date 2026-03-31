@@ -1,0 +1,90 @@
+{
+  "trackId": "Q5253353",
+  "name": "Delaware Speedway",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-03-31T10:53:16.872Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 42.9303,
+    "lon": -81.4177
+  },
+  "names": {
+    "searchLabel": "Delaware Speedway",
+    "shortName": null,
+    "osmVenueNames": [
+      "Delaware Speedway"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 42.9316184,
+          "lon": -81.4176667
+        },
+        {
+          "lat": 42.9315908,
+          "lon": -81.4180363
+        },
+        {
+          "lat": 42.9314638,
+          "lon": -81.4182927
+        },
+        {
+          "lat": 42.9312318,
+          "lon": -81.4184134
+        },
+        {
+          "lat": 42.9294812,
+          "lon": -81.4183003
+        },
+        {
+          "lat": 42.9291609,
+          "lon": -81.4181117
+        },
+        {
+          "lat": 42.9290283,
+          "lon": -81.4177346
+        },
+        {
+          "lat": 42.9290946,
+          "lon": -81.4172066
+        },
+        {
+          "lat": 42.9292492,
+          "lon": -81.4169653
+        },
+        {
+          "lat": 42.9295475,
+          "lon": -81.4167993
+        },
+        {
+          "lat": 42.9304752,
+          "lon": -81.4169954
+        },
+        {
+          "lat": 42.9312815,
+          "lon": -81.417184
+        },
+        {
+          "lat": 42.9314859,
+          "lon": -81.4173499
+        },
+        {
+          "lat": 42.9316184,
+          "lon": -81.4176667
+        }
+      ],
+      "stats": {
+        "lengthMetres": 708.5951998018475,
+        "segmentCount": 1,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}

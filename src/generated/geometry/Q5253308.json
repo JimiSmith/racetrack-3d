@@ -1,0 +1,114 @@
+{
+  "trackId": "Q5253308",
+  "name": "Delaware International Speedway",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-03-31T10:53:16.872Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 38.469,
+    "lon": -75.561
+  },
+  "names": {
+    "searchLabel": "Delaware International Speedway",
+    "shortName": null,
+    "osmVenueNames": [
+      "Delaware International Speedway"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 38.4698191,
+          "lon": -75.5617007
+        },
+        {
+          "lat": 38.4683614,
+          "lon": -75.5616011
+        },
+        {
+          "lat": 38.4681474,
+          "lon": -75.5615328
+        },
+        {
+          "lat": 38.4679549,
+          "lon": -75.5614371
+        },
+        {
+          "lat": 38.4678586,
+          "lon": -75.5613005
+        },
+        {
+          "lat": 38.4677837,
+          "lon": -75.5611093
+        },
+        {
+          "lat": 38.4677623,
+          "lon": -75.560877
+        },
+        {
+          "lat": 38.4678265,
+          "lon": -75.5606174
+        },
+        {
+          "lat": 38.4679467,
+          "lon": -75.5604117
+        },
+        {
+          "lat": 38.4680719,
+          "lon": -75.5603064
+        },
+        {
+          "lat": 38.4683028,
+          "lon": -75.5602349
+        },
+        {
+          "lat": 38.4698997,
+          "lon": -75.5603192
+        },
+        {
+          "lat": 38.470137,
+          "lon": -75.5604398
+        },
+        {
+          "lat": 38.4703081,
+          "lon": -75.5606447
+        },
+        {
+          "lat": 38.4703723,
+          "lon": -75.560836
+        },
+        {
+          "lat": 38.4703823,
+          "lon": -75.5610843
+        },
+        {
+          "lat": 38.4702867,
+          "lon": -75.5614098
+        },
+        {
+          "lat": 38.4701779,
+          "lon": -75.5615601
+        },
+        {
+          "lat": 38.4700294,
+          "lon": -75.5616492
+        },
+        {
+          "lat": 38.4698191,
+          "lon": -75.5617007
+        }
+      ],
+      "stats": {
+        "lengthMetres": 716.8406024737018,
+        "segmentCount": 1,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}

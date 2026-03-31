@@ -1,0 +1,58 @@
+{
+  "trackId": "Q3642181",
+  "name": "Bonneville Speedway",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-03-31T10:53:16.872Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 40.7625,
+    "lon": -113.89555555556
+  },
+  "names": {
+    "searchLabel": "Bonneville Speedway",
+    "shortName": null,
+    "osmVenueNames": [
+      "Bonneville Speedway"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 40.74993,
+          "lon": -113.901649
+        },
+        {
+          "lat": 40.78783,
+          "lon": -113.844161
+        },
+        {
+          "lat": 40.820693,
+          "lon": -113.794149
+        },
+        {
+          "lat": 40.849156,
+          "lon": -113.750835
+        },
+        {
+          "lat": 40.850643,
+          "lon": -113.748547
+        },
+        {
+          "lat": 40.850963,
+          "lon": -113.748094
+        }
+      ],
+      "stats": {
+        "lengthMetres": 17144.51063581428,
+        "segmentCount": 1,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}

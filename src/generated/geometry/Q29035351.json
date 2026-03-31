@@ -1,0 +1,52 @@
+{
+  "trackId": "Q29035351",
+  "name": "Freedom Factory",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-03-31T10:53:16.872Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 27.465838,
+    "lon": -82.324936
+  },
+  "names": {
+    "searchLabel": "Freedom Factory",
+    "shortName": null,
+    "osmVenueNames": []
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 27.474408,
+          "lon": -82.3266442
+        },
+        {
+          "lat": 27.4689498,
+          "lon": -82.3267145
+        },
+        {
+          "lat": 27.4675598,
+          "lon": -82.3267311
+        },
+        {
+          "lat": 27.4658447,
+          "lon": -82.3267479
+        },
+        {
+          "lat": 27.4642293,
+          "lon": -82.3267647
+        }
+      ],
+      "stats": {
+        "lengthMetres": 1133.1561081498157,
+        "segmentCount": 1,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}
