@@ -25,3 +25,4 @@ output
 *.sw?
 
 .cache/
+scripts/run-logs/
