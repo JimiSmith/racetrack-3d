@@ -1,5 +1,11 @@
 const geometryCache = new Map();
 
+function getGeometryAssetBaseUrl() {
+  return typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL
+    ? import.meta.env.BASE_URL
+    : '/';
+}
+
 function cloneLayout(layout) {
   return {
     ...layout,
@@ -45,7 +51,7 @@ export function getTrackGeometry(wikidataId) {
 
   const promise = (async () => {
     try {
-      const response = await fetch(`/src/generated/geometry/${encodeURIComponent(wikidataId)}.json`);
+      const response = await fetch(`${getGeometryAssetBaseUrl()}generated/geometry/${encodeURIComponent(wikidataId)}.json`);
       if (!response.ok) {
         return null;
       }

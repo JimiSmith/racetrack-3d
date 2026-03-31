@@ -441,7 +441,7 @@ test('getTrackGeometry lazily loads and caches the prebuilt supported track layo
   const calls = [];
   globalThis.fetch = async url => {
     calls.push(url);
-    if (url === '/src/generated/geometry/Q171402.json') {
+    if (url === '/generated/geometry/Q171402.json') {
       return {
         ok: true,
         async json() {
@@ -544,7 +544,7 @@ test('fetchTrackGeometry uses lazy-loaded local geometry when a known wikidata i
   };
 
   globalThis.fetch = async url => {
-    if (url === '/src/generated/geometry/Q172851.json') {
+    if (url === '/generated/geometry/Q172851.json') {
       return localGeometryResponse;
     }
 
