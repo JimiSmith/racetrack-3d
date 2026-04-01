@@ -4,6 +4,7 @@ import { buildBasePlate, buildTrackOutline } from './geometry.js';
 import { PRIMARY_ORIENTATION_AUTO, normalizeOrientationDeg, normalizePrimaryOrientationDeg } from './orientation.js';
 import { rotateOutlineByOrientation, rotatePointsByOrientation } from './orientation.js';
 import {
+  __debugTextPlacement,
   buildTextMesh,
   DEFAULT_TEXT_POSITION_RANK,
   normalizeTextPositionRank,
@@ -417,11 +418,59 @@ function buildTrackPrismMesh(outline, scale, projectedNodes = null) {
   return triangles;
 }
 
-function computeAutoOrientationDeg(outlinePoints, basePlate) {
+function computeAutoOrientationDeg(outlinePoints, basePlate, trackName = null) {
   const bp = basePlate ?? buildBasePlate(outlinePoints ?? []);
   if (!bp) return 0;
-  // Prefer landscape: if the natural shape is taller than wide, rotate 90° CW.
-  return bp.height > bp.width ? 90 : 0;
+
+  const LANDSCAPE_BONUS = 1000;
+  const TEXT_BOTTOM_BONUS = 100;
+  const CANDIDATES = [0, 90, 180, 270];
+
+  // Scoring text label: use the provided name or a short placeholder for geometry-only scoring.
+  const scoringText = trackName ? String(trackName).trim() : 'CIRCUIT';
+
+  let bestDeg = 0;
+  let bestScore = -Infinity;
+
+  for (const deg of CANDIDATES) {
+    const rotatedOutline = rotateOutlineByOrientation(outlinePoints, deg);
+    const rotatedBp = buildBasePlate(rotatedOutline) ?? bp;
+
+    let score = 0;
+
+    // Landscape bonus: width >= height after rotation.
+    if (rotatedBp.width >= rotatedBp.height) {
+      score += LANDSCAPE_BONUS;
+    }
+
+    // Text-bottom bonus: text centroid Y should be in the lower half of the base plate.
+    try {
+      const scale = computeScale(rotatedBp);
+      const placement = __debugTextPlacement(scoringText, rotatedOutline, rotatedBp, scale, {
+        textOrientationMode: TEXT_ORIENTATION_FIXED,
+      });
+      if (placement?.lineBounds?.length) {
+        const textCentroidY = placement.lineBounds.reduce(
+          (sum, b) => sum + (b.minY + b.maxY) / 2,
+          0,
+        ) / placement.lineBounds.length;
+        const scaledBpCenterY = (rotatedBp.minY + rotatedBp.maxY) / 2 * scale;
+        if (textCentroidY < scaledBpCenterY) {
+          score += TEXT_BOTTOM_BONUS;
+        }
+      }
+    } catch {
+      // Text placement scoring is best-effort; skip bonus on failure.
+    }
+
+    // Stable tiebreak: prefer smaller degree value.
+    if (score > bestScore) {
+      bestScore = score;
+      bestDeg = deg;
+    }
+  }
+
+  return bestDeg;
 }
 
 export function buildTrackModel({
@@ -440,7 +489,7 @@ export function buildTrackModel({
       : primaryOrientationDeg,
   );
   const resolvedOrientationDeg = normalizedPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO
-    ? computeAutoOrientationDeg(outlinePoints, basePlate)
+    ? computeAutoOrientationDeg(outlinePoints, basePlate, trackName)
     : normalizedPrimaryOrientationDeg;
   // Text orientation is always fixed: the model is already rotated to the correct orientation,
   // so text should be placed right-side-up on the rotated model.
