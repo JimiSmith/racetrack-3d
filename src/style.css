@@ -646,3 +646,22 @@ h1 {
     letter-spacing: 0.03em;
   }
 }
+
+/* Footer */
+.site-footer {
+  text-align: center;
+  padding: 24px 16px;
+  margin-top: 16px;
+  color: #888;
+  font-size: 0.78rem;
+}
+
+.site-footer a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.site-footer a:hover {
+  color: #bbb;
+}
