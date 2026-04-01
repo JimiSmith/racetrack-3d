@@ -148,8 +148,9 @@ The user selects a placement rank (1–3 visible in the UI, up to 12 internally)
 | `MIN_TEXT_HEIGHT_MM` | 2 mm | Hard reject below this |
 | `MAX_TEXT_LINES` | 4 | Maximum wrapped lines |
 | `MAX_CANDIDATES` | 12 | Candidate rectangles kept after dedup |
-| `LONG_SIDE_GRID_CELLS` | 96 | Grid resolution on long side |
-| `MIN_GRID_CELLS` | 24 × aspectRatio | Grid resolution floor |
+| ~~`LONG_SIDE_GRID_CELLS`~~ | ~~96~~ | **Superseded** — replaced by cell-size-based approach (see below) |
+| `MIN_CELL_MM` | 10 mm | Minimum physical cell size. Long-side cell count = `floor(longSide / MIN_CELL_MM)`, rounded to nearest integer so that count cells divide the long side exactly. Short side uses the same cell size. |
+| `MIN_GRID_CELLS_PER_SIDE` | 8 | Safety floor — ensures tiny tracks still get a usable grid even when `floor(longSide / MIN_CELL_MM)` would be very small. |
 | `edgeMarginCells` | 1 cell | Edge clearance |
 | `obstacleMarginCells` | 0 or 1 cell | Circuit clearance (0 when short side < 80 mm) |
 | `centerBias weight` | 0.12 | Max penalty for off-centre placement |
