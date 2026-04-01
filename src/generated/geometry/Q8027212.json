@@ -1,0 +1,89 @@
+{
+  "trackId": "Q8027212",
+  "name": "Wisconsin International Raceway",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-04-01T04:24:55.107Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 44.2455,
+    "lon": -88.2603
+  },
+  "names": {
+    "searchLabel": "Wisconsin International Raceway",
+    "shortName": null,
+    "osmVenueNames": [
+      "Burnout area",
+      "Lane 1",
+      "Lane 2",
+      "Shutdown Area"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 44.2493182,
+          "lon": -88.2566284
+        },
+        {
+          "lat": 44.2492088,
+          "lon": -88.2567849
+        },
+        {
+          "lat": 44.2489791,
+          "lon": -88.2571139
+        },
+        {
+          "lat": 44.2466854,
+          "lon": -88.2603982
+        },
+        {
+          "lat": 44.2463641,
+          "lon": -88.2608543
+        },
+        {
+          "lat": 44.2442635,
+          "lon": -88.263836
+        },
+        {
+          "lat": 44.244226,
+          "lon": -88.2639484
+        },
+        {
+          "lat": 44.2443077,
+          "lon": -88.2639071
+        },
+        {
+          "lat": 44.246734,
+          "lon": -88.2604666
+        },
+        {
+          "lat": 44.2490323,
+          "lon": -88.2571881
+        },
+        {
+          "lat": 44.2492615,
+          "lon": -88.2568611
+        },
+        {
+          "lat": 44.2493724,
+          "lon": -88.2567028
+        },
+        {
+          "lat": 44.2493182,
+          "lon": -88.2566284
+        }
+      ],
+      "stats": {
+        "lengthMetres": 1637.2973843895124,
+        "segmentCount": 8,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}

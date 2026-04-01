@@ -1,0 +1,64 @@
+{
+  "trackId": "Q124217103",
+  "name": "Xiamen International Circuit",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-04-01T04:24:55.107Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 24.65405,
+    "lon": 118.3147
+  },
+  "names": {
+    "searchLabel": "Xiamen International Circuit",
+    "shortName": null,
+    "osmVenueNames": []
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 24.65367,
+          "lon": 118.3126559
+        },
+        {
+          "lat": 24.6557724,
+          "lon": 118.3158396
+        },
+        {
+          "lat": 24.6558975,
+          "lon": 118.3168914
+        },
+        {
+          "lat": 24.655558,
+          "lon": 118.3180797
+        },
+        {
+          "lat": 24.6532256,
+          "lon": 118.3168793
+        },
+        {
+          "lat": 24.6521999,
+          "lon": 118.315882
+        },
+        {
+          "lat": 24.6516435,
+          "lon": 118.313759
+        },
+        {
+          "lat": 24.65367,
+          "lon": 118.3126559
+        }
+      ],
+      "stats": {
+        "lengthMetres": 1545.7399707832506,
+        "segmentCount": 1,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}
