@@ -1,0 +1,58 @@
+{
+  "trackId": "Q14935736",
+  "name": "Mallala Motor Sport Park",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-03-31T10:53:16.872Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": -34.415,
+    "lon": 138.50472222
+  },
+  "names": {
+    "searchLabel": "Mallala Motor Sport Park",
+    "shortName": null,
+    "osmVenueNames": [
+      "Mallala Motor Sport Park"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": -34.4100955,
+          "lon": 138.5010335
+        },
+        {
+          "lat": -34.4100716,
+          "lon": 138.5096338
+        },
+        {
+          "lat": -34.4176185,
+          "lon": 138.5096939
+        },
+        {
+          "lat": -34.418681,
+          "lon": 138.5097024
+        },
+        {
+          "lat": -34.4186987,
+          "lon": 138.5009906
+        },
+        {
+          "lat": -34.4100955,
+          "lon": 138.5010335
+        }
+      ],
+      "stats": {
+        "lengthMetres": 3506.0130597966654,
+        "segmentCount": 1,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}
