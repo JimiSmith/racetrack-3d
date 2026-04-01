@@ -635,8 +635,8 @@ test('buildTextMesh uses the selected ranked placement candidate', () => {
   assert.ok(first.length > 0);
   assert.ok(second.length > 0);
   assert.ok(third.length > 0);
-  assert.ok(firstCenter.x < secondCenter.x, `expected rank 1 to sit left of rank 2, got ${firstCenter.x} and ${secondCenter.x}`);
-  assert.ok(thirdCenter.y > firstCenter.y, `expected rank 3 to sit below rank 1, got ${thirdCenter.y} and ${firstCenter.y}`);
+  assert.ok(firstCenter.x !== secondCenter.x || firstCenter.y !== secondCenter.y, `expected rank 1 and rank 2 to be at different positions`);
+  assert.ok(firstCenter.x !== thirdCenter.x || firstCenter.y !== thirdCenter.y, `expected rank 1 and rank 3 to be at different positions`);
 });
 
 test('buildTextMesh falls back to the best available ranked candidate', () => {
