@@ -417,6 +417,13 @@ function buildTrackPrismMesh(outline, scale, projectedNodes = null) {
   return triangles;
 }
 
+function computeAutoOrientationDeg(outlinePoints, basePlate) {
+  const bp = basePlate ?? buildBasePlate(outlinePoints ?? []);
+  if (!bp) return 0;
+  // Prefer landscape: if the natural shape is taller than wide, rotate 90° CW.
+  return bp.height > bp.width ? 90 : 0;
+}
+
 export function buildTrackModel({
   outlinePoints,
   basePlate,
@@ -433,10 +440,11 @@ export function buildTrackModel({
       : primaryOrientationDeg,
   );
   const resolvedOrientationDeg = normalizedPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO
-    ? 0
+    ? computeAutoOrientationDeg(outlinePoints, basePlate)
     : normalizedPrimaryOrientationDeg;
-  const resolvedTextOrientationMode = textOrientationMode
-    ?? (normalizedPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO ? TEXT_ORIENTATION_AUTO : TEXT_ORIENTATION_FIXED);
+  // Text orientation is always fixed: the model is already rotated to the correct orientation,
+  // so text should be placed right-side-up on the rotated model.
+  const resolvedTextOrientationMode = textOrientationMode ?? TEXT_ORIENTATION_FIXED;
   const resolvedTextPositionRank = normalizeTextPositionRank(textPositionRank);
   const orientedGeometry = orientTrackGeometry({
     outlinePoints,

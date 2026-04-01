@@ -125,11 +125,11 @@ function rotateTrianglesByOrientation(triangles, orientationDeg) {
   return triangles.map(triangle => triangle.map(vertex => {
     switch (orientationDeg) {
       case 90:
-        return { ...vertex, x: -vertex.y, y: vertex.x };
+        return { ...vertex, x: vertex.y, y: -vertex.x };
       case 180:
         return { ...vertex, x: -vertex.x, y: -vertex.y };
       case 270:
-        return { ...vertex, x: vertex.y, y: -vertex.x };
+        return { ...vertex, x: -vertex.y, y: vertex.x };
       default:
         return { ...vertex };
     }
@@ -489,7 +489,7 @@ test('buildTrackModel reruns text placement when primary orientation changes', (
   );
 });
 
-test('buildTrackModel keeps auto text orientation flexible but makes explicit rotations strict', () => {
+test('buildTrackModel auto orientation rotates the model for portrait tracks and uses fixed text', () => {
   const outlinePoints = tallNarrowHoleOutline();
   const basePlate = buildBasePlate(outlinePoints, 50);
 
@@ -497,18 +497,22 @@ test('buildTrackModel keeps auto text orientation flexible but makes explicit ro
   const explicitModel = buildTrackModel({ outlinePoints, basePlate, trackName: 'IMOLA', primaryOrientationDeg: 0 });
 
   assert.equal(autoModel.primaryOrientationDeg, 'auto');
-  assert.equal(autoModel.textOrientationMode, 'auto');
+  assert.equal(autoModel.textOrientationMode, 'fixed');
   assert.equal(explicitModel.primaryOrientationDeg, 0);
   assert.equal(explicitModel.textOrientationMode, 'fixed');
   assert.ok(autoModel.textTriangleCount > 0);
   assert.ok(explicitModel.textTriangleCount > 0);
 
-  const autoBounds = triangleBounds(textTriangles(autoModel));
-  const explicitBounds = triangleBounds(textTriangles(explicitModel));
+  // Auto mode should rotate the model 90° for a tall narrow track (portrait → landscape).
+  assert.equal(autoModel.orientationDeg, 90, 'expected auto mode to rotate portrait track to landscape');
 
+  // The auto-rotated model should be wider than tall (landscape).
+  const autoModelBounds = triangleBounds(autoModel.triangles);
+  const autoWidth = autoModelBounds.maxX - autoModelBounds.minX;
+  const autoHeight = autoModelBounds.maxY - autoModelBounds.minY;
   assert.ok(
-    autoBounds.maxY - autoBounds.minY > (explicitBounds.maxY - explicitBounds.minY) * 5,
-    'expected auto mode to use the taller 90 degree fit while explicit mode stays in the fixed orientation',
+    autoWidth >= autoHeight,
+    `expected auto-rotated model to be landscape (width ${autoWidth.toFixed(1)} >= height ${autoHeight.toFixed(1)})`,
   );
 });
 

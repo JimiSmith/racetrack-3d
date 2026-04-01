@@ -14,11 +14,11 @@ export function normalizePrimaryOrientationDeg(value) {
 export function rotatePointByOrientation(point, orientationDeg) {
   switch (normalizeOrientationDeg(orientationDeg)) {
     case 90:
-      return { ...point, x: -point.y, y: point.x };
+      return { ...point, x: point.y, y: -point.x };
     case 180:
       return { ...point, x: -point.x, y: -point.y };
     case 270:
-      return { ...point, x: point.y, y: -point.x };
+      return { ...point, x: -point.y, y: point.x };
     default:
       return { ...point };
   }
