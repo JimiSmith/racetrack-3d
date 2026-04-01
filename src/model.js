@@ -12,7 +12,9 @@ import {
   TEXT_ORIENTATION_FIXED,
 } from './text3d.js';
 
-export const BASE_THICKNESS_MM = 8;
+export const BASE_THICKNESS_MM = 2.5;
+const BASE_CORNER_RADIUS_MM = 3;
+const BASE_CORNER_SEGMENTS_PER_CORNER = 8;
 const TRACK_HEIGHT_MM = 3;
 const TRACK_WIDTH_METRES = 12;
 const TARGET_MAX_SIZE_MM = 200; // fit model within this bounding box dimension
@@ -94,6 +96,34 @@ function addTriangle(triangles, a, b, c) {
 function addQuad(triangles, a, b, c, d) {
   addTriangle(triangles, a, b, c);
   addTriangle(triangles, a, c, d);
+}
+
+function appendRoundedArc(points, centerX, centerY, radiusMm, startAngleDeg, endAngleDeg, segments) {
+  const step = (endAngleDeg - startAngleDeg) / segments;
+
+  for (let index = 1; index <= segments; index += 1) {
+    const angle = ((startAngleDeg + step * index) * Math.PI) / 180;
+    points.push({
+      x: centerX + Math.cos(angle) * radiusMm,
+      y: centerY + Math.sin(angle) * radiusMm,
+    });
+  }
+}
+
+function buildRoundedRectangleRing(minX, maxX, minY, maxY, radiusMm, segmentsPerCorner) {
+  const ring = [];
+
+  ring.push({ x: minX + radiusMm, y: minY });
+  ring.push({ x: maxX - radiusMm, y: minY });
+  appendRoundedArc(ring, maxX - radiusMm, minY + radiusMm, radiusMm, 270, 360, segmentsPerCorner);
+  ring.push({ x: maxX, y: maxY - radiusMm });
+  appendRoundedArc(ring, maxX - radiusMm, maxY - radiusMm, radiusMm, 0, 90, segmentsPerCorner);
+  ring.push({ x: minX + radiusMm, y: maxY });
+  appendRoundedArc(ring, minX + radiusMm, maxY - radiusMm, radiusMm, 90, 180, segmentsPerCorner);
+  ring.push({ x: minX, y: minY + radiusMm });
+  appendRoundedArc(ring, minX + radiusMm, minY + radiusMm, radiusMm, 180, 270, segmentsPerCorner);
+
+  return ring;
 }
 
 function clamp(value, min, max) {
@@ -295,24 +325,60 @@ function buildBasePlateMesh(basePlate, scale) {
   const maxY = toScaled(basePlate.maxY, scale);
   const minZ = 0;
   const maxZ = BASE_THICKNESS_MM;
+  const radiusMm = Math.min(BASE_CORNER_RADIUS_MM, (maxX - minX) / 2, (maxY - minY) / 2);
 
-  const v000 = createVertex(minX, minY, minZ);
-  const v100 = createVertex(maxX, minY, minZ);
-  const v110 = createVertex(maxX, maxY, minZ);
-  const v010 = createVertex(minX, maxY, minZ);
-  const v001 = createVertex(minX, minY, maxZ);
-  const v101 = createVertex(maxX, minY, maxZ);
-  const v111 = createVertex(maxX, maxY, maxZ);
-  const v011 = createVertex(minX, maxY, maxZ);
+  if (radiusMm <= 0) {
+    const v000 = createVertex(minX, minY, minZ);
+    const v100 = createVertex(maxX, minY, minZ);
+    const v110 = createVertex(maxX, maxY, minZ);
+    const v010 = createVertex(minX, maxY, minZ);
+    const v001 = createVertex(minX, minY, maxZ);
+    const v101 = createVertex(maxX, minY, maxZ);
+    const v111 = createVertex(maxX, maxY, maxZ);
+    const v011 = createVertex(minX, maxY, maxZ);
+    const triangles = [];
 
+    addQuad(triangles, v001, v101, v111, v011);
+    addQuad(triangles, v000, v010, v110, v100);
+    addQuad(triangles, v000, v100, v101, v001);
+    addQuad(triangles, v100, v110, v111, v101);
+    addQuad(triangles, v110, v010, v011, v111);
+    addQuad(triangles, v010, v000, v001, v011);
+
+    return triangles;
+  }
+
+  const ring = buildRoundedRectangleRing(
+    minX,
+    maxX,
+    minY,
+    maxY,
+    radiusMm,
+    BASE_CORNER_SEGMENTS_PER_CORNER,
+  );
+  const flattened = [];
+
+  for (const point of ring) {
+    flattened.push(point.x, point.y);
+  }
+
+  const indices = earcut(flattened);
+  const bottom = ring.map(point => createVertex(point.x, point.y, minZ));
+  const top = ring.map(point => createVertex(point.x, point.y, maxZ));
   const triangles = [];
 
-  addQuad(triangles, v001, v101, v111, v011);
-  addQuad(triangles, v000, v010, v110, v100);
-  addQuad(triangles, v000, v100, v101, v001);
-  addQuad(triangles, v100, v110, v111, v101);
-  addQuad(triangles, v110, v010, v011, v111);
-  addQuad(triangles, v010, v000, v001, v011);
+  for (let index = 0; index < indices.length; index += 3) {
+    const a = indices[index];
+    const b = indices[index + 1];
+    const c = indices[index + 2];
+    addTriangle(triangles, top[a], top[b], top[c]);
+    addTriangle(triangles, bottom[c], bottom[b], bottom[a]);
+  }
+
+  for (let index = 0; index < ring.length; index += 1) {
+    const next = (index + 1) % ring.length;
+    addQuad(triangles, bottom[index], bottom[next], top[next], top[index]);
+  }
 
   return triangles;
 }

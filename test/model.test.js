@@ -338,6 +338,26 @@ test('buildTrackModel keeps base plate triangles at or below the base thickness 
   assert.ok(trackTriangles.some(triangle => triangle.some(vertex => vertex.z > BASE_THICKNESS_MM)));
 });
 
+test('buildTrackModel uses a 2.5mm rounded base plate', () => {
+  const outlinePoints = syntheticOutline();
+  const basePlate = buildBasePlate(outlinePoints, 20);
+  const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
+  const basePlateTriangles = model.triangles.slice(0, model.baseTriangleCount);
+  const basePlateBounds = triangleBounds(basePlateTriangles);
+  const roundedCornerVertices = uniqueVertices(basePlateTriangles).filter(vertex => (
+    vertex.x > basePlateBounds.minX
+    && vertex.x < basePlateBounds.maxX
+    && vertex.y > basePlateBounds.minY
+    && vertex.y < basePlateBounds.maxY
+  ));
+
+  assert.equal(BASE_THICKNESS_MM, 2.5);
+  assert.ok(model.baseTriangleCount > 12);
+  assert.ok(basePlateTriangles.every(triangle => triangle.every(vertex => vertex.z <= BASE_THICKNESS_MM)));
+  assert.ok(basePlateTriangles.some(triangle => triangle.some(vertex => vertex.z >= BASE_THICKNESS_MM)));
+  assert.ok(roundedCornerVertices.length > 0, 'expected rounded corner vertices on the base plate perimeter');
+});
+
 test('buildTrackModel preserves longitudinal elevation along the track top surface', () => {
   const model = buildElevatedStraightTrackModel();
   const topVertices = topTrackVertices(model);
