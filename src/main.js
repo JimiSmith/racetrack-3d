@@ -24,9 +24,8 @@ const selectedTrackMeta = document.getElementById('selected-track-meta');
 const selectedTrackMobileName = document.getElementById('selected-track-mobile-name');
 const selectedTrackMobileLayout = document.getElementById('selected-track-mobile-layout');
 const summaryLayout = document.getElementById('summary-layout');
-const summaryLabel = document.getElementById('summary-label');
-const summaryOrientation = document.getElementById('summary-orientation');
-const summaryPlacement = document.getElementById('summary-placement');
+const summaryLabelInput = document.getElementById('summary-label-input');
+const summaryLabelReset = document.getElementById('summary-label-reset');
 const trackSummaryToggle = document.getElementById('track-summary-toggle');
 const trackSummaryPanel = document.getElementById('track-summary-panel');
 const previewOverlay = document.getElementById('preview-overlay');
@@ -66,6 +65,7 @@ let currentLayoutIndex = 0;
 let currentOsmVenueNames = [];
 let currentPrimaryOrientationDeg = normalizePrimaryOrientationDeg(orientationSelect?.value);
 let currentTextPositionRank = normalizeTextPositionRank(textPositionSelect?.value ?? DEFAULT_TEXT_POSITION_RANK);
+let currentLabelOverride = null;
 let isGeneratingStl = false;
 let isGenerating3mf = false;
 let isTrackSummaryExpanded = true;
@@ -114,6 +114,11 @@ function getOrientationLabel() {
 
 function getTextPlacementLabel() {
   return TEXT_POSITION_LABELS[currentTextPositionRank] ?? TEXT_POSITION_LABELS[DEFAULT_TEXT_POSITION_RANK];
+}
+
+function getEffectiveLabel(layout = getSelectedLayout(currentLayouts, currentLayoutIndex)) {
+  if (currentLabelOverride !== null) return currentLabelOverride;
+  return getSelectedTrackNameState(layout).printedName;
 }
 
 function updateExaggerationSliderUI() {
@@ -167,6 +172,8 @@ function updateTrackSummary() {
     trackSummaryContent.hidden = true;
     selectedTrackMobileName.textContent = '';
     selectedTrackMobileLayout.textContent = '';
+    if (summaryLabelInput) summaryLabelInput.value = '';
+    if (summaryLabelReset) summaryLabelReset.hidden = true;
     syncTrackSummaryForViewport();
     return;
   }
@@ -178,9 +185,10 @@ function updateTrackSummary() {
     selectedTrackMobileName.textContent = loadingName;
     selectedTrackMobileLayout.textContent = 'Loading layout...';
     summaryLayout.textContent = 'Loading...';
-    summaryLabel.textContent = currentTrack.name ?? 'Pending';
-    summaryOrientation.textContent = getOrientationLabel();
-    summaryPlacement.textContent = getTextPlacementLabel();
+    if (currentLabelOverride === null && summaryLabelInput) {
+      summaryLabelInput.value = currentTrack.name ?? 'Pending';
+    }
+    if (summaryLabelReset) summaryLabelReset.hidden = currentLabelOverride === null;
 
     trackSummaryEmpty.hidden = true;
     trackSummaryContent.hidden = false;
@@ -199,9 +207,10 @@ function updateTrackSummary() {
   selectedTrackMobileName.textContent = heading;
   selectedTrackMobileLayout.textContent = layout.name ?? 'Default layout';
   summaryLayout.textContent = layout.name ?? 'Default';
-  summaryLabel.textContent = trackNameState.printedName;
-  summaryOrientation.textContent = getOrientationLabel();
-  summaryPlacement.textContent = getTextPlacementLabel();
+  if (currentLabelOverride === null && summaryLabelInput) {
+    summaryLabelInput.value = trackNameState.printedName;
+  }
+  if (summaryLabelReset) summaryLabelReset.hidden = currentLabelOverride === null;
 
   trackSummaryEmpty.hidden = true;
   trackSummaryContent.hidden = false;
@@ -227,7 +236,8 @@ function updateLayoutSelector() {
 
 function buildDownloadFileName(extension) {
   const { printedName } = getSelectedTrackNameState();
-  return `${slugifyFileName(printedName)}.${extension}`;
+  const effectiveName = (currentLabelOverride !== null && currentLabelOverride) ? currentLabelOverride : printedName;
+  return `${slugifyFileName(effectiveName)}.${extension}`;
 }
 
 function triggerDownload(blob, fileName) {
@@ -261,10 +271,11 @@ function buildSelectedLayoutModel(elevations = currentElevations) {
 
   const projected = projectNodes(layout.nodes, elevations);
   const trackNameState = getSelectedTrackNameState(layout);
+  const effectiveLabel = getEffectiveLabel(layout);
   const model = buildTrackModel({
     outlinePoints: null,
     basePlate: null,
-    trackName: trackNameState.printedName,
+    trackName: effectiveLabel,
     projectedNodes: projected,
     primaryOrientationDeg: currentPrimaryOrientationDeg,
     textPositionRank: currentTextPositionRank,
@@ -323,6 +334,7 @@ async function handleSelect(track) {
   currentLayouts = [];
   currentLayoutIndex = 0;
   currentOsmVenueNames = [];
+  currentLabelOverride = null;
   isTrackSummaryExpanded = !mobileSummaryMedia.matches;
   updateLayoutSelector();
   updatePreview(null);
@@ -387,7 +399,7 @@ generateStlButton.addEventListener('click', async () => {
     const model = currentModel ?? buildTrackModel({
       outlinePoints: currentProjectedNodes ? null : currentOutline,
       basePlate: currentProjectedNodes ? null : currentBasePlate,
-      trackName: getSelectedTrackNameState().printedName,
+      trackName: getEffectiveLabel(),
       projectedNodes: currentProjectedNodes,
       textPositionRank: currentTextPositionRank,
       primaryOrientationDeg: currentProjectedNodes
@@ -421,7 +433,7 @@ generate3mfButton.addEventListener('click', async () => {
     const model = currentModel ?? buildTrackModel({
       outlinePoints: currentProjectedNodes ? null : currentOutline,
       basePlate: currentProjectedNodes ? null : currentBasePlate,
-      trackName: getSelectedTrackNameState().printedName,
+      trackName: getEffectiveLabel(),
       projectedNodes: currentProjectedNodes,
       textPositionRank: currentTextPositionRank,
       primaryOrientationDeg: currentProjectedNodes
@@ -508,6 +520,31 @@ orientationSelect?.addEventListener('change', async () => {
 
 textPositionSelect?.addEventListener('change', () => {
   currentTextPositionRank = normalizeTextPositionRank(textPositionSelect.value);
+
+  if (!currentLayouts.length || !currentTrack) {
+    return;
+  }
+
+  buildSelectedLayoutModel();
+});
+
+summaryLabelInput?.addEventListener('input', () => {
+  currentLabelOverride = summaryLabelInput.value;
+  if (summaryLabelReset) summaryLabelReset.hidden = false;
+
+  if (!currentLayouts.length || !currentTrack) {
+    return;
+  }
+
+  buildSelectedLayoutModel();
+});
+
+summaryLabelReset?.addEventListener('click', () => {
+  currentLabelOverride = null;
+  const layout = getSelectedLayout(currentLayouts, currentLayoutIndex);
+  const trackNameState = getSelectedTrackNameState(layout);
+  if (summaryLabelInput) summaryLabelInput.value = trackNameState.printedName ?? '';
+  summaryLabelReset.hidden = true;
 
   if (!currentLayouts.length || !currentTrack) {
     return;

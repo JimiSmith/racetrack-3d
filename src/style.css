@@ -299,6 +299,53 @@ h1 {
   line-height: 1.25;
 }
 
+.summary-label-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.summary-label-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 2px 0;
+  outline: none;
+}
+
+.summary-label-input:focus {
+  border-bottom-color: var(--accent);
+}
+
+.summary-label-reset {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.summary-label-reset:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
 .preview-card {
   padding-bottom: 16px;
 }
