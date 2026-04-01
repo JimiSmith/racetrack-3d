@@ -1,0 +1,70 @@
+{
+  "trackId": "Q7801097",
+  "name": "Tierp Arena",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-04-01T14:20:55.248Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 60.3442,
+    "lon": 17.45
+  },
+  "names": {
+    "searchLabel": "Tierp Arena",
+    "shortName": null,
+    "osmVenueNames": [
+      "Tierp Arena"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 60.3534253,
+          "lon": 17.4170129
+        },
+        {
+          "lat": 60.3525473,
+          "lon": 17.4175194
+        },
+        {
+          "lat": 60.3515541,
+          "lon": 17.418099
+        },
+        {
+          "lat": 60.3492634,
+          "lon": 17.4194358
+        },
+        {
+          "lat": 60.3479032,
+          "lon": 17.4202295
+        },
+        {
+          "lat": 60.3455841,
+          "lon": 17.4215501
+        },
+        {
+          "lat": 60.3434315,
+          "lon": 17.4226997
+        },
+        {
+          "lat": 60.3399298,
+          "lon": 17.4247506
+        },
+        {
+          "lat": 60.3353978,
+          "lon": 17.4273603
+        }
+      ],
+      "stats": {
+        "lengthMetres": 2086.234655242647,
+        "segmentCount": 1,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}

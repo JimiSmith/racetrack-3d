@@ -1,0 +1,70 @@
+{
+  "trackId": "Q7844738",
+  "name": "Trióvalo Bernardo Obregón",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-04-01T14:20:55.248Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 20.4461,
+    "lon": -103.269
+  },
+  "names": {
+    "searchLabel": "Trióvalo Bernardo Obregón",
+    "shortName": null,
+    "osmVenueNames": [
+      "Trióvalo Internacional de Cajititlán"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 20.4438156,
+          "lon": -103.2718587
+        },
+        {
+          "lat": 20.4455447,
+          "lon": -103.2662583
+        },
+        {
+          "lat": 20.4466103,
+          "lon": -103.2663012
+        },
+        {
+          "lat": 20.4471331,
+          "lon": -103.2668591
+        },
+        {
+          "lat": 20.4480982,
+          "lon": -103.2699061
+        },
+        {
+          "lat": 20.4473543,
+          "lon": -103.2716227
+        },
+        {
+          "lat": 20.4466103,
+          "lon": -103.2722021
+        },
+        {
+          "lat": 20.4440971,
+          "lon": -103.272481
+        },
+        {
+          "lat": 20.4438156,
+          "lon": -103.2718587
+        }
+      ],
+      "stats": {
+        "lengthMetres": 1804.7151301125932,
+        "segmentCount": 1,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}

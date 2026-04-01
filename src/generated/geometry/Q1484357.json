@@ -1,0 +1,102 @@
+{
+  "trackId": "Q1484357",
+  "name": "Schleizer Dreieck",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-04-01T14:20:55.248Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 50.562,
+    "lon": 11.8222
+  },
+  "names": {
+    "searchLabel": "Schleizer Dreieck",
+    "shortName": null,
+    "osmVenueNames": [
+      "Schleizer Dreieck"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 50.5686619,
+          "lon": 11.8118438
+        },
+        {
+          "lat": 50.5686098,
+          "lon": 11.811759
+        },
+        {
+          "lat": 50.5677382,
+          "lon": 11.8103633
+        },
+        {
+          "lat": 50.5676962,
+          "lon": 11.8102264
+        },
+        {
+          "lat": 50.5676952,
+          "lon": 11.8100703
+        },
+        {
+          "lat": 50.567713,
+          "lon": 11.8099776
+        },
+        {
+          "lat": 50.5677579,
+          "lon": 11.8098966
+        },
+        {
+          "lat": 50.5678505,
+          "lon": 11.8097169
+        },
+        {
+          "lat": 50.5678739,
+          "lon": 11.8095579
+        },
+        {
+          "lat": 50.5678589,
+          "lon": 11.8094283
+        },
+        {
+          "lat": 50.5677971,
+          "lon": 11.8092958
+        },
+        {
+          "lat": 50.5672482,
+          "lon": 11.8084267
+        },
+        {
+          "lat": 50.567093,
+          "lon": 11.8082897
+        },
+        {
+          "lat": 50.5669065,
+          "lon": 11.8081544
+        },
+        {
+          "lat": 50.5666949,
+          "lon": 11.8080648
+        },
+        {
+          "lat": 50.5660685,
+          "lon": 11.8079863
+        },
+        {
+          "lat": 50.5654053,
+          "lon": 11.8078647
+        }
+      ],
+      "stats": {
+        "lengthMetres": 529.808041489533,
+        "segmentCount": 1,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}

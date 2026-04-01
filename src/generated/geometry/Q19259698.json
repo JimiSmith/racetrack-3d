@@ -1,0 +1,54 @@
+{
+  "trackId": "Q19259698",
+  "name": "Palo Marga International Raceway Park",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-04-01T14:20:55.248Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 12.460956,
+    "lon": -69.900002
+  },
+  "names": {
+    "searchLabel": "Palo Marga International Raceway Park",
+    "shortName": null,
+    "osmVenueNames": [
+      "Palo Marga International Raceway Park"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 12.4614057,
+          "lon": -69.9061661
+        },
+        {
+          "lat": 12.4613943,
+          "lon": -69.9059859
+        },
+        {
+          "lat": 12.4612701,
+          "lon": -69.903579
+        },
+        {
+          "lat": 12.4607917,
+          "lon": -69.8962591
+        },
+        {
+          "lat": 12.4607793,
+          "lon": -69.8960509
+        }
+      ],
+      "stats": {
+        "lengthMetres": 1101.7264705394625,
+        "segmentCount": 1,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}

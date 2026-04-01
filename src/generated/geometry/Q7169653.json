@@ -1,0 +1,102 @@
+{
+  "trackId": "Q7169653",
+  "name": "Perris Auto Speedway",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-04-01T14:20:55.248Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 33.8489,
+    "lon": -117.202
+  },
+  "names": {
+    "searchLabel": "Perris Auto Speedway",
+    "shortName": null,
+    "osmVenueNames": [
+      "Perris Auto Speedway"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 33.8501438,
+          "lon": -117.2016351
+        },
+        {
+          "lat": 33.8503437,
+          "lon": -117.2015198
+        },
+        {
+          "lat": 33.8504481,
+          "lon": -117.2013672
+        },
+        {
+          "lat": 33.8504969,
+          "lon": -117.2012089
+        },
+        {
+          "lat": 33.8504988,
+          "lon": -117.2009377
+        },
+        {
+          "lat": 33.8504238,
+          "lon": -117.2007353
+        },
+        {
+          "lat": 33.8503035,
+          "lon": -117.2006015
+        },
+        {
+          "lat": 33.8501688,
+          "lon": -117.2005103
+        },
+        {
+          "lat": 33.8487684,
+          "lon": -117.2005032
+        },
+        {
+          "lat": 33.8485971,
+          "lon": -117.2005764
+        },
+        {
+          "lat": 33.8484415,
+          "lon": -117.2007112
+        },
+        {
+          "lat": 33.8483424,
+          "lon": -117.2009033
+        },
+        {
+          "lat": 33.8483364,
+          "lon": -117.2012093
+        },
+        {
+          "lat": 33.8484092,
+          "lon": -117.201373
+        },
+        {
+          "lat": 33.848541,
+          "lon": -117.2015325
+        },
+        {
+          "lat": 33.8487685,
+          "lon": -117.2016196
+        },
+        {
+          "lat": 33.8501438,
+          "lon": -117.2016351
+        }
+      ],
+      "stats": {
+        "lengthMetres": 603.8828600003161,
+        "segmentCount": 1,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}

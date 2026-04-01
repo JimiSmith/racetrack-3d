@@ -1,0 +1,62 @@
+{
+  "trackId": "Q7600910",
+  "name": "Star Speedway",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-04-01T14:20:55.248Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 43.029166666667,
+    "lon": -71.040833333333
+  },
+  "names": {
+    "searchLabel": "Star Speedway",
+    "shortName": null,
+    "osmVenueNames": [
+      "Drag Strip"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 43.0206254,
+          "lon": -71.0281392
+        },
+        {
+          "lat": 43.0246908,
+          "lon": -71.0248187
+        },
+        {
+          "lat": 43.0277773,
+          "lon": -71.0222932
+        },
+        {
+          "lat": 43.0277374,
+          "lon": -71.0222048
+        },
+        {
+          "lat": 43.0246526,
+          "lon": -71.0247317
+        },
+        {
+          "lat": 43.0205828,
+          "lon": -71.0280421
+        },
+        {
+          "lat": 43.0206254,
+          "lon": -71.0281392
+        }
+      ],
+      "stats": {
+        "lengthMetres": 1872.508813810373,
+        "segmentCount": 2,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}

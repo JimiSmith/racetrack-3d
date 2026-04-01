@@ -1,0 +1,62 @@
+{
+  "trackId": "Q2033478",
+  "name": "Rockingham Speedway",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-04-01T14:20:55.248Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": 34.974181,
+    "lon": -79.610419
+  },
+  "names": {
+    "searchLabel": "Rockingham Speedway",
+    "shortName": null,
+    "osmVenueNames": [
+      "Rockingham Speedway"
+    ]
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": 34.9793859,
+          "lon": -79.612908
+        },
+        {
+          "lat": 34.979196,
+          "lon": -79.6236993
+        },
+        {
+          "lat": 34.9791697,
+          "lon": -79.6251959
+        },
+        {
+          "lat": 34.9792555,
+          "lon": -79.625198
+        },
+        {
+          "lat": 34.9792819,
+          "lon": -79.6236956
+        },
+        {
+          "lat": 34.9794716,
+          "lon": -79.6129101
+        },
+        {
+          "lat": 34.9793859,
+          "lon": -79.612908
+        }
+      ],
+      "stats": {
+        "lengthMetres": 2261.196129760519,
+        "segmentCount": 3,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}

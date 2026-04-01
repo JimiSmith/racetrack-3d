@@ -1,0 +1,56 @@
+{
+  "trackId": "Q7170876",
+  "name": "Perth Motorplex",
+  "source": {
+    "kind": "osm-prebuilt",
+    "generatedAt": "2026-04-01T14:20:55.248Z",
+    "osmQueryVersion": 1,
+    "buildSource": "osm-api"
+  },
+  "center": {
+    "lat": -32.215904435893,
+    "lon": 115.78934384931
+  },
+  "names": {
+    "searchLabel": "Perth Motorplex",
+    "shortName": null,
+    "osmVenueNames": []
+  },
+  "layouts": [
+    {
+      "id": "main",
+      "name": "Main",
+      "nodes": [
+        {
+          "lat": -32.2186991,
+          "lon": 115.7879464
+        },
+        {
+          "lat": -32.2240177,
+          "lon": 115.7884833
+        },
+        {
+          "lat": -32.2241804,
+          "lon": 115.7885001
+        },
+        {
+          "lat": -32.2240088,
+          "lon": 115.7885896
+        },
+        {
+          "lat": -32.2186901,
+          "lon": 115.7880483
+        },
+        {
+          "lat": -32.2186991,
+          "lon": 115.7879464
+        }
+      ],
+      "stats": {
+        "lengthMetres": 1237.1989310494648,
+        "segmentCount": 2,
+        "variantSectionCount": 0
+      }
+    }
+  ]
+}
