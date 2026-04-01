@@ -22,8 +22,7 @@ const trackSummaryContent = document.getElementById('track-summary-content');
 const selectedTrackName = document.getElementById('selected-track-name');
 const selectedTrackMeta = document.getElementById('selected-track-meta');
 const selectedTrackMobileName = document.getElementById('selected-track-mobile-name');
-const selectedTrackMobileLayout = document.getElementById('selected-track-mobile-layout');
-const summaryLayout = document.getElementById('summary-layout');
+
 const summaryLabelInput = document.getElementById('summary-label-input');
 const summaryLabelReset = document.getElementById('summary-label-reset');
 const trackSummaryToggle = document.getElementById('track-summary-toggle');
@@ -171,7 +170,7 @@ function updateTrackSummary() {
     trackSummaryEmpty.hidden = false;
     trackSummaryContent.hidden = true;
     selectedTrackMobileName.textContent = '';
-    selectedTrackMobileLayout.textContent = '';
+
     if (summaryLabelInput) summaryLabelInput.value = '';
     if (summaryLabelReset) summaryLabelReset.hidden = true;
     syncTrackSummaryForViewport();
@@ -183,8 +182,7 @@ function updateTrackSummary() {
     selectedTrackName.textContent = loadingName;
     selectedTrackMeta.textContent = 'Loading track geometry and printable layout details...';
     selectedTrackMobileName.textContent = loadingName;
-    selectedTrackMobileLayout.textContent = 'Loading layout...';
-    summaryLayout.textContent = 'Loading...';
+
     if (currentLabelOverride === null && summaryLabelInput) {
       summaryLabelInput.value = currentTrack.name ?? 'Pending';
     }
@@ -205,8 +203,7 @@ function updateTrackSummary() {
   selectedTrackName.textContent = heading;
   selectedTrackMeta.textContent = meta;
   selectedTrackMobileName.textContent = heading;
-  selectedTrackMobileLayout.textContent = layout.name ?? 'Default layout';
-  summaryLayout.textContent = layout.name ?? 'Default';
+
   if (currentLabelOverride === null && summaryLabelInput) {
     summaryLabelInput.value = trackNameState.printedName;
   }
