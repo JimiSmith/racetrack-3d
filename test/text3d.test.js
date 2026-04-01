@@ -536,8 +536,8 @@ test('buildTextMesh auto mode can choose 90 degree text orientation when fixed m
   const outline = centeredHoleOutline({
     width,
     height,
-    holeMinX: width * 0.45,
-    holeMaxX: width * 0.55,
+    holeMinX: width * 0.48,
+    holeMaxX: width * 0.52,
     holeMinY: 200,
     holeMaxY: 1800,
   });
