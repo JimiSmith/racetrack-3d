@@ -9,10 +9,13 @@ export const TEXT_ORIENTATION_FIXED = 'fixed';
 export const DEFAULT_TEXT_POSITION_RANK = 1;
 const CURVE_SEGMENTS = 8;
 const MIN_TEXT_HEIGHT_MM = 2;
+const MIN_PREFERRED_HEIGHT_MM = 14 * 25.4 / 72;
+const MAX_PREFERRED_HEIGHT_MM = 28 * 25.4 / 72;
 const MAX_TEXT_LINES = 4;
 const MAX_CANDIDATES = 16;
-const LONG_SIDE_GRID_CELLS = 96;
-const MIN_GRID_CELLS = 48;
+const MIN_CELL_MM = 10;
+const MIN_GRID_CELLS_PER_SIDE = 8;
+const LINE_COUNT_MULTIPLIERS = [1, 0.88, 0.8, 0.72];
 
 let cachedFont = null;
 
@@ -468,9 +471,9 @@ export function normalizeTextPositionRank(value) {
 function createPlacementGrid(basePlate) {
   const longSide = Math.max(basePlate.width, basePlate.height);
   const shortSide = Math.min(basePlate.width, basePlate.height);
-  const aspectRatio = longSide / Math.max(shortSide, Number.EPSILON);
-  const longCells = clamp(LONG_SIDE_GRID_CELLS, MIN_GRID_CELLS, LONG_SIDE_GRID_CELLS);
-  const shortCells = clamp(Math.round(longCells / aspectRatio), Math.max(24, Math.round(MIN_GRID_CELLS / aspectRatio)), longCells);
+  const longCells = Math.max(MIN_GRID_CELLS_PER_SIDE, Math.floor(longSide / MIN_CELL_MM));
+  const cellSize = longSide / longCells;
+  const shortCells = Math.max(MIN_GRID_CELLS_PER_SIDE, Math.round(shortSide / cellSize));
   const columns = basePlate.width >= basePlate.height ? longCells : shortCells;
   const rows = basePlate.width >= basePlate.height ? shortCells : longCells;
   const cellWidth = basePlate.width / columns;
@@ -533,12 +536,15 @@ function dilateBlockedCells(mask, radius) {
 function computePlacementMask(outlinePoints, basePlate) {
   const grid = createPlacementGrid(basePlate);
   const mask = Array.from({ length: grid.rows }, () => Array.from({ length: grid.columns }, () => false));
+  const outside = Array.from({ length: grid.rows }, () => Array.from({ length: grid.columns }, () => true));
+  const hasOuterRing = outlinePoints?.outerRing?.length >= 3;
 
   for (let row = 0; row < grid.rows; row += 1) {
     const y = basePlate.minY + (row + 0.5) * grid.cellHeight;
     for (let column = 0; column < grid.columns; column += 1) {
       const x = basePlate.minX + (column + 0.5) * grid.cellWidth;
       mask[row][column] = pointInTrackFootprint({ x, y }, outlinePoints);
+      outside[row][column] = !hasOuterRing || !pointInPolygon({ x, y }, outlinePoints.outerRing);
     }
   }
 
@@ -560,7 +566,32 @@ function computePlacementMask(outlinePoints, basePlate) {
   return {
     ...grid,
     blocked: dilated,
+    outside,
   };
+}
+
+function buildPrefixSum(grid) {
+  const rows = grid.length;
+  const columns = grid[0]?.length ?? 0;
+  const prefix = Array.from({ length: rows + 1 }, () => Array.from({ length: columns + 1 }, () => 0));
+
+  for (let row = 0; row < rows; row += 1) {
+    for (let column = 0; column < columns; column += 1) {
+      prefix[row + 1][column + 1] = (grid[row][column] ? 1 : 0)
+        + prefix[row][column + 1]
+        + prefix[row + 1][column]
+        - prefix[row][column];
+    }
+  }
+
+  return prefix;
+}
+
+function sumPrefixArea(prefix, left, top, right, bottom) {
+  return prefix[bottom + 1][right + 1]
+    - prefix[top][right + 1]
+    - prefix[bottom + 1][left]
+    + prefix[top][left];
 }
 
 function rectIntersectionArea(a, b) {
@@ -616,6 +647,7 @@ function dedupeCandidates(candidates, basePlate, grid, maxCandidates) {
 function findPlacementCandidates(basePlate, placementMask, maxCandidates = MAX_CANDIDATES) {
   const heights = Array.from({ length: placementMask.columns }, () => 0);
   const rectangles = [];
+  const outsidePrefix = buildPrefixSum(placementMask.outside ?? []);
 
   for (let row = 0; row < placementMask.rows; row += 1) {
     for (let column = 0; column < placementMask.columns; column += 1) {
@@ -642,6 +674,13 @@ function findPlacementCandidates(basePlate, placementMask, maxCandidates = MAX_C
           widthCells: column - item.start,
           heightCells: item.height,
           areaCells: (column - item.start) * item.height,
+          fractionOutside: sumPrefixArea(
+            outsidePrefix,
+            item.start,
+            row - item.height + 1,
+            column - 1,
+            row,
+          ) / ((column - item.start) * item.height),
         });
       }
 
@@ -823,6 +862,32 @@ function computeCenterBias(rect, basePlate) {
   return 1 - 0.12 * Math.min(1, distance / maxDistance);
 }
 
+function computeSizeWindowMultiplier(heightMm) {
+  if (heightMm <= MIN_TEXT_HEIGHT_MM) {
+    return 0;
+  }
+
+  if (heightMm < MIN_PREFERRED_HEIGHT_MM) {
+    const t = clamp(
+      (heightMm - MIN_TEXT_HEIGHT_MM) / (MIN_PREFERRED_HEIGHT_MM - MIN_TEXT_HEIGHT_MM),
+      0,
+      1,
+    );
+    return t * t;
+  }
+
+  if (heightMm <= MAX_PREFERRED_HEIGHT_MM) {
+    return 1;
+  }
+
+  const excessRatio = (heightMm - MAX_PREFERRED_HEIGHT_MM) / MAX_PREFERRED_HEIGHT_MM;
+  return 1 / (1 + excessRatio * 0.25);
+}
+
+function computeLineCountMultiplier(lineCount) {
+  return LINE_COUNT_MULTIPLIERS[Math.min(Math.max(lineCount, 1), LINE_COUNT_MULTIPLIERS.length) - 1] ?? LINE_COUNT_MULTIPLIERS[LINE_COUNT_MULTIPLIERS.length - 1];
+}
+
 function normalizeTextOrientationMode(value) {
   return value === TEXT_ORIENTATION_FIXED ? TEXT_ORIENTATION_FIXED : TEXT_ORIENTATION_AUTO;
 }
@@ -831,7 +896,7 @@ function getTextRotationCandidates(textOrientationMode) {
   return normalizeTextOrientationMode(textOrientationMode) === TEXT_ORIENTATION_FIXED ? [0] : [0, 90];
 }
 
-function scoreTextFit(rect, layout, scaledBounds, basePlate) {
+function scoreTextFit(rect, layout, scaledBounds, basePlate, fittedScale, fractionOutside = 1) {
   const fittedWidth = scaledBounds.width;
   const fittedHeight = scaledBounds.height;
   const utilization = Math.min(1, (fittedWidth * fittedHeight) / Math.max(rect.width * rect.height, Number.EPSILON));
@@ -839,15 +904,27 @@ function scoreTextFit(rect, layout, scaledBounds, basePlate) {
   const layoutAspect = scaledBounds.width / Math.max(scaledBounds.height, Number.EPSILON);
   const aspectPenalty = 1 / (1 + Math.abs(Math.log(rectAspect / Math.max(layoutAspect, Number.EPSILON))));
   const lineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
-  const lineCountPenalty = Math.max(0.72, 1 - (layout.lineCount - 1) * 0.08);
+  const lineCountPenalty = computeLineCountMultiplier(layout.lineCount);
   const centerBias = computeCenterBias(rect, basePlate);
+  const sizeWindowMultiplier = computeSizeWindowMultiplier(layout.averageLineHeight * fittedScale);
+  const outsideMultiplier = 0.85 + 0.15 * clamp(fractionOutside, 0, 1);
 
   return layout.averageLineHeight
     * Math.pow(utilization, 0.2)
     * aspectPenalty
     * (0.75 + lineBalance * 0.25)
+    * sizeWindowMultiplier
     * lineCountPenalty
-    * centerBias;
+    * centerBias
+    * outsideMultiplier;
+}
+
+export function __debugTextFitModifiers(heightMm, lineCount, fractionOutside = 1) {
+  return {
+    sizeWindowMultiplier: computeSizeWindowMultiplier(heightMm),
+    lineCountMultiplier: computeLineCountMultiplier(lineCount),
+    outsideMultiplier: 0.85 + 0.15 * clamp(fractionOutside, 0, 1),
+  };
 }
 
 function fitTextToRectangle(text, font, rect, basePlate, cache, textOrientationMode = TEXT_ORIENTATION_AUTO) {
@@ -886,7 +963,14 @@ function fitTextToRectangle(text, font, rect, basePlate, cache, textOrientationM
 
         const fittedWidth = oriented.bounds.width * fittedScale;
         const fittedHeight = oriented.bounds.height * fittedScale;
-        const score = scoreTextFit(rect, multiline, { width: fittedWidth, height: fittedHeight }, basePlate);
+        const score = scoreTextFit(
+          rect,
+          multiline,
+          { width: fittedWidth, height: fittedHeight },
+          basePlate,
+          fittedScale,
+          rect.fractionOutside ?? 1,
+        );
 
         if (!bestLayout || score > bestLayout.score) {
           bestLayout = {
@@ -964,6 +1048,13 @@ export function __debugTextPlacement(text, outlinePoints, basePlate, scale, opti
     candidateIndex: placement.candidateIndex,
     candidateCount: placement.candidateCount,
   };
+}
+
+export function __debugPlacementCandidates(outlinePoints, basePlate, scale) {
+  const scaledOutline = scaleOutline(outlinePoints, scale);
+  const scaledBasePlate = createScaledBounds(basePlate, scale);
+  const placementMask = computePlacementMask(scaledOutline, scaledBasePlate);
+  return findPlacementCandidates(scaledBasePlate, placementMask);
 }
 
 function chooseTextPlacement(text, font, candidate, basePlate, textOrientationMode = TEXT_ORIENTATION_AUTO) {

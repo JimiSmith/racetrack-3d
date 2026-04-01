@@ -7,6 +7,8 @@ import {
   TEXT_HEIGHT_MM,
   TEXT_ORIENTATION_FIXED,
   __debugTextPlacement,
+  __debugTextFitModifiers,
+  __debugPlacementCandidates,
   __enumerateSequentialTextLineBreaks,
   buildTextMesh,
 } from '../src/text3d.js';
@@ -351,6 +353,47 @@ test('line-break candidate generation preserves exact sequential word order', ()
   assert.ok(candidates.every(candidate => collapseWhitespace(candidate) === 'Las Vegas Strip Circuit'));
 });
 
+test('text fit modifiers apply the size window, line count, and outside bonuses', () => {
+  const belowFloor = __debugTextFitModifiers(2, 1);
+  const belowPreferred = __debugTextFitModifiers(4, 1);
+  const inRange = __debugTextFitModifiers(6, 1);
+  const aboveRange = __debugTextFitModifiers(12, 1);
+
+  assert.equal(belowFloor.sizeWindowMultiplier, 0);
+  assert.ok(belowPreferred.sizeWindowMultiplier > 0 && belowPreferred.sizeWindowMultiplier < 1);
+  assert.equal(inRange.sizeWindowMultiplier, 1);
+  assert.ok(aboveRange.sizeWindowMultiplier < 1);
+  assert.equal(__debugTextFitModifiers(6, 1).lineCountMultiplier, 1);
+  assert.equal(__debugTextFitModifiers(6, 2).lineCountMultiplier, 0.88);
+  assert.equal(__debugTextFitModifiers(6, 3).lineCountMultiplier, 0.8);
+  assert.equal(__debugTextFitModifiers(6, 4).lineCountMultiplier, 0.72);
+  assert.equal(__debugTextFitModifiers(6, 1, 0).outsideMultiplier, 0.85);
+  assert.equal(__debugTextFitModifiers(6, 1, 1).outsideMultiplier, 1);
+});
+
+test('placement candidates carry outside-circuit fractions', () => {
+  const outline = centeredHoleOutline({
+    width: 1200,
+    height: 1200,
+    holeMinX: 400,
+    holeMaxX: 800,
+    holeMinY: 400,
+    holeMaxY: 800,
+  });
+  const candidates = __debugPlacementCandidates(outline, {
+    minX: 0,
+    minY: 0,
+    maxX: 2000,
+    maxY: 2000,
+    width: 2000,
+    height: 2000,
+  }, 1);
+
+  assert.ok(candidates.length > 0);
+  assert.ok(candidates.some(candidate => candidate.fractionOutside > 0.9));
+  assert.ok(candidates.some(candidate => candidate.fractionOutside < 0.5));
+});
+
 test('multiline fitting preserves exact word order across different line counts', () => {
   const wideOutline = centeredHoleOutline({
     width: 240,
@@ -446,30 +489,31 @@ test('placement rank and orientation mode do not alter word order', () => {
   const basePlate = { minX: 0, maxX: 2400, minY: 0, maxY: 1800, width: 2400, height: 1800 };
   const rankText = 'Las Vegas Strip Circuit';
   const orientationText = 'Imola Circuit';
+  const font = createMockFont();
 
-  const firstRank = __debugTextPlacement(rankText, outline, basePlate, 0.05, {
-    font: createMockFont(),
+  const firstRank = __debugTextPlacement(rankText, outline, basePlate, 1, {
+    font,
     baseThickness: BASE_THICKNESS_MM,
     textPositionRank: 1,
   });
-  const secondRank = __debugTextPlacement(rankText, outline, basePlate, 0.05, {
-    font: createMockFont(),
+  const secondRank = __debugTextPlacement(rankText, outline, basePlate, 1, {
+    font,
     baseThickness: BASE_THICKNESS_MM,
     textPositionRank: 2,
   });
   const autoOrientation = __debugTextPlacement(orientationText, centeredHoleOutline({
-    width: 1000,
+    width: 300,
     height: 2000,
-    holeMinX: 425,
-    holeMaxX: 575,
+    holeMinX: 135,
+    holeMaxX: 165,
     holeMinY: 200,
     holeMaxY: 1800,
-  }), { minX: 0, maxX: 1000, minY: 0, maxY: 2000, width: 1000, height: 2000 }, 0.05, {
-    font: createMockFont(),
+  }), { minX: 0, maxX: 300, minY: 0, maxY: 2000, width: 300, height: 2000 }, 1, {
+    font,
     baseThickness: BASE_THICKNESS_MM,
   });
-  const fixedOrientation = __debugTextPlacement(orientationText, rankedHoleOutline(), basePlate, 0.05, {
-    font: createMockFont(),
+  const fixedOrientation = __debugTextPlacement(orientationText, rankedHoleOutline(), basePlate, 1, {
+    font,
     baseThickness: BASE_THICKNESS_MM,
     textOrientationMode: TEXT_ORIENTATION_FIXED,
   });
@@ -487,27 +531,40 @@ test('placement rank and orientation mode do not alter word order', () => {
 });
 
 test('buildTextMesh auto mode can choose 90 degree text orientation when fixed mode cannot fit', () => {
+  const width = 300;
+  const height = 2000;
   const outline = centeredHoleOutline({
-    width: 1000,
-    height: 2000,
-    holeMinX: 425,
-    holeMaxX: 575,
+    width,
+    height,
+    holeMinX: width * 0.45,
+    holeMaxX: width * 0.55,
     holeMinY: 200,
     holeMaxY: 1800,
   });
 
-  const autoTriangles = buildTextMesh(
-    'IMOLA',
+  const layout = __debugTextPlacement(
+    'DAYTONA ROAD COURSE',
     outline,
-    { minX: 0, maxX: 1000, minY: 0, maxY: 2000, width: 1000, height: 2000 },
-    0.05,
+    { minX: 0, maxX: width, minY: 0, maxY: height, width, height },
+    1,
+    { font: createMockFont(), baseThickness: BASE_THICKNESS_MM },
+  );
+
+  assert.ok(layout);
+  assert.equal(layout.rotation, 90);
+
+  const autoTriangles = buildTextMesh(
+    'DAYTONA ROAD COURSE',
+    outline,
+    { minX: 0, maxX: width, minY: 0, maxY: height, width, height },
+    1,
     { font: createMockFont(), baseThickness: BASE_THICKNESS_MM },
   );
   const fixedTriangles = buildTextMesh(
-    'IMOLA',
+    'DAYTONA ROAD COURSE',
     outline,
-    { minX: 0, maxX: 1000, minY: 0, maxY: 2000, width: 1000, height: 2000 },
-    0.05,
+    { minX: 0, maxX: width, minY: 0, maxY: height, width, height },
+    1,
     { font: createMockFont(), baseThickness: BASE_THICKNESS_MM, textOrientationMode: TEXT_ORIENTATION_FIXED },
   );
 
@@ -516,31 +573,24 @@ test('buildTextMesh auto mode can choose 90 degree text orientation when fixed m
 });
 
 test('buildTextMesh recomputes placement in the rotated search space', () => {
-  const outline0 = centeredHoleOutline({
-    width: 1200,
-    height: 700,
-    holeMinX: 360,
-    holeMaxX: 840,
-    holeMinY: 210,
-    holeMaxY: 280,
-  });
-  const basePlate0 = { minX: -50, maxX: 1250, minY: -50, maxY: 750, width: 1300, height: 800 };
+  const outline0 = rankedHoleOutline();
+  const basePlate0 = { minX: -50, maxX: 2450, minY: -50, maxY: 1850, width: 2500, height: 1900 };
   const outline90 = rotateOutlineByOrientation(outline0, 90);
-  const basePlate90 = { minX: -750, maxX: 50, minY: -50, maxY: 1250, width: 800, height: 1300 };
+  const basePlate90 = { minX: -1850, maxX: 50, minY: -50, maxY: 2450, width: 1900, height: 2500 };
 
   const triangles0 = buildTextMesh(
     'LAS VEGAS STRIP CIRCUIT',
     outline0,
     basePlate0,
-    0.05,
-    { font: createMockFont(), baseThickness: BASE_THICKNESS_MM },
+    1,
+    { baseThickness: BASE_THICKNESS_MM },
   );
   const triangles90 = buildTextMesh(
     'LAS VEGAS STRIP CIRCUIT',
     outline90,
     basePlate90,
-    0.05,
-    { font: createMockFont(), baseThickness: BASE_THICKNESS_MM },
+    1,
+    { baseThickness: BASE_THICKNESS_MM },
   );
 
   assert.ok(triangles0.length > 0);
@@ -562,17 +612,17 @@ test('buildTextMesh uses the selected ranked placement candidate', () => {
   const outline = rankedHoleOutline();
   const basePlate = { minX: 0, maxX: 2400, minY: 0, maxY: 1800, width: 2400, height: 1800 };
 
-  const first = buildTextMesh('GO', outline, basePlate, 0.05, {
+  const first = buildTextMesh('GO', outline, basePlate, 1, {
     font: createMockFont(),
     baseThickness: BASE_THICKNESS_MM,
     textPositionRank: 1,
   });
-  const second = buildTextMesh('GO', outline, basePlate, 0.05, {
+  const second = buildTextMesh('GO', outline, basePlate, 1, {
     font: createMockFont(),
     baseThickness: BASE_THICKNESS_MM,
     textPositionRank: 2,
   });
-  const third = buildTextMesh('GO', outline, basePlate, 0.05, {
+  const third = buildTextMesh('GO', outline, basePlate, 1, {
     font: createMockFont(),
     baseThickness: BASE_THICKNESS_MM,
     textPositionRank: 3,
