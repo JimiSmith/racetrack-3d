@@ -372,7 +372,7 @@ test('buildTrackModel prevents the raised top cap from sagging at the center of 
     { x: -180, y: 180, elevation: 45 },
     { x: -160, y: 80, elevation: 20 },
   ];
-  const model = buildTrackModel({ outlinePoints: null, basePlate: null, projectedNodes });
+  const model = buildTrackModel({ outlinePoints: null, basePlate: null, projectedNodes, primaryOrientationDeg: 0 });
   const segmentStart = projectedNodes[8];
   const segmentEnd = projectedNodes[9];
   const segmentDx = segmentEnd.x - segmentStart.x;

@@ -418,8 +418,13 @@ function buildTrackPrismMesh(outline, scale, projectedNodes = null) {
   return triangles;
 }
 
-function computeAutoOrientationDeg(outlinePoints, basePlate, trackName = null) {
-  const bp = basePlate ?? buildBasePlate(outlinePoints ?? []);
+function computeAutoOrientationDeg(outlinePoints, basePlate, projectedNodes = null, trackName = null) {
+  // Build an outline we can use for all candidates.
+  // projectedNodes takes priority — same logic as orientTrackGeometry.
+  const baseOutline = projectedNodes?.length
+    ? buildTrackOutline(projectedNodes)
+    : outlinePoints;
+  const bp = basePlate ?? (baseOutline ? buildBasePlate(baseOutline) : null);
   if (!bp) return 0;
 
   const LANDSCAPE_BONUS = 1000;
@@ -433,8 +438,11 @@ function computeAutoOrientationDeg(outlinePoints, basePlate, trackName = null) {
   let bestScore = -Infinity;
 
   for (const deg of CANDIDATES) {
-    const rotatedOutline = rotateOutlineByOrientation(outlinePoints, deg);
-    const rotatedBp = buildBasePlate(rotatedOutline) ?? bp;
+    // Rotate projected nodes when available, otherwise rotate outline directly.
+    const rotatedOutline = projectedNodes?.length
+      ? buildTrackOutline(rotatePointsByOrientation(projectedNodes, deg))
+      : rotateOutlineByOrientation(outlinePoints, deg);
+    const rotatedBp = (rotatedOutline ? buildBasePlate(rotatedOutline) : null) ?? bp;
 
     let score = 0;
 
@@ -489,7 +497,7 @@ export function buildTrackModel({
       : primaryOrientationDeg,
   );
   const resolvedOrientationDeg = normalizedPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO
-    ? computeAutoOrientationDeg(outlinePoints, basePlate, trackName)
+    ? computeAutoOrientationDeg(outlinePoints, basePlate, projectedNodes, trackName)
     : normalizedPrimaryOrientationDeg;
   // Text orientation is always fixed: the model is already rotated to the correct orientation,
   // so text should be placed right-side-up on the rotated model.
