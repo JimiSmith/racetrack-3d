@@ -15,7 +15,7 @@ const MAX_TEXT_LINES = 4;
 const MAX_CANDIDATES = 16;
 const MIN_CELL_MM = 3;
 const MIN_GRID_CELLS_PER_SIDE = 8;
-const LINE_COUNT_MULTIPLIERS = [1, 0.88, 0.8, 0.72];
+const LINE_COUNT_MULTIPLIERS = [1, 0.97, 0.94, 0.91];
 
 let cachedFont = null;
 
@@ -996,7 +996,7 @@ function scoreTextFit(rect, layout, scaledBounds, basePlate, fittedScale, fracti
   const lineCountPenalty = computeLineCountMultiplier(layout.lineCount);
   const centerBias = computeCenterBias(rect, basePlate);
   const sizeWindowMultiplier = computeSizeWindowMultiplier(layout.averageLineHeight * fittedScale);
-  const outsideMultiplier = 0.85 + 0.15 * clamp(fractionOutside, 0, 1);
+  const outsideMultiplier = 0.5 + 0.5 * clamp(fractionOutside, 0, 1);
 
   return layout.averageLineHeight
     * Math.pow(utilization, 0.2)
@@ -1012,7 +1012,7 @@ export function __debugTextFitModifiers(heightMm, lineCount, fractionOutside = 1
   return {
     sizeWindowMultiplier: computeSizeWindowMultiplier(heightMm),
     lineCountMultiplier: computeLineCountMultiplier(lineCount),
-    outsideMultiplier: 0.85 + 0.15 * clamp(fractionOutside, 0, 1),
+    outsideMultiplier: 0.5 + 0.5 * clamp(fractionOutside, 0, 1),
   };
 }
 

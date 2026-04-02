@@ -364,10 +364,10 @@ test('text fit modifiers apply the size window, line count, and outside bonuses'
   assert.equal(inRange.sizeWindowMultiplier, 1);
   assert.ok(aboveRange.sizeWindowMultiplier < 1);
   assert.equal(__debugTextFitModifiers(6, 1).lineCountMultiplier, 1);
-  assert.equal(__debugTextFitModifiers(6, 2).lineCountMultiplier, 0.88);
-  assert.equal(__debugTextFitModifiers(6, 3).lineCountMultiplier, 0.8);
-  assert.equal(__debugTextFitModifiers(6, 4).lineCountMultiplier, 0.72);
-  assert.equal(__debugTextFitModifiers(6, 1, 0).outsideMultiplier, 0.85);
+  assert.equal(__debugTextFitModifiers(6, 2).lineCountMultiplier, 0.97);
+  assert.equal(__debugTextFitModifiers(6, 3).lineCountMultiplier, 0.94);
+  assert.equal(__debugTextFitModifiers(6, 4).lineCountMultiplier, 0.91);
+  assert.equal(__debugTextFitModifiers(6, 1, 0).outsideMultiplier, 0.5);
   assert.equal(__debugTextFitModifiers(6, 1, 1).outsideMultiplier, 1);
 });
 
