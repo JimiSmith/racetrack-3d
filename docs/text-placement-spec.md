@@ -1,6 +1,6 @@
 # Text Placement Specification
 
-_Version 5 — updated 2026-04-02_
+_Version 6 — updated 2026-04-02_
 
 This document describes the text placement pipeline used to emboss a circuit name onto the base plate of a 3D model. It is the authoritative spec for `src/text3d.js`.
 
@@ -108,10 +108,10 @@ Every valid (candidate × text fit) pair receives a **composite score**. The sco
 
 | Priority | Criterion | Multiplier name | Range |
 |---|---|---|---|
-| 1 | Outside vs inside the circuit | `outsideMultiplier` | [0.5, 1.0] |
+| 1 | Outside vs inside the circuit | `outsideMultiplier` | [0.25, 1.0] |
 | 2 | Fewer lines preferred | `lineCountMultiplier` | [0.91, 1.0] |
-| 3 | Font size within preferred range | `sizeWindowMultiplier` | [0.0, 1.0] |
-| 4 | Distance from track edge | `trackClearanceMultiplier` | [0.9, 1.0] |
+| 3 | Font size within preferred range | `sizeWindowMultiplier` | [0.0, 1.25] |
+| 4 | Distance from track edge | `trackClearanceMultiplier` | [0.97, 1.0] |
 | 5 | Proximity to base plate centre | `centralityMultiplier` | [0.88, 1.0] |
 
 These are then combined with the existing fit-quality terms:
@@ -132,7 +132,7 @@ score = averageLineHeight
 
 The multiplier ranges must be chosen so that the relative influence of each criterion strictly exceeds the combined influence of all lower-priority criteria. Specifically:
 
-- The `outsideMultiplier` range must be wide enough that a fully-outside placement (`1.0`) beats a fully-inside placement (`0.5`) even when the inside placement wins on all lower criteria.
+- The `outsideMultiplier` range must be wide enough that a fully-outside placement (`1.0`) beats a fully-inside placement (`0.25`) even when the inside placement wins on all lower criteria.
 - The `lineCountMultiplier` range must ensure single-line beats 4-line even when 4-line wins on size, clearance, and centrality.
 - And so on down the list.
 
@@ -143,16 +143,16 @@ The current ranges above satisfy this requirement given the fit-quality terms re
 #### outsideMultiplier
 
 ```text
-outsideMultiplier = 0.5 + 0.5 × clamp(fractionOutside, 0, 1)
+outsideMultiplier = 0.25 + 0.75 × clamp(fractionOutside, 0, 1)
 ```
 
 - Fully outside (`fractionOutside = 1`): `1.0`
-- Fully inside (`fractionOutside = 0`): `0.5`
+- Fully inside (`fractionOutside = 0`): `0.25`
 
 #### lineCountMultiplier
 
 - 1 line → `1.00`
-- 2 lines → `0.97`
+- 2 lines → `1.00` (equal to 1-line; no penalty for wrapping to 2 lines)
 - 3 lines → `0.94`
 - 4 lines → `0.91`
 
@@ -161,18 +161,20 @@ outsideMultiplier = 0.5 + 0.5 × clamp(fractionOutside, 0, 1)
 Preferred height range: **16–24 pt** (`MIN_PREFERRED_HEIGHT_MM ≈ 5.64 mm`, `MAX_PREFERRED_HEIGHT_MM ≈ 8.47 mm`).
 
 - Below hard floor (`heightMm ≤ MIN_TEXT_HEIGHT_MM = 2 mm`): `0` (rejected)
-- Below preferred (`2 mm < heightMm < 5.64 mm`): `t²` where `t = (h - 2) / (5.64 - 2)`
-- In preferred range: `1.0`
-- Above preferred: `1 / (1 + excessRatio × 0.25)`
+- Below preferred (`2 mm < heightMm < 5.64 mm`): `t³` where `t = (h - 2) / (5.64 - 2)` — cubic penalty, steep drop-off for small text
+- In preferred range (`5.64 mm ≤ heightMm ≤ 8.47 mm`): ramp from `0.6` (at 16 pt) to `1.25` (at 24 pt) — larger text within range is rewarded
+- Above preferred: `1 / (1 + excessRatio × 0.25)` — note: this produces a step-down discontinuity at `MAX_PREFERRED_HEIGHT_MM` (see issue #18)
 
 #### trackClearanceMultiplier
 
 ```text
-trackClearanceMultiplier = 0.9 + 0.1 × clamp(normalizedClearance, 0, 1)
+trackClearanceMultiplier = 0.97 + 0.03 × clamp(normalizedClearance, 0, 1)
 ```
 
 - Maximum clearance: `1.0`
-- Zero clearance (adjacent to blocked cells): `0.9`
+- Zero clearance (adjacent to blocked cells): `0.97`
+
+Note: this range (0.03) is narrower than the centrality range (0.12), which means centrality currently has more influence than clearance in practice — inverting the intended priority 4 > 5. See issue #19.
 
 #### centralityMultiplier
 
@@ -240,9 +242,9 @@ This ensures outside placements always beat inside ones regardless of area, beca
 | `MIN_GRID_CELLS_PER_SIDE` | 8 | Safety floor for tiny tracks |
 | `edgeMarginCells` | 1 cell | Edge clearance |
 | `obstacleMarginCells` | 0 or 1 cell | Circuit clearance (`1` when short side ≥ 80 mm) |
-| `outsideMultiplier` | `0.5 + 0.5 × fractionOutside` | Dominant outside-circuit preference |
-| `lineCountMultipliers` | `[1.0, 0.97, 0.94, 0.91]` | Line count preference |
-| `trackClearanceMultiplier` | `0.9 + 0.1 × normalizedClearance` | Distance-from-track preference |
+| `outsideMultiplier` | `0.25 + 0.75 × fractionOutside` | Dominant outside-circuit preference |
+| `lineCountMultipliers` | `[1.0, 1.0, 0.94, 0.91]` | Line count preference (1- and 2-line equal) |
+| `trackClearanceMultiplier` | `0.97 + 0.03 × normalizedClearance` | Distance-from-track preference |
 | `centralityMultiplier` | `1.0 - 0.12 × centreDistance` | Base plate centre preference |
 
 ---
