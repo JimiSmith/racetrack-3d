@@ -1,8 +1,8 @@
 # Text Placement Specification
 
-_Version 4 — updated 2026-04-02_
+_Version 5 — updated 2026-04-02_
 
-This document describes the current text placement pipeline used to emboss a circuit name onto the base plate of a 3D model. It reflects the current implementation in `src/text3d.js`.
+This document describes the text placement pipeline used to emboss a circuit name onto the base plate of a 3D model. It is the authoritative spec for `src/text3d.js`.
 
 ---
 
@@ -12,9 +12,9 @@ The label is placed by:
 
 1. Generating a **placement mask** over the base plate.
 2. Finding **candidate rectangles** in the clear space.
-3. Fitting text into each candidate with different line counts and rotations.
-4. Scoring those fits.
-5. Returning the best-scoring fit from the selected candidate rank.
+3. **Scoring and sorting** candidates by composite quality.
+4. **Fitting text** into every candidate and scoring each (candidate × fit) pair.
+5. Returning the best-scoring pair as rank 1, second-best as rank 2, and so on.
 
 The pipeline runs fully at build/preview time in `src/text3d.js`.
 
@@ -58,7 +58,7 @@ Current rules:
 
 A second boolean mask, `outside`, is built alongside the blocked mask.
 
-A cell is counted as **outside** when its centre point is **not inside the outer ring**. This mask is measured **before dilation** and is used only for scoring via `fractionOutside`.
+A cell is counted as **outside** when its centre point is **not inside the outer ring**. This mask is measured **before dilation** and is used to compute `fractionOutside` per candidate.
 
 ---
 
@@ -66,35 +66,27 @@ A cell is counted as **outside** when its centre point is **not inside the outer
 
 Maximal-rectangle enumeration (histogram sweep) runs over the unblocked mask rows to find all axis-aligned clear rectangles.
 
-Candidates are then deduplicated:
+Candidates are deduplicated:
 
-- if a candidate overlaps an earlier candidate by more than **90%** of the smaller area,
-- it is discarded.
+- if a candidate overlaps an earlier candidate by more than **90%** of the smaller area, it is discarded.
 
-The top `MAX_CANDIDATES` candidates are retained, sorted by area descending.
+The top `MAX_CANDIDATES` candidates are retained, initially sorted by area descending.
 
-Current value:
+Current value: `MAX_CANDIDATES = 16`
 
-- `MAX_CANDIDATES = 16`
+Each candidate carries:
 
-Each candidate also carries `fractionOutside`, computed from the pre-dilation `outside` mask as:
-
-- area of outside cells inside the rectangle
-- divided by rectangle area in cells.
-
-Each retained candidate is assigned a **rank**:
-
-- rank 1 = largest candidate,
-- rank 2 = next,
-- and so on.
-
-The user-facing label placement control (`textPositionRank`) selects which ranked candidate is used.
+- `fractionOutside` — fraction of its cells that are outside the circuit outline (pre-dilation mask, 0–1)
+- `trackClearance` — minimum distance (in cells) from any cell in the candidate to the nearest blocked cell (before dilation). Normalised to [0, 1] by dividing by the longest possible distance in the grid.
+- `centreDistance` — distance from the candidate centre to the base plate centre, normalised to [0, 1] by dividing by the maximum possible distance (half-diagonal of base plate).
 
 ---
 
 ## Stage 3 — Text Fitting
 
-For the selected candidate rectangle, the algorithm tries every combination of:
+Text fitting is attempted for **every candidate**, not only the selected rank.
+
+For each candidate rectangle, the algorithm tries every combination of:
 
 - **Line count**: 1 to `MAX_TEXT_LINES` (currently **4**, or word count if fewer)
 - **Word grouping**: all sequential assignments of words to lines for that line count
@@ -104,150 +96,134 @@ For the selected candidate rectangle, the algorithm tries every combination of:
 
 Each layout is rendered, scaled to fit the candidate rectangle, and scored.
 
-A layout is rejected before scoring if its fitted average line height is below `MIN_TEXT_HEIGHT_MM`.
-
-Current value:
-
-- `MIN_TEXT_HEIGHT_MM = 2 mm`
+A layout is rejected before scoring if its fitted average line height is below `MIN_TEXT_HEIGHT_MM` (currently **2 mm**).
 
 ---
 
-## Current Scoring Formula
+## Stage 4 — Scoring
 
-The current score is:
+Every valid (candidate × text fit) pair receives a **composite score**. The score is a product of five multipliers. Their weights must be chosen so that criteria higher in the priority list dominate all criteria below them — i.e. a placement that wins on criterion N should only be beaten by one that also wins on criterion N but scores higher on criterion N+1.
+
+### Priority order (highest to lowest)
+
+| Priority | Criterion | Multiplier name | Range |
+|---|---|---|---|
+| 1 | Outside vs inside the circuit | `outsideMultiplier` | [0.5, 1.0] |
+| 2 | Fewer lines preferred | `lineCountMultiplier` | [0.91, 1.0] |
+| 3 | Font size within preferred range | `sizeWindowMultiplier` | [0.0, 1.0] |
+| 4 | Distance from track edge | `trackClearanceMultiplier` | [0.9, 1.0] |
+| 5 | Proximity to base plate centre | `centralityMultiplier` | [0.88, 1.0] |
+
+These are then combined with the existing fit-quality terms:
 
 ```text
 score = averageLineHeight
       × utilization^0.2
       × aspectPenalty
-      × (0.75 + lineBalance × 0.25)
-      × sizeWindowMultiplier
-      × lineCountMultiplier
-      × centerBias
+      × lineBalance
       × outsideMultiplier
+      × lineCountMultiplier
+      × sizeWindowMultiplier
+      × trackClearanceMultiplier
+      × centralityMultiplier
 ```
 
-Where:
+### Weight separation requirement
 
-| Factor | Description |
-|---|---|
-| `averageLineHeight` | Raw average glyph height before final scaling. Larger text scores higher. |
-| `utilization^0.2` | Area of fitted text / area of rectangle, soft-clamped to 1. Rewards filling the space without dominating the score. |
-| `aspectPenalty` | `1 / (1 + |log(rectAspect / layoutAspect)|)`. Penalizes mismatch between rectangle and fitted text aspect ratio. |
-| `lineBalance` | `minLineWidth / maxLineWidth`. Rewards more even line lengths. |
-| `sizeWindowMultiplier` | Preference for a target text-height band; see below. |
-| `lineCountMultiplier` | Explicit per-line-count preference; see below. |
-| `centerBias` | `1 - 0.12 × min(1, distanceFromCentre / maxDistance)`. Mild penalty for placements far from the base centre. |
-| `outsideMultiplier` | `0.85 + 0.15 × fractionOutside`. Mild preference for candidates that lie more outside the circuit outline. |
+The multiplier ranges must be chosen so that the relative influence of each criterion strictly exceeds the combined influence of all lower-priority criteria. Specifically:
+
+- The `outsideMultiplier` range must be wide enough that a fully-outside placement (`1.0`) beats a fully-inside placement (`0.5`) even when the inside placement wins on all lower criteria.
+- The `lineCountMultiplier` range must ensure single-line beats 4-line even when 4-line wins on size, clearance, and centrality.
+- And so on down the list.
+
+The current ranges above satisfy this requirement given the fit-quality terms remain bounded near 1. Implementation should verify this with representative test cases.
+
+### Multiplier definitions
+
+#### outsideMultiplier
+
+```text
+outsideMultiplier = 0.5 + 0.5 × clamp(fractionOutside, 0, 1)
+```
+
+- Fully outside (`fractionOutside = 1`): `1.0`
+- Fully inside (`fractionOutside = 0`): `0.5`
+
+#### lineCountMultiplier
+
+- 1 line → `1.00`
+- 2 lines → `0.97`
+- 3 lines → `0.94`
+- 4 lines → `0.91`
+
+#### sizeWindowMultiplier
+
+Preferred height range: **16–24 pt** (`MIN_PREFERRED_HEIGHT_MM ≈ 5.64 mm`, `MAX_PREFERRED_HEIGHT_MM ≈ 8.47 mm`).
+
+- Below hard floor (`heightMm ≤ MIN_TEXT_HEIGHT_MM = 2 mm`): `0` (rejected)
+- Below preferred (`2 mm < heightMm < 5.64 mm`): `t²` where `t = (h - 2) / (5.64 - 2)`
+- In preferred range: `1.0`
+- Above preferred: `1 / (1 + excessRatio × 0.25)`
+
+#### trackClearanceMultiplier
+
+```text
+trackClearanceMultiplier = 0.9 + 0.1 × clamp(normalizedClearance, 0, 1)
+```
+
+- Maximum clearance: `1.0`
+- Zero clearance (adjacent to blocked cells): `0.9`
+
+#### centralityMultiplier
+
+```text
+centralityMultiplier = 1.0 - 0.12 × clamp(centreDistance, 0, 1)
+```
+
+- At centre: `1.0`
+- At maximum distance from centre: `0.88`
+
+---
+
+## Stage 5 — Ranking
+
+All (candidate × text fit) pairs are sorted by composite score descending.
+
+- Rank 1 = highest-scoring pair overall
+- Rank 2 = next, and so on
+
+Duplicate positions are broken by the smallest candidate index (stable sort).
+
+The user-facing `textPositionRank` control selects which ranked result to use.
+
+> **Key difference from v4**: ranking is now across all candidates × all fits. The previous system ranked candidates by area alone and only scored fits within the user-selected candidate.
 
 ---
 
 ## Size Window
 
-The current implementation prefers fitted average line heights in a **16–24 pt** window.
-
-Using typographic points (`1 pt = 25.4 / 72 mm`):
-
-- `MIN_PREFERRED_HEIGHT_MM = 16 pt ≈ 5.64 mm`
-- `MAX_PREFERRED_HEIGHT_MM = 24 pt ≈ 8.47 mm`
-
-### Size multiplier behaviour
-
-#### 1. Below hard minimum
-
-If `heightMm <= MIN_TEXT_HEIGHT_MM`:
-
-- multiplier = `0`
-- the layout is effectively rejected.
-
-#### 2. Between 2 mm and 16 pt
-
-If `MIN_TEXT_HEIGHT_MM < heightMm < MIN_PREFERRED_HEIGHT_MM`:
-
-```text
-t = clamp((heightMm - MIN_TEXT_HEIGHT_MM) / (MIN_PREFERRED_HEIGHT_MM - MIN_TEXT_HEIGHT_MM), 0, 1)
-sizeWindowMultiplier = t^2
-```
-
-This creates a progressively stronger penalty as text gets smaller.
-
-#### 3. Inside the preferred window
-
-If `MIN_PREFERRED_HEIGHT_MM <= heightMm <= MAX_PREFERRED_HEIGHT_MM`:
-
-- multiplier = `1`
-
-#### 4. Above 24 pt
-
-If `heightMm > MAX_PREFERRED_HEIGHT_MM`:
-
-```text
-excessRatio = (heightMm - MAX_PREFERRED_HEIGHT_MM) / MAX_PREFERRED_HEIGHT_MM
-sizeWindowMultiplier = 1 / (1 + excessRatio × 0.25)
-```
-
-This is a mild oversized-text penalty.
+See `sizeWindowMultiplier` definition above.
 
 ---
 
-## Outside-Circuit Preference
+## Candidate Ranking Change Summary
 
-Each candidate rectangle carries `fractionOutside`, measured from the pre-dilation `outside` mask.
+In v4, the pipeline was:
 
-Current formula:
+1. Sort candidates by area.
+2. User selects candidate rank N.
+3. Fit text into candidate N.
+4. Score fits within that candidate.
 
-```text
-outsideMultiplier = 0.85 + 0.15 × clamp(fractionOutside, 0, 1)
-```
+In v5, the pipeline is:
 
-That means:
+1. Find all candidates.
+2. Fit text into **every** candidate.
+3. Score all (candidate × fit) pairs with the composite formula.
+4. Sort pairs by score.
+5. User selects rank N from the sorted pairs.
 
-- a fully interior candidate gets `0.85`
-- a fully outside candidate gets `1.0`
-- partial candidates scale linearly in between.
-
-This is intentionally a mild tiebreaker rather than a hard rule.
-
----
-
-## Single-Line / Line-Count Preference
-
-The current implementation uses explicit multipliers:
-
-- 1 line → `1.00`
-- 2 lines → `0.88`
-- 3 lines → `0.80`
-- 4 lines → `0.72`
-
-For line counts above 4, the last multiplier is reused.
-
-This gives a clear preference for single-line labels when they fit well.
-
----
-
-## Priority Order in Practice
-
-The current implementation effectively prioritizes placement quality in this order:
-
-1. **Hard minimum readability** — text below `2 mm` is rejected.
-2. **Preferred size window** — strongest soft preference is for `16–24 pt` equivalent height.
-3. **Line count** — fewer lines score better.
-4. **Outside-circuit preference** — more outside area scores better.
-5. **Fit quality** — utilization, aspect match, line balance, and centre bias refine the choice.
-
----
-
-## Candidate Ranking
-
-`textPositionRank` selects which ranked candidate rectangle is used.
-
-Important detail:
-
-- the ranking is by candidate area after deduplication,
-- not by final text score,
-- and equal-area candidates may swap order depending on grid resolution.
-
-The scoring formula is applied **within** the selected candidate, not across all candidates.
+This ensures outside placements always beat inside ones regardless of area, because the `outsideMultiplier` dominates all other factors.
 
 ---
 
@@ -264,14 +240,15 @@ The scoring formula is applied **within** the selected candidate, not across all
 | `MIN_GRID_CELLS_PER_SIDE` | 8 | Safety floor for tiny tracks |
 | `edgeMarginCells` | 1 cell | Edge clearance |
 | `obstacleMarginCells` | 0 or 1 cell | Circuit clearance (`1` when short side ≥ 80 mm) |
-| `centerBias weight` | 0.12 | Max off-centre penalty |
-| `outsideMultiplier` | `0.85 + 0.15 × fractionOutside` | Mild outside-circuit preference |
-| `lineCountMultipliers` | `[1.0, 0.88, 0.80, 0.72]` | Explicit line-count preferences |
+| `outsideMultiplier` | `0.5 + 0.5 × fractionOutside` | Dominant outside-circuit preference |
+| `lineCountMultipliers` | `[1.0, 0.97, 0.94, 0.91]` | Line count preference |
+| `trackClearanceMultiplier` | `0.9 + 0.1 × normalizedClearance` | Distance-from-track preference |
+| `centralityMultiplier` | `1.0 - 0.12 × centreDistance` | Base plate centre preference |
 
 ---
 
 ## Notes
 
-- The current implementation uses `fractionOutside` based on the **outer ring only**, measured from cell centres on the pre-dilation mask.
-- The current grid is coarse enough to affect equal-area candidate ordering, but fine enough at `MIN_CELL_MM = 3` to avoid the overlap regression seen at `10 mm`.
-- This document is intended to describe the current implementation, not future ideas.
+- `fractionOutside` uses the **outer ring only** (no holes), measured from cell centres on the pre-dilation mask.
+- `trackClearance` is measured on the **pre-dilation** blocked mask so that the margin itself doesn't compress all clearance values to zero.
+- This document describes the **target implementation**. See git history for the v4 implementation it replaces.
