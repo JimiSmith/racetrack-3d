@@ -1065,12 +1065,12 @@ function getTextRotationCandidates(textOrientationMode) {
   return normalizeTextOrientationMode(textOrientationMode) === TEXT_ORIENTATION_FIXED ? [0] : [0, 90];
 }
 
-function scoreTextFit(rect, layout, scaledBounds, candidate = {}) {
-  const fittedWidth = scaledBounds.width;
-  const fittedHeight = scaledBounds.height;
+function scoreTextFit(rect, layout, candidate = {}) {
+  const fittedWidth = layout.fittedWidth;
+  const fittedHeight = layout.fittedHeight;
   const utilization = Math.min(1, (fittedWidth * fittedHeight) / Math.max(rect.width * rect.height, Number.EPSILON));
   const rectAspect = rect.width / Math.max(rect.height, Number.EPSILON);
-  const layoutAspect = scaledBounds.width / Math.max(scaledBounds.height, Number.EPSILON);
+  const layoutAspect = fittedWidth / Math.max(fittedHeight, Number.EPSILON);
   const aspectPenalty = 1 / (1 + Math.abs(Math.log(rectAspect / Math.max(layoutAspect, Number.EPSILON))));
   const lineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
   const sizeWindowMultiplier = computeSizeWindowMultiplier(layout.averageLineHeight * layout.fittedScale);

@@ -710,6 +710,31 @@ test('buildTextMesh falls back to the best available ranked candidate', () => {
   assert.deepEqual(beyond, last);
 });
 
+test('placement score is a finite number, not NaN', () => {
+  // Regression test: scoreTextFit was called with (rect, layout, candidate) but its signature
+  // was (rect, layout, scaledBounds, candidate). The candidate object has no .width/.height,
+  // so scaledBounds.width was undefined → utilization = NaN → score = NaN.
+  // With NaN scores, ranking fell back to candidateIndex order (= largest area first),
+  // always selecting the first/largest candidate regardless of the text size it produced.
+  const outline = centeredHoleOutline({
+    width: 1000,
+    height: 1000,
+    holeMinX: 300,
+    holeMaxX: 700,
+    holeMinY: 300,
+    holeMaxY: 700,
+  });
+  const basePlate = { minX: 0, maxX: 1100, minY: 0, maxY: 1100, width: 1100, height: 1100 };
+
+  const placement = __debugTextPlacement('Las Vegas Strip Circuit', outline, basePlate, 1, {
+    font: createMockFont(),
+    baseThickness: BASE_THICKNESS_MM,
+  });
+
+  assert.ok(placement);
+  assert.ok(Number.isFinite(placement.score), `expected finite score, got ${placement.score}`);
+});
+
 test('fully outside candidates outrank larger fully inside candidates', () => {
   const outline = centeredHoleOutline({
     width: 1000,
