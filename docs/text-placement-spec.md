@@ -111,8 +111,8 @@ Every valid (candidate × text fit) pair receives a **composite score**. The sco
 | 1 | Outside vs inside the circuit | `outsideMultiplier` | [0.25, 1.0] |
 | 2 | Fewer lines preferred | `lineCountMultiplier` | [0.91, 1.0] |
 | 3 | Font size within preferred range | `sizeWindowMultiplier` | [0.0, 1.25] |
-| 4 | Distance from track edge | `trackClearanceMultiplier` | [0.97, 1.0] |
-| 5 | Proximity to base plate centre | `centralityMultiplier` | [0.88, 1.0] |
+| 4 | Distance from track edge | `trackClearanceMultiplier` | [0.92, 1.0] |
+| 5 | Proximity to base plate centre | `centralityMultiplier` | [0.96, 1.0] |
 
 These are then combined with the existing fit-quality terms:
 
@@ -168,22 +168,20 @@ Preferred height range: **16–24 pt** (`MIN_PREFERRED_HEIGHT_MM ≈ 5.64 mm`, `
 #### trackClearanceMultiplier
 
 ```text
-trackClearanceMultiplier = 0.97 + 0.03 × clamp(normalizedClearance, 0, 1)
+trackClearanceMultiplier = 0.92 + 0.08 × clamp(normalizedClearance, 0, 1)
 ```
 
 - Maximum clearance: `1.0`
-- Zero clearance (adjacent to blocked cells): `0.97`
-
-Note: this range (0.03) is narrower than the centrality range (0.12), which means centrality currently has more influence than clearance in practice — inverting the intended priority 4 > 5. See issue #19.
+- Zero clearance (adjacent to blocked cells): `0.92`
 
 #### centralityMultiplier
 
 ```text
-centralityMultiplier = 1.0 - 0.12 × clamp(centreDistance, 0, 1)
+centralityMultiplier = 1.0 - 0.04 × clamp(centreDistance, 0, 1)
 ```
 
 - At centre: `1.0`
-- At maximum distance from centre: `0.88`
+- At maximum distance from centre: `0.96`
 
 ---
 
@@ -244,8 +242,8 @@ This ensures outside placements always beat inside ones regardless of area, beca
 | `obstacleMarginCells` | 0 or 1 cell | Circuit clearance (`1` when short side ≥ 80 mm) |
 | `outsideMultiplier` | `0.25 + 0.75 × fractionOutside` | Dominant outside-circuit preference |
 | `lineCountMultipliers` | `[1.0, 1.0, 0.94, 0.91]` | Line count preference (1- and 2-line equal) |
-| `trackClearanceMultiplier` | `0.97 + 0.03 × normalizedClearance` | Distance-from-track preference |
-| `centralityMultiplier` | `1.0 - 0.12 × centreDistance` | Base plate centre preference |
+| `trackClearanceMultiplier` | `0.92 + 0.08 × normalizedClearance` | Distance-from-track preference |
+| `centralityMultiplier` | `1.0 - 0.04 × centreDistance` | Base plate centre preference |
 
 ---
 
