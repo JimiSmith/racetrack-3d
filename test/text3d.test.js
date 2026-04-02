@@ -361,7 +361,7 @@ test('text fit modifiers apply the size window, line count, and outside bonuses'
 
   assert.equal(belowFloor.sizeWindowMultiplier, 0);
   assert.ok(belowPreferred.sizeWindowMultiplier > 0 && belowPreferred.sizeWindowMultiplier < 1);
-  assert.ok(inRange.sizeWindowMultiplier > 0.85 && inRange.sizeWindowMultiplier <= 1);
+  assert.ok(inRange.sizeWindowMultiplier > 0.6 && inRange.sizeWindowMultiplier <= 1.25);
   assert.ok(aboveRange.sizeWindowMultiplier < 1);
   assert.equal(__debugTextFitModifiers(6, 1).lineCountMultiplier, 1);
   assert.equal(__debugTextFitModifiers(6, 2).lineCountMultiplier, 1);

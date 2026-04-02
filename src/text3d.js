@@ -1038,7 +1038,7 @@ function computeSizeWindowMultiplier(heightMm) {
 
   if (heightMm <= MAX_PREFERRED_HEIGHT_MM) {
     const t = (heightMm - MIN_PREFERRED_HEIGHT_MM) / (MAX_PREFERRED_HEIGHT_MM - MIN_PREFERRED_HEIGHT_MM);
-    return 0.85 + 0.15 * clamp(t, 0, 1);
+    return 0.6 + 0.65 * clamp(t, 0, 1);
   }
 
   const excessRatio = (heightMm - MAX_PREFERRED_HEIGHT_MM) / MAX_PREFERRED_HEIGHT_MM;
