@@ -9,6 +9,7 @@ import {
   __debugTextPlacement,
   __debugTextFitModifiers,
   __debugPlacementCandidates,
+  __debugRectIntersectsPolygon,
   __enumerateSequentialTextLineBreaks,
   buildTextMesh,
 } from '../src/text3d.js';
@@ -415,6 +416,17 @@ test('grid blocking marks cells whose rectangles intersect the track outline', (
 
   assert.ok(candidates.length > 0);
   assert.equal(Math.max(...candidates.map(candidate => candidate.widthCells)), 2);
+});
+
+test('rect blocking treats polygons fully inside a cell as intersections', () => {
+  const rect = { minX: 0, minY: 0, maxX: 3, maxY: 3 };
+  const polygon = [
+    { x: 0.75, y: 0.75 },
+    { x: 1.5, y: 0.75 },
+    { x: 1.25, y: 1.5 },
+  ];
+
+  assert.equal(__debugRectIntersectsPolygon(rect, polygon), true);
 });
 
 test('multiline fitting preserves exact word order across different line counts', () => {

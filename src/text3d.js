@@ -183,6 +183,15 @@ function rectIntersectsPolygon(rect, polygon) {
     return true;
   }
 
+  if (polygon.some(point => (
+    point.x >= rect.minX
+      && point.x <= rect.maxX
+      && point.y >= rect.minY
+      && point.y <= rect.maxY
+  ))) {
+    return true;
+  }
+
   const rectangleEdges = [
     [corners[0], corners[1]],
     [corners[1], corners[2]],
@@ -1269,6 +1278,10 @@ export function __debugPlacementCandidates(outlinePoints, basePlate, scale) {
   const scaledBasePlate = createScaledBounds(basePlate, scale);
   const placementMask = computePlacementMask(scaledOutline, scaledBasePlate);
   return findPlacementCandidates(scaledBasePlate, placementMask);
+}
+
+export function __debugRectIntersectsPolygon(rect, polygon) {
+  return rectIntersectsPolygon(rect, polygon);
 }
 
 function computeTextBounds(contours) {
