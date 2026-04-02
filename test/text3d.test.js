@@ -8,6 +8,7 @@ import {
   TEXT_ORIENTATION_FIXED,
   __debugTextPlacement,
   __debugTextFitModifiers,
+  __debugCompareRankedTextPlacements,
   __debugPlacementCandidates,
   __debugRectIntersectsPolygon,
   __enumerateSequentialTextLineBreaks,
@@ -370,6 +371,22 @@ test('text fit modifiers apply the size window, line count, and outside bonuses'
   assert.equal(__debugTextFitModifiers(6, 4).lineCountMultiplier, 0.91);
   assert.equal(__debugTextFitModifiers(6, 1, 0).outsideMultiplier, 0.25);
   assert.equal(__debugTextFitModifiers(6, 1, 1).outsideMultiplier, 1);
+});
+
+test('ranked placements sort by score, then candidate and fit index', () => {
+  const placements = [
+    { id: 'higher-outside-lower-score', score: 9, outsideMultiplier: 1, candidateIndex: 2, fitIndex: 0 },
+    { id: 'best-score-lowest-candidate', score: 10, outsideMultiplier: 0.25, candidateIndex: 0, fitIndex: 1 },
+    { id: 'best-score-lower-fit', score: 10, outsideMultiplier: 0.5, candidateIndex: 0, fitIndex: 0 },
+    { id: 'best-score-higher-candidate', score: 10, outsideMultiplier: 1, candidateIndex: 1, fitIndex: 0 },
+  ].sort(__debugCompareRankedTextPlacements);
+
+  assert.deepEqual(placements.map(({ id }) => id), [
+    'best-score-lower-fit',
+    'best-score-lowest-candidate',
+    'best-score-higher-candidate',
+    'higher-outside-lower-score',
+  ]);
 });
 
 test('placement candidates carry outside-circuit fractions', () => {

@@ -1098,12 +1098,22 @@ function scoreTextFit(rect, layout, candidate = {}) {
     * centralityMultiplier;
 }
 
+function compareRankedTextPlacements(a, b) {
+  return b.score - a.score
+    || a.candidateIndex - b.candidateIndex
+    || a.fitIndex - b.fitIndex;
+}
+
 export function __debugTextFitModifiers(heightMm, lineCount, fractionOutside = 1) {
   return {
     sizeWindowMultiplier: computeSizeWindowMultiplier(heightMm),
     lineCountMultiplier: computeLineCountMultiplier(lineCount),
     outsideMultiplier: 0.25 + 0.75 * clamp(fractionOutside, 0, 1),
   };
+}
+
+export function __debugCompareRankedTextPlacements(a, b) {
+  return compareRankedTextPlacements(a, b);
 }
 
 function fitTextToRectangle(text, font, rect, cache, textOrientationMode = TEXT_ORIENTATION_AUTO) {
@@ -1190,12 +1200,7 @@ function rankTextPlacements(text, font, candidates, textOrientationMode = TEXT_O
     }
   });
 
-  ranked.sort((a, b) => (
-    b.outsideMultiplier - a.outsideMultiplier
-      || b.score - a.score
-      || a.candidateIndex - b.candidateIndex
-      || a.fitIndex - b.fitIndex
-  ));
+  ranked.sort(compareRankedTextPlacements);
 
   return ranked;
 }
