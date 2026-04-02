@@ -609,6 +609,71 @@ function dilateBlockedCells(mask, radius) {
   return dilated;
 }
 
+function buildDistanceMap(mask) {
+  const rows = mask.length;
+  const columns = mask[0]?.length ?? 0;
+  const distances = Array.from({ length: rows }, () => Array.from({ length: columns }, () => Infinity));
+  const queue = [];
+
+  for (let row = 0; row < rows; row += 1) {
+    for (let column = 0; column < columns; column += 1) {
+      if (!mask[row][column]) {
+        continue;
+      }
+
+      distances[row][column] = 0;
+      queue.push([row, column]);
+    }
+  }
+
+  for (let index = 0; index < queue.length; index += 1) {
+    const [row, column] = queue[index];
+    const nextDistance = distances[row][column] + 1;
+
+    for (let deltaY = -1; deltaY <= 1; deltaY += 1) {
+      for (let deltaX = -1; deltaX <= 1; deltaX += 1) {
+        if (deltaX === 0 && deltaY === 0) {
+          continue;
+        }
+
+        const nextRow = row + deltaY;
+        const nextColumn = column + deltaX;
+        if (nextRow < 0 || nextRow >= rows || nextColumn < 0 || nextColumn >= columns) {
+          continue;
+        }
+
+        if (nextDistance < distances[nextRow][nextColumn]) {
+          distances[nextRow][nextColumn] = nextDistance;
+          queue.push([nextRow, nextColumn]);
+        }
+      }
+    }
+  }
+
+  return distances;
+}
+
+function computeCandidateTrackClearance(candidate, distanceMap) {
+  let trackClearance = Infinity;
+
+  for (let row = candidate.top; row <= candidate.bottom; row += 1) {
+    for (let column = candidate.left; column <= candidate.right; column += 1) {
+      trackClearance = Math.min(trackClearance, distanceMap[row]?.[column] ?? Infinity);
+    }
+  }
+
+  return Number.isFinite(trackClearance) ? trackClearance : 0;
+}
+
+function computeCentreDistance(rect, basePlate) {
+  const rectCenterX = rect.minX + rect.width / 2;
+  const rectCenterY = rect.minY + rect.height / 2;
+  const baseCenterX = basePlate.minX + basePlate.width / 2;
+  const baseCenterY = basePlate.minY + basePlate.height / 2;
+  const maxDistance = Math.hypot(basePlate.width / 2, basePlate.height / 2) || 1;
+  return Math.min(1, Math.hypot(rectCenterX - baseCenterX, rectCenterY - baseCenterY) / maxDistance);
+}
+
 function computePlacementMask(outlinePoints, basePlate) {
   const grid = createPlacementGrid(basePlate);
   const mask = Array.from({ length: grid.rows }, () => Array.from({ length: grid.columns }, () => false));
@@ -654,6 +719,7 @@ function computePlacementMask(outlinePoints, basePlate) {
 
   return {
     ...grid,
+    blockedBeforeDilation: mask,
     blocked: dilated,
     outside,
   };
@@ -737,6 +803,8 @@ function findPlacementCandidates(basePlate, placementMask, maxCandidates = MAX_C
   const heights = Array.from({ length: placementMask.columns }, () => 0);
   const rectangles = [];
   const outsidePrefix = buildPrefixSum(placementMask.outside ?? []);
+  const blockedDistanceMap = buildDistanceMap(placementMask.blockedBeforeDilation ?? placementMask.blocked ?? []);
+  const maxTrackClearance = Math.max(placementMask.rows - 1, placementMask.columns - 1) || 1;
 
   for (let row = 0; row < placementMask.rows; row += 1) {
     for (let column = 0; column < placementMask.columns; column += 1) {
@@ -769,7 +837,13 @@ function findPlacementCandidates(basePlate, placementMask, maxCandidates = MAX_C
             row - item.height + 1,
             column - 1,
             row,
-          ) / ((column - item.start) * item.height),
+            ) / ((column - item.start) * item.height),
+          trackClearance: computeCandidateTrackClearance({
+            left: item.start,
+            right: column - 1,
+            top: row - item.height + 1,
+            bottom: row,
+          }, blockedDistanceMap),
         });
       }
 
@@ -786,7 +860,14 @@ function findPlacementCandidates(basePlate, placementMask, maxCandidates = MAX_C
       || a.left - b.left
   ));
 
-  return dedupeCandidates(rectangles, basePlate, placementMask, maxCandidates);
+  return dedupeCandidates(rectangles, basePlate, placementMask, maxCandidates).map((candidate, index) => ({
+    ...candidate,
+    index,
+    fractionOutside: candidate.fractionOutside ?? 0,
+    trackClearance: candidate.trackClearance ?? 0,
+    normalizedTrackClearance: Math.min(1, (candidate.trackClearance ?? 0) / maxTrackClearance),
+    centreDistance: computeCentreDistance(candidate.bounds, basePlate),
+  }));
 }
 
 function normalizeContoursToOrigin(contours) {
@@ -941,16 +1022,6 @@ function buildMultilineContours(lines, font, cache) {
   };
 }
 
-function computeCenterBias(rect, basePlate) {
-  const rectCenterX = rect.minX + rect.width / 2;
-  const rectCenterY = rect.minY + rect.height / 2;
-  const baseCenterX = basePlate.minX + basePlate.width / 2;
-  const baseCenterY = basePlate.minY + basePlate.height / 2;
-  const maxDistance = Math.hypot(basePlate.width / 2, basePlate.height / 2) || 1;
-  const distance = Math.hypot(rectCenterX - baseCenterX, rectCenterY - baseCenterY);
-  return 1 - 0.12 * Math.min(1, distance / maxDistance);
-}
-
 function computeSizeWindowMultiplier(heightMm) {
   if (heightMm <= MIN_TEXT_HEIGHT_MM) {
     return 0;
@@ -962,7 +1033,7 @@ function computeSizeWindowMultiplier(heightMm) {
       0,
       1,
     );
-    return t * t;
+    return Math.sqrt(t);
   }
 
   if (heightMm <= MAX_PREFERRED_HEIGHT_MM) {
@@ -977,6 +1048,14 @@ function computeLineCountMultiplier(lineCount) {
   return LINE_COUNT_MULTIPLIERS[Math.min(Math.max(lineCount, 1), LINE_COUNT_MULTIPLIERS.length) - 1] ?? LINE_COUNT_MULTIPLIERS[LINE_COUNT_MULTIPLIERS.length - 1];
 }
 
+function computeTrackClearanceMultiplier(normalizedClearance) {
+  return 0.9 + 0.1 * normalizedClearance;
+}
+
+function computeCentralityMultiplier(centreDistance) {
+  return 1.0 - 0.12 * clamp(centreDistance, 0, 1);
+}
+
 function normalizeTextOrientationMode(value) {
   return value === TEXT_ORIENTATION_FIXED ? TEXT_ORIENTATION_FIXED : TEXT_ORIENTATION_AUTO;
 }
@@ -985,7 +1064,7 @@ function getTextRotationCandidates(textOrientationMode) {
   return normalizeTextOrientationMode(textOrientationMode) === TEXT_ORIENTATION_FIXED ? [0] : [0, 90];
 }
 
-function scoreTextFit(rect, layout, scaledBounds, basePlate, fittedScale, fractionOutside = 1) {
+function scoreTextFit(rect, layout, scaledBounds, candidate = {}) {
   const fittedWidth = scaledBounds.width;
   const fittedHeight = scaledBounds.height;
   const utilization = Math.min(1, (fittedWidth * fittedHeight) / Math.max(rect.width * rect.height, Number.EPSILON));
@@ -993,19 +1072,20 @@ function scoreTextFit(rect, layout, scaledBounds, basePlate, fittedScale, fracti
   const layoutAspect = scaledBounds.width / Math.max(scaledBounds.height, Number.EPSILON);
   const aspectPenalty = 1 / (1 + Math.abs(Math.log(rectAspect / Math.max(layoutAspect, Number.EPSILON))));
   const lineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
-  const lineCountPenalty = computeLineCountMultiplier(layout.lineCount);
-  const centerBias = computeCenterBias(rect, basePlate);
-  const sizeWindowMultiplier = computeSizeWindowMultiplier(layout.averageLineHeight * fittedScale);
-  const outsideMultiplier = 0.5 + 0.5 * clamp(fractionOutside, 0, 1);
+  const sizeWindowMultiplier = computeSizeWindowMultiplier(layout.averageLineHeight * layout.fittedScale);
+  const outsideMultiplier = 0.5 + 0.5 * clamp(candidate.fractionOutside ?? 1, 0, 1);
+  const trackClearanceMultiplier = computeTrackClearanceMultiplier(candidate.normalizedTrackClearance ?? 1);
+  const centralityMultiplier = computeCentralityMultiplier(candidate.centreDistance ?? 0);
 
   return layout.averageLineHeight
     * Math.pow(utilization, 0.2)
     * aspectPenalty
-    * (0.75 + lineBalance * 0.25)
+    * lineBalance
+    * outsideMultiplier
+    * computeLineCountMultiplier(layout.lineCount)
     * sizeWindowMultiplier
-    * lineCountPenalty
-    * centerBias
-    * outsideMultiplier;
+    * trackClearanceMultiplier
+    * centralityMultiplier;
 }
 
 export function __debugTextFitModifiers(heightMm, lineCount, fractionOutside = 1) {
@@ -1016,13 +1096,13 @@ export function __debugTextFitModifiers(heightMm, lineCount, fractionOutside = 1
   };
 }
 
-function fitTextToRectangle(text, font, rect, basePlate, cache, textOrientationMode = TEXT_ORIENTATION_AUTO) {
+function fitTextToRectangle(text, font, rect, cache, textOrientationMode = TEXT_ORIENTATION_AUTO) {
   const words = String(text).split(/\s+/u).filter(Boolean);
   if (!words.length) {
-    return null;
+    return [];
   }
 
-  let bestLayout = null;
+  const layouts = [];
   const maxLines = Math.min(MAX_TEXT_LINES, words.length);
 
   for (let lineCount = 1; lineCount <= maxLines; lineCount += 1) {
@@ -1052,34 +1132,62 @@ function fitTextToRectangle(text, font, rect, basePlate, cache, textOrientationM
 
         const fittedWidth = oriented.bounds.width * fittedScale;
         const fittedHeight = oriented.bounds.height * fittedScale;
-        const score = scoreTextFit(
-          rect,
-          multiline,
-          { width: fittedWidth, height: fittedHeight },
-          basePlate,
+        layouts.push({
+          text: multiline.text,
+          lines: multiline.lines,
+          rotation,
+          scale: fittedScale,
+          bounds: oriented.bounds,
+          contours: oriented.contours,
+          lineBounds: oriented.lineBounds,
+          fittedWidth,
+          fittedHeight,
+          averageLineHeight: multiline.averageLineHeight,
+          maxLineWidth: multiline.maxLineWidth,
+          minLineWidth: multiline.minLineWidth,
+          lineCount: multiline.lineCount,
           fittedScale,
-          rect.fractionOutside ?? 1,
-        );
-
-        if (!bestLayout || score > bestLayout.score) {
-          bestLayout = {
-            score,
-            text: multiline.text,
-            lines: multiline.lines,
-            rotation,
-            scale: fittedScale,
-            bounds: oriented.bounds,
-            contours: oriented.contours,
-            lineBounds: oriented.lineBounds,
-            fittedWidth,
-            fittedHeight,
-          };
-        }
+        });
       }
     }
   }
 
-  return bestLayout;
+  return layouts;
+}
+
+function rankTextPlacements(text, font, candidates, textOrientationMode = TEXT_ORIENTATION_AUTO) {
+  const cache = new Map();
+  const ranked = [];
+
+  candidates.forEach((candidate, candidateIndex) => {
+    const fits = fitTextToRectangle(text, font, candidate.bounds, cache, textOrientationMode);
+    const outsideMultiplier = 0.5 + 0.5 * clamp(candidate.fractionOutside ?? 1, 0, 1);
+    for (let fitIndex = 0; fitIndex < fits.length; fitIndex += 1) {
+      const layout = fits[fitIndex];
+      const score = scoreTextFit(candidate.bounds, layout, candidate);
+
+      ranked.push({
+        candidate,
+        candidateIndex,
+        fitIndex,
+        outsideMultiplier,
+        layout: {
+          ...layout,
+          score,
+        },
+        score,
+      });
+    }
+  });
+
+  ranked.sort((a, b) => (
+    b.outsideMultiplier - a.outsideMultiplier
+      || b.score - a.score
+      || a.candidateIndex - b.candidateIndex
+      || a.fitIndex - b.fitIndex
+  ));
+
+  return ranked;
 }
 
 function computeTextPlacement(text, outlinePoints, basePlate, scale, options = {}) {
@@ -1097,27 +1205,37 @@ function computeTextPlacement(text, outlinePoints, basePlate, scale, options = {
     return null;
   }
 
-  const candidateIndex = Math.min(
-    normalizeTextPositionRank(options.textPositionRank) - 1,
-    candidates.length - 1,
-  );
-  const selectedCandidate = candidates[candidateIndex];
-
-  const placement = chooseTextPlacement(
+  const rankedPlacements = rankTextPlacements(
     normalizedText,
     font,
-    selectedCandidate,
-    scaledBasePlate,
+    candidates,
     options.textOrientationMode,
   );
-  if (!placement?.contours?.length) {
+  if (!rankedPlacements.length) {
     return null;
   }
 
+  const placementRank = Math.min(
+    normalizeTextPositionRank(options.textPositionRank) - 1,
+    rankedPlacements.length - 1,
+  );
+  const selected = rankedPlacements[placementRank];
+  const { candidate, candidateIndex, layout, score } = selected;
+  const offsetX = candidate.bounds.minX + (candidate.bounds.width - layout.fittedWidth) / 2 - layout.bounds.minX * layout.scale;
+  const offsetY = candidate.bounds.minY + (candidate.bounds.height - layout.fittedHeight) / 2 - layout.bounds.minY * layout.scale;
+  const contours = translateAndScaleContours(layout.contours, layout.scale, offsetX, offsetY);
+  const lineBounds = layout.lineBounds.map(bounds => translateAndScaleBounds(bounds, layout.scale, offsetX, offsetY));
+
   return {
-    ...placement,
+    ...layout,
+    score,
+    candidate,
     candidateIndex,
     candidateCount: candidates.length,
+    placementRank: placementRank + 1,
+    placementCount: rankedPlacements.length,
+    contours,
+    lineBounds,
     normalizedText,
   };
 }
@@ -1136,6 +1254,12 @@ export function __debugTextPlacement(text, outlinePoints, basePlate, scale, opti
     scale: placement.scale,
     candidateIndex: placement.candidateIndex,
     candidateCount: placement.candidateCount,
+    placementRank: placement.placementRank,
+    placementCount: placement.placementCount,
+    score: placement.score,
+    candidateArea: placement.candidate?.area,
+    candidateFractionOutside: placement.candidate?.fractionOutside,
+    candidateTrackClearance: placement.candidate?.trackClearance,
   };
 }
 
@@ -1144,25 +1268,6 @@ export function __debugPlacementCandidates(outlinePoints, basePlate, scale) {
   const scaledBasePlate = createScaledBounds(basePlate, scale);
   const placementMask = computePlacementMask(scaledOutline, scaledBasePlate);
   return findPlacementCandidates(scaledBasePlate, placementMask);
-}
-
-function chooseTextPlacement(text, font, candidate, basePlate, textOrientationMode = TEXT_ORIENTATION_AUTO) {
-  const cache = new Map();
-  const layout = fitTextToRectangle(text, font, candidate.bounds, basePlate, cache, textOrientationMode);
-  if (!layout) {
-    return null;
-  }
-
-  const offsetX = candidate.bounds.minX + (candidate.bounds.width - layout.fittedWidth) / 2 - layout.bounds.minX * layout.scale;
-  const offsetY = candidate.bounds.minY + (candidate.bounds.height - layout.fittedHeight) / 2 - layout.bounds.minY * layout.scale;
-
-  return {
-    ...layout,
-    area: candidate.area,
-    candidate: candidate.bounds,
-    contours: translateAndScaleContours(layout.contours, layout.scale, offsetX, offsetY),
-    lineBounds: layout.lineBounds.map(bounds => translateAndScaleBounds(bounds, layout.scale, offsetX, offsetY)),
-  };
 }
 
 function computeTextBounds(contours) {

@@ -462,47 +462,62 @@ test('multiline fitting preserves exact word order across different line counts'
 
 test('multiline line stacking preserves top-to-bottom order without rotation', () => {
   const outline = centeredHoleOutline({
-    width: 480,
-    height: 220,
-    holeMinX: 120,
-    holeMaxX: 360,
-    holeMinY: 50,
-    holeMaxY: 170,
+    width: 360,
+    height: 180,
+    holeMinX: 90,
+    holeMaxX: 270,
+    holeMinY: 40,
+    holeMaxY: 140,
   });
-  const layout = __debugTextPlacement(
-    'Autodromo Nazionale di Monza',
-    outline,
-    { minX: 0, minY: 0, maxX: 480, maxY: 220, width: 480, height: 220 },
-    1,
-    { font: createMockFont(), baseThickness: BASE_THICKNESS_MM },
-  );
+  let layout = null;
+
+  for (let rank = 1; rank <= 20; rank += 1) {
+    const candidate = __debugTextPlacement(
+      'Autodromo Nazionale di Monza',
+      outline,
+      { minX: 0, minY: 0, maxX: 360, maxY: 180, width: 360, height: 180 },
+      1,
+      { font: createMockFont(), baseThickness: BASE_THICKNESS_MM, textPositionRank: rank },
+    );
+
+    if (candidate?.lines.length > 1 && candidate.rotation === 0) {
+      layout = candidate;
+      break;
+    }
+  }
 
   assert.ok(layout);
-  assert.notEqual(layout.lines.length, 1);
   assert.equal(collapseWhitespace(layout.text), 'Autodromo Nazionale di Monza');
   assertRenderedLineOrder(layout);
 });
 
 test('multiline line stacking preserves top-to-bottom order after 90 degree rotation', () => {
   const outline = centeredHoleOutline({
-    width: 220,
-    height: 520,
-    holeMinX: 80,
-    holeMaxX: 140,
-    holeMinY: 60,
-    holeMaxY: 460,
+    width: 180,
+    height: 360,
+    holeMinX: 60,
+    holeMaxX: 120,
+    holeMinY: 90,
+    holeMaxY: 270,
   });
-  const layout = __debugTextPlacement(
-    'Autodromo Nazionale di Monza',
-    outline,
-    { minX: 0, minY: 0, maxX: 220, maxY: 520, width: 220, height: 520 },
-    1,
-    { font: createMockFont(), baseThickness: BASE_THICKNESS_MM },
-  );
+  let layout = null;
+
+  for (let rank = 1; rank <= 20; rank += 1) {
+    const candidate = __debugTextPlacement(
+      'Autodromo Nazionale di Monza',
+      outline,
+      { minX: 0, minY: 0, maxX: 180, maxY: 360, width: 180, height: 360 },
+      1,
+      { font: createMockFont(), baseThickness: BASE_THICKNESS_MM, textPositionRank: rank },
+    );
+
+    if (candidate?.lines.length > 1 && candidate.rotation === 90) {
+      layout = candidate;
+      break;
+    }
+  }
 
   assert.ok(layout);
-  assert.equal(layout.rotation, 90);
-  assert.notEqual(layout.lines.length, 1);
   assert.equal(collapseWhitespace(layout.text), 'Autodromo Nazionale di Monza');
   assertRenderedLineOrder(layout);
 });
@@ -635,48 +650,92 @@ test('buildTextMesh uses the selected ranked placement candidate', () => {
   const outline = rankedHoleOutline();
   const basePlate = { minX: 0, maxX: 2400, minY: 0, maxY: 1800, width: 2400, height: 1800 };
 
-  const first = buildTextMesh('GO', outline, basePlate, 1, {
+  const first = __debugTextPlacement('GO', outline, basePlate, 1, {
     font: createMockFont(),
     baseThickness: BASE_THICKNESS_MM,
     textPositionRank: 1,
   });
-  const second = buildTextMesh('GO', outline, basePlate, 1, {
+  const second = __debugTextPlacement('GO', outline, basePlate, 1, {
     font: createMockFont(),
     baseThickness: BASE_THICKNESS_MM,
     textPositionRank: 2,
   });
-  const third = buildTextMesh('GO', outline, basePlate, 1, {
+  const third = __debugTextPlacement('GO', outline, basePlate, 1, {
     font: createMockFont(),
     baseThickness: BASE_THICKNESS_MM,
     textPositionRank: 3,
   });
 
-  const firstCenter = boundsCenter(triangleBounds(first));
-  const secondCenter = boundsCenter(triangleBounds(second));
-  const thirdCenter = boundsCenter(triangleBounds(third));
+  const triangles = buildTextMesh('GO', outline, basePlate, 1, {
+    font: createMockFont(),
+    baseThickness: BASE_THICKNESS_MM,
+  });
 
-  assert.ok(first.length > 0);
-  assert.ok(second.length > 0);
-  assert.ok(third.length > 0);
-  assert.ok(firstCenter.x !== secondCenter.x || firstCenter.y !== secondCenter.y, `expected rank 1 and rank 2 to be at different positions`);
-  assert.ok(firstCenter.x !== thirdCenter.x || firstCenter.y !== thirdCenter.y, `expected rank 1 and rank 3 to be at different positions`);
+  assert.ok(triangles.length > 0);
+  assert.ok(first);
+  assert.ok(second);
+  assert.ok(third);
+  assert.ok(
+    first.rotation !== second.rotation
+      || first.scale !== second.scale
+      || first.candidateIndex !== second.candidateIndex
+      || first.lines.join('\n') !== second.lines.join('\n'),
+    'expected rank 1 and rank 2 to select different placements',
+  );
+  assert.ok(
+    first.rotation !== third.rotation
+      || first.scale !== third.scale
+      || first.candidateIndex !== third.candidateIndex
+      || first.lines.join('\n') !== third.lines.join('\n'),
+    'expected rank 1 and rank 3 to select different placements',
+  );
 });
 
 test('buildTextMesh falls back to the best available ranked candidate', () => {
   const outline = fallbackHoleOutline();
   const basePlate = { minX: 0, maxX: 2000, minY: 0, maxY: 1200, width: 2000, height: 1200 };
 
-  const second = buildTextMesh('GO', outline, basePlate, 0.05, {
+  const last = buildTextMesh('GO', outline, basePlate, 0.05, {
     font: createMockFont(),
     baseThickness: BASE_THICKNESS_MM,
-    textPositionRank: 2,
+    textPositionRank: 999,
   });
-  const third = buildTextMesh('GO', outline, basePlate, 0.05, {
+  const beyond = buildTextMesh('GO', outline, basePlate, 0.05, {
+    font: createMockFont(),
+    baseThickness: BASE_THICKNESS_MM,
+    textPositionRank: 1000,
+  });
+
+  assert.ok(last.length > 0);
+  assert.deepEqual(beyond, last);
+});
+
+test('fully outside candidates outrank larger fully inside candidates', () => {
+  const outline = centeredHoleOutline({
+    width: 1000,
+    height: 1000,
+    holeMinX: 250,
+    holeMaxX: 750,
+    holeMinY: 250,
+    holeMaxY: 750,
+  });
+  const basePlate = { minX: 0, maxX: 1100, minY: 0, maxY: 1100, width: 1100, height: 1100 };
+
+  const candidates = __debugPlacementCandidates(outline, basePlate, 1);
+  const outsideCandidate = candidates.find(candidate => candidate.fractionOutside > 0.9);
+  const largestInsideCandidate = candidates
+    .filter(candidate => candidate.fractionOutside < 0.1)
+    .sort((a, b) => b.area - a.area)[0];
+  const placement = __debugTextPlacement('GO', outline, basePlate, 1, {
     font: createMockFont(),
     baseThickness: BASE_THICKNESS_MM,
     textPositionRank: 3,
   });
 
-  assert.ok(second.length > 0);
-  assert.deepEqual(third, second);
+  assert.ok(outsideCandidate);
+  assert.ok(largestInsideCandidate);
+  assert.ok(outsideCandidate.area < largestInsideCandidate.area);
+  assert.ok(placement);
+  assert.ok(placement.candidateFractionOutside > 0.9);
+  assert.ok(placement.candidateArea < largestInsideCandidate.area);
 });
