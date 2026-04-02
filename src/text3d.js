@@ -1050,11 +1050,11 @@ function computeLineCountMultiplier(lineCount) {
 }
 
 function computeTrackClearanceMultiplier(normalizedClearance) {
-  return 0.97 + 0.03 * normalizedClearance;
+  return 0.92 + 0.08 * normalizedClearance;
 }
 
 function computeCentralityMultiplier(centreDistance) {
-  return 1.0 - 0.12 * clamp(centreDistance, 0, 1);
+  return 1.0 - 0.04 * clamp(centreDistance, 0, 1);
 }
 
 function normalizeTextOrientationMode(value) {
