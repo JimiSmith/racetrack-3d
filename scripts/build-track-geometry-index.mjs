@@ -29,6 +29,16 @@ const GEOMETRY_STALE_JITTER_MS = 3 * 24 * 60 * 60 * 1000;
 const BUILD_SOURCES = new Set(['osm-api', 'overpass']);
 
 const TRACK_BUILD_OVERRIDES = new Map([
+  ['Q174090', {
+    key: 'circuit-de-la-sarthe',
+    osmApiMargins: [0.015, 0.025, 0.04, 0.08],
+    expectedLayoutNames: ['Circuit des 24 Heures du Mans', 'Circuit Bugatti'],
+  }],
+  ['Q928721', {
+    key: 'bugatti-circuit',
+    osmApiMargins: [0.015, 0.025, 0.04, 0.08],
+    expectedLayoutNames: ['Circuit Bugatti'],
+  }],
   ['Q171402', {
     key: 'silverstone',
     osmApiMargins: [0.02, 0.04, 0.08],
