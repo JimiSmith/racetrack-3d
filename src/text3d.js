@@ -15,7 +15,7 @@ const MAX_TEXT_LINES = 4;
 const MAX_CANDIDATES = 16;
 const MIN_CELL_MM = 3;
 const MIN_GRID_CELLS_PER_SIDE = 8;
-const LINE_COUNT_MULTIPLIERS = [1, 0.97, 0.94, 0.91];
+const LINE_COUNT_MULTIPLIERS = [1, 1, 0.94, 0.91];
 
 let cachedFont = null;
 
