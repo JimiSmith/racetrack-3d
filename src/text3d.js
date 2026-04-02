@@ -1033,7 +1033,7 @@ function computeSizeWindowMultiplier(heightMm) {
       0,
       1,
     );
-    return Math.sqrt(t);
+    return t * t * t;
   }
 
   if (heightMm <= MAX_PREFERRED_HEIGHT_MM) {
@@ -1049,7 +1049,7 @@ function computeLineCountMultiplier(lineCount) {
 }
 
 function computeTrackClearanceMultiplier(normalizedClearance) {
-  return 0.9 + 0.1 * normalizedClearance;
+  return 0.97 + 0.03 * normalizedClearance;
 }
 
 function computeCentralityMultiplier(centreDistance) {
