@@ -1036,13 +1036,15 @@ function computeSizeWindowMultiplier(heightMm) {
     return 0;
   }
 
+  const zone2Span = MIN_PREFERRED_HEIGHT_MM - MIN_TEXT_HEIGHT_MM;
+
   if (heightMm < MIN_PREFERRED_HEIGHT_MM) {
     const t = clamp(
-      (heightMm - MIN_TEXT_HEIGHT_MM) / (MIN_PREFERRED_HEIGHT_MM - MIN_TEXT_HEIGHT_MM),
+      (heightMm - MIN_TEXT_HEIGHT_MM) / zone2Span,
       0,
       1,
     );
-    return t * t * t;
+    return t * t * t * 0.6;
   }
 
   if (heightMm <= MAX_PREFERRED_HEIGHT_MM) {
@@ -1050,8 +1052,13 @@ function computeSizeWindowMultiplier(heightMm) {
     return 0.6 + 0.65 * clamp(t, 0, 1);
   }
 
-  const excessRatio = (heightMm - MAX_PREFERRED_HEIGHT_MM) / MAX_PREFERRED_HEIGHT_MM;
-  return 1 / (1 + excessRatio * 0.25);
+  const zone4End = MAX_PREFERRED_HEIGHT_MM + zone2Span;
+  if (heightMm <= zone4End) {
+    const t = clamp((heightMm - MAX_PREFERRED_HEIGHT_MM) / zone2Span, 0, 1);
+    return 1.25 * (1 - t);
+  }
+
+  return 0;
 }
 
 function computeLineCountMultiplier(lineCount) {

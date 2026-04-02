@@ -373,6 +373,34 @@ test('text fit modifiers apply the size window, line count, and outside bonuses'
   assert.equal(__debugTextFitModifiers(6, 1, 1).outsideMultiplier, 1);
 });
 
+test('sizeWindowMultiplier curve is continuous at all zone boundaries', () => {
+  // Zone 1: ≤ 2mm → 0
+  assert.equal(__debugTextFitModifiers(2, 1).sizeWindowMultiplier, 0);
+  assert.equal(__debugTextFitModifiers(1, 1).sizeWindowMultiplier, 0);
+
+  // Zone 2 top (at MIN_PREFERRED_HEIGHT_MM ≈ 5.644mm) → 0.6
+  const minPrefMm = 16 * 25.4 / 72;
+  const atMinPref = __debugTextFitModifiers(minPrefMm, 1).sizeWindowMultiplier;
+  assert.ok(Math.abs(atMinPref - 0.6) < 1e-9, `expected ~0.6 at MIN_PREFERRED, got ${atMinPref}`);
+
+  // Zone 3 bottom (same point) → continuous with Zone 2
+  // Zone 3 top (at MAX_PREFERRED_HEIGHT_MM ≈ 8.467mm) → 1.25
+  const maxPrefMm = 24 * 25.4 / 72;
+  const atMaxPref = __debugTextFitModifiers(maxPrefMm, 1).sizeWindowMultiplier;
+  assert.ok(Math.abs(atMaxPref - 1.25) < 1e-9, `expected 1.25 at MAX_PREFERRED, got ${atMaxPref}`);
+
+  // Zone 4 bottom (same point) → continuous with Zone 3
+  // Zone 4 end (MAX_PREFERRED + zone2Span) → 0
+  const zone2Span = minPrefMm - 2;
+  const zone4End = maxPrefMm + zone2Span;
+  const atZone4End = __debugTextFitModifiers(zone4End, 1).sizeWindowMultiplier;
+  assert.ok(Math.abs(atZone4End - 0) < 1e-9, `expected 0 at zone4End, got ${atZone4End}`);
+
+  // Above zone 4 end → 0
+  assert.equal(__debugTextFitModifiers(zone4End + 1, 1).sizeWindowMultiplier, 0);
+  assert.equal(__debugTextFitModifiers(20, 1).sizeWindowMultiplier, 0);
+});
+
 test('ranked placements sort by score, then candidate and fit index', () => {
   const placements = [
     { id: 'higher-outside-lower-score', score: 9, outsideMultiplier: 1, candidateIndex: 2, fitIndex: 0 },
