@@ -1074,7 +1074,7 @@ function scoreTextFit(rect, layout, scaledBounds, candidate = {}) {
   const aspectPenalty = 1 / (1 + Math.abs(Math.log(rectAspect / Math.max(layoutAspect, Number.EPSILON))));
   const lineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
   const sizeWindowMultiplier = computeSizeWindowMultiplier(layout.averageLineHeight * layout.fittedScale);
-  const outsideMultiplier = 0.5 + 0.5 * clamp(candidate.fractionOutside ?? 1, 0, 1);
+  const outsideMultiplier = 0.25 + 0.75 * clamp(candidate.fractionOutside ?? 1, 0, 1);
   const trackClearanceMultiplier = computeTrackClearanceMultiplier(candidate.normalizedTrackClearance ?? 1);
   const centralityMultiplier = computeCentralityMultiplier(candidate.centreDistance ?? 0);
 
@@ -1093,7 +1093,7 @@ export function __debugTextFitModifiers(heightMm, lineCount, fractionOutside = 1
   return {
     sizeWindowMultiplier: computeSizeWindowMultiplier(heightMm),
     lineCountMultiplier: computeLineCountMultiplier(lineCount),
-    outsideMultiplier: 0.5 + 0.5 * clamp(fractionOutside, 0, 1),
+    outsideMultiplier: 0.25 + 0.75 * clamp(fractionOutside, 0, 1),
   };
 }
 
@@ -1162,7 +1162,7 @@ function rankTextPlacements(text, font, candidates, textOrientationMode = TEXT_O
 
   candidates.forEach((candidate, candidateIndex) => {
     const fits = fitTextToRectangle(text, font, candidate.bounds, cache, textOrientationMode);
-    const outsideMultiplier = 0.5 + 0.5 * clamp(candidate.fractionOutside ?? 1, 0, 1);
+    const outsideMultiplier = 0.25 + 0.75 * clamp(candidate.fractionOutside ?? 1, 0, 1);
     for (let fitIndex = 0; fitIndex < fits.length; fitIndex += 1) {
       const layout = fits[fitIndex];
       const score = scoreTextFit(candidate.bounds, layout, candidate);
