@@ -394,6 +394,29 @@ test('placement candidates carry outside-circuit fractions', () => {
   assert.ok(candidates.some(candidate => candidate.fractionOutside < 0.5));
 });
 
+test('grid blocking marks cells whose rectangles intersect the track outline', () => {
+  const outline = {
+    outerRing: [
+      { x: 11.8, y: 0 },
+      { x: 12.2, y: 0 },
+      { x: 12.2, y: 24 },
+      { x: 11.8, y: 24 },
+    ],
+  };
+
+  const candidates = __debugPlacementCandidates(outline, {
+    minX: 0,
+    minY: 0,
+    maxX: 24,
+    maxY: 24,
+    width: 24,
+    height: 24,
+  }, 1);
+
+  assert.ok(candidates.length > 0);
+  assert.equal(Math.max(...candidates.map(candidate => candidate.widthCells)), 2);
+});
+
 test('multiline fitting preserves exact word order across different line counts', () => {
   const wideOutline = centeredHoleOutline({
     width: 240,

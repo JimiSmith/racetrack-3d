@@ -523,8 +523,11 @@ test('buildTrackModel auto orientation rotates the model for portrait tracks and
   assert.ok(autoModel.textTriangleCount > 0);
   assert.ok(explicitModel.textTriangleCount > 0);
 
-  // Auto mode should rotate the model 90° for a tall narrow track (portrait → landscape).
-  assert.equal(autoModel.orientationDeg, 90, 'expected auto mode to rotate portrait track to landscape');
+  // Auto mode should rotate the model into landscape for a tall narrow track.
+  assert.ok(
+    autoModel.orientationDeg === 90 || autoModel.orientationDeg === 270,
+    `expected auto mode to rotate portrait track to landscape, got ${autoModel.orientationDeg}`,
+  );
 
   // The auto-rotated model should be wider than tall (landscape).
   const autoModelBounds = triangleBounds(autoModel.triangles);

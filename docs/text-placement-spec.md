@@ -1,6 +1,6 @@
 # Text Placement Specification
 
-_Version 3 — updated 2026-04-01_
+_Version 4 — updated 2026-04-02_
 
 This document describes the current text placement pipeline used to emboss a circuit name onto the base plate of a 3D model. It reflects the current implementation in `src/text3d.js`.
 
@@ -39,10 +39,10 @@ This gives:
 
 ### Blocked cells
 
-A cell is **blocked** if its centre point falls inside the track footprint:
+A cell is **blocked** if its bounding rectangle intersects the track outline polygon:
 
-- inside the outer ring of the buffered outline, and
-- not inside any hole.
+- any rectangle corner is inside the outer ring, or
+- any rectangle edge intersects any outer-ring edge.
 
 After the per-cell test:
 

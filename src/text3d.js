@@ -129,6 +129,94 @@ function pointInPolygon(point, polygon) {
   return inside;
 }
 
+const SEGMENT_INTERSECTION_EPSILON = 1e-9;
+
+function orientation(a, b, c) {
+  return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+}
+
+function pointOnSegment(point, a, b) {
+  const cross = orientation(a, b, point);
+  if (Math.abs(cross) > SEGMENT_INTERSECTION_EPSILON) {
+    return false;
+  }
+
+  return point.x >= Math.min(a.x, b.x) - SEGMENT_INTERSECTION_EPSILON
+    && point.x <= Math.max(a.x, b.x) + SEGMENT_INTERSECTION_EPSILON
+    && point.y >= Math.min(a.y, b.y) - SEGMENT_INTERSECTION_EPSILON
+    && point.y <= Math.max(a.y, b.y) + SEGMENT_INTERSECTION_EPSILON;
+}
+
+function segmentsIntersect(a, b, c, d) {
+  const o1 = orientation(a, b, c);
+  const o2 = orientation(a, b, d);
+  const o3 = orientation(c, d, a);
+  const o4 = orientation(c, d, b);
+  const s1 = Math.sign(o1);
+  const s2 = Math.sign(o2);
+  const s3 = Math.sign(o3);
+  const s4 = Math.sign(o4);
+
+  if (s1 !== 0 && s2 !== 0 && s1 !== s2 && s3 !== 0 && s4 !== 0 && s3 !== s4) {
+    return true;
+  }
+
+  return pointOnSegment(c, a, b)
+    || pointOnSegment(d, a, b)
+    || pointOnSegment(a, c, d)
+    || pointOnSegment(b, c, d);
+}
+
+function rectIntersectsPolygon(rect, polygon) {
+  if (!polygon?.length) {
+    return false;
+  }
+
+  const corners = [
+    { x: rect.minX, y: rect.minY },
+    { x: rect.maxX, y: rect.minY },
+    { x: rect.maxX, y: rect.maxY },
+    { x: rect.minX, y: rect.maxY },
+  ];
+
+  if (corners.some(corner => pointInPolygon(corner, polygon))) {
+    return true;
+  }
+
+  const rectangleEdges = [
+    [corners[0], corners[1]],
+    [corners[1], corners[2]],
+    [corners[2], corners[3]],
+    [corners[3], corners[0]],
+  ];
+
+  for (let index = 0; index < polygon.length; index += 1) {
+    const a = polygon[index];
+    const b = polygon[(index + 1) % polygon.length];
+
+    for (const [rectA, rectB] of rectangleEdges) {
+      if (segmentsIntersect(rectA, rectB, a, b)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+function rectFullyInsidePolygon(rect, polygon) {
+  if (!polygon?.length) {
+    return false;
+  }
+
+  return [
+    { x: rect.minX, y: rect.minY },
+    { x: rect.maxX, y: rect.minY },
+    { x: rect.maxX, y: rect.maxY },
+    { x: rect.minX, y: rect.maxY },
+  ].every(corner => pointInPolygon(corner, polygon));
+}
+
 function normalizeContour(points) {
   const contour = [];
 
@@ -491,18 +579,6 @@ function createPlacementGrid(basePlate) {
   };
 }
 
-function pointInTrackFootprint(point, outlinePoints) {
-  if (!outlinePoints?.outerRing?.length) {
-    return false;
-  }
-
-  if (!pointInPolygon(point, outlinePoints.outerRing)) {
-    return false;
-  }
-
-  return !(outlinePoints.holes ?? []).some(hole => hole.length >= 3 && pointInPolygon(point, hole));
-}
-
 function dilateBlockedCells(mask, radius) {
   if (radius <= 0) {
     return mask;
@@ -538,12 +614,25 @@ function computePlacementMask(outlinePoints, basePlate) {
   const mask = Array.from({ length: grid.rows }, () => Array.from({ length: grid.columns }, () => false));
   const outside = Array.from({ length: grid.rows }, () => Array.from({ length: grid.columns }, () => true));
   const hasOuterRing = outlinePoints?.outerRing?.length >= 3;
+  const holes = outlinePoints?.holes ?? [];
 
   for (let row = 0; row < grid.rows; row += 1) {
-    const y = basePlate.minY + (row + 0.5) * grid.cellHeight;
     for (let column = 0; column < grid.columns; column += 1) {
-      const x = basePlate.minX + (column + 0.5) * grid.cellWidth;
-      mask[row][column] = pointInTrackFootprint({ x, y }, outlinePoints);
+      const minX = basePlate.minX + column * grid.cellWidth;
+      const minY = basePlate.minY + row * grid.cellHeight;
+      const x = minX + grid.cellWidth / 2;
+      const y = minY + grid.cellHeight / 2;
+      const rect = {
+        minX,
+        minY,
+        maxX: minX + grid.cellWidth,
+        maxY: minY + grid.cellHeight,
+      };
+
+      const intersectsOuterRing = rectIntersectsPolygon(rect, outlinePoints?.outerRing);
+      const fullyInsideHole = intersectsOuterRing && holes.some(hole => hole.length >= 3 && rectFullyInsidePolygon(rect, hole));
+
+      mask[row][column] = intersectsOuterRing && !fullyInsideHole;
       outside[row][column] = !hasOuterRing || !pointInPolygon({ x, y }, outlinePoints.outerRing);
     }
   }
