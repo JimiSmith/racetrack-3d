@@ -201,6 +201,7 @@ export function parseArgs(argv) {
     allowOverpassFallback: true,
     validateOnly: false,
     strict: false,
+    force: false,
     cacheDir: defaultCacheDir,
     cacheTtlHours: DEFAULT_CACHE_TTL_HOURS,
     noCache: false,
@@ -208,6 +209,27 @@ export function parseArgs(argv) {
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
+
+    if (arg === '--help' || arg === '-h') {
+      console.log(`Usage: node scripts/build-track-geometry-index.mjs [options]
+
+Options:
+  --track <id>          Build only the track matching this Wikidata ID or name
+  --force               Skip the staleness check and unconditionally re-fetch geometry.
+                        Requires exactly one track to be specified via --track.
+  --limit <n>           Maximum number of stale tracks to rebuild in one run
+  --validate-only       Validate geometry without writing files
+  --source <src>        Build source: osm-api (default) or overpass
+  --overpass-only       Use Overpass as the sole source (no fallback)
+  --no-overpass-fallback  Disable automatic Overpass fallback on OSM API failure
+  --strict              Exit with error if any track fails or uses cached geometry
+  --cache-dir <path>    Local OSM API response cache directory
+  --cache-ttl-hours <n> Cache TTL in hours (default: ${DEFAULT_CACHE_TTL_HOURS})
+  --no-cache            Disable local OSM API response cache
+  --help, -h            Show this help message`);
+      process.exit(0);
+    }
+
     if (arg === '--track') {
       options.track = argv[index + 1] ?? null;
       index += 1;
@@ -267,6 +289,14 @@ export function parseArgs(argv) {
     if (arg === '--no-cache') {
       options.noCache = true;
     }
+
+    if (arg === '--force') {
+      options.force = true;
+    }
+  }
+
+  if (options.force && !options.track) {
+    throw new Error('--force requires exactly one track to be specified (e.g. --track Q171332)');
   }
 
   if (options.source === 'fixture') {
@@ -787,7 +817,9 @@ async function writeArtifactToFile(artifact, filePath) {
 export async function main(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
   const tracks = resolveSupportedTracks(options.track);
-  const { freshTracks, staleTracks, deferredTracks } = await partitionTracksByStaleness(tracks, options);
+  const { freshTracks, staleTracks, deferredTracks } = options.force
+    ? { freshTracks: [], staleTracks: tracks, deferredTracks: [] }
+    : await partitionTracksByStaleness(tracks, options);
   const generatedAt = new Date().toISOString();
   const report = {
     builtSuccessfully: [],

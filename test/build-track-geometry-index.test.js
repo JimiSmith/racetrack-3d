@@ -153,6 +153,45 @@ test('geometry index build limits stale processing without counting fresh tracks
   assert.deepEqual(result.deferredTracks.map(track => track.wikidataId), ['Q4']);
 });
 
+test('geometry index build accepts --force with a single track target', () => {
+  const options = parseArgs(['--track', 'Q171402', '--force']);
+
+  assert.equal(options.force, true);
+  assert.equal(options.track, 'Q171402');
+});
+
+test('geometry index build rejects --force without a track specified', () => {
+  assert.throws(() => parseArgs(['--force']), /--force requires exactly one track/);
+});
+
+test('geometry index build force flag bypasses staleness check', async () => {
+  const now = Date.parse('2026-03-30T00:00:00.000Z');
+  const tracks = [
+    { wikidataId: 'Q1', trackName: 'Fresh Track' },
+  ];
+  const existingArtifact = {
+    Q1: {
+      trackId: 'Q1',
+      source: {
+        generatedAt: new Date(now - computeTrackStaleThresholdMs('Q1') + 1).toISOString(),
+      },
+    },
+  };
+
+  // Without --force: fresh track goes to freshTracks
+  const withoutForce = await partitionTracksByStaleness(tracks, {
+    now,
+    loadExistingTrackEntry: async wikidataId => existingArtifact[wikidataId] ?? null,
+  });
+  assert.deepEqual(withoutForce.freshTracks.map(t => t.wikidataId), ['Q1']);
+  assert.deepEqual(withoutForce.staleTracks.map(t => t.wikidataId), []);
+
+  // With --force: same track goes to staleTracks regardless
+  const withForce = { freshTracks: [], staleTracks: tracks, deferredTracks: [] };
+  assert.deepEqual(withForce.freshTracks.map(t => t.wikidataId), []);
+  assert.deepEqual(withForce.staleTracks.map(t => t.wikidataId), ['Q1']);
+});
+
 test('geometry index build strips degenerate layouts before artifact validation', () => {
   const result = sanitizeBuildGeometryResult({
     layouts: [
