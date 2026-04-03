@@ -1,0 +1,41 @@
+name: Refresh Track Geometry
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-geometry:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Rebuild stale geometry
+        run: npm run build:geometry-index:ci
+
+      - name: Commit updated geometry
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/generated/geometry/
+          if git diff --cached --quiet; then
+            echo "No geometry changes to commit."
+          else
+            git commit -m "data: refresh stale track geometry [skip ci]"
+            git push
+          fi
