@@ -603,6 +603,59 @@ test('fetchTrackGeometry leaves Silverstone fixture cleanup to the build path', 
   assert.ok(result.layouts.some((layout, index) => JSON.stringify(layout.nodes) !== JSON.stringify(normalized.layouts[index]?.nodes)));
 });
 
+test('buildTrackGeometryFromOverpassPayload prefers a large near-closed unnamed circuit over a small open named fragment', () => {
+  // Regression for Albert Park (Q171288): a short section of track is named
+  // "Albert Park Circuit" in OSM, but the full public-road loop carries street names.
+  // The named fragment is open (high endpoint gap); the full loop is near-closed.
+  // The fix ensures near-closed + much longer wins over open + name match.
+
+  // Component A: ~2 km open arc, named "Albert Park Circuit"
+  const payload = {
+    elements: [
+      {
+        type: 'way', id: 1,
+        tags: { name: 'Albert Park Circuit', highway: 'raceway' },
+        geometry: [n(0, 0), n(0.009, 0.005), n(0.018, 0)],
+      },
+      {
+        type: 'way', id: 2,
+        tags: { name: 'Albert Park Circuit', highway: 'raceway' },
+        geometry: [n(0.018, 0), n(0.015, -0.004)],
+      },
+      // Component B: ~4.9 km closed loop, roads named after local streets
+      {
+        type: 'way', id: 3,
+        tags: { name: 'Aughtie Drive', highway: 'raceway' },
+        geometry: [n(0.1, 0.1), n(0.1, 0.111)],
+      },
+      {
+        type: 'way', id: 4,
+        tags: { name: 'Albert Road Drive', highway: 'raceway' },
+        geometry: [n(0.1, 0.111), n(0.111, 0.111)],
+      },
+      {
+        type: 'way', id: 5,
+        tags: { name: 'Ross Gregory Drive', highway: 'raceway' },
+        geometry: [n(0.111, 0.111), n(0.111, 0.1)],
+      },
+      {
+        type: 'way', id: 6,
+        tags: { name: 'Lakeside Drive', highway: 'raceway' },
+        geometry: [n(0.111, 0.1), n(0.1, 0.1)],
+      },
+    ],
+  };
+
+  const result = buildTrackGeometryFromOverpassPayload(payload, 'Albert Park Circuit');
+
+  assert.ok(result !== null, 'should return a result');
+  assert.ok(result.layouts.length > 0, 'should have at least one layout');
+  assert.ok(
+    result.layouts[0].stats.lengthMetres > 4000,
+    `expected the large near-closed loop (>4000 m) but got ${result.layouts[0].stats.lengthMetres.toFixed(0)} m — named open fragment should not win`,
+  );
+});
+
 test('fetchTrackGeometry prefers the named Shanghai circuit over a denser stray component', async () => {
   const fixture = loadFixture('shanghai.json');
 

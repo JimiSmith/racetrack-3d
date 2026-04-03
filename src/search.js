@@ -610,7 +610,20 @@ function selectBestComponentWays(ways, trackName = null) {
 
   rankedComponents.sort((a, b) => {
     if (a.strongTrackNameMatch !== b.strongTrackNameMatch) {
-      return Number(b.strongTrackNameMatch) - Number(a.strongTrackNameMatch);
+      const namedComp = b.strongTrackNameMatch ? b : a;
+      const otherComp = b.strongTrackNameMatch ? a : b;
+      // Only give name-match absolute priority when the named component itself forms
+      // a closed circuit, or neither does, or the size difference is negligible.
+      // Otherwise a small open named fragment would beat a much larger closed circuit
+      // (e.g. a pit straight named after the venue vs. the full public-road loop).
+      const namedWins =
+        namedComp.nearClosed ||
+        !otherComp.nearClosed ||
+        otherComp.candidateLength - namedComp.candidateLength <= 500;
+      if (namedWins) {
+        return Number(b.strongTrackNameMatch) - Number(a.strongTrackNameMatch);
+      }
+      // Fall through to length comparison
     }
 
     const candidateLengthDelta = b.candidateLength - a.candidateLength;

@@ -229,9 +229,10 @@ function finalizeRelation(relation, wayIndex, relations) {
         type: member.type,
         ref: member.ref,
         role: member.role,
-        geometry: wayIndex.get(member.ref)?.geometry,
-      }))
-      .filter(member => Array.isArray(member.geometry) && member.geometry.length >= 2),
+        // Keep null geometry so callers can identify ways that fall outside the bbox
+        // and fetch them separately. Downstream consumers guard against null geometry.
+        geometry: wayIndex.get(member.ref)?.geometry ?? null,
+      })),
   });
 }
 
@@ -356,14 +357,14 @@ export function parseOsmApiMapXml(xmlSource) {
   }
 
   const wayIndex = new Map(ways.map(way => [way.id, way]));
+  // Members with no geometry (out-of-bbox ways) are kept with geometry: null so
+  // that supplementPayloadWithMissingRelationWays can detect and fetch them.
   const hydratedRelations = relations.map(relation => ({
     ...relation,
-    members: relation.members
-      .map(member => ({
-        ...member,
-        geometry: wayIndex.get(member.ref)?.geometry,
-      }))
-      .filter(member => Array.isArray(member.geometry) && member.geometry.length >= 2),
+    members: relation.members.map(member => ({
+      ...member,
+      geometry: wayIndex.get(member.ref)?.geometry ?? null,
+    })),
   }));
   const relevantRelations = hydratedRelations.filter(relation => {
     const highway = String(relation.tags?.highway ?? '').trim().toLowerCase();
@@ -384,6 +385,204 @@ export function parseOsmApiMapXml(xmlSource) {
     generator: 'osm-api-map',
     elements: [...relevantWays, ...relevantRelations],
   };
+}
+
+// Parses a combined nodes+ways OSM XML string and returns a Map<wayId, geometry>.
+// Used to resolve geometries for ways that were outside the original bbox query.
+function parseOsmXmlWayGeometries(xmlSource) {
+  const xml = String(xmlSource ?? '');
+  const nodeIndex = new Map();
+  let currentWay = null;
+  const geometries = new Map();
+
+  for (const match of xml.matchAll(/<[^>]+>/g)) {
+    const src = match[0];
+
+    if (src.startsWith('<?') || src.startsWith('<!--') || src.startsWith('<!DOCTYPE')) {
+      continue;
+    }
+
+    if (src.startsWith('</')) {
+      const tagName = src.slice(2, -1).trim();
+      if (tagName === 'way' && currentWay && Number.isFinite(currentWay.id)) {
+        const geometry = currentWay.ndRefs
+          .map(ref => nodeIndex.get(ref))
+          .filter(node => Number.isFinite(node?.lat) && Number.isFinite(node?.lon));
+        if (geometry.length >= 2) {
+          geometries.set(currentWay.id, geometry);
+        }
+        currentWay = null;
+      }
+      continue;
+    }
+
+    const attrs = parseAttributes(src);
+    const tagName = src.match(/^<\s*([^\s/>]+)/)?.[1];
+
+    if (tagName === 'node') {
+      const id = Number(attrs.id);
+      const lat = Number(attrs.lat);
+      const lon = Number(attrs.lon);
+      if (Number.isFinite(id) && Number.isFinite(lat) && Number.isFinite(lon)) {
+        nodeIndex.set(id, { lat, lon });
+      }
+    } else if (tagName === 'way') {
+      currentWay = { id: Number(attrs.id), ndRefs: [] };
+    } else if (tagName === 'nd' && currentWay) {
+      const ref = Number(attrs.ref);
+      if (Number.isFinite(ref)) {
+        currentWay.ndRefs.push(ref);
+      }
+    }
+  }
+
+  return geometries;
+}
+
+// Parses all way member refs from a single relation XML element.
+// The bbox response only includes members that fall within the bbox, so we
+// separately fetch the full relation to discover out-of-bbox member IDs.
+function parseRelationMemberWayIds(xmlSource) {
+  const ids = [];
+  for (const m of String(xmlSource ?? '').matchAll(/<member\s[^>]*type="way"[^>]*ref="(\d+)"[^>]*/g)) {
+    const id = Number(m[1]);
+    if (Number.isFinite(id)) ids.push(id);
+  }
+  return ids;
+}
+
+// Fetches way geometries for relation members that were outside the initial bbox.
+//
+// The OSM bbox API truncates relation members to only those within the queried area.
+// For circuits that span beyond the bbox (e.g. temporary street circuits where larger
+// margins hit the 50k-node limit), this means part of the circuit goes missing.
+//
+// Strategy:
+//   1. For each circuit/raceway relation in the payload, fetch the full relation by ID
+//      to discover the complete member list.
+//   2. Identify any member way IDs not already present in the payload.
+//   3. Fetch those missing ways' node-refs (one batch request).
+//   4. Fetch the required node coordinates (one batch request).
+//   5. Merge the resolved geometries into the payload.
+//
+// Falls back to the original payload on any network error.
+export async function supplementPayloadWithMissingRelationWays(payload, options = {}) {
+  const relevantRelations = (payload?.elements ?? []).filter(e => {
+    if (e.type !== 'relation') return false;
+    const hw = String(e.tags?.highway ?? '').trim().toLowerCase();
+    const type = String(e.tags?.type ?? '').trim().toLowerCase();
+    const circuit = String(e.tags?.circuit ?? '').trim().toLowerCase();
+    return (hw === 'raceway' || type === 'circuit') && circuit !== 'kart';
+  });
+
+  if (relevantRelations.length === 0) {
+    return payload;
+  }
+
+  const timeout = options.timeoutMs ?? OSM_API_TIMEOUT_MS;
+  const fetchFn = options.fetch ?? globalThis.fetch;
+  const osmApiBase = 'https://api.openstreetmap.org/api/0.6';
+
+  const existingWayIds = new Set(
+    (payload.elements ?? []).filter(e => e.type === 'way').map(e => e.id),
+  );
+
+  try {
+    // Step 1: fetch the full relation objects to get all member way IDs (not just
+    // those that fell within the bbox)
+    const missingWayIds = new Set();
+    const fullMembersByRelId = new Map();
+
+    for (const rel of relevantRelations) {
+      const relResponse = await fetchFn(
+        `${osmApiBase}/relation/${rel.id}`,
+        { headers: { Accept: 'application/xml, text/xml;q=0.9' }, signal: AbortSignal.timeout(timeout) },
+      );
+      if (!relResponse.ok) continue;
+
+      const allMemberIds = parseRelationMemberWayIds(await relResponse.text());
+      fullMembersByRelId.set(rel.id, allMemberIds);
+
+      for (const id of allMemberIds) {
+        if (!existingWayIds.has(id)) {
+          missingWayIds.add(id);
+        }
+      }
+    }
+
+    if (missingWayIds.size === 0) {
+      return payload;
+    }
+
+    // Step 2: fetch way node-refs for all missing ways in one request
+    const waysResponse = await fetchFn(
+      `${osmApiBase}/ways?ways=${[...missingWayIds].join(',')}`,
+      { headers: { Accept: 'application/xml, text/xml;q=0.9' }, signal: AbortSignal.timeout(timeout) },
+    );
+    if (!waysResponse.ok) {
+      return payload;
+    }
+    const waysXml = await waysResponse.text();
+
+    // Step 3: collect all node IDs referenced by the fetched ways
+    const ndRefs = new Set();
+    for (const m of waysXml.matchAll(/<nd\s+ref="(\d+)"/g)) {
+      ndRefs.add(m[1]);
+    }
+    if (ndRefs.size === 0) {
+      return payload;
+    }
+
+    // Step 4: fetch node coordinates in one request
+    const nodesResponse = await fetchFn(
+      `${osmApiBase}/nodes?nodes=${[...ndRefs].join(',')}`,
+      { headers: { Accept: 'application/xml, text/xml;q=0.9' }, signal: AbortSignal.timeout(timeout) },
+    );
+    if (!nodesResponse.ok) {
+      return payload;
+    }
+    const nodesXml = await nodesResponse.text();
+
+    // Step 5: parse geometries from the combined nodes + ways XML
+    const newGeometries = parseOsmXmlWayGeometries(nodesXml + waysXml);
+    if (newGeometries.size === 0) {
+      return payload;
+    }
+
+    // Expand relation member lists with the previously-missing ways, preserving
+    // role information from the full relation fetch (all missing members get role '').
+    const updatedElements = payload.elements.map(e => {
+      if (e.type !== 'relation') {
+        return e;
+      }
+      const fullMemberIds = fullMembersByRelId.get(e.id);
+      if (!fullMemberIds) {
+        return e;
+      }
+      // Build a complete member list: existing members (with their geometry) + newly fetched ones
+      const existingMemberRefs = new Set(e.members.map(m => m.ref));
+      const addedMembers = fullMemberIds
+        .filter(id => !existingMemberRefs.has(id) && newGeometries.has(id))
+        .map(id => ({ type: 'way', ref: id, role: '', geometry: newGeometries.get(id) }));
+      return {
+        ...e,
+        members: [...e.members, ...addedMembers],
+      };
+    });
+
+    // Append newly fetched ways as bare way elements so extractOverpassWays can
+    // include them; the relation merge will supply their tags.
+    const additionalWays = [...newGeometries.entries()]
+      .filter(([id]) => !existingWayIds.has(id))
+      .map(([id, geometry]) => ({ type: 'way', id, tags: {}, geometry }));
+
+    return {
+      ...payload,
+      elements: [...updatedElements, ...additionalWays],
+    };
+  } catch {
+    return payload; // fail gracefully
+  }
 }
 
 export async function fetchOsmApiMapPayload(lat, lon, options = {}) {

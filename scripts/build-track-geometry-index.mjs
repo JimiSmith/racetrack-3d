@@ -12,6 +12,7 @@ import {
   fetchAdaptiveOsmApiMapPayload,
   fetchOsmApiMapPayload,
   parseOsmApiMapXml,
+  supplementPayloadWithMissingRelationWays,
 } from './lib/osm-api-source.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -416,8 +417,16 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
           await writeCachedOsmPayload(track, margin, resolvedResponse, options);
         }
 
+        // Supplement with any relation member ways that fell outside the bbox.
+        // This is needed for temporary street circuits (e.g. Albert Park) whose
+        // circuit relation spans roads beyond the node-limit-safe bbox.
+        const supplementedPayload = await supplementPayloadWithMissingRelationWays(
+          resolvedResponse.payload,
+        );
+
         return {
           ...resolvedResponse,
+          payload: supplementedPayload,
           metadata: {
             ...(resolvedResponse.metadata ?? {}),
             cacheHit: Boolean(cachedResponse),

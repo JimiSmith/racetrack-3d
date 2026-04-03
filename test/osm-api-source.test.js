@@ -9,6 +9,7 @@ import {
   isOsmApiNodeLimitError,
   isOsmApiRateLimitError,
   parseOsmApiMapXml,
+  supplementPayloadWithMissingRelationWays,
 } from '../scripts/lib/osm-api-source.mjs';
 
 test('buildOsmApiMapUrl uses the main OSM map endpoint and bbox order', () => {
@@ -70,6 +71,142 @@ test('parseOsmApiMapXml hydrates way geometry and relation member geometry', () 
       { lat: 52.1, lon: -1.1 },
     ],
   });
+});
+
+test('parseOsmApiMapXml preserves relation members with null geometry when their way is outside the bbox', () => {
+  // Way 99 is referenced by the relation but not present in the XML (out-of-bbox).
+  // After the finalizeRelation change it should be kept with geometry: null so that
+  // supplementPayloadWithMissingRelationWays can discover and fetch it.
+  const payload = parseOsmApiMapXml(`<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="test">
+  <node id="1" lat="52.0" lon="-1.0" />
+  <node id="2" lat="52.1" lon="-1.1" />
+  <way id="10">
+    <nd ref="1" />
+    <nd ref="2" />
+    <tag k="highway" v="raceway" />
+  </way>
+  <relation id="20">
+    <member type="way" ref="10" role="outer" />
+    <member type="way" ref="99" role="outer" />
+    <tag k="type" v="circuit" />
+    <tag k="name" v="Example Circuit" />
+  </relation>
+</osm>`);
+
+  const relation = payload.elements.find(e => e.type === 'relation' && e.id === 20);
+  assert.ok(relation);
+  assert.equal(relation.members.length, 2);
+
+  const presentMember = relation.members.find(m => m.ref === 10);
+  assert.ok(Array.isArray(presentMember?.geometry), 'present way should have geometry');
+
+  const missingMember = relation.members.find(m => m.ref === 99);
+  assert.equal(missingMember?.geometry, null, 'out-of-bbox way should have null geometry');
+});
+
+test('supplementPayloadWithMissingRelationWays fetches and fills in out-of-bbox relation members', async () => {
+  // Simulate an Albert-Park-style scenario: a circuit relation references a way
+  // (id 99) that fell outside the initial bbox and so is absent from the payload.
+  const initialPayload = parseOsmApiMapXml(`<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="test">
+  <node id="1" lat="52.0" lon="-1.0" />
+  <node id="2" lat="52.1" lon="-1.1" />
+  <way id="10">
+    <nd ref="1" />
+    <nd ref="2" />
+    <tag k="highway" v="raceway" />
+    <tag k="name" v="Test Circuit" />
+  </way>
+  <relation id="20">
+    <member type="way" ref="10" role="outer" />
+    <tag k="type" v="circuit" />
+    <tag k="name" v="Test Circuit" />
+  </relation>
+</osm>`);
+
+  // The full relation (fetched by ID) reveals an additional member: way 99.
+  const fullRelationXml = `<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6">
+  <relation id="20">
+    <member type="way" ref="10" role="outer" />
+    <member type="way" ref="99" role="outer" />
+    <tag k="type" v="circuit" />
+    <tag k="name" v="Test Circuit" />
+  </relation>
+</osm>`;
+
+  // Way 99's geometry (node refs come from the /ways endpoint, coords from /nodes).
+  const missingWaysXml = `<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6">
+  <way id="99">
+    <nd ref="3" />
+    <nd ref="4" />
+    <tag k="highway" v="unclassified" />
+    <tag k="name" v="Outer Road" />
+  </way>
+</osm>`;
+  const missingNodesXml = `<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6">
+  <node id="3" lat="52.2" lon="-1.2" />
+  <node id="4" lat="52.3" lon="-1.3" />
+</osm>`;
+
+  const fetchCalls = [];
+  const mockFetch = async url => {
+    fetchCalls.push(String(url));
+    if (String(url).includes('/relation/20')) return new Response(fullRelationXml, { status: 200 });
+    if (String(url).includes('/ways?ways=')) return new Response(missingWaysXml, { status: 200 });
+    if (String(url).includes('/nodes?nodes=')) return new Response(missingNodesXml, { status: 200 });
+    return new Response('not found', { status: 404 });
+  };
+
+  const result = await supplementPayloadWithMissingRelationWays(initialPayload, { fetch: mockFetch });
+
+  // Should have made exactly 3 requests: relation, ways, nodes
+  assert.equal(fetchCalls.length, 3);
+  assert.ok(fetchCalls[0].includes('/relation/20'));
+  assert.ok(fetchCalls[1].includes('/ways?ways=99'));
+  assert.ok(fetchCalls[2].includes('/nodes?nodes='));
+
+  // The relation should now have both members with geometry
+  const relation = result.elements.find(e => e.type === 'relation' && e.id === 20);
+  assert.equal(relation.members.length, 2);
+  assert.ok(Array.isArray(relation.members.find(m => m.ref === 10)?.geometry));
+  assert.ok(Array.isArray(relation.members.find(m => m.ref === 99)?.geometry));
+
+  // Way 99 should be added as a bare element
+  const way99 = result.elements.find(e => e.type === 'way' && e.id === 99);
+  assert.ok(way99);
+  assert.deepEqual(way99.geometry, [{ lat: 52.2, lon: -1.2 }, { lat: 52.3, lon: -1.3 }]);
+});
+
+test('supplementPayloadWithMissingRelationWays returns original payload if no relevant relations', async () => {
+  const payload = { elements: [{ type: 'way', id: 1, tags: {}, geometry: [] }] };
+  const result = await supplementPayloadWithMissingRelationWays(payload, {
+    fetch: () => { throw new Error('should not be called'); },
+  });
+  assert.equal(result, payload);
+});
+
+test('supplementPayloadWithMissingRelationWays falls back gracefully on network error', async () => {
+  const initialPayload = parseOsmApiMapXml(`<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6">
+  <node id="1" lat="52.0" lon="-1.0" />
+  <node id="2" lat="52.1" lon="-1.1" />
+  <way id="10"><nd ref="1"/><nd ref="2"/><tag k="highway" v="raceway"/></way>
+  <relation id="20">
+    <member type="way" ref="10" role="outer" />
+    <tag k="type" v="circuit" />
+  </relation>
+</osm>`);
+
+  const result = await supplementPayloadWithMissingRelationWays(initialPayload, {
+    fetch: async () => { throw new Error('network failure'); },
+  });
+
+  // Should return the original payload unchanged
+  assert.equal(result, initialPayload);
 });
 
 test('buildAdaptiveOsmApiMargins grows from a smaller starting bbox up to the requested cap', () => {
