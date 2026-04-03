@@ -402,6 +402,21 @@ async function writeCachedOsmPayload(track, margin, response, options) {
   }, null, 2)}\n`);
 }
 
+async function fetchOsmApiPayloadWithCache(track, margin, options) {
+  const cachedResponse = await readCachedOsmPayload(track, margin, options);
+  const response = cachedResponse ?? await fetchOsmApiMapPayload(track.lat, track.lon, { margin });
+  if (!cachedResponse) {
+    await writeCachedOsmPayload(track, margin, response, options);
+  }
+  return {
+    ...response,
+    metadata: {
+      ...(response.metadata ?? {}),
+      cacheHit: Boolean(cachedResponse),
+    },
+  };
+}
+
 async function fetchPrimaryGeometryFromOsmApi(track, options) {
   const margins = Array.isArray(track.osmApiMargins) && track.osmApiMargins.length > 0
     ? track.osmApiMargins
@@ -410,21 +425,7 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
   try {
     const response = await fetchAdaptiveOsmApiMapPayload(track.lat, track.lon, {
       margins,
-      fetchForMargin: async margin => {
-        const cachedResponse = await readCachedOsmPayload(track, margin, options);
-        const resolvedResponse = cachedResponse ?? await fetchOsmApiMapPayload(track.lat, track.lon, { margin });
-        if (!cachedResponse) {
-          await writeCachedOsmPayload(track, margin, resolvedResponse, options);
-        }
-
-        return {
-          ...resolvedResponse,
-          metadata: {
-            ...(resolvedResponse.metadata ?? {}),
-            cacheHit: Boolean(cachedResponse),
-          },
-        };
-      },
+      fetchForMargin: margin => fetchOsmApiPayloadWithCache(track, margin, options),
       evaluateResponse: resolvedResponse => {
         const geometryResult = sanitizeBuildGeometryResult(normalizeTrackGeometryResult(
           buildTrackGeometryFromOverpassPayload(resolvedResponse.payload, track.trackName),
@@ -494,22 +495,15 @@ async function buildGeometryFromManualWayIds(track, options) {
     ? track.osmApiMargins
     : buildDefaultOsmApiMargins(track);
 
-  let resolvedPayload = null;
+  let resolvedResponse = null;
   let resolvedMargin = null;
-  let resolvedCacheHit = false;
   let lastError = null;
 
   for (const margin of margins) {
     let response;
-    let cacheHit = false;
 
     try {
-      const cachedResponse = await readCachedOsmPayload(track, margin, options);
-      cacheHit = Boolean(cachedResponse);
-      response = cachedResponse ?? await fetchOsmApiMapPayload(track.lat, track.lon, { margin });
-      if (!cachedResponse) {
-        await writeCachedOsmPayload(track, margin, response, options);
-      }
+      response = await fetchOsmApiPayloadWithCache(track, margin, options);
     } catch (error) {
       lastError = error;
       continue;
@@ -523,22 +517,21 @@ async function buildGeometryFromManualWayIds(track, options) {
     const missingIds = requiredWayIds.filter(id => !foundIds.has(id));
 
     if (missingIds.length === 0) {
-      resolvedPayload = response.payload;
+      resolvedResponse = response;
       resolvedMargin = margin;
-      resolvedCacheHit = cacheHit;
       break;
     }
 
     lastError = new Error(`margin ${margin}: missing way IDs ${missingIds.join(', ')}`);
   }
 
-  if (!resolvedPayload) {
+  if (!resolvedResponse) {
     const message = lastError instanceof Error ? lastError.message : String(lastError);
     throw new Error(`${track.trackName}: could not find all manual way IDs in OSM API data (${message})`);
   }
 
   const wayIndex = new Map(
-    (resolvedPayload.elements ?? [])
+    (resolvedResponse.payload.elements ?? [])
       .filter(e => e.type === 'way' && Number.isFinite(e.id))
       .map(e => [e.id, e]),
   );
@@ -571,7 +564,7 @@ async function buildGeometryFromManualWayIds(track, options) {
 
   const usedWayIds = new Set(manualLayoutWays.flatMap(l => l.wayIds));
   const osmVenueNames = [...new Set(
-    (resolvedPayload.elements ?? [])
+    (resolvedResponse.payload.elements ?? [])
       .filter(e => e.type === 'way' && usedWayIds.has(e.id) && e.tags?.name)
       .map(e => e.tags.name),
   )].sort((a, b) => a.localeCompare(b));
@@ -585,7 +578,7 @@ async function buildGeometryFromManualWayIds(track, options) {
     metadata: {
       sourceUsed: 'osm-api',
       margin: resolvedMargin,
-      cacheHit: resolvedCacheHit,
+      cacheHit: resolvedResponse.metadata.cacheHit,
     },
   };
 }
