@@ -1882,28 +1882,36 @@ function buildTrackGeometryResult(elements, trackName) {
 
     if (overlapRatio < INDEPENDENT_CIRCUIT_OVERLAP_THRESHOLD) {
       const wayElementsById = new Map(allElements.filter(e => e.type === 'way').map(e => [e.id, e]));
-      const perRelationResults = circuitRelations
-        .map(relation => {
-          const relationElements = [
-            ...relation.members
-              .filter(m => m.type === 'way' && Array.isArray(m.geometry) && m.geometry.length >= 2)
-              .map(m => ({
-                type: 'way',
-                id: m.ref,
-                tags: wayElementsById.get(m.ref)?.tags ?? {},
-                geometry: m.geometry,
-              })),
-            relation,
-          ];
-          return buildTrackGeometryResult(relationElements, trackName);
-        })
-        .filter(result => result?.layouts?.length > 0);
+      const perRelationLayouts = circuitRelations.flatMap((relation, i) => {
+        const relationElements = [
+          ...relation.members
+            .filter(m => m.type === 'way' && Array.isArray(m.geometry) && m.geometry.length >= 2)
+            .map(m => ({
+              type: 'way',
+              id: m.ref,
+              tags: wayElementsById.get(m.ref)?.tags ?? {},
+              geometry: m.geometry,
+            })),
+          relation,
+        ];
+        const result = buildTrackGeometryResult(relationElements, trackName);
+        if (!result?.layouts?.length) return [];
+        const relationName = relation.tags?.name?.trim();
+        return result.layouts.map((layout, j) => ({
+          ...layout,
+          id: `layout-${i + 1}${j > 0 ? `-${j + 1}` : ''}`,
+          // Use the relation name as the layout name so each independent circuit
+          // is distinguishable (e.g. "Mexican Grand Prix" vs "Mexico City E-Prix")
+          name: relationName || layout.name,
+        }));
+      });
 
-      if (perRelationResults.length > 0) {
-        const best = perRelationResults.reduce((a, b) =>
-          (b.layouts[0]?.stats?.lengthMetres ?? 0) > (a.layouts[0]?.stats?.lengthMetres ?? 0) ? b : a,
+      if (perRelationLayouts.length > 0) {
+        const deduped = dedupeLayoutsByGeometry(
+          dedupeLayoutsByName(canonicalizeLayoutNames(perRelationLayouts), trackName),
+          trackName,
         );
-        return { ...best, osmVenueNames };
+        return { layouts: deduped, selectedLayoutIndex: 0, osmVenueNames };
       }
     }
   }

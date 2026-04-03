@@ -707,9 +707,9 @@ test('fetchTrackGeometry restores Mexico City grand prix geometry from frozen fi
     fetchTrackGeometry(19.4042, -99.0907, undefined, 'Autódromo Hermanos Rodríguez'));
 
   assert.equal(result.selectedLayoutIndex, 0);
-  assert.equal(result.layouts[0].name, 'Main');
+  assertLayoutNames(result.layouts, ['Mexican Grand Prix', 'Mexico City E-Prix']);
   assertLayoutInvariants(result.layouts[0], { maxGapMeters: 120 });
-  expectApproxLength(result.layouts[0].nodes, 4.7, 0.4);
+  expectApproxLength(result.layouts[0].nodes, 4.3, 0.4);
   assert.ok(result.osmVenueNames.includes('Autódromo Hermanos Rodríguez'));
   assert.ok(result.osmVenueNames.includes('Mexican Grand Prix'));
 });
@@ -843,6 +843,7 @@ test('multi-layout fixtures keep their expected layout counts', async () => {
     ['silverstone.json', 52.0786, -1.0169, 'Silverstone Circuit', ['Main', 'Alternate']],
     ['spa.json', 50.4372, 5.9714, 'Circuit de Spa-Francorchamps', ['Main', 'Moto']],
     ['bahrain.json', 26.0325, 50.5106, 'Bahrain International Circuit', ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit']],
+    ['mexico-city.json', 19.4042, -99.0907, 'Autódromo Hermanos Rodríguez', ['Mexican Grand Prix', 'Mexico City E-Prix']],
   ];
 
   for (const [fixtureName, lat, lon, trackName, expectedNames] of cases) {
