@@ -369,8 +369,9 @@ export function parseOsmApiMapXml(xmlSource) {
   const relevantRelations = hydratedRelations.filter(relation => {
     const highway = String(relation.tags?.highway ?? '').trim().toLowerCase();
     const type = String(relation.tags?.type ?? '').trim().toLowerCase();
+    const route = String(relation.tags?.route ?? '').trim().toLowerCase();
     const circuit = String(relation.tags?.circuit ?? '').trim().toLowerCase();
-    return (highway === 'raceway' || type === 'circuit') && circuit !== 'kart';
+    return (highway === 'raceway' || type === 'circuit' || route === 'raceway') && circuit !== 'kart';
   });
   const relevantWayIds = new Set([
     ...ways
@@ -471,8 +472,9 @@ export async function supplementPayloadWithMissingRelationWays(payload, options 
     if (e.type !== 'relation') return false;
     const hw = String(e.tags?.highway ?? '').trim().toLowerCase();
     const type = String(e.tags?.type ?? '').trim().toLowerCase();
+    const route = String(e.tags?.route ?? '').trim().toLowerCase();
     const circuit = String(e.tags?.circuit ?? '').trim().toLowerCase();
-    return (hw === 'raceway' || type === 'circuit') && circuit !== 'kart';
+    return (hw === 'raceway' || type === 'circuit' || route === 'raceway') && circuit !== 'kart';
   });
 
   if (relevantRelations.length === 0) {

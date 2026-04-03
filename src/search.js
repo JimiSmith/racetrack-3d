@@ -1860,8 +1860,9 @@ function buildTrackGeometryResult(elements, trackName) {
     if (e.type !== 'relation') return false;
     const hw = String(e.tags?.highway ?? '').trim().toLowerCase();
     const type = String(e.tags?.type ?? '').trim().toLowerCase();
+    const route = String(e.tags?.route ?? '').trim().toLowerCase();
     const circuit = String(e.tags?.circuit ?? '').trim().toLowerCase();
-    return (hw === 'raceway' || type === 'circuit') && circuit !== 'kart';
+    return (hw === 'raceway' || type === 'circuit' || route === 'raceway') && circuit !== 'kart';
   });
 
   if (circuitRelations.length > 1) {

@@ -1,5 +1,46 @@
 [
   {
+    "wikidataId": "Q138845212",
+    "label": "A1 Motor Park",
+    "aliases": [
+      "A1 Circuit, A1 Motorpark"
+    ],
+    "description": "racing circuit in Samokov, Bulgaria",
+    "type": "motorsport racing track",
+    "country": "Bulgaria",
+    "city": "Samokov",
+    "lat": 42.315462,
+    "lon": 23.5396903,
+    "wikidataShortName": null,
+    "normalized": {
+      "label": "a1 motor park",
+      "aliases": [
+        "a1 circuit a1 motorpark"
+      ],
+      "shortName": "",
+      "city": "samokov",
+      "country": "bulgaria"
+    },
+    "tokens": [
+      "a1",
+      "motor",
+      "park",
+      "circuit",
+      "motorpark",
+      "samokov",
+      "bulgaria"
+    ],
+    "phrases": [
+      "a1 motor park",
+      "a1 circuit a1 motorpark",
+      "samokov",
+      "bulgaria"
+    ],
+    "tokenCount": 7,
+    "aliasCount": 1,
+    "labelWordCount": 3
+  },
+  {
     "wikidataId": "Q4673007",
     "label": "Ace Speedway",
     "aliases": [],
@@ -2723,7 +2764,7 @@
     "aliases": [
       "Autodromo Ciudad de Rafaela"
     ],
-    "description": null,
+    "description": "motor racing circuit in Argentina",
     "type": "motorsport racing track",
     "country": "Argentina",
     "city": null,
@@ -9063,6 +9104,41 @@
     "labelWordCount": 4
   },
   {
+    "wikidataId": "Q138862466",
+    "label": "Chiang Rai Circuit Raceway Mae Lao",
+    "aliases": [],
+    "description": "Motorsport racing Track in Thailand",
+    "type": "motorsport racing track",
+    "country": "Thailand",
+    "city": null,
+    "lat": 19.74182,
+    "lon": 99.6896,
+    "wikidataShortName": null,
+    "normalized": {
+      "label": "chiang rai circuit raceway mae lao",
+      "aliases": [],
+      "shortName": "",
+      "city": "",
+      "country": "thailand"
+    },
+    "tokens": [
+      "chiang",
+      "rai",
+      "circuit",
+      "raceway",
+      "mae",
+      "lao",
+      "thailand"
+    ],
+    "phrases": [
+      "chiang rai circuit raceway mae lao",
+      "thailand"
+    ],
+    "tokenCount": 7,
+    "aliasCount": 0,
+    "labelWordCount": 6
+  },
+  {
     "wikidataId": "Q2149852",
     "label": "Chicago Motor Speedway",
     "aliases": [],
@@ -9377,7 +9453,7 @@
     "description": null,
     "type": "motorsport racing track",
     "country": "Spain",
-    "city": "Alcarràs",
+    "city": "Andorra",
     "lat": 41.619332,
     "lon": 0.398887,
     "wikidataShortName": null,
@@ -9385,21 +9461,22 @@
       "label": "circuit d alcarras",
       "aliases": [],
       "shortName": "",
-      "city": "alcarras",
+      "city": "andorra",
       "country": "spain"
     },
     "tokens": [
       "circuit",
       "d",
       "alcarras",
+      "andorra",
       "spain"
     ],
     "phrases": [
       "circuit d alcarras",
-      "alcarras",
+      "andorra",
       "spain"
     ],
-    "tokenCount": 4,
+    "tokenCount": 5,
     "aliasCount": 0,
     "labelWordCount": 3
   },
@@ -18394,6 +18471,38 @@
     "labelWordCount": 2
   },
   {
+    "wikidataId": "Q138849002",
+    "label": "Kartarena Cheb",
+    "aliases": [],
+    "description": "Motorsport racing track in Czech republic",
+    "type": "motorsport racing track",
+    "country": "Czech Republic",
+    "city": null,
+    "lat": 50.0863,
+    "lon": 12.4497,
+    "wikidataShortName": null,
+    "normalized": {
+      "label": "kartarena cheb",
+      "aliases": [],
+      "shortName": "",
+      "city": "",
+      "country": "czech republic"
+    },
+    "tokens": [
+      "kartarena",
+      "cheb",
+      "czech",
+      "republic"
+    ],
+    "phrases": [
+      "kartarena cheb",
+      "czech republic"
+    ],
+    "tokenCount": 4,
+    "aliasCount": 0,
+    "labelWordCount": 2
+  },
+  {
     "wikidataId": "Q55055327",
     "label": "Kartodrom Slovenja vas",
     "aliases": [],
@@ -20742,7 +20851,10 @@
     "wikidataId": "Q126193406",
     "label": "Madring",
     "aliases": [
-      "Circuito de Madring"
+      "Circuito de Madring",
+      "Circuit IFEMA Madrid",
+      "IFEMA Madrid",
+      "IFEMA"
     ],
     "description": "street circuit in Madrid",
     "type": "street circuit",
@@ -20754,7 +20866,10 @@
     "normalized": {
       "label": "madring",
       "aliases": [
-        "circuito de madring"
+        "circuito de madring",
+        "circuit ifema madrid",
+        "ifema madrid",
+        "ifema"
       ],
       "shortName": "",
       "city": "madrid",
@@ -20764,17 +20879,22 @@
       "madring",
       "circuito",
       "de",
+      "circuit",
+      "ifema",
       "madrid",
       "spain"
     ],
     "phrases": [
       "madring",
       "circuito de madring",
+      "circuit ifema madrid",
+      "ifema madrid",
+      "ifema",
       "madrid",
       "spain"
     ],
-    "tokenCount": 5,
-    "aliasCount": 1,
+    "tokenCount": 7,
+    "aliasCount": 4,
     "labelWordCount": 1
   },
   {

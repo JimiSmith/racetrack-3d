@@ -12,6 +12,14 @@ const TRACK_INSTANCE_IDS = {
 };
 const ENTITY_BATCH_SIZE = 50;
 
+// Per-track alias supplements. Keys are Wikidata IDs; values are arrays of
+// additional alias strings to merge with the Wikidata-sourced aliases.
+// Use this for well-known names absent from Wikidata (e.g. branding names or
+// popular venue names pending a Wikidata edit).
+const SEARCH_INDEX_ALIASES = new Map([
+  ['Q126193406', ['Circuit IFEMA Madrid', 'IFEMA Madrid', 'IFEMA']],
+]);
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const outputDir = path.join(projectRoot, 'src', 'generated');
@@ -141,10 +149,11 @@ function assembleIndex(baseRows, entityDetails) {
       const details = entityDetails.get(row.wikidataId) ?? {};
       const country = details.countryId ? entityDetails.get(details.countryId)?.label ?? null : null;
       const city = (details.cityIds ?? []).map(id => entityDetails.get(id)?.label ?? null).find(Boolean) ?? null;
+      const extraAliases = SEARCH_INDEX_ALIASES.get(row.wikidataId) ?? [];
       return buildTrackSearchEntry({
         wikidataId: row.wikidataId,
         label: details.label,
-        aliases: details.aliases,
+        aliases: [...(details.aliases ?? []), ...extraAliases],
         description: details.description,
         type: row.type,
         country,
