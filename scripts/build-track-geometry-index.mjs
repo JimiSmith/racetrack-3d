@@ -687,6 +687,9 @@ function finalizeGeometryResult(track, rawResult) {
   const sanitized = sanitizeBuildGeometryResult(rawResult);
   const renamed = applyStableLayoutNames(track, sanitized);
   validateGeometryResultForTrack(track, renamed);
+  for (const layout of renamed.layouts) {
+    validateLayout(layout, track.trackName);
+  }
   return renamed;
 }
 
@@ -705,19 +708,16 @@ function buildStableLayoutIds(layouts) {
 }
 
 function buildTrackArtifact(track, geometryResult, generatedAt, sourceUsed) {
-  const layouts = buildStableLayoutIds(geometryResult.layouts).map(layout => {
-    validateLayout(layout, track.trackName);
-    return {
-      id: layout.id,
-      name: layout.name,
-      nodes: layout.nodes.map(node => ({ lat: node.lat, lon: node.lon })),
-      stats: {
-        lengthMetres: layout.stats.lengthMetres,
-        segmentCount: layout.stats.segmentCount,
-        variantSectionCount: layout.stats.variantSectionCount,
-      },
-    };
-  });
+  const layouts = buildStableLayoutIds(geometryResult.layouts).map(layout => ({
+    id: layout.id,
+    name: layout.name,
+    nodes: layout.nodes.map(node => ({ lat: node.lat, lon: node.lon })),
+    stats: {
+      lengthMetres: layout.stats.lengthMetres,
+      segmentCount: layout.stats.segmentCount,
+      variantSectionCount: layout.stats.variantSectionCount,
+    },
+  }));
 
   return {
     trackId: track.wikidataId,
