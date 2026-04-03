@@ -1820,7 +1820,8 @@ function collectNamedLayoutWays(filteredWays, componentWays) {
 }
 
 function buildTrackGeometryResult(elements, trackName) {
-  const ways = extractOverpassWays(elements || []);
+  const allElements = elements || [];
+  const ways = extractOverpassWays(allElements);
 
   if (ways.length === 0) {
     return null;
@@ -1850,6 +1851,61 @@ function buildTrackGeometryResult(elements, trackName) {
       selectedLayoutIndex: 0,
       osmVenueNames,
     };
+  }
+
+  // Named layout detection failed. When multiple circuit relations exist at the same venue
+  // (e.g. Mexican Grand Prix + Mexico City E-Prix), merging all their ways produces an
+  // incorrect superset geometry. Try each relation independently and return the best result.
+  const circuitRelations = allElements.filter(e => {
+    if (e.type !== 'relation') return false;
+    const hw = String(e.tags?.highway ?? '').trim().toLowerCase();
+    const type = String(e.tags?.type ?? '').trim().toLowerCase();
+    const circuit = String(e.tags?.circuit ?? '').trim().toLowerCase();
+    return (hw === 'raceway' || type === 'circuit') && circuit !== 'kart';
+  });
+
+  if (circuitRelations.length > 1) {
+    // Only apply per-relation isolation when the relations are geometrically independent
+    // (low way membership overlap). High overlap means they share a backbone and represent
+    // layout variants of the same circuit (e.g. Silverstone GP vs International at 96%
+    // overlap) — those are handled correctly by buildLayoutsFromWays above. Low overlap
+    // means they are distinct circuits at the same venue (e.g. Mexican GP vs E-Prix at
+    // ~33% overlap), where merging all ways produces an incorrect superset geometry.
+    const memberSets = circuitRelations.map(r => new Set(r.members.map(m => m.ref)));
+    const allMemberIds = new Set(memberSets.flatMap(s => [...s]));
+    let sharedCount = 0;
+    for (const id of allMemberIds) {
+      if (memberSets.every(s => s.has(id))) sharedCount++;
+    }
+    const overlapRatio = allMemberIds.size > 0 ? sharedCount / allMemberIds.size : 1;
+    const INDEPENDENT_CIRCUIT_OVERLAP_THRESHOLD = 0.5;
+
+    if (overlapRatio < INDEPENDENT_CIRCUIT_OVERLAP_THRESHOLD) {
+      const wayElementsById = new Map(allElements.filter(e => e.type === 'way').map(e => [e.id, e]));
+      const perRelationResults = circuitRelations
+        .map(relation => {
+          const relationElements = [
+            ...relation.members
+              .filter(m => m.type === 'way' && Array.isArray(m.geometry) && m.geometry.length >= 2)
+              .map(m => ({
+                type: 'way',
+                id: m.ref,
+                tags: wayElementsById.get(m.ref)?.tags ?? {},
+                geometry: m.geometry,
+              })),
+            relation,
+          ];
+          return buildTrackGeometryResult(relationElements, trackName);
+        })
+        .filter(result => result?.layouts?.length > 0);
+
+      if (perRelationResults.length > 0) {
+        const best = perRelationResults.reduce((a, b) =>
+          (b.layouts[0]?.stats?.lengthMetres ?? 0) > (a.layouts[0]?.stats?.lengthMetres ?? 0) ? b : a,
+        );
+        return { ...best, osmVenueNames };
+      }
+    }
   }
 
   const layouts = buildLayoutsFromWays(componentWays, trackName);
