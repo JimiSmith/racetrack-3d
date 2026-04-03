@@ -417,16 +417,8 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
           await writeCachedOsmPayload(track, margin, resolvedResponse, options);
         }
 
-        // Supplement with any relation member ways that fell outside the bbox.
-        // This is needed for temporary street circuits (e.g. Albert Park) whose
-        // circuit relation spans roads beyond the node-limit-safe bbox.
-        const supplementedPayload = await supplementPayloadWithMissingRelationWays(
-          resolvedResponse.payload,
-        );
-
         return {
           ...resolvedResponse,
-          payload: supplementedPayload,
           metadata: {
             ...(resolvedResponse.metadata ?? {}),
             cacheHit: Boolean(cachedResponse),
@@ -453,8 +445,21 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
       },
     });
 
+    // Supplement the chosen response with any relation member ways that fell outside
+    // the bbox (e.g. street circuits like Albert Park whose relation spans roads beyond
+    // the node-limit-safe bbox). This runs once on the selected margin's response rather
+    // than on every adaptive probe — patching the result we intend to keep, not discards.
+    const supplementedPayload = await supplementPayloadWithMissingRelationWays(response.payload);
+    const supplementedGeometryResult = sanitizeBuildGeometryResult(normalizeTrackGeometryResult(
+      buildTrackGeometryFromOverpassPayload(supplementedPayload, track.trackName),
+      track.trackName,
+    ));
+    const geometryResult = (supplementedGeometryResult?.layouts?.length ?? 0) > 0
+      ? supplementedGeometryResult
+      : response.evaluation.geometryResult;
+
     return {
-      geometryResult: response.evaluation.geometryResult,
+      geometryResult,
       metadata: {
         sourceUsed: 'osm-api',
         margin: response.metadata.margin,
