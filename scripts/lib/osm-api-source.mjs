@@ -193,66 +193,15 @@ function parseAttributes(tagSource) {
   return attributes;
 }
 
-function finalizeWay(way, nodeIndex, ways) {
-  if (!way || !Number.isFinite(way.id)) {
-    return;
-  }
-
-  const geometry = way.nodeRefs
-    .map(nodeRef => nodeIndex.get(nodeRef))
-    .filter(node => Number.isFinite(node?.lat) && Number.isFinite(node?.lon));
-
-  if (geometry.length < 2) {
-    return;
-  }
-
-  ways.push({
-    type: 'way',
-    id: way.id,
-    tags: way.tags,
-    geometry,
-  });
-}
-
-function finalizeRelation(relation, wayIndex, relations) {
-  if (!relation || !Number.isFinite(relation.id)) {
-    return;
-  }
-
-  relations.push({
-    type: 'relation',
-    id: relation.id,
-    tags: relation.tags,
-    members: relation.members
-      .filter(member => member.type === 'way')
-      .map(member => ({
-        type: member.type,
-        ref: member.ref,
-        role: member.role,
-        // Keep null geometry so callers can identify ways that fall outside the bbox
-        // and fetch them separately. Downstream consumers guard against null geometry.
-        geometry: wayIndex.get(member.ref)?.geometry ?? null,
-      })),
-  });
-}
-
-export function buildOsmApiMapUrl(lat, lon, margin = DEFAULT_BBOX_MARGIN) {
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    throw new Error('Track coordinates must be finite to query the OSM API');
-  }
-
-  if (!Number.isFinite(margin) || margin <= 0) {
-    throw new Error('OSM API bbox margin must be a positive number');
-  }
-
-  const minLon = lon - margin;
-  const minLat = lat - margin;
-  const maxLon = lon + margin;
-  const maxLat = lat + margin;
-  return `${OSM_API_BASE_URL}?bbox=${minLon},${minLat},${maxLon},${maxLat}`;
-}
-
-export function parseOsmApiMapXml(xmlSource) {
+// Base XML parser shared by parseOsmApiMapXml and parseOsmXmlWayGeometries.
+//
+// Returns:
+//   ways      – [{ id, tags, geometry }]  ways with ≥ 2 resolved node coords
+//   relations – [{ id, tags, members }]   members hydrated from complete way index;
+//               geometry: null for ways that fell outside the bbox
+//               (only populated when includeRelations !== false)
+function parseOsmXmlElements(xmlSource, options = {}) {
+  const includeRelations = options.includeRelations !== false;
   const xml = String(xmlSource ?? '');
   const nodeIndex = new Map();
   const ways = [];
@@ -270,10 +219,23 @@ export function parseOsmApiMapXml(xmlSource) {
     if (tagSource.startsWith('</')) {
       const tagName = tagSource.slice(2, -1).trim();
       if (tagName === 'way') {
-        finalizeWay(currentWay, nodeIndex, ways);
+        if (currentWay && Number.isFinite(currentWay.id)) {
+          const geometry = currentWay.nodeRefs
+            .map(ref => nodeIndex.get(ref))
+            .filter(node => Number.isFinite(node?.lat) && Number.isFinite(node?.lon));
+          if (geometry.length >= 2) {
+            ways.push({ id: currentWay.id, tags: currentWay.tags, geometry });
+          }
+        }
         currentWay = null;
-      } else if (tagName === 'relation') {
-        finalizeRelation(currentRelation, new Map(ways.map(way => [way.id, way])), relations);
+      } else if (tagName === 'relation' && includeRelations) {
+        if (currentRelation && Number.isFinite(currentRelation.id)) {
+          relations.push({
+            id: currentRelation.id,
+            tags: currentRelation.tags,
+            members: currentRelation.members.filter(m => m.type === 'way'),
+          });
+        }
         currentRelation = null;
       }
       continue;
@@ -298,26 +260,19 @@ export function parseOsmApiMapXml(xmlSource) {
     }
 
     if (tagName === 'way') {
-      currentWay = {
-        id: Number(attributes.id),
-        tags: {},
-        nodeRefs: [],
-      };
+      currentWay = { id: Number(attributes.id), tags: {}, nodeRefs: [] };
       if (selfClosing) {
-        finalizeWay(currentWay, nodeIndex, ways);
-        currentWay = null;
+        currentWay = null; // no nodeRefs → geometry impossible; skip
       }
       continue;
     }
 
-    if (tagName === 'relation') {
-      currentRelation = {
-        id: Number(attributes.id),
-        tags: {},
-        members: [],
-      };
+    if (tagName === 'relation' && includeRelations) {
+      currentRelation = { id: Number(attributes.id), tags: {}, members: [] };
       if (selfClosing) {
-        finalizeRelation(currentRelation, new Map(ways.map(way => [way.id, way])), relations);
+        if (Number.isFinite(currentRelation.id)) {
+          relations.push({ id: currentRelation.id, tags: currentRelation.tags, members: [] });
+        }
         currentRelation = null;
       }
       continue;
@@ -333,11 +288,7 @@ export function parseOsmApiMapXml(xmlSource) {
 
     if (tagName === 'member' && currentRelation) {
       const ref = Number(attributes.ref);
-      currentRelation.members.push({
-        type: attributes.type,
-        ref,
-        role: attributes.role ?? '',
-      });
+      currentRelation.members.push({ type: attributes.type, ref, role: attributes.role ?? '' });
       continue;
     }
 
@@ -347,7 +298,6 @@ export function parseOsmApiMapXml(xmlSource) {
       if (!key) {
         continue;
       }
-
       if (currentWay) {
         currentWay.tags[key] = value;
       } else if (currentRelation) {
@@ -356,17 +306,46 @@ export function parseOsmApiMapXml(xmlSource) {
     }
   }
 
+  if (!includeRelations) {
+    return { ways, relations: [] };
+  }
+
+  // Hydrate relation member geometries from the complete way index. A second pass is
+  // needed because ways may appear after their referencing relation in the XML stream.
   const wayIndex = new Map(ways.map(way => [way.id, way]));
-  // Members with no geometry (out-of-bbox ways) are kept with geometry: null so
-  // that supplementPayloadWithMissingRelationWays can detect and fetch them.
   const hydratedRelations = relations.map(relation => ({
     ...relation,
     members: relation.members.map(member => ({
       ...member,
+      // Keep null geometry so callers can identify ways that fall outside the bbox
+      // and fetch them separately. Downstream consumers guard against null geometry.
       geometry: wayIndex.get(member.ref)?.geometry ?? null,
     })),
   }));
-  const relevantRelations = hydratedRelations.filter(relation => {
+
+  return { ways, relations: hydratedRelations };
+}
+
+export function buildOsmApiMapUrl(lat, lon, margin = DEFAULT_BBOX_MARGIN) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    throw new Error('Track coordinates must be finite to query the OSM API');
+  }
+
+  if (!Number.isFinite(margin) || margin <= 0) {
+    throw new Error('OSM API bbox margin must be a positive number');
+  }
+
+  const minLon = lon - margin;
+  const minLat = lat - margin;
+  const maxLon = lon + margin;
+  const maxLat = lat + margin;
+  return `${OSM_API_BASE_URL}?bbox=${minLon},${minLat},${maxLon},${maxLat}`;
+}
+
+export function parseOsmApiMapXml(xmlSource) {
+  const { ways, relations } = parseOsmXmlElements(xmlSource, { includeRelations: true });
+
+  const relevantRelations = relations.filter(relation => {
     const highway = String(relation.tags?.highway ?? '').trim().toLowerCase();
     const type = String(relation.tags?.type ?? '').trim().toLowerCase();
     const route = String(relation.tags?.route ?? '').trim().toLowerCase();
@@ -384,60 +363,18 @@ export function parseOsmApiMapXml(xmlSource) {
   return {
     version: 0.6,
     generator: 'osm-api-map',
-    elements: [...relevantWays, ...relevantRelations],
+    elements: [
+      ...relevantWays.map(way => ({ type: 'way', ...way })),
+      ...relevantRelations.map(relation => ({ type: 'relation', ...relation })),
+    ],
   };
 }
 
 // Parses a combined nodes+ways OSM XML string and returns a Map<wayId, geometry>.
 // Used to resolve geometries for ways that were outside the original bbox query.
 function parseOsmXmlWayGeometries(xmlSource) {
-  const xml = String(xmlSource ?? '');
-  const nodeIndex = new Map();
-  let currentWay = null;
-  const geometries = new Map();
-
-  for (const match of xml.matchAll(/<[^>]+>/g)) {
-    const src = match[0];
-
-    if (src.startsWith('<?') || src.startsWith('<!--') || src.startsWith('<!DOCTYPE')) {
-      continue;
-    }
-
-    if (src.startsWith('</')) {
-      const tagName = src.slice(2, -1).trim();
-      if (tagName === 'way' && currentWay && Number.isFinite(currentWay.id)) {
-        const geometry = currentWay.ndRefs
-          .map(ref => nodeIndex.get(ref))
-          .filter(node => Number.isFinite(node?.lat) && Number.isFinite(node?.lon));
-        if (geometry.length >= 2) {
-          geometries.set(currentWay.id, geometry);
-        }
-        currentWay = null;
-      }
-      continue;
-    }
-
-    const attrs = parseAttributes(src);
-    const tagName = src.match(/^<\s*([^\s/>]+)/)?.[1];
-
-    if (tagName === 'node') {
-      const id = Number(attrs.id);
-      const lat = Number(attrs.lat);
-      const lon = Number(attrs.lon);
-      if (Number.isFinite(id) && Number.isFinite(lat) && Number.isFinite(lon)) {
-        nodeIndex.set(id, { lat, lon });
-      }
-    } else if (tagName === 'way') {
-      currentWay = { id: Number(attrs.id), ndRefs: [] };
-    } else if (tagName === 'nd' && currentWay) {
-      const ref = Number(attrs.ref);
-      if (Number.isFinite(ref)) {
-        currentWay.ndRefs.push(ref);
-      }
-    }
-  }
-
-  return geometries;
+  const { ways } = parseOsmXmlElements(xmlSource, { includeRelations: false });
+  return new Map(ways.map(way => [way.id, way.geometry]));
 }
 
 // Parses all way member refs from a single relation XML element.
