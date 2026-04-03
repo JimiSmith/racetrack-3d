@@ -535,7 +535,7 @@ function namesLikelyMatchCircuit(candidateName, trackName) {
     || trackKey.includes(candidateKey);
 }
 
-const NAMED_LAYOUT_KEYWORD_PATTERN = /\b(circuit|layout|oval|grand[\s_-]*prix|indy|national|endurance|inner|outer|short)\b/i;
+const NAMED_LAYOUT_KEYWORD_PATTERN = /\b(circuit|course|layout|oval|grand[\s_-]*prix|indy|national|endurance|inner|outer|short)\b/i;
 
 function getWayCandidateNameEntries(way) {
   const entries = [];

@@ -3,7 +3,7 @@
   "name": "Road Atlanta",
   "source": {
     "kind": "osm-prebuilt",
-    "generatedAt": "2026-04-01T14:20:55.248Z",
+    "generatedAt": "2026-04-03T08:26:24.564Z",
     "osmQueryVersion": 1,
     "buildSource": "osm-api"
   },
@@ -21,8 +21,8 @@
   },
   "layouts": [
     {
-      "id": "main",
-      "name": "Main",
+      "id": "grand-prix-circuit",
+      "name": "Grand Prix Circuit",
       "nodes": [
         {
           "lat": 34.1433726,

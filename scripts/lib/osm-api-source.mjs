@@ -368,7 +368,8 @@ export function parseOsmApiMapXml(xmlSource) {
   const relevantRelations = hydratedRelations.filter(relation => {
     const highway = String(relation.tags?.highway ?? '').trim().toLowerCase();
     const type = String(relation.tags?.type ?? '').trim().toLowerCase();
-    return highway === 'raceway' || type === 'circuit';
+    const circuit = String(relation.tags?.circuit ?? '').trim().toLowerCase();
+    return (highway === 'raceway' || type === 'circuit') && circuit !== 'kart';
   });
   const relevantWayIds = new Set([
     ...ways

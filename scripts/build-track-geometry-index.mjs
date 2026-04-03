@@ -54,6 +54,27 @@ const TRACK_BUILD_OVERRIDES = new Map([
     osmApiMargins: [0.02, 0.04, 0.08],
     expectedLayoutNames: ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit'],
   }],
+  ['Q964148', {
+    key: 'road-atlanta',
+    manualLayoutWays: [
+      { name: 'Grand Prix Circuit', wayIds: [9292566, 1360423184, 1360423185] },
+    ],
+  }],
+  ['Q847633', {
+    key: 'virginia-international-raceway',
+    manualLayoutWays: [
+      {
+        name: 'Full Course',
+        wayIds: [
+          20293988, 1315957517, 1315957518, 1315957519, 1315957520,
+          1315957521, 1315957522, 1315957523, 1315957524, 1315957525,
+          1315957526, 1315957527, 1315957528, 91012202, 1315957529,
+          1315957530, 1315957516,
+        ],
+      },
+      { name: 'Patriot Course', wayIds: [20299611, 1315957535] },
+    ],
+  }],
 ]);
 
 export const SUPPORTED_TRACKS = trackSearchIndex
@@ -82,6 +103,59 @@ function slugify(value) {
 function parseNumber(value, fallback) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function measurePolylineLengthLocal(nodes) {
+  let length = 0;
+
+  for (let i = 1; i < nodes.length; i += 1) {
+    const prev = nodes[i - 1];
+    const next = nodes[i];
+    const avgLat = ((prev.lat + next.lat) / 2) * Math.PI / 180;
+    const dx = (next.lon - prev.lon) * Math.cos(avgLat) * 111320;
+    const dy = (next.lat - prev.lat) * 111320;
+    length += Math.hypot(dx, dy);
+  }
+
+  return length;
+}
+
+const MANUAL_WAY_SNAP_TOLERANCE = 1e-5;
+
+function chainManualWays(ways, contextLabel) {
+  if (ways.length === 0) {
+    throw new Error(`${contextLabel}: no ways provided to chain`);
+  }
+
+  let nodes = [...ways[0].nodes];
+
+  for (let i = 1; i < ways.length; i += 1) {
+    const way = ways[i];
+    const chainEnd = nodes[nodes.length - 1];
+    const wayStart = way.nodes[0];
+    const wayEnd = way.nodes[way.nodes.length - 1];
+
+    const dFLat = chainEnd.lat - wayStart.lat;
+    const dFLon = chainEnd.lon - wayStart.lon;
+    const forwardDist = Math.sqrt(dFLat * dFLat + dFLon * dFLon);
+
+    const dRLat = chainEnd.lat - wayEnd.lat;
+    const dRLon = chainEnd.lon - wayEnd.lon;
+    const reverseDist = Math.sqrt(dRLat * dRLat + dRLon * dRLon);
+
+    if (forwardDist <= MANUAL_WAY_SNAP_TOLERANCE) {
+      nodes = [...nodes, ...way.nodes.slice(1)];
+    } else if (reverseDist <= MANUAL_WAY_SNAP_TOLERANCE) {
+      nodes = [...nodes, ...[...way.nodes].reverse().slice(1)];
+    } else {
+      throw new Error(
+        `${contextLabel}: way ${way.id} does not connect to the previous way endpoint ` +
+        `(forward gap: ${forwardDist.toFixed(6)}, reverse gap: ${reverseDist.toFixed(6)})`,
+      );
+    }
+  }
+
+  return nodes;
 }
 
 function buildDefaultOsmApiMargins(track) {
@@ -369,6 +443,109 @@ async function fetchFallbackGeometryFromOverpass(track) {
   ));
 }
 
+async function buildGeometryFromManualWayIds(track, options) {
+  const { manualLayoutWays } = track;
+  const requiredWayIds = [...new Set(manualLayoutWays.flatMap(layout => layout.wayIds))];
+  const margins = Array.isArray(track.osmApiMargins) && track.osmApiMargins.length > 0
+    ? track.osmApiMargins
+    : buildDefaultOsmApiMargins(track);
+
+  let resolvedPayload = null;
+  let resolvedMargin = null;
+  let resolvedCacheHit = false;
+  let lastError = null;
+
+  for (const margin of margins) {
+    let response;
+    let cacheHit = false;
+
+    try {
+      const cachedResponse = await readCachedOsmPayload(track, margin, options);
+      cacheHit = Boolean(cachedResponse);
+      response = cachedResponse ?? await fetchOsmApiMapPayload(track.lat, track.lon, { margin });
+      if (!cachedResponse) {
+        await writeCachedOsmPayload(track, margin, response, options);
+      }
+    } catch (error) {
+      lastError = error;
+      continue;
+    }
+
+    const foundIds = new Set(
+      (response.payload?.elements ?? [])
+        .filter(e => e.type === 'way' && Number.isFinite(e.id))
+        .map(e => e.id),
+    );
+    const missingIds = requiredWayIds.filter(id => !foundIds.has(id));
+
+    if (missingIds.length === 0) {
+      resolvedPayload = response.payload;
+      resolvedMargin = margin;
+      resolvedCacheHit = cacheHit;
+      break;
+    }
+
+    lastError = new Error(`margin ${margin}: missing way IDs ${missingIds.join(', ')}`);
+  }
+
+  if (!resolvedPayload) {
+    const message = lastError instanceof Error ? lastError.message : String(lastError);
+    throw new Error(`${track.trackName}: could not find all manual way IDs in OSM API data (${message})`);
+  }
+
+  const wayIndex = new Map(
+    (resolvedPayload.elements ?? [])
+      .filter(e => e.type === 'way' && Number.isFinite(e.id))
+      .map(e => [e.id, e]),
+  );
+
+  const layouts = manualLayoutWays.map(layoutDef => {
+    const ways = layoutDef.wayIds.map(id => {
+      const element = wayIndex.get(id);
+      if (!element || !Array.isArray(element.geometry) || element.geometry.length < 2) {
+        throw new Error(`${track.trackName}: way ID ${id} not found or has no geometry`);
+      }
+
+      return {
+        id: element.id,
+        nodes: element.geometry.map(({ lat, lon }) => ({ lat, lon })),
+      };
+    });
+
+    const contextLabel = `${track.trackName} / ${layoutDef.name}`;
+    const nodes = chainManualWays(ways, contextLabel);
+    return {
+      name: layoutDef.name,
+      nodes,
+      stats: {
+        lengthMetres: measurePolylineLengthLocal(nodes),
+        segmentCount: ways.length,
+        variantSectionCount: 0,
+      },
+    };
+  });
+
+  const usedWayIds = new Set(manualLayoutWays.flatMap(l => l.wayIds));
+  const osmVenueNames = [...new Set(
+    (resolvedPayload.elements ?? [])
+      .filter(e => e.type === 'way' && usedWayIds.has(e.id) && e.tags?.name)
+      .map(e => e.tags.name),
+  )].sort((a, b) => a.localeCompare(b));
+
+  return {
+    geometryResult: {
+      layouts,
+      selectedLayoutIndex: 0,
+      osmVenueNames,
+    },
+    metadata: {
+      sourceUsed: 'osm-api',
+      margin: resolvedMargin,
+      cacheHit: resolvedCacheHit,
+    },
+  };
+}
+
 function validateNode(node, trackName, layoutName, nodeIndex) {
   if (!node || !Number.isFinite(node.lat) || !Number.isFinite(node.lon)) {
     throw new Error(`${trackName} / ${layoutName}: node ${nodeIndex} has invalid coordinates`);
@@ -650,7 +827,14 @@ export async function main(argv = process.argv.slice(2)) {
       let sourceUsed = options.source;
       let sourceDetails = '';
 
-      if (options.source === 'overpass') {
+      if (Array.isArray(track.manualLayoutWays) && track.manualLayoutWays.length > 0) {
+        const manualResult = await buildGeometryFromManualWayIds(track, options);
+        geometryResult = manualResult.geometryResult;
+        sourceUsed = manualResult.metadata.sourceUsed;
+        validateGeometryResultForTrack(track, geometryResult);
+        const cacheLabel = manualResult.metadata.cacheHit ? 'cache' : 'live';
+        sourceDetails = `osm-api manual-ways margin=${manualResult.metadata.margin} ${cacheLabel}`;
+      } else if (options.source === 'overpass') {
         geometryResult = await fetchFallbackGeometryFromOverpass(track);
         geometryResult = applyStableLayoutNames(track, geometryResult);
         validateGeometryResultForTrack(track, geometryResult);
