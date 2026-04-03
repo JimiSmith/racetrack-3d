@@ -683,6 +683,13 @@ export function sanitizeBuildGeometryResult(geometryResult) {
   };
 }
 
+function finalizeGeometryResult(track, rawResult) {
+  const sanitized = sanitizeBuildGeometryResult(rawResult);
+  const renamed = applyStableLayoutNames(track, sanitized);
+  validateGeometryResultForTrack(track, renamed);
+  return renamed;
+}
+
 function buildStableLayoutIds(layouts) {
   const counts = new Map();
 
@@ -868,15 +875,12 @@ export async function main(argv = process.argv.slice(2)) {
 
       if (Array.isArray(track.manualLayoutWays) && track.manualLayoutWays.length > 0) {
         const manualResult = await buildGeometryFromManualWayIds(track, options);
-        geometryResult = manualResult.geometryResult;
+        geometryResult = finalizeGeometryResult(track, manualResult.geometryResult);
         sourceUsed = manualResult.metadata.sourceUsed;
-        validateGeometryResultForTrack(track, geometryResult);
         const cacheLabel = manualResult.metadata.cacheHit ? 'cache' : 'live';
         sourceDetails = `osm-api manual-ways margin=${manualResult.metadata.margin} ${cacheLabel}`;
       } else if (options.source === 'overpass') {
-        geometryResult = await fetchFallbackGeometryFromOverpass(track);
-        geometryResult = applyStableLayoutNames(track, geometryResult);
-        validateGeometryResultForTrack(track, geometryResult);
+        geometryResult = finalizeGeometryResult(track, await fetchFallbackGeometryFromOverpass(track));
         report.flaggedForManualReview.push({
           wikidataId: track.wikidataId,
           name: track.trackName,
@@ -886,8 +890,7 @@ export async function main(argv = process.argv.slice(2)) {
       } else {
         try {
           const primaryResult = await fetchPrimaryGeometryFromOsmApi(track, options);
-          geometryResult = applyStableLayoutNames(track, primaryResult.geometryResult);
-          validateGeometryResultForTrack(track, geometryResult);
+          geometryResult = finalizeGeometryResult(track, primaryResult.geometryResult);
           sourceUsed = primaryResult.metadata.sourceUsed;
           sourceDetails = primaryResult.metadata.cacheHit
             ? `osm-api cache margin=${primaryResult.metadata.margin}`
@@ -913,9 +916,7 @@ export async function main(argv = process.argv.slice(2)) {
 
           if (options.allowOverpassFallback) {
             try {
-              geometryResult = await fetchFallbackGeometryFromOverpass(track);
-              geometryResult = applyStableLayoutNames(track, geometryResult);
-              validateGeometryResultForTrack(track, geometryResult);
+              geometryResult = finalizeGeometryResult(track, await fetchFallbackGeometryFromOverpass(track));
               sourceUsed = 'overpass-fallback';
               sourceDetails = 'overpass fallback';
               report.flaggedForManualReview.push({
