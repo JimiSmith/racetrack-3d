@@ -486,27 +486,33 @@ test('buildTrackModel rotates geometry bounds in 90 degree increments', () => {
   assert.equal(model270.orientationDeg, 270);
 });
 
-test('buildTrackModel reruns text placement when primary orientation changes', () => {
+test('buildTrackModel caches text placement per orientation', () => {
   const outlinePoints = offsetHoleOutline();
   const basePlate = buildBasePlate(outlinePoints, 50);
+  const token = {};
 
-  const model0 = buildTrackModel({ outlinePoints, basePlate, trackName: 'DAYTONA ROAD COURSE', orientationDeg: 0, textPositionRank: 3 });
-  const model90 = buildTrackModel({ outlinePoints, basePlate, trackName: 'DAYTONA ROAD COURSE', orientationDeg: 90, textPositionRank: 3 });
-
-  const bounds0 = triangleBounds(textTriangles(model0));
-  const bounds90 = triangleBounds(textTriangles(model90));
-  const derotatedBounds90 = triangleBounds(rotateTrianglesByOrientation(textTriangles(model90), 270));
+  // Different orientations still produce different placements (algorithm runs independently per orientation)
+  const model0 = buildTrackModel({ outlinePoints, basePlate, trackName: 'DAYTONA ROAD COURSE', orientationDeg: 0, textPositionRank: 1, placementCacheToken: token });
+  const model90 = buildTrackModel({ outlinePoints, basePlate, trackName: 'DAYTONA ROAD COURSE', orientationDeg: 90, textPositionRank: 1, placementCacheToken: token });
 
   assert.ok(model0.textTriangleCount > 0);
   assert.ok(model90.textTriangleCount > 0);
-  assert.notDeepEqual(bounds0, bounds90);
+
+  const bounds0 = textBounds(model0);
+  const derotatedBounds90 = triangleBounds(rotateTrianglesByOrientation(textTriangles(model90), 270));
+
+  // Placement is computed independently per orientation — not just a rotation of each other
   assert.ok(
     Math.abs(bounds0.minX - derotatedBounds90.minX) > 1
       || Math.abs(bounds0.maxX - derotatedBounds90.maxX) > 1
       || Math.abs(bounds0.minY - derotatedBounds90.minY) > 1
       || Math.abs(bounds0.maxY - derotatedBounds90.maxY) > 1,
-    'expected text placement to be recomputed instead of only rotating the final mesh',
+    'expected text placement to differ between orientations (each computed on the correct oriented geometry)',
   );
+
+  // Same token + same orientation + different rank: uses cached ranked placements, selects from them
+  const model0_rank2 = buildTrackModel({ outlinePoints, basePlate, trackName: 'DAYTONA ROAD COURSE', orientationDeg: 0, textPositionRank: 2, placementCacheToken: token });
+  assert.ok(model0_rank2.textTriangleCount > 0, 'expected rank 2 cache hit to produce text triangles');
 });
 
 test('buildTrackModel auto orientation rotates the model for portrait tracks and uses fixed text', () => {

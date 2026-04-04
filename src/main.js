@@ -65,11 +65,16 @@ let currentOsmVenueNames = [];
 let currentPrimaryOrientationDeg = normalizePrimaryOrientationDeg(orientationSelect?.value);
 let currentTextPositionRank = normalizeTextPositionRank(textPositionSelect?.value ?? DEFAULT_TEXT_POSITION_RANK);
 let currentLabelOverride = null;
+let currentPlacementCacheToken = null;
 let isGeneratingStl = false;
 let isGenerating3mf = false;
 let isTrackSummaryExpanded = true;
 
 const mobileSummaryMedia = window.matchMedia('(max-width: 699px)');
+
+function invalidatePlacementCache() {
+  currentPlacementCacheToken = {};
+}
 
 function setStatus(msg, isError = false) {
   status.textContent = msg;
@@ -276,6 +281,7 @@ function buildSelectedLayoutModel(elevations = currentElevations) {
     projectedNodes: projected,
     primaryOrientationDeg: currentPrimaryOrientationDeg,
     textPositionRank: currentTextPositionRank,
+    placementCacheToken: currentPlacementCacheToken,
   });
 
   currentNodes = layout.nodes;
@@ -346,6 +352,7 @@ async function handleSelect(track) {
     currentLayoutIndex = normalizeSelectedLayoutIndex(currentLayouts, geometry.selectedLayoutIndex ?? 0);
     currentOsmVenueNames = geometry.osmVenueNames ?? [];
     updateLayoutSelector();
+    invalidatePlacementCache();
     buildSelectedLayoutModel();
 
     const exaggeration = Number(exaggerationSlider.value);
@@ -494,6 +501,7 @@ layoutSelect.addEventListener('change', async () => {
 
   currentLayoutIndex = normalizeSelectedLayoutIndex(currentLayouts, nextIndex);
   currentElevations = null;
+  invalidatePlacementCache();
   buildSelectedLayoutModel();
   exaggerationWrap.hidden = true;
 
@@ -533,6 +541,7 @@ summaryLabelInput?.addEventListener('input', () => {
     return;
   }
 
+  invalidatePlacementCache();
   buildSelectedLayoutModel();
 });
 
@@ -547,6 +556,7 @@ summaryLabelReset?.addEventListener('click', () => {
     return;
   }
 
+  invalidatePlacementCache();
   buildSelectedLayoutModel();
 });
 

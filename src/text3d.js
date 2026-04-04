@@ -1468,3 +1468,75 @@ export function buildTextMesh(text, outlinePoints, basePlate, scale, options = {
 
   return shapes.flatMap(shape => triangulateShape(shape, minZ, maxZ));
 }
+
+export function computeRankedTextPlacements(text, outlinePoints, basePlate, scale, options = {}) {
+  const normalizedText = String(text ?? '').trim();
+  if (!normalizedText) {
+    return null;
+  }
+
+  const font = getLabelFont(options.font ?? null);
+  const scaledOutline = scaleOutline(outlinePoints, scale);
+  const scaledBasePlate = createScaledBounds(basePlate, scale);
+  const placementMask = computePlacementMask(scaledOutline, scaledBasePlate);
+  const { candidates, distanceMap, maxTrackClearance } = findPlacementCandidates(scaledBasePlate, placementMask);
+  if (!candidates.length) {
+    return null;
+  }
+
+  const clearanceContext = {
+    distanceMap,
+    maxTrackClearance,
+    cellWidth: placementMask.cellWidth,
+    cellHeight: placementMask.cellHeight,
+    originX: scaledBasePlate.minX,
+    originY: scaledBasePlate.minY,
+  };
+  const orientationResults = rankTextPlacements(
+    normalizedText,
+    font,
+    candidates,
+    options.textOrientationMode,
+    clearanceContext,
+  );
+  if (!orientationResults.length) {
+    return null;
+  }
+
+  return { orientationResults, clearanceContext, candidates, scaledBasePlate };
+}
+
+export function buildTextMeshFromRankedPlacements(rankedResult, options = {}) {
+  if (!rankedResult?.orientationResults?.length) {
+    return [];
+  }
+
+  const { orientationResults } = rankedResult;
+
+  let chosenOrientation;
+  if (normalizeTextOrientationMode(options.textOrientationMode) === TEXT_ORIENTATION_FIXED) {
+    chosenOrientation = orientationResults.find(o => o.rotation === 0) ?? orientationResults[0];
+  } else {
+    chosenOrientation = orientationResults[0];
+  }
+
+  if (!chosenOrientation?.placements?.length) {
+    return [];
+  }
+
+  const placementRank = Math.min(
+    normalizeTextPositionRank(options.textPositionRank) - 1,
+    chosenOrientation.placements.length - 1,
+  );
+  const selected = chosenOrientation.placements[placementRank];
+  const { candidate, layout } = selected;
+  const offsetX = candidate.bounds.minX + (candidate.bounds.width - layout.fittedWidth) / 2 - layout.bounds.minX * layout.scale;
+  const offsetY = candidate.bounds.minY + (candidate.bounds.height - layout.fittedHeight) / 2 - layout.bounds.minY * layout.scale;
+  const contours = translateAndScaleContours(layout.contours, layout.scale, offsetX, offsetY);
+
+  const shapes = collectShapes(buildContourTree(contours));
+  const minZ = options.baseThickness ?? 8;
+  const maxZ = minZ + (options.textHeight ?? TEXT_HEIGHT_MM);
+
+  return shapes.flatMap(shape => triangulateShape(shape, minZ, maxZ));
+}

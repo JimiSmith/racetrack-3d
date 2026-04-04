@@ -6,11 +6,16 @@ import { rotateOutlineByOrientation, rotatePointsByOrientation } from './orienta
 import {
   __debugTextPlacement,
   buildTextMesh,
+  buildTextMeshFromRankedPlacements,
+  computeRankedTextPlacements,
   DEFAULT_TEXT_POSITION_RANK,
   normalizeTextPositionRank,
+  TEXT_HEIGHT_MM,
   TEXT_ORIENTATION_AUTO,
   TEXT_ORIENTATION_FIXED,
 } from './text3d.js';
+
+let textPlacementCache = { token: null, byOrientation: new Map() };
 
 export const BASE_THICKNESS_MM = 2.5;
 const BASE_CORNER_RADIUS_MM = 3;
@@ -556,6 +561,7 @@ export function buildTrackModel({
   orientationDeg = undefined,
   textOrientationMode = undefined,
   textPositionRank = DEFAULT_TEXT_POSITION_RANK,
+  placementCacheToken = null,
 }) {
   const normalizedPrimaryOrientationDeg = normalizePrimaryOrientationDeg(
     primaryOrientationDeg === undefined
@@ -578,13 +584,36 @@ export function buildTrackModel({
   const scale = computeScale(orientedGeometry.basePlate);
   const basePlateTriangles = buildBasePlateMesh(orientedGeometry.basePlate, scale);
   const trackTriangles = buildTrackPrismMesh(orientedGeometry.outlinePoints, scale, orientedGeometry.projectedNodes);
-  const textTriangles = trackName
-    ? buildTextMesh(trackName, orientedGeometry.outlinePoints, orientedGeometry.basePlate, scale, {
-      baseThickness: BASE_THICKNESS_MM,
-      textPositionRank: resolvedTextPositionRank,
-      textOrientationMode: resolvedTextOrientationMode,
-    })
-    : [];
+
+  let rankedPlacements = null;
+  const normalizedTrackName = String(trackName ?? '').trim();
+  if (normalizedTrackName) {
+    if (placementCacheToken !== null && placementCacheToken === textPlacementCache.token) {
+      rankedPlacements = textPlacementCache.byOrientation.get(resolvedOrientationDeg) ?? null;
+    } else if (placementCacheToken !== null) {
+      textPlacementCache = { token: placementCacheToken, byOrientation: new Map() };
+    }
+
+    if (!rankedPlacements) {
+      rankedPlacements = computeRankedTextPlacements(
+        normalizedTrackName,
+        orientedGeometry.outlinePoints,
+        orientedGeometry.basePlate,
+        scale,
+        { textOrientationMode: resolvedTextOrientationMode },
+      );
+      if (placementCacheToken !== null) {
+        textPlacementCache.byOrientation.set(resolvedOrientationDeg, rankedPlacements);
+      }
+    }
+  }
+
+  const textTriangles = buildTextMeshFromRankedPlacements(rankedPlacements, {
+    textPositionRank: resolvedTextPositionRank,
+    textOrientationMode: resolvedTextOrientationMode,
+    baseThickness: BASE_THICKNESS_MM,
+    textHeight: TEXT_HEIGHT_MM,
+  });
 
   return {
     triangles: [...basePlateTriangles, ...trackTriangles, ...textTriangles],
