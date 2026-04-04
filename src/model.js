@@ -4,7 +4,6 @@ import { buildBasePlate, buildTrackOutline } from './geometry.js';
 import { PRIMARY_ORIENTATION_AUTO, normalizeOrientationDeg, normalizePrimaryOrientationDeg } from './orientation.js';
 import { rotateOutlineByOrientation, rotatePointsByOrientation } from './orientation.js';
 import {
-  __debugTextPlacement,
   buildTextMesh,
   buildTextMeshFromRankedPlacements,
   computeRankedTextPlacements,
@@ -489,24 +488,31 @@ function buildTrackPrismMesh(outline, scale, projectedNodes = null) {
   return triangles;
 }
 
-function computeAutoOrientationDeg(outlinePoints, basePlate, projectedNodes = null, trackName = null) {
+// Selects the best auto orientation and returns the ranked text placements for all 4 candidate
+// orientations so that buildTrackModel can cache all of them in one pass.
+// Returns { deg, placements: Map<deg, rankedResult|null> | null }
+// placements is null when trackName is empty (scoring used 'CIRCUIT' placeholder — not cacheable).
+function selectAutoOrientation(outlinePoints, basePlate, projectedNodes, trackName) {
   // Build an outline we can use for all candidates.
   // projectedNodes takes priority — same logic as orientTrackGeometry.
   const baseOutline = projectedNodes?.length
     ? buildTrackOutline(projectedNodes)
     : outlinePoints;
   const bp = basePlate ?? (baseOutline ? buildBasePlate(baseOutline) : null);
-  if (!bp) return 0;
+  if (!bp) return { deg: 0, placements: null };
 
   const LANDSCAPE_BONUS = 1000;
   const TEXT_BOTTOM_BONUS = 100;
   const CANDIDATES = [0, 90, 180, 270];
 
   // Scoring text label: use the provided name or a short placeholder for geometry-only scoring.
-  const scoringText = trackName ? String(trackName).trim() : 'CIRCUIT';
+  const normalizedTrackName = String(trackName ?? '').trim();
+  const scoringText = normalizedTrackName || 'CIRCUIT';
+  const resultsAreCacheable = Boolean(normalizedTrackName);
 
   let bestDeg = 0;
   let bestScore = -Infinity;
+  const placementsMap = resultsAreCacheable ? new Map() : null;
 
   for (const deg of CANDIDATES) {
     // Rotate projected nodes when available, otherwise rotate outline directly.
@@ -523,23 +529,35 @@ function computeAutoOrientationDeg(outlinePoints, basePlate, projectedNodes = nu
     }
 
     // Text-bottom bonus: text centroid Y should be in the lower half of the base plate.
+    // We use computeRankedTextPlacements so the results can also be cached for later use.
     try {
       const scale = computeScale(rotatedBp);
-      const placement = __debugTextPlacement(scoringText, rotatedOutline, rotatedBp, scale, {
+      const ranked = computeRankedTextPlacements(scoringText, rotatedOutline, rotatedBp, scale, {
         textOrientationMode: TEXT_ORIENTATION_FIXED,
       });
-      if (placement?.lineBounds?.length) {
-        const textCentroidY = placement.lineBounds.reduce(
-          (sum, b) => sum + (b.minY + b.maxY) / 2,
-          0,
-        ) / placement.lineBounds.length;
-        const scaledBpCenterY = (rotatedBp.minY + rotatedBp.maxY) / 2 * scale;
-        if (textCentroidY < scaledBpCenterY) {
-          score += TEXT_BOTTOM_BONUS;
+      placementsMap?.set(deg, ranked);
+      if (ranked) {
+        const chosenOrientation = ranked.orientationResults.find(o => o.rotation === 0)
+          ?? ranked.orientationResults[0];
+        const best = chosenOrientation?.placements[0];
+        if (best?.layout?.lineBounds?.length) {
+          const { candidate, layout } = best;
+          const offsetY = candidate.bounds.minY
+            + (candidate.bounds.height - layout.fittedHeight) / 2
+            - layout.bounds.minY * layout.scale;
+          const textCentroidY = layout.lineBounds.reduce(
+            (sum, b) => sum + (b.minY * layout.scale + offsetY + b.maxY * layout.scale + offsetY) / 2,
+            0,
+          ) / layout.lineBounds.length;
+          const scaledBpCenterY = (rotatedBp.minY + rotatedBp.maxY) / 2 * scale;
+          if (textCentroidY < scaledBpCenterY) {
+            score += TEXT_BOTTOM_BONUS;
+          }
         }
       }
     } catch {
       // Text placement scoring is best-effort; skip bonus on failure.
+      placementsMap?.set(deg, null);
     }
 
     // Stable tiebreak: prefer smaller degree value.
@@ -549,7 +567,7 @@ function computeAutoOrientationDeg(outlinePoints, basePlate, projectedNodes = nu
     }
   }
 
-  return bestDeg;
+  return { deg: bestDeg, placements: placementsMap };
 }
 
 export function buildTrackModel({
@@ -568,13 +586,32 @@ export function buildTrackModel({
       ? (orientationDeg === undefined ? PRIMARY_ORIENTATION_AUTO : orientationDeg)
       : primaryOrientationDeg,
   );
-  const cacheTokenMatches = placementCacheToken !== null && placementCacheToken === textPlacementCache.token;
+
+  // Reset the cache upfront if the token has changed, so all subsequent reads see a clean slate.
+  if (placementCacheToken !== null && placementCacheToken !== textPlacementCache.token) {
+    textPlacementCache = { token: placementCacheToken, byOrientation: new Map(), resolvedAutoDeg: null };
+  }
+  const cacheActive = placementCacheToken !== null;
 
   let resolvedOrientationDeg;
   if (normalizedPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO) {
-    resolvedOrientationDeg = (cacheTokenMatches && textPlacementCache.resolvedAutoDeg !== null)
-      ? textPlacementCache.resolvedAutoDeg
-      : computeAutoOrientationDeg(outlinePoints, basePlate, projectedNodes, trackName);
+    if (cacheActive && textPlacementCache.resolvedAutoDeg !== null) {
+      // Auto-orientation already computed and cached — use it directly.
+      resolvedOrientationDeg = textPlacementCache.resolvedAutoDeg;
+    } else {
+      // Compute auto orientation. This also runs text placement for all 4 candidate orientations,
+      // so we pre-populate the cache with all of them in one pass.
+      const autoResult = selectAutoOrientation(outlinePoints, basePlate, projectedNodes, trackName);
+      resolvedOrientationDeg = autoResult.deg;
+      if (cacheActive) {
+        textPlacementCache.resolvedAutoDeg = resolvedOrientationDeg;
+        if (autoResult.placements) {
+          for (const [deg, ranked] of autoResult.placements) {
+            textPlacementCache.byOrientation.set(deg, ranked);
+          }
+        }
+      }
+    }
   } else {
     resolvedOrientationDeg = normalizedPrimaryOrientationDeg;
   }
@@ -596,19 +633,9 @@ export function buildTrackModel({
   let rankedPlacements = null;
   const normalizedTrackName = String(trackName ?? '').trim();
   if (normalizedTrackName) {
-    if (cacheTokenMatches) {
-      rankedPlacements = textPlacementCache.byOrientation.get(resolvedOrientationDeg) ?? null;
-      // Persist auto-deg on first auto-mode visit (may not have been stored yet)
-      if (normalizedPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO && textPlacementCache.resolvedAutoDeg === null) {
-        textPlacementCache.resolvedAutoDeg = resolvedOrientationDeg;
-      }
-    } else if (placementCacheToken !== null) {
-      textPlacementCache = {
-        token: placementCacheToken,
-        byOrientation: new Map(),
-        resolvedAutoDeg: normalizedPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO ? resolvedOrientationDeg : null,
-      };
-    }
+    rankedPlacements = cacheActive
+      ? textPlacementCache.byOrientation.get(resolvedOrientationDeg) ?? null
+      : null;
 
     if (!rankedPlacements) {
       rankedPlacements = computeRankedTextPlacements(
@@ -618,11 +645,8 @@ export function buildTrackModel({
         scale,
         { textOrientationMode: resolvedTextOrientationMode },
       );
-      if (placementCacheToken !== null) {
+      if (cacheActive) {
         textPlacementCache.byOrientation.set(resolvedOrientationDeg, rankedPlacements);
-        if (normalizedPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO && textPlacementCache.resolvedAutoDeg === null) {
-          textPlacementCache.resolvedAutoDeg = resolvedOrientationDeg;
-        }
       }
     }
   }
