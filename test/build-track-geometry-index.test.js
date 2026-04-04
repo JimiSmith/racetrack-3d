@@ -10,6 +10,7 @@ import {
   partitionTracksByStaleness,
   resolveSupportedTracks,
   sanitizeBuildGeometryResult,
+  sliceWayNodes,
 } from '../scripts/build-track-geometry-index.mjs';
 
 test('geometry index build defaults to OSM API source', () => {
@@ -210,4 +211,58 @@ test('geometry index build strips degenerate layouts before artifact validation'
   assert.equal(result.layouts.length, 1);
   assert.equal(result.layouts[0].name, 'Main');
   assert.equal(result.selectedLayoutIndex, 0);
+});
+
+const SAMPLE_NODES = [
+  { lat: 50.0000, lon: 5.0000 },
+  { lat: 50.0001, lon: 5.0001 },
+  { lat: 50.0002, lon: 5.0002 },
+  { lat: 50.0003, lon: 5.0003 },
+  { lat: 50.0004, lon: 5.0004 },
+];
+
+test('sliceWayNodes returns all nodes when neither fromNode nor toNode given', () => {
+  const result = sliceWayNodes(SAMPLE_NODES, null, null, 123, 'ctx');
+  assert.deepEqual(result, SAMPLE_NODES);
+});
+
+test('sliceWayNodes truncates to toNode by nearest lat/lon', () => {
+  const result = sliceWayNodes(SAMPLE_NODES, null, { lat: 50.0002, lon: 5.0002 }, 123, 'ctx');
+  assert.deepEqual(result, SAMPLE_NODES.slice(0, 3));
+});
+
+test('sliceWayNodes truncates from fromNode by nearest lat/lon', () => {
+  const result = sliceWayNodes(SAMPLE_NODES, { lat: 50.0002, lon: 5.0002 }, null, 123, 'ctx');
+  assert.deepEqual(result, SAMPLE_NODES.slice(2));
+});
+
+test('sliceWayNodes takes a sub-segment with both fromNode and toNode', () => {
+  const result = sliceWayNodes(
+    SAMPLE_NODES,
+    { lat: 50.0001, lon: 5.0001 },
+    { lat: 50.0003, lon: 5.0003 },
+    123,
+    'ctx',
+  );
+  assert.deepEqual(result, SAMPLE_NODES.slice(1, 4));
+});
+
+test('sliceWayNodes throws when no node is within snap tolerance', () => {
+  assert.throws(
+    () => sliceWayNodes(SAMPLE_NODES, null, { lat: 51.0, lon: 6.0 }, 123, 'ctx'),
+    /has no node within snap tolerance/,
+  );
+});
+
+test('sliceWayNodes throws when fromNode index exceeds toNode index', () => {
+  assert.throws(
+    () => sliceWayNodes(
+      SAMPLE_NODES,
+      { lat: 50.0003, lon: 5.0003 },
+      { lat: 50.0001, lon: 5.0001 },
+      123,
+      'ctx',
+    ),
+    /produces an empty or reversed slice/,
+  );
 });

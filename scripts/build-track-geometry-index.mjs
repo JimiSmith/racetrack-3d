@@ -80,6 +80,22 @@ const TRACK_BUILD_OVERRIDES = new Map([
           126807105, 637268672, 613486590, 126807099, 175178443,
         ],
       },
+      {
+        name: 'Rallycross',
+        // ~992m loop branching off interior nodes of the main circuit.
+        // Raidillon (126835637) splits at node ~(50.4411262, 5.9719918); the rallycross
+        // returns via the rallycross-exclusive ways and rejoins Way 126807110 at node
+        // ~(50.4429533, 5.9698663) before exiting via Eau Rouge (126835639).
+        wayIds: [
+          { wayId: 126835637, toNode: { lat: 50.4411262, lon: 5.9719918 } },
+          689853533,
+          1467574854,
+          689853534,
+          1467574855,
+          { wayId: 126807110, fromNode: { lat: 50.4429533, lon: 5.9698663 } },
+          126835639,
+        ],
+      },
     ],
   }],
   ['Q171332', {
@@ -154,6 +170,51 @@ function measurePolylineLengthLocal(nodes) {
 }
 
 const MANUAL_WAY_SNAP_TOLERANCE = 1e-5;
+
+function findNearestNodeIndex(nodes, target, wayId, contextLabel) {
+  let bestIdx = -1;
+  let bestDist = Infinity;
+
+  for (let i = 0; i < nodes.length; i += 1) {
+    const dLat = nodes[i].lat - target.lat;
+    const dLon = nodes[i].lon - target.lon;
+    const dist = Math.sqrt(dLat * dLat + dLon * dLon);
+    if (dist < bestDist) {
+      bestDist = dist;
+      bestIdx = i;
+    }
+  }
+
+  if (bestDist > MANUAL_WAY_SNAP_TOLERANCE) {
+    throw new Error(
+      `${contextLabel}: way ${wayId} has no node within snap tolerance of ` +
+      `(${target.lat}, ${target.lon}) — nearest gap: ${bestDist.toFixed(6)}`,
+    );
+  }
+
+  return bestIdx;
+}
+
+export function sliceWayNodes(nodes, fromNode, toNode, wayId, contextLabel) {
+  let startIdx = 0;
+  let endIdx = nodes.length - 1;
+
+  if (fromNode != null) {
+    startIdx = findNearestNodeIndex(nodes, fromNode, wayId, contextLabel);
+  }
+  if (toNode != null) {
+    endIdx = findNearestNodeIndex(nodes, toNode, wayId, contextLabel);
+  }
+
+  if (startIdx > endIdx) {
+    throw new Error(
+      `${contextLabel}: way ${wayId} partial spec produces an empty or reversed slice ` +
+      `(fromNode index ${startIdx} > toNode index ${endIdx})`,
+    );
+  }
+
+  return nodes.slice(startIdx, endIdx + 1);
+}
 
 function chainManualWays(ways, contextLabel) {
   if (ways.length === 0) {
@@ -514,7 +575,11 @@ async function fetchFallbackGeometryFromOverpass(track) {
 
 async function buildGeometryFromManualWayIds(track, options) {
   const { manualLayoutWays } = track;
-  const requiredWayIds = [...new Set(manualLayoutWays.flatMap(layout => layout.wayIds))];
+  const requiredWayIds = [...new Set(
+    manualLayoutWays.flatMap(layout =>
+      layout.wayIds.map(entry => (typeof entry === 'number' ? entry : entry.wayId))
+    )
+  )];
   const margins = Array.isArray(track.osmApiMargins) && track.osmApiMargins.length > 0
     ? track.osmApiMargins
     : buildDefaultOsmApiMargins(track);
@@ -561,19 +626,21 @@ async function buildGeometryFromManualWayIds(track, options) {
   );
 
   const layouts = manualLayoutWays.map(layoutDef => {
-    const ways = layoutDef.wayIds.map(id => {
+    const contextLabel = `${track.trackName} / ${layoutDef.name}`;
+    const ways = layoutDef.wayIds.map(entry => {
+      const id = typeof entry === 'number' ? entry : entry.wayId;
       const element = wayIndex.get(id);
       if (!element || !Array.isArray(element.geometry) || element.geometry.length < 2) {
         throw new Error(`${track.trackName}: way ID ${id} not found or has no geometry`);
       }
 
-      return {
-        id: element.id,
-        nodes: element.geometry.map(({ lat, lon }) => ({ lat, lon })),
-      };
-    });
+      let nodes = element.geometry.map(({ lat, lon }) => ({ lat, lon }));
+      if (typeof entry === 'object') {
+        nodes = sliceWayNodes(nodes, entry.fromNode ?? null, entry.toNode ?? null, id, contextLabel);
+      }
 
-    const contextLabel = `${track.trackName} / ${layoutDef.name}`;
+      return { id, nodes };
+    });
     const nodes = chainManualWays(ways, contextLabel);
     return {
       name: layoutDef.name,
@@ -586,7 +653,11 @@ async function buildGeometryFromManualWayIds(track, options) {
     };
   });
 
-  const usedWayIds = new Set(manualLayoutWays.flatMap(l => l.wayIds));
+  const usedWayIds = new Set(
+    manualLayoutWays.flatMap(l =>
+      l.wayIds.map(entry => (typeof entry === 'number' ? entry : entry.wayId))
+    )
+  );
   const osmVenueNames = [...new Set(
     (resolvedResponse.payload.elements ?? [])
       .filter(e => e.type === 'way' && usedWayIds.has(e.id) && e.tags?.name)
