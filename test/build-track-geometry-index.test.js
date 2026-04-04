@@ -12,11 +12,10 @@ import {
   sanitizeBuildGeometryResult,
 } from '../scripts/build-track-geometry-index.mjs';
 
-test('geometry index build defaults to OSM API with Overpass fallback enabled', () => {
+test('geometry index build defaults to OSM API source', () => {
   const options = parseArgs([]);
 
   assert.equal(options.source, 'osm-api');
-  assert.equal(options.allowOverpassFallback, true);
   assert.equal(options.validateOnly, false);
   assert.equal(options.track, null);
 });
@@ -25,7 +24,6 @@ test('geometry index build keeps Overpass as an explicit debug-only source', () 
   const options = parseArgs(['--overpass-only', '--track', 'spa']);
 
   assert.equal(options.source, 'overpass');
-  assert.equal(options.allowOverpassFallback, false);
   assert.equal(options.track, 'spa');
 });
 
