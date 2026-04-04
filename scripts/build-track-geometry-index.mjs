@@ -122,12 +122,14 @@ const TRACK_BUILD_OVERRIDES = new Map([
       },
       {
         name: 'Short Course',
-        // Infield-only loop: skips 9292566 entirely. Short Course Turn 5 (way 109915840)
-        // shortcuts from 1360423185[12] back to 1360423184[6].
+        // Uses the back section (9292566) and the start/finish area, cutting across
+        // via Short Course Turn 5 (way 109915840) instead of the full infield.
+        // 109915840 runs from 1360423185[12] to 1360423184[6]; chainManualWays reverses it.
         wayIds: [
-          { wayId: 1360423184, fromNode: { lat: 34.1436242, lon: -83.8187567 } },
-          { wayId: 1360423185, toNode: { lat: 34.1416871, lon: -83.815945 } },
+          9292566,
+          { wayId: 1360423184, toNode: { lat: 34.1436242, lon: -83.8187567 } },
           109915840,
+          { wayId: 1360423185, fromNode: { lat: 34.1416871, lon: -83.815945 } },
         ],
       },
       {
