@@ -110,16 +110,16 @@ const TRACK_BUILD_OVERRIDES = new Map([
       {
         name: 'Motorcycle Grand Prix Circuit',
         // Two bypasses replacing sections of 9292566:
-        // 1. Motorcycle Turn 12 (396643996): replaces 9292566[66→87] with wider outer line.
+        // 1. Turn 3-4 bypass (396643998): replaces 9292566[2→16] with wider chicane variant.
+        //    Way runs 16→2; chainManualWays reverses it to 2→16.
+        // 2. Motorcycle Turn 12 (396643996): replaces 9292566[66→87] with wider outer line.
         //    Way runs 87→66; chainManualWays reverses it to 66→87.
-        // 2. Chicane bypass (396644002): replaces 9292566[89→91] with wider chicane variant.
-        //    Way runs 91→89; chainManualWays reverses it to 89→91.
         wayIds: [
-          { wayId: 9292566, toNode: { lat: 34.15073, lon: -83.8149465 } },
+          { wayId: 9292566, toNode: { lat: 34.1436808, lon: -83.8136247 } },
+          396643998,
+          { wayId: 9292566, fromNode: { lat: 34.1449536, lon: -83.8124019 }, toNode: { lat: 34.15073, lon: -83.8149465 } },
           396643996,
-          { wayId: 9292566, fromNode: { lat: 34.1497475, lon: -83.8177532 }, toNode: { lat: 34.1495901, lon: -83.8178709 } },
-          396644002,
-          { wayId: 9292566, fromNode: { lat: 34.1491125, lon: -83.8181549 } },
+          { wayId: 9292566, fromNode: { lat: 34.1497475, lon: -83.8177532 } },
           1360423184,
           1360423185,
         ],
