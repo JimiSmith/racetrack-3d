@@ -15,7 +15,7 @@ import {
   TEXT_ORIENTATION_FIXED,
 } from './text3d.js';
 
-let textPlacementCache = { token: null, byOrientation: new Map() };
+let textPlacementCache = { token: null, byOrientation: new Map(), resolvedAutoDeg: null };
 
 export const BASE_THICKNESS_MM = 2.5;
 const BASE_CORNER_RADIUS_MM = 3;
@@ -568,9 +568,17 @@ export function buildTrackModel({
       ? (orientationDeg === undefined ? PRIMARY_ORIENTATION_AUTO : orientationDeg)
       : primaryOrientationDeg,
   );
-  const resolvedOrientationDeg = normalizedPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO
-    ? computeAutoOrientationDeg(outlinePoints, basePlate, projectedNodes, trackName)
-    : normalizedPrimaryOrientationDeg;
+  const cacheTokenMatches = placementCacheToken !== null && placementCacheToken === textPlacementCache.token;
+
+  let resolvedOrientationDeg;
+  if (normalizedPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO) {
+    resolvedOrientationDeg = (cacheTokenMatches && textPlacementCache.resolvedAutoDeg !== null)
+      ? textPlacementCache.resolvedAutoDeg
+      : computeAutoOrientationDeg(outlinePoints, basePlate, projectedNodes, trackName);
+  } else {
+    resolvedOrientationDeg = normalizedPrimaryOrientationDeg;
+  }
+
   // Text orientation is always fixed: the model is already rotated to the correct orientation,
   // so text should be placed right-side-up on the rotated model.
   const resolvedTextOrientationMode = textOrientationMode ?? TEXT_ORIENTATION_FIXED;
@@ -588,10 +596,18 @@ export function buildTrackModel({
   let rankedPlacements = null;
   const normalizedTrackName = String(trackName ?? '').trim();
   if (normalizedTrackName) {
-    if (placementCacheToken !== null && placementCacheToken === textPlacementCache.token) {
+    if (cacheTokenMatches) {
       rankedPlacements = textPlacementCache.byOrientation.get(resolvedOrientationDeg) ?? null;
+      // Persist auto-deg on first auto-mode visit (may not have been stored yet)
+      if (normalizedPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO && textPlacementCache.resolvedAutoDeg === null) {
+        textPlacementCache.resolvedAutoDeg = resolvedOrientationDeg;
+      }
     } else if (placementCacheToken !== null) {
-      textPlacementCache = { token: placementCacheToken, byOrientation: new Map() };
+      textPlacementCache = {
+        token: placementCacheToken,
+        byOrientation: new Map(),
+        resolvedAutoDeg: normalizedPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO ? resolvedOrientationDeg : null,
+      };
     }
 
     if (!rankedPlacements) {
@@ -604,6 +620,9 @@ export function buildTrackModel({
       );
       if (placementCacheToken !== null) {
         textPlacementCache.byOrientation.set(resolvedOrientationDeg, rankedPlacements);
+        if (normalizedPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO && textPlacementCache.resolvedAutoDeg === null) {
+          textPlacementCache.resolvedAutoDeg = resolvedOrientationDeg;
+        }
       }
     }
   }
