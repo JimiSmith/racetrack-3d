@@ -27,6 +27,8 @@ const DEFAULT_OSM_API_MARGINS = [0.015, 0.025, 0.04, 0.08];
 const DEFAULT_CACHE_TTL_HOURS = 24 * 14;
 const GEOMETRY_STALE_AFTER_MS = 14 * 24 * 60 * 60 * 1000;
 const GEOMETRY_STALE_JITTER_MS = 3 * 24 * 60 * 60 * 1000;
+const GEOMETRY_FAILURE_STALE_AFTER_MS = 3 * 24 * 60 * 60 * 1000;
+const GEOMETRY_FAILURE_STALE_JITTER_MS = 1 * 24 * 60 * 60 * 1000;
 const BUILD_SOURCES = new Set(['osm-api', 'overpass']);
 
 const TRACK_BUILD_OVERRIDES = new Map([
@@ -199,7 +201,6 @@ export function parseArgs(argv) {
     track: null,
     limit: Number.POSITIVE_INFINITY,
     source: 'osm-api',
-    allowOverpassFallback: true,
     validateOnly: false,
     strict: false,
     force: false,
@@ -222,7 +223,6 @@ Options:
   --validate-only       Validate geometry without writing files
   --source <src>        Build source: osm-api (default) or overpass
   --overpass-only       Use Overpass as the sole source (no fallback)
-  --no-overpass-fallback  Disable automatic Overpass fallback on OSM API failure
   --strict              Exit with error if any track fails or uses cached geometry
   --cache-dir <path>    Local OSM API response cache directory
   --cache-ttl-hours <n> Cache TTL in hours (default: ${DEFAULT_CACHE_TTL_HOURS})
@@ -261,12 +261,6 @@ Options:
 
     if (arg === '--overpass-only') {
       options.source = 'overpass';
-      options.allowOverpassFallback = false;
-      continue;
-    }
-
-    if (arg === '--no-overpass-fallback') {
-      options.allowOverpassFallback = false;
       continue;
     }
 
@@ -741,6 +735,18 @@ function buildTrackArtifact(track, geometryResult, generatedAt, sourceUsed) {
   };
 }
 
+function buildFailureArtifact(track, generatedAt, message) {
+  return {
+    trackId: track.wikidataId,
+    name: track.trackName,
+    source: {
+      kind: 'osm-prebuilt-failed',
+      generatedAt,
+      failureMessage: message,
+    },
+  };
+}
+
 function computeStableHash(value) {
   let hash = 0;
 
@@ -758,6 +764,13 @@ export function computeTrackStaleThresholdMs(trackId) {
   return GEOMETRY_STALE_AFTER_MS + jitterMs;
 }
 
+export function computeTrackFailureStaleThresholdMs(trackId) {
+  const hash = computeStableHash(trackId);
+  const normalized = hash / 0xffffffff;
+  const jitterMs = Math.round((normalized * 2 * GEOMETRY_FAILURE_STALE_JITTER_MS) - GEOMETRY_FAILURE_STALE_JITTER_MS);
+  return GEOMETRY_FAILURE_STALE_AFTER_MS + jitterMs;
+}
+
 export function isTrackGeometryEntryFresh(entry, now = Date.now()) {
   const generatedAt = entry?.source?.generatedAt;
   const generatedAtMs = Date.parse(generatedAt);
@@ -770,6 +783,10 @@ export function isTrackGeometryEntryFresh(entry, now = Date.now()) {
   const ageMs = now - generatedAtMs;
   if (!Number.isFinite(ageMs) || ageMs < 0) {
     return false;
+  }
+
+  if (entry.source?.kind === 'osm-prebuilt-failed') {
+    return ageMs < computeTrackFailureStaleThresholdMs(trackId);
   }
 
   return ageMs < computeTrackStaleThresholdMs(trackId);
@@ -888,48 +905,27 @@ export async function main(argv = process.argv.slice(2)) {
         });
         sourceDetails = 'debug overpass';
       } else {
-        try {
-          const primaryResult = await fetchPrimaryGeometryFromOsmApi(track, options);
-          geometryResult = finalizeGeometryResult(track, primaryResult.geometryResult);
-          sourceUsed = primaryResult.metadata.sourceUsed;
-          sourceDetails = primaryResult.metadata.cacheHit
-            ? `osm-api cache margin=${primaryResult.metadata.margin}`
-            : `osm-api live margin=${primaryResult.metadata.margin}`;
-          if (primaryResult.metadata.retryCount > 0) {
-            const retryDelay = formatDelayMs(primaryResult.metadata.retryDelayMs);
-            sourceDetails += ` retries=${primaryResult.metadata.retryCount}`;
-            if (retryDelay) {
-              sourceDetails += ` backoff=${retryDelay}`;
-            }
+        const primaryResult = await fetchPrimaryGeometryFromOsmApi(track, options);
+        geometryResult = finalizeGeometryResult(track, primaryResult.geometryResult);
+        sourceUsed = primaryResult.metadata.sourceUsed;
+        sourceDetails = primaryResult.metadata.cacheHit
+          ? `osm-api cache margin=${primaryResult.metadata.margin}`
+          : `osm-api live margin=${primaryResult.metadata.margin}`;
+        if (primaryResult.metadata.retryCount > 0) {
+          const retryDelay = formatDelayMs(primaryResult.metadata.retryDelayMs);
+          sourceDetails += ` retries=${primaryResult.metadata.retryCount}`;
+          if (retryDelay) {
+            sourceDetails += ` backoff=${retryDelay}`;
           }
-          if (primaryResult.metadata.pacingDelayMs > 0 && !primaryResult.metadata.cacheHit) {
-            const pacingDelay = formatDelayMs(primaryResult.metadata.pacingDelayMs);
-            if (pacingDelay) {
-              sourceDetails += ` paced=${pacingDelay}`;
-            }
+        }
+        if (primaryResult.metadata.pacingDelayMs > 0 && !primaryResult.metadata.cacheHit) {
+          const pacingDelay = formatDelayMs(primaryResult.metadata.pacingDelayMs);
+          if (pacingDelay) {
+            sourceDetails += ` paced=${pacingDelay}`;
           }
-          if (primaryResult.metadata.stopReason === 'node-limit') {
-            sourceDetails += ' (stopped at node limit)';
-          }
-        } catch (error) {
-          const primaryError = error;
-
-          if (options.allowOverpassFallback) {
-            try {
-              geometryResult = finalizeGeometryResult(track, await fetchFallbackGeometryFromOverpass(track));
-              sourceUsed = 'overpass-fallback';
-              sourceDetails = 'overpass fallback';
-              report.flaggedForManualReview.push({
-                wikidataId: track.wikidataId,
-                name: track.trackName,
-                message: `OSM API build path failed validation; used Overpass fallback (${primaryError instanceof Error ? primaryError.message : String(primaryError)})`,
-              });
-            } catch (fallbackError) {
-              throw new Error(`OSM API and Overpass build paths failed (${primaryError instanceof Error ? primaryError.message : String(primaryError)}; ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)})`);
-            }
-          } else {
-            throw primaryError;
-          }
+        }
+        if (primaryResult.metadata.stopReason === 'node-limit') {
+          sourceDetails += ' (stopped at node limit)';
         }
       }
 
@@ -966,6 +962,10 @@ export async function main(argv = process.argv.slice(2)) {
           message,
         });
         console.log(`${progressLabel} - failed (${message})`);
+        if (!options.validateOnly) {
+          const failureArtifact = buildFailureArtifact(track, generatedAt, message);
+          await writeArtifactToFile(failureArtifact, path.join(geometryOutputDir, `${track.wikidataId}.json`));
+        }
       }
 
       if (options.track) {
