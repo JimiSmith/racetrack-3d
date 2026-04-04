@@ -50,7 +50,37 @@ const TRACK_BUILD_OVERRIDES = new Map([
   ['Q172851', {
     key: 'spa',
     osmApiMargins: [0.03, 0.05, 0.08],
-    expectedLayoutNames: ['Main', 'Moto'],
+    // The "Moto layout" OSM way (1134119259) is a parallel alternative to Way 126807106
+    // "Speaker's Corner" at the Bus Stop chicane. Both circuits are ~7,004m. Using
+    // manualLayoutWays to avoid the Rallycross circuit ways being incorrectly detected
+    // as a layout variant (they share endpoints with the backbone but are not part of
+    // the racing circuit).
+    manualLayoutWays: [
+      {
+        name: 'Main',
+        wayIds: [
+          175178448, 126807110, 126835639, 126835637, 126835638,
+          1430527230, 24449918, 126807113, 175195997, 126807111,
+          126807112, 1359025268, 126807106, 1359025267, 126807103,
+          126807101, 126807109, 126807116, 175371353, 175371365,
+          126807100, 176133746, 126807114, 176133745, 178964809,
+          126807105, 637268672, 613486590, 126807099, 175178443,
+        ],
+      },
+      {
+        name: 'Moto',
+        // Same as Main but with Way 1134119259 "Moto layout" replacing Way 126807106
+        // "Speaker's Corner" at the Bus Stop chicane section.
+        wayIds: [
+          175178448, 126807110, 126835639, 126835637, 126835638,
+          1430527230, 24449918, 126807113, 175195997, 126807111,
+          126807112, 1359025268, 1134119259, 1359025267, 126807103,
+          126807101, 126807109, 126807116, 175371353, 175371365,
+          126807100, 176133746, 126807114, 176133745, 178964809,
+          126807105, 637268672, 613486590, 126807099, 175178443,
+        ],
+      },
+    ],
   }],
   ['Q171332', {
     key: 'bahrain',
