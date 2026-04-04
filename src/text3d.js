@@ -1085,9 +1085,6 @@ function scoreTextFit(rect, layout, candidate = {}) {
   const fittedWidth = layout.fittedWidth;
   const fittedHeight = layout.fittedHeight;
   const utilization = Math.min(1, (fittedWidth * fittedHeight) / Math.max(rect.width * rect.height, Number.EPSILON));
-  const rectAspect = rect.width / Math.max(rect.height, Number.EPSILON);
-  const layoutAspect = fittedWidth / Math.max(fittedHeight, Number.EPSILON);
-  const aspectPenalty = 1 / (1 + Math.abs(Math.log(rectAspect / Math.max(layoutAspect, Number.EPSILON))));
   const lineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
   const sizeWindowMultiplier = computeSizeWindowMultiplier(layout.averageLineHeight * layout.fittedScale);
   const outsideMultiplier = 0.25 + 0.75 * clamp(candidate.fractionOutside ?? 1, 0, 1);
@@ -1096,7 +1093,6 @@ function scoreTextFit(rect, layout, candidate = {}) {
 
   return layout.averageLineHeight
     * Math.pow(utilization, 0.2)
-    * aspectPenalty
     * lineBalance
     * outsideMultiplier
     * computeLineCountMultiplier(layout.lineCount)
