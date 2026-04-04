@@ -1145,6 +1145,7 @@ function fitTextToRectangleForRotation(text, font, rect, rotation, cache) {
       const fittedScale = Math.min(
         rect.width / oriented.bounds.width,
         rect.height / oriented.bounds.height,
+        MAX_PREFERRED_HEIGHT_MM / multiline.averageLineHeight,
       );
 
       if (!Number.isFinite(fittedScale) || fittedScale * multiline.averageLineHeight < MIN_TEXT_HEIGHT_MM) {
@@ -1301,6 +1302,51 @@ export function __debugTextPlacement(text, outlinePoints, basePlate, scale, opti
     candidateFractionOutside: placement.candidate?.fractionOutside,
     candidateTrackClearance: placement.candidate?.trackClearance,
   };
+}
+
+export function __debugAllPlacements(text, outlinePoints, basePlate, scale, options = {}) {
+  const normalizedText = String(text ?? '').trim();
+  if (!normalizedText) return null;
+
+  const font = getLabelFont(options.font ?? null);
+  const scaledOutline = scaleOutline(outlinePoints, scale);
+  const scaledBasePlate = createScaledBounds(basePlate, scale);
+  const placementMask = computePlacementMask(scaledOutline, scaledBasePlate);
+  const candidates = findPlacementCandidates(scaledBasePlate, placementMask);
+  if (!candidates.length) return null;
+
+  const orientationResults = rankTextPlacements(normalizedText, font, candidates, options.textOrientationMode);
+
+  return orientationResults.map(({ rotation, placements, topScore }) => ({
+    rotation,
+    topScore,
+    placements: placements.map(({ candidateIndex, layout, score, candidate }) => {
+      const textHeight = layout.averageLineHeight * layout.fittedScale;
+      const utilization = Math.min(1, (layout.fittedWidth * layout.fittedHeight) / Math.max(candidate.bounds.width * candidate.bounds.height, Number.EPSILON));
+      const lineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
+      return {
+        candidateIndex,
+        lines: layout.lines,
+        lineCount: layout.lineCount,
+        score,
+        textHeight,
+        utilization,
+        lineBalance,
+        averageLineHeight: layout.averageLineHeight,
+        fittedScale: layout.fittedScale,
+        fittedWidth: layout.fittedWidth,
+        fittedHeight: layout.fittedHeight,
+        candidateArea: candidate.area,
+        candidateWidth: candidate.bounds.width,
+        candidateHeight: candidate.bounds.height,
+        fractionOutside: candidate.fractionOutside,
+        normalizedTrackClearance: candidate.normalizedTrackClearance,
+        centreDistance: candidate.centreDistance,
+        sizeWindowMultiplier: computeSizeWindowMultiplier(textHeight),
+        lineCountMultiplier: computeLineCountMultiplier(layout.lineCount),
+      };
+    }),
+  }));
 }
 
 export function __debugPlacementCandidates(outlinePoints, basePlate, scale) {

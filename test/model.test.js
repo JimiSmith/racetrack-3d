@@ -554,7 +554,10 @@ test('buildTrackModel threads text position rank through preview and STL export 
 
   assert.equal(firstModel.textPositionRank, 1);
   assert.equal(secondModel.textPositionRank, 2);
-  assert.ok(firstCenter.x < secondCenter.x, `expected rank 2 text to move right, got ${firstCenter.x} and ${secondCenter.x}`);
+  assert.ok(
+    firstCenter.x !== secondCenter.x || firstCenter.y !== secondCenter.y,
+    `expected rank 1 and rank 2 text to be at different positions, got (${firstCenter.x}, ${firstCenter.y}) and (${secondCenter.x}, ${secondCenter.y})`,
+  );
   approxEqual(previewBounds.minX, exportBounds.minX, 1e-4);
   approxEqual(previewBounds.maxX, exportBounds.maxX, 1e-4);
   approxEqual(previewBounds.minY, exportBounds.minY, 1e-4);

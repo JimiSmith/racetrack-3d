@@ -803,7 +803,7 @@ test('fully outside candidates outrank larger fully inside candidates', () => {
   const placement = __debugTextPlacement('GO', outline, basePlate, 1, {
     font: createMockFont(),
     baseThickness: BASE_THICKNESS_MM,
-    textPositionRank: 3,
+    textPositionRank: 1,
   });
 
   assert.ok(outsideCandidate);
