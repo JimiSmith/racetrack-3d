@@ -1107,8 +1107,7 @@ function scoreTextFit(rect, layout, candidate = {}) {
 
 function compareRankedTextPlacements(a, b) {
   return b.score - a.score
-    || a.candidateIndex - b.candidateIndex
-    || a.fitIndex - b.fitIndex;
+    || a.candidateIndex - b.candidateIndex;
 }
 
 export function __debugTextFitModifiers(heightMm, lineCount, fractionOutside = 1) {
@@ -1123,7 +1122,7 @@ export function __debugCompareRankedTextPlacements(a, b) {
   return compareRankedTextPlacements(a, b);
 }
 
-function fitTextToRectangle(text, font, rect, cache, textOrientationMode = TEXT_ORIENTATION_AUTO) {
+function fitTextToRectangleForRotation(text, font, rect, rotation, cache) {
   const words = String(text).split(/\s+/u).filter(Boolean);
   if (!words.length) {
     return [];
@@ -1140,76 +1139,88 @@ function fitTextToRectangle(text, font, rect, cache, textOrientationMode = TEXT_
         continue;
       }
 
-      for (const rotation of getTextRotationCandidates(textOrientationMode)) {
-        const oriented = rotation === 0
-          ? multiline
-          : {
-            ...multiline,
-            ...normalizeContoursToOrigin(rotateContours90(multiline.contours)),
-            lineBounds: normalizeBoundsListToOrigin(multiline.lineBounds.map(rotateBounds90)),
-          };
-        const fittedScale = Math.min(
-          rect.width / oriented.bounds.width,
-          rect.height / oriented.bounds.height,
-        );
+      const oriented = rotation === 0
+        ? multiline
+        : {
+          ...multiline,
+          ...normalizeContoursToOrigin(rotateContours90(multiline.contours)),
+          lineBounds: normalizeBoundsListToOrigin(multiline.lineBounds.map(rotateBounds90)),
+        };
+      const fittedScale = Math.min(
+        rect.width / oriented.bounds.width,
+        rect.height / oriented.bounds.height,
+      );
 
-        if (!Number.isFinite(fittedScale) || fittedScale * multiline.averageLineHeight < MIN_TEXT_HEIGHT_MM) {
-          continue;
-        }
-
-        const fittedWidth = oriented.bounds.width * fittedScale;
-        const fittedHeight = oriented.bounds.height * fittedScale;
-        layouts.push({
-          text: multiline.text,
-          lines: multiline.lines,
-          rotation,
-          scale: fittedScale,
-          bounds: oriented.bounds,
-          contours: oriented.contours,
-          lineBounds: oriented.lineBounds,
-          fittedWidth,
-          fittedHeight,
-          averageLineHeight: multiline.averageLineHeight,
-          maxLineWidth: multiline.maxLineWidth,
-          minLineWidth: multiline.minLineWidth,
-          lineCount: multiline.lineCount,
-          fittedScale,
-        });
+      if (!Number.isFinite(fittedScale) || fittedScale * multiline.averageLineHeight < MIN_TEXT_HEIGHT_MM) {
+        continue;
       }
+
+      const fittedWidth = oriented.bounds.width * fittedScale;
+      const fittedHeight = oriented.bounds.height * fittedScale;
+      layouts.push({
+        text: multiline.text,
+        lines: multiline.lines,
+        rotation,
+        scale: fittedScale,
+        bounds: oriented.bounds,
+        contours: oriented.contours,
+        lineBounds: oriented.lineBounds,
+        fittedWidth,
+        fittedHeight,
+        averageLineHeight: multiline.averageLineHeight,
+        maxLineWidth: multiline.maxLineWidth,
+        minLineWidth: multiline.minLineWidth,
+        lineCount: multiline.lineCount,
+        fittedScale,
+      });
     }
   }
 
   return layouts;
 }
 
+function findBestLayoutForLocation(text, font, candidate, rotation, cache) {
+  const layouts = fitTextToRectangleForRotation(text, font, candidate.bounds, rotation, cache);
+  if (!layouts.length) return null;
+
+  let bestLayout = null;
+  let bestScore = -Infinity;
+
+  for (const layout of layouts) {
+    const score = scoreTextFit(candidate.bounds, layout, candidate);
+    if (score > bestScore) {
+      bestScore = score;
+      bestLayout = layout;
+    }
+  }
+
+  return bestLayout ? { layout: { ...bestLayout, score: bestScore }, score: bestScore } : null;
+}
+
 function rankTextPlacements(text, font, candidates, textOrientationMode = TEXT_ORIENTATION_AUTO) {
   const cache = new Map();
-  const ranked = [];
+  const rotations = getTextRotationCandidates(textOrientationMode);
 
-  candidates.forEach((candidate, candidateIndex) => {
-    const fits = fitTextToRectangle(text, font, candidate.bounds, cache, textOrientationMode);
-    const outsideMultiplier = 0.25 + 0.75 * clamp(candidate.fractionOutside ?? 1, 0, 1);
-    for (let fitIndex = 0; fitIndex < fits.length; fitIndex += 1) {
-      const layout = fits[fitIndex];
-      const score = scoreTextFit(candidate.bounds, layout, candidate);
+  const orientationResults = rotations.map(rotation => {
+    const locationResults = candidates
+      .map((candidate, candidateIndex) => {
+        const best = findBestLayoutForLocation(text, font, candidate, rotation, cache);
+        if (!best) return null;
+        return { candidate, candidateIndex, layout: best.layout, score: best.score };
+      })
+      .filter(Boolean);
 
-      ranked.push({
-        candidate,
-        candidateIndex,
-        fitIndex,
-        outsideMultiplier,
-        layout: {
-          ...layout,
-          score,
-        },
-        score,
-      });
-    }
+    locationResults.sort(compareRankedTextPlacements);
+
+    return {
+      rotation,
+      placements: locationResults.slice(0, 3),
+      topScore: locationResults.length > 0 ? locationResults[0].score : -Infinity,
+    };
   });
 
-  ranked.sort(compareRankedTextPlacements);
-
-  return ranked;
+  orientationResults.sort((a, b) => b.topScore - a.topScore);
+  return orientationResults;
 }
 
 function computeTextPlacement(text, outlinePoints, basePlate, scale, options = {}) {
@@ -1227,21 +1238,32 @@ function computeTextPlacement(text, outlinePoints, basePlate, scale, options = {
     return null;
   }
 
-  const rankedPlacements = rankTextPlacements(
+  const orientationResults = rankTextPlacements(
     normalizedText,
     font,
     candidates,
     options.textOrientationMode,
   );
-  if (!rankedPlacements.length) {
+  if (!orientationResults.length) {
+    return null;
+  }
+
+  let chosenOrientation;
+  if (normalizeTextOrientationMode(options.textOrientationMode) === TEXT_ORIENTATION_FIXED) {
+    chosenOrientation = orientationResults.find(o => o.rotation === 0) ?? orientationResults[0];
+  } else {
+    chosenOrientation = orientationResults[0];
+  }
+
+  if (!chosenOrientation.placements.length) {
     return null;
   }
 
   const placementRank = Math.min(
     normalizeTextPositionRank(options.textPositionRank) - 1,
-    rankedPlacements.length - 1,
+    chosenOrientation.placements.length - 1,
   );
-  const selected = rankedPlacements[placementRank];
+  const selected = chosenOrientation.placements[placementRank];
   const { candidate, candidateIndex, layout, score } = selected;
   const offsetX = candidate.bounds.minX + (candidate.bounds.width - layout.fittedWidth) / 2 - layout.bounds.minX * layout.scale;
   const offsetY = candidate.bounds.minY + (candidate.bounds.height - layout.fittedHeight) / 2 - layout.bounds.minY * layout.scale;
@@ -1255,7 +1277,7 @@ function computeTextPlacement(text, outlinePoints, basePlate, scale, options = {
     candidateIndex,
     candidateCount: candidates.length,
     placementRank: placementRank + 1,
-    placementCount: rankedPlacements.length,
+    placementCount: chosenOrientation.placements.length,
     contours,
     lineBounds,
     normalizedText,

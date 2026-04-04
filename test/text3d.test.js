@@ -401,19 +401,17 @@ test('sizeWindowMultiplier curve is continuous at all zone boundaries', () => {
   assert.equal(__debugTextFitModifiers(20, 1).sizeWindowMultiplier, 0);
 });
 
-test('ranked placements sort by score, then candidate and fit index', () => {
+test('ranked placements sort by score, then candidate index', () => {
   const placements = [
-    { id: 'higher-outside-lower-score', score: 9, outsideMultiplier: 1, candidateIndex: 2, fitIndex: 0 },
-    { id: 'best-score-lowest-candidate', score: 10, outsideMultiplier: 0.25, candidateIndex: 0, fitIndex: 1 },
-    { id: 'best-score-lower-fit', score: 10, outsideMultiplier: 0.5, candidateIndex: 0, fitIndex: 0 },
-    { id: 'best-score-higher-candidate', score: 10, outsideMultiplier: 1, candidateIndex: 1, fitIndex: 0 },
+    { id: 'lower-score', score: 9, candidateIndex: 2 },
+    { id: 'best-score-lowest-candidate', score: 10, candidateIndex: 0 },
+    { id: 'best-score-higher-candidate', score: 10, candidateIndex: 1 },
   ].sort(__debugCompareRankedTextPlacements);
 
   assert.deepEqual(placements.map(({ id }) => id), [
-    'best-score-lower-fit',
     'best-score-lowest-candidate',
     'best-score-higher-candidate',
-    'higher-outside-lower-score',
+    'lower-score',
   ]);
 });
 
@@ -518,63 +516,57 @@ test('multiline fitting preserves exact word order across different line counts'
 });
 
 test('multiline line stacking preserves top-to-bottom order without rotation', () => {
+  // A narrow infield (50mm wide) makes single-line text too small to fit the preferred
+  // size range, so the 3-line grouping scores highest at rotation=0.
   const outline = centeredHoleOutline({
-    width: 360,
-    height: 180,
-    holeMinX: 90,
-    holeMaxX: 270,
-    holeMinY: 40,
-    holeMaxY: 140,
+    width: 300,
+    height: 200,
+    holeMinX: 125,
+    holeMaxX: 175,
+    holeMinY: 20,
+    holeMaxY: 180,
   });
-  let layout = null;
 
-  for (let rank = 1; rank <= 20; rank += 1) {
-    const candidate = __debugTextPlacement(
-      'Autodromo Nazionale di Monza',
-      outline,
-      { minX: 0, minY: 0, maxX: 360, maxY: 180, width: 360, height: 180 },
-      1,
-      { font: createMockFont(), baseThickness: BASE_THICKNESS_MM, textPositionRank: rank },
-    );
-
-    if (candidate?.lines.length > 1 && candidate.rotation === 0) {
-      layout = candidate;
-      break;
-    }
-  }
+  const layout = __debugTextPlacement(
+    'Autodromo Nazionale di Monza',
+    outline,
+    { minX: 0, minY: 0, maxX: 300, maxY: 200, width: 300, height: 200 },
+    1,
+    { font: createMockFont(), baseThickness: BASE_THICKNESS_MM, textOrientationMode: TEXT_ORIENTATION_FIXED },
+  );
 
   assert.ok(layout);
+  assert.ok(layout.lines.length > 1, `expected multiline, got: ${JSON.stringify(layout.lines)}`);
+  assert.equal(layout.rotation, 0);
   assert.equal(collapseWhitespace(layout.text), 'Autodromo Nazionale di Monza');
   assertRenderedLineOrder(layout);
 });
 
 test('multiline line stacking preserves top-to-bottom order after 90 degree rotation', () => {
+  // A small near-square infield (30mm wide × 70mm tall) forces multiline at rotation=90:
+  // single-line rotated 90° is too short to score, while 3-line rotated 90° fits within
+  // the preferred size range. Auto orientation picks rotation=90 since rotation=0 scores
+  // near zero in such a narrow space.
   const outline = centeredHoleOutline({
-    width: 180,
-    height: 360,
-    holeMinX: 60,
-    holeMaxX: 120,
-    holeMinY: 90,
-    holeMaxY: 270,
+    width: 200,
+    height: 200,
+    holeMinX: 85,
+    holeMaxX: 115,
+    holeMinY: 65,
+    holeMaxY: 135,
   });
-  let layout = null;
 
-  for (let rank = 1; rank <= 20; rank += 1) {
-    const candidate = __debugTextPlacement(
-      'Autodromo Nazionale di Monza',
-      outline,
-      { minX: 0, minY: 0, maxX: 180, maxY: 360, width: 180, height: 360 },
-      1,
-      { font: createMockFont(), baseThickness: BASE_THICKNESS_MM, textPositionRank: rank },
-    );
-
-    if (candidate?.lines.length > 1 && candidate.rotation === 90) {
-      layout = candidate;
-      break;
-    }
-  }
+  const layout = __debugTextPlacement(
+    'Autodromo Nazionale di Monza',
+    outline,
+    { minX: 0, minY: 0, maxX: 200, maxY: 200, width: 200, height: 200 },
+    1,
+    { font: createMockFont(), baseThickness: BASE_THICKNESS_MM },
+  );
 
   assert.ok(layout);
+  assert.ok(layout.lines.length > 1, `expected multiline, got: ${JSON.stringify(layout.lines)}`);
+  assert.equal(layout.rotation, 90);
   assert.equal(collapseWhitespace(layout.text), 'Autodromo Nazionale di Monza');
   assertRenderedLineOrder(layout);
 });
