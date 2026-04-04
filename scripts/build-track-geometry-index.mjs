@@ -107,6 +107,38 @@ const TRACK_BUILD_OVERRIDES = new Map([
     key: 'road-atlanta',
     manualLayoutWays: [
       { name: 'Grand Prix Circuit', wayIds: [9292566, 1360423184, 1360423185] },
+      {
+        name: 'Motorcycle Grand Prix Circuit',
+        // Uses Motorcycle Turn 12 (way 396643996) as an alternate line through Turn 12,
+        // bypassing 9292566[66→87]. Way 396643996 runs from 9292566[87] to 9292566[66],
+        // so chainManualWays reverses it when stitching.
+        wayIds: [
+          { wayId: 9292566, toNode: { lat: 34.15073, lon: -83.8149465 } },
+          396643996,
+          { wayId: 9292566, fromNode: { lat: 34.1497475, lon: -83.8177532 } },
+          1360423184,
+          1360423185,
+        ],
+      },
+      {
+        name: 'Short Course',
+        // Infield-only loop: skips 9292566 entirely. Short Course Turn 5 (way 109915840)
+        // shortcuts from 1360423185[12] back to 1360423184[6].
+        wayIds: [
+          { wayId: 1360423184, fromNode: { lat: 34.1436242, lon: -83.8187567 } },
+          { wayId: 1360423185, toNode: { lat: 34.1416871, lon: -83.815945 } },
+          109915840,
+        ],
+      },
+      {
+        name: 'Club Course',
+        // Tightest configuration: a single loop within 1360423184 via the Club Course
+        // bypass (way 109915843) between 1360423184[8] and 1360423184[62].
+        wayIds: [
+          { wayId: 1360423184, fromNode: { lat: 34.1412977, lon: -83.8183866 }, toNode: { lat: 34.1402094, lon: -83.8165023 } },
+          109915843,
+        ],
+      },
     ],
   }],
   ['Q847633', {
