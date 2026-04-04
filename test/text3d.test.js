@@ -10,6 +10,7 @@ import {
   __debugTextFitModifiers,
   __debugCompareRankedTextPlacements,
   __debugPlacementCandidates,
+  __debugAllPlacements,
   __debugRectIntersectsPolygon,
   __enumerateSequentialTextLineBreaks,
   buildTextMesh,
@@ -812,4 +813,101 @@ test('fully outside candidates outrank larger fully inside candidates', () => {
   assert.ok(placement);
   assert.ok(placement.candidateFractionOutside > 0.9);
   assert.ok(placement.candidateArea < largestInsideCandidate.area);
+});
+
+test('debug placements expose textClearanceMultiplier in the expected range', () => {
+  const outline = largeHoleOutline();
+  const basePlate = { minX: -200, maxX: 4200, minY: -200, maxY: 2700, width: 4400, height: 2900 };
+
+  const orientations = __debugAllPlacements('Circuit Name', outline, basePlate, 1, {
+    font: createMockFont(),
+  });
+
+  assert.ok(orientations);
+  const allPlacements = orientations.flatMap(o => o.placements);
+  assert.ok(allPlacements.length > 0, 'expected at least one placement');
+
+  for (const placement of allPlacements) {
+    assert.ok(
+      typeof placement.textClearanceMultiplier === 'number',
+      'textClearanceMultiplier should be a number',
+    );
+    assert.ok(
+      placement.textClearanceMultiplier >= 0.96 && placement.textClearanceMultiplier <= 1.0,
+      `textClearanceMultiplier ${placement.textClearanceMultiplier} should be in [0.96, 1.0]`,
+    );
+  }
+});
+
+test('text clearance multiplier is higher when text has more breathing room from track', () => {
+  const outline = centeredHoleOutline({
+    width: 2000,
+    height: 2000,
+    holeMinX: 400,
+    holeMaxX: 1600,
+    holeMinY: 400,
+    holeMaxY: 1600,
+  });
+  const basePlate = { minX: 0, maxX: 2200, minY: 0, maxY: 2200, width: 2200, height: 2200 };
+
+  const shortText = __debugAllPlacements('GO', outline, basePlate, 1, {
+    font: createMockFont(),
+  });
+  const longText = __debugAllPlacements('A Very Long Circuit Name', outline, basePlate, 1, {
+    font: createMockFont(),
+  });
+
+  assert.ok(shortText);
+  assert.ok(longText);
+
+  const shortBest = shortText[0]?.placements[0];
+  const longBest = longText[0]?.placements[0];
+
+  assert.ok(shortBest, 'expected a placement for short text');
+  assert.ok(longBest, 'expected a placement for long text');
+
+  // Short text fills less of the rectangle, so it has more margin → higher text clearance
+  assert.ok(
+    shortBest.textClearanceMultiplier >= longBest.textClearanceMultiplier,
+    `short text clearance ${shortBest.textClearanceMultiplier} should be >= long text clearance ${longBest.textClearanceMultiplier}`,
+  );
+});
+
+test('text clearance multiplier is above the floor when text is far from the track', () => {
+  // Large infield with a thin track border — text placed inside has meaningful clearance
+  const outline = centeredHoleOutline({
+    width: 6000,
+    height: 6000,
+    holeMinX: 100,
+    holeMaxX: 5900,
+    holeMinY: 100,
+    holeMaxY: 5900,
+  });
+  const basePlate = { minX: -200, maxX: 6200, minY: -200, maxY: 6200, width: 6400, height: 6400 };
+
+  const orientations = __debugAllPlacements('Hi', outline, basePlate, 1, {
+    font: createMockFont(),
+  });
+
+  assert.ok(orientations);
+  const best = orientations[0]?.placements[0];
+  assert.ok(best, 'expected a placement');
+  assert.ok(
+    best.textClearanceMultiplier > 0.96,
+    `text far from track should have clearance above the 0.96 floor, got ${best.textClearanceMultiplier}`,
+  );
+});
+
+test('placement score includes text clearance contribution and remains finite', () => {
+  const outline = largeHoleOutline();
+  const basePlate = { minX: -200, maxX: 4200, minY: -200, maxY: 2700, width: 4400, height: 2900 };
+
+  const placement = __debugTextPlacement('Test Track', outline, basePlate, 1, {
+    font: createMockFont(),
+    baseThickness: BASE_THICKNESS_MM,
+  });
+
+  assert.ok(placement);
+  assert.ok(Number.isFinite(placement.score), `expected finite score, got ${placement.score}`);
+  assert.ok(placement.score > 0, 'score should be positive');
 });

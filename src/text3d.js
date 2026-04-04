@@ -674,6 +674,46 @@ function computeCandidateTrackClearance(candidate, distanceMap) {
   return Number.isFinite(trackClearance) ? trackClearance : 0;
 }
 
+function computeTextClearance(rect, layout, clearanceContext) {
+  if (!clearanceContext?.distanceMap) {
+    return Infinity;
+  }
+
+  const { distanceMap, cellWidth, cellHeight, originX, originY } = clearanceContext;
+  const rows = distanceMap.length;
+  const columns = distanceMap[0]?.length ?? 0;
+  if (rows === 0 || columns === 0) {
+    return Infinity;
+  }
+
+  const textMinX = rect.minX + (rect.width - layout.fittedWidth) / 2;
+  const textMinY = rect.minY + (rect.height - layout.fittedHeight) / 2;
+  const textMaxX = textMinX + layout.fittedWidth;
+  const textMaxY = textMinY + layout.fittedHeight;
+
+  const colMin = Math.max(0, Math.floor((textMinX - originX) / cellWidth));
+  const colMax = Math.min(columns - 1, Math.floor((textMaxX - originX) / cellWidth));
+  const rowMin = Math.max(0, Math.floor((textMinY - originY) / cellHeight));
+  const rowMax = Math.min(rows - 1, Math.floor((textMaxY - originY) / cellHeight));
+
+  if (colMin > colMax || rowMin > rowMax) {
+    return 0;
+  }
+
+  let minDistance = Infinity;
+
+  for (let col = colMin; col <= colMax; col += 1) {
+    minDistance = Math.min(minDistance, distanceMap[rowMin][col]);
+    minDistance = Math.min(minDistance, distanceMap[rowMax][col]);
+  }
+  for (let row = rowMin + 1; row < rowMax; row += 1) {
+    minDistance = Math.min(minDistance, distanceMap[row][colMin]);
+    minDistance = Math.min(minDistance, distanceMap[row][colMax]);
+  }
+
+  return Number.isFinite(minDistance) ? minDistance : 0;
+}
+
 function computeCentreDistance(rect, basePlate) {
   const rectCenterX = rect.minX + rect.width / 2;
   const rectCenterY = rect.minY + rect.height / 2;
@@ -869,7 +909,7 @@ function findPlacementCandidates(basePlate, placementMask, maxCandidates = MAX_C
       || a.left - b.left
   ));
 
-  return dedupeCandidates(rectangles, basePlate, placementMask, maxCandidates).map((candidate, index) => ({
+  const candidates = dedupeCandidates(rectangles, basePlate, placementMask, maxCandidates).map((candidate, index) => ({
     ...candidate,
     index,
     fractionOutside: candidate.fractionOutside ?? 0,
@@ -877,6 +917,8 @@ function findPlacementCandidates(basePlate, placementMask, maxCandidates = MAX_C
     normalizedTrackClearance: Math.min(1, (candidate.trackClearance ?? 0) / maxTrackClearance),
     centreDistance: computeCentreDistance(candidate.bounds, basePlate),
   }));
+
+  return { candidates, distanceMap: blockedDistanceMap, maxTrackClearance };
 }
 
 function normalizeContoursToOrigin(contours) {
@@ -1069,6 +1111,16 @@ function computeTrackClearanceMultiplier(normalizedClearance) {
   return 0.92 + 0.08 * normalizedClearance;
 }
 
+function computeTextClearanceMultiplier(rect, layout, clearanceContext) {
+  if (!clearanceContext) {
+    return 1;
+  }
+
+  const textClearance = computeTextClearance(rect, layout, clearanceContext);
+  const normalizedTextClearance = Math.min(1, textClearance / clearanceContext.maxTrackClearance);
+  return 0.96 + 0.04 * normalizedTextClearance;
+}
+
 function computeCentralityMultiplier(centreDistance) {
   return 1.0 - 0.04 * clamp(centreDistance, 0, 1);
 }
@@ -1081,7 +1133,7 @@ function getTextRotationCandidates(textOrientationMode) {
   return normalizeTextOrientationMode(textOrientationMode) === TEXT_ORIENTATION_FIXED ? [0] : [0, 90];
 }
 
-function scoreTextFit(rect, layout, candidate = {}) {
+function scoreTextFit(rect, layout, candidate = {}, clearanceContext = null) {
   const fittedWidth = layout.fittedWidth;
   const fittedHeight = layout.fittedHeight;
   const utilization = Math.min(1, (fittedWidth * fittedHeight) / Math.max(rect.width * rect.height, Number.EPSILON));
@@ -1090,6 +1142,7 @@ function scoreTextFit(rect, layout, candidate = {}) {
   const outsideMultiplier = 0.25 + 0.75 * clamp(candidate.fractionOutside ?? 1, 0, 1);
   const trackClearanceMultiplier = computeTrackClearanceMultiplier(candidate.normalizedTrackClearance ?? 1);
   const centralityMultiplier = computeCentralityMultiplier(candidate.centreDistance ?? 0);
+  const textClearanceMult = computeTextClearanceMultiplier(rect, layout, clearanceContext);
 
   return layout.averageLineHeight
     * Math.pow(utilization, 0.2)
@@ -1098,7 +1151,8 @@ function scoreTextFit(rect, layout, candidate = {}) {
     * computeLineCountMultiplier(layout.lineCount)
     * sizeWindowMultiplier
     * trackClearanceMultiplier
-    * centralityMultiplier;
+    * centralityMultiplier
+    * textClearanceMult;
 }
 
 function compareRankedTextPlacements(a, b) {
@@ -1176,7 +1230,7 @@ function fitTextToRectangleForRotation(text, font, rect, rotation, cache) {
   return layouts;
 }
 
-function findBestLayoutForLocation(text, font, candidate, rotation, cache) {
+function findBestLayoutForLocation(text, font, candidate, rotation, cache, clearanceContext = null) {
   const layouts = fitTextToRectangleForRotation(text, font, candidate.bounds, rotation, cache);
   if (!layouts.length) return null;
 
@@ -1184,7 +1238,7 @@ function findBestLayoutForLocation(text, font, candidate, rotation, cache) {
   let bestScore = -Infinity;
 
   for (const layout of layouts) {
-    const score = scoreTextFit(candidate.bounds, layout, candidate);
+    const score = scoreTextFit(candidate.bounds, layout, candidate, clearanceContext);
     if (score > bestScore) {
       bestScore = score;
       bestLayout = layout;
@@ -1194,14 +1248,14 @@ function findBestLayoutForLocation(text, font, candidate, rotation, cache) {
   return bestLayout ? { layout: { ...bestLayout, score: bestScore }, score: bestScore } : null;
 }
 
-function rankTextPlacements(text, font, candidates, textOrientationMode = TEXT_ORIENTATION_AUTO) {
+function rankTextPlacements(text, font, candidates, textOrientationMode = TEXT_ORIENTATION_AUTO, clearanceContext = null) {
   const cache = new Map();
   const rotations = getTextRotationCandidates(textOrientationMode);
 
   const orientationResults = rotations.map(rotation => {
     const locationResults = candidates
       .map((candidate, candidateIndex) => {
-        const best = findBestLayoutForLocation(text, font, candidate, rotation, cache);
+        const best = findBestLayoutForLocation(text, font, candidate, rotation, cache, clearanceContext);
         if (!best) return null;
         return { candidate, candidateIndex, layout: best.layout, score: best.score };
       })
@@ -1230,16 +1284,25 @@ function computeTextPlacement(text, outlinePoints, basePlate, scale, options = {
   const scaledOutline = scaleOutline(outlinePoints, scale);
   const scaledBasePlate = createScaledBounds(basePlate, scale);
   const placementMask = computePlacementMask(scaledOutline, scaledBasePlate);
-  const candidates = findPlacementCandidates(scaledBasePlate, placementMask);
+  const { candidates, distanceMap, maxTrackClearance } = findPlacementCandidates(scaledBasePlate, placementMask);
   if (!candidates.length) {
     return null;
   }
 
+  const clearanceContext = {
+    distanceMap,
+    maxTrackClearance,
+    cellWidth: placementMask.cellWidth,
+    cellHeight: placementMask.cellHeight,
+    originX: scaledBasePlate.minX,
+    originY: scaledBasePlate.minY,
+  };
   const orientationResults = rankTextPlacements(
     normalizedText,
     font,
     candidates,
     options.textOrientationMode,
+    clearanceContext,
   );
   if (!orientationResults.length) {
     return null;
@@ -1312,10 +1375,18 @@ export function __debugAllPlacements(text, outlinePoints, basePlate, scale, opti
   const scaledOutline = scaleOutline(outlinePoints, scale);
   const scaledBasePlate = createScaledBounds(basePlate, scale);
   const placementMask = computePlacementMask(scaledOutline, scaledBasePlate);
-  const candidates = findPlacementCandidates(scaledBasePlate, placementMask);
+  const { candidates, distanceMap, maxTrackClearance } = findPlacementCandidates(scaledBasePlate, placementMask);
   if (!candidates.length) return null;
 
-  const orientationResults = rankTextPlacements(normalizedText, font, candidates, options.textOrientationMode);
+  const clearanceContext = {
+    distanceMap,
+    maxTrackClearance,
+    cellWidth: placementMask.cellWidth,
+    cellHeight: placementMask.cellHeight,
+    originX: scaledBasePlate.minX,
+    originY: scaledBasePlate.minY,
+  };
+  const orientationResults = rankTextPlacements(normalizedText, font, candidates, options.textOrientationMode, clearanceContext);
 
   return orientationResults.map(({ rotation, placements, topScore }) => ({
     rotation,
@@ -1344,6 +1415,7 @@ export function __debugAllPlacements(text, outlinePoints, basePlate, scale, opti
         centreDistance: candidate.centreDistance,
         sizeWindowMultiplier: computeSizeWindowMultiplier(textHeight),
         lineCountMultiplier: computeLineCountMultiplier(layout.lineCount),
+        textClearanceMultiplier: computeTextClearanceMultiplier(candidate.bounds, layout, clearanceContext),
       };
     }),
   }));
@@ -1353,7 +1425,7 @@ export function __debugPlacementCandidates(outlinePoints, basePlate, scale) {
   const scaledOutline = scaleOutline(outlinePoints, scale);
   const scaledBasePlate = createScaledBounds(basePlate, scale);
   const placementMask = computePlacementMask(scaledOutline, scaledBasePlate);
-  return findPlacementCandidates(scaledBasePlate, placementMask);
+  return findPlacementCandidates(scaledBasePlate, placementMask).candidates;
 }
 
 export function __debugRectIntersectsPolygon(rect, polygon) {
