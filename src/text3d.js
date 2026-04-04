@@ -792,7 +792,7 @@ function dedupeCandidates(candidates, basePlate, grid, maxCandidates) {
 
     const duplicate = deduped.find(existing => {
       const intersection = rectIntersectionArea(bounds, existing.bounds);
-      return intersection / Math.min(area, existing.area) > 0.9;
+      return intersection / Math.min(area, existing.area) > 0.5;
     });
 
     if (duplicate) {
