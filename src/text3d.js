@@ -13,7 +13,50 @@ const MAX_TEXT_LINES = 4;
 const MAX_CANDIDATES = 16;
 const MIN_CELL_MM = 3;
 const MIN_GRID_CELLS_PER_SIDE = 8;
-const LINE_COUNT_MULTIPLIERS = [1, 1, 0.94, 0.91];
+
+/**
+ * Scoring weights and magic numbers used by the text-placement scoring pipeline.
+ * Collected here so the tuning surface is visible in one place.
+ */
+export const SCORING_WEIGHTS = Object.freeze({
+  /** Exponent applied to area-utilization ratio in scoreTextFit. */
+  utilizationExponent: 0.2,
+
+  /** Minimum multiplier when the candidate is fully inside the track outline. */
+  outsideMultiplierMin: 0.25,
+  /** Additional multiplier range scaled by fractionOutside (0-1). */
+  outsideMultiplierRange: 0.75,
+
+  /** Base multiplier for track clearance (applied when clearance is 0). */
+  trackClearanceMultiplierBase: 0.92,
+  /** Additional multiplier range scaled by normalized track clearance. */
+  trackClearanceMultiplierRange: 0.08,
+
+  /** Base multiplier for text clearance (applied when clearance is 0). */
+  textClearanceMultiplierBase: 0.96,
+  /** Additional multiplier range scaled by normalized text clearance. */
+  textClearanceMultiplierRange: 0.04,
+
+  /** Penalty factor for distance from the base-plate centre. */
+  centralityPenaltyFactor: 0.04,
+
+  /** Per-line-count multipliers; index 0 = 1 line, index 3 = 4 lines. */
+  lineCountMultipliers: [1, 1, 0.94, 0.91],
+
+  // --- Size-window curve breakpoints (computeSizeWindowMultiplier) ---
+  /** Maximum multiplier at the low end of the preferred height range. */
+  sizeWindowLowPeak: 0.6,
+  /** Additional range across the preferred height window. */
+  sizeWindowPreferredRange: 0.65,
+  /** Peak multiplier just above the preferred height ceiling. */
+  sizeWindowHighPeak: 1.25,
+
+  // --- Orientation selection bonuses (selectAutoOrientation in model.js) ---
+  /** Score bonus for landscape (width >= height) orientation. */
+  landscapeBonus: 1000,
+  /** Score bonus when text centroid sits in the lower half of the plate. */
+  textBottomBonus: 100,
+});
 
 let cachedFont = null;
 
@@ -1070,29 +1113,29 @@ function computeSizeWindowMultiplier(heightMm) {
       0,
       1,
     );
-    return t * t * t * 0.6;
+    return t * t * t * SCORING_WEIGHTS.sizeWindowLowPeak;
   }
 
   if (heightMm <= MAX_PREFERRED_HEIGHT_MM) {
     const t = (heightMm - MIN_PREFERRED_HEIGHT_MM) / (MAX_PREFERRED_HEIGHT_MM - MIN_PREFERRED_HEIGHT_MM);
-    return 0.6 + 0.65 * clamp(t, 0, 1);
+    return SCORING_WEIGHTS.sizeWindowLowPeak + SCORING_WEIGHTS.sizeWindowPreferredRange * clamp(t, 0, 1);
   }
 
   const zone4End = MAX_PREFERRED_HEIGHT_MM + zone2Span;
   if (heightMm <= zone4End) {
     const t = clamp((heightMm - MAX_PREFERRED_HEIGHT_MM) / zone2Span, 0, 1);
-    return 1.25 * (1 - t);
+    return SCORING_WEIGHTS.sizeWindowHighPeak * (1 - t);
   }
 
   return 0;
 }
 
 function computeLineCountMultiplier(lineCount) {
-  return LINE_COUNT_MULTIPLIERS[Math.min(Math.max(lineCount, 1), LINE_COUNT_MULTIPLIERS.length) - 1] ?? LINE_COUNT_MULTIPLIERS[LINE_COUNT_MULTIPLIERS.length - 1];
+  return SCORING_WEIGHTS.lineCountMultipliers[Math.min(Math.max(lineCount, 1), SCORING_WEIGHTS.lineCountMultipliers.length) - 1] ?? SCORING_WEIGHTS.lineCountMultipliers[SCORING_WEIGHTS.lineCountMultipliers.length - 1];
 }
 
 function computeTrackClearanceMultiplier(normalizedClearance) {
-  return 0.92 + 0.08 * normalizedClearance;
+  return SCORING_WEIGHTS.trackClearanceMultiplierBase + SCORING_WEIGHTS.trackClearanceMultiplierRange * normalizedClearance;
 }
 
 function computeTextClearanceMultiplier(rect, layout, clearanceContext) {
@@ -1102,11 +1145,11 @@ function computeTextClearanceMultiplier(rect, layout, clearanceContext) {
 
   const textClearance = computeTextClearance(rect, layout, clearanceContext);
   const normalizedTextClearance = Math.min(1, textClearance / clearanceContext.maxTrackClearance);
-  return 0.96 + 0.04 * normalizedTextClearance;
+  return SCORING_WEIGHTS.textClearanceMultiplierBase + SCORING_WEIGHTS.textClearanceMultiplierRange * normalizedTextClearance;
 }
 
 function computeCentralityMultiplier(centreDistance) {
-  return 1.0 - 0.04 * clamp(centreDistance, 0, 1);
+  return 1.0 - SCORING_WEIGHTS.centralityPenaltyFactor * clamp(centreDistance, 0, 1);
 }
 
 function scoreTextFit(rect, layout, candidate = {}, clearanceContext = null) {
@@ -1115,13 +1158,13 @@ function scoreTextFit(rect, layout, candidate = {}, clearanceContext = null) {
   const utilization = Math.min(1, (fittedWidth * fittedHeight) / Math.max(rect.width * rect.height, Number.EPSILON));
   const lineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
   const sizeWindowMultiplier = computeSizeWindowMultiplier(layout.averageLineHeight * layout.fittedScale);
-  const outsideMultiplier = 0.25 + 0.75 * clamp(candidate.fractionOutside ?? 1, 0, 1);
+  const outsideMultiplier = SCORING_WEIGHTS.outsideMultiplierMin + SCORING_WEIGHTS.outsideMultiplierRange * clamp(candidate.fractionOutside ?? 1, 0, 1);
   const trackClearanceMultiplier = computeTrackClearanceMultiplier(candidate.normalizedTrackClearance ?? 1);
   const centralityMultiplier = computeCentralityMultiplier(candidate.centreDistance ?? 0);
   const textClearanceMult = computeTextClearanceMultiplier(rect, layout, clearanceContext);
 
   return layout.averageLineHeight
-    * Math.pow(utilization, 0.2)
+    * Math.pow(utilization, SCORING_WEIGHTS.utilizationExponent)
     * lineBalance
     * outsideMultiplier
     * computeLineCountMultiplier(layout.lineCount)
@@ -1140,7 +1183,7 @@ export function __debugTextFitModifiers(heightMm, lineCount, fractionOutside = 1
   return {
     sizeWindowMultiplier: computeSizeWindowMultiplier(heightMm),
     lineCountMultiplier: computeLineCountMultiplier(lineCount),
-    outsideMultiplier: 0.25 + 0.75 * clamp(fractionOutside, 0, 1),
+    outsideMultiplier: SCORING_WEIGHTS.outsideMultiplierMin + SCORING_WEIGHTS.outsideMultiplierRange * clamp(fractionOutside, 0, 1),
   };
 }
 

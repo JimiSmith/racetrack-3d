@@ -9,6 +9,7 @@ import {
   computeRankedTextPlacements,
   DEFAULT_TEXT_POSITION_RANK,
   normalizeTextPositionRank,
+  SCORING_WEIGHTS,
   TEXT_HEIGHT_MM,
 } from './text3d.js';
 
@@ -553,8 +554,8 @@ function selectAutoOrientation(outlinePoints, basePlate, projectedNodes, trackNa
   const bp = basePlate ?? (baseOutline ? buildBasePlate(baseOutline) : null);
   if (!bp) return { deg: 0, placements: null };
 
-  const LANDSCAPE_BONUS = 1000;
-  const TEXT_BOTTOM_BONUS = 100;
+  const LANDSCAPE_BONUS = SCORING_WEIGHTS.landscapeBonus;
+  const TEXT_BOTTOM_BONUS = SCORING_WEIGHTS.textBottomBonus;
   const CANDIDATES = [0, 90, 180, 270];
 
   // Scoring text label: use the provided name or a short placeholder for geometry-only scoring.
