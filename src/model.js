@@ -174,14 +174,14 @@ function normalizeVector(dx, dy) {
   return { x: dx / length, y: dy / length };
 }
 
-function buildRaisedRibbonMesh(projectedNodes, scale) {
+function buildRaisedRibbonMesh(projectedNodes, scale, forceOpen = false) {
   const path = normalizeProjectedPath(projectedNodes);
 
   if (path.length < 2) {
     return null;
   }
 
-  const isClosed = path.length > 2;
+  const isClosed = !forceOpen && path.length > 2;
   const bottomZ = BASE_THICKNESS_MM;
   const halfWidth = TRACK_WIDTH_METRES / 2;
   const sections = [];
@@ -387,8 +387,8 @@ function buildBasePlateMesh(basePlate, scale) {
   return triangles;
 }
 
-function buildTrackPrismMesh(outline, scale, projectedNodes = null) {
-  const raisedRibbonMesh = buildRaisedRibbonMesh(projectedNodes, scale);
+function buildTrackPrismMesh(outline, scale, projectedNodes = null, forceOpen = false) {
+  const raisedRibbonMesh = buildRaisedRibbonMesh(projectedNodes, scale, forceOpen);
   if (raisedRibbonMesh) {
     return raisedRibbonMesh;
   }
@@ -714,7 +714,7 @@ export function buildTrackModel({
   const primaryEdgeSet = buildPrimaryEdgeSet(orientedGeometry.projectedNodes ?? []);
   const secondaryTrackTriangles = orientedSecondaries.flatMap(nodes => {
     const uniqueChains = getUniqueSubChains(nodes, primaryEdgeSet);
-    return uniqueChains.flatMap(chain => buildTrackPrismMesh(null, scale, chain));
+    return uniqueChains.flatMap(chain => buildTrackPrismMesh(null, scale, chain, true));
   });
 
   // Primary layout prism mesh (shown in red in the preview/export).
