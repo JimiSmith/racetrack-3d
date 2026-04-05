@@ -11,7 +11,6 @@ import {
   __debugPlacementCandidates,
   __debugAllPlacements,
   __debugRectIntersectsPolygon,
-  __enumerateSequentialTextLineBreaks,
   __findOptimalLineBreaks,
   buildTextMesh,
 } from '../src/text3d.js';
@@ -340,17 +339,6 @@ test('buildTextMesh uses multiline fitting when a single line would be unreadabl
   );
 
   assert.ok(triangles.length > 0);
-});
-
-test('line-break candidate generation preserves exact sequential word order', () => {
-  const candidates = __enumerateSequentialTextLineBreaks('Las Vegas Strip Circuit', 2);
-
-  assert.deepEqual(candidates, [
-    'Las\nVegas Strip Circuit',
-    'Las Vegas\nStrip Circuit',
-    'Las Vegas Strip\nCircuit',
-  ]);
-  assert.ok(candidates.every(candidate => collapseWhitespace(candidate) === 'Las Vegas Strip Circuit'));
 });
 
 test('text fit modifiers apply the size window, line count, and outside bonuses', () => {

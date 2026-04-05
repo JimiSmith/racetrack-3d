@@ -976,66 +976,8 @@ function normalizeContoursToOrigin(contours) {
   };
 }
 
-function createSequentialLineGrouping(words, breakpoints) {
-  const lines = [];
-  let start = 0;
-
-  for (const breakpoint of [...breakpoints, words.length]) {
-    const lineWords = words.slice(start, breakpoint);
-    if (!lineWords.length) {
-      return null;
-    }
-    lines.push(lineWords);
-    start = breakpoint;
-  }
-
-  return lines;
-}
-
-function lineWordsToText(lineWords) {
-  return lineWords.map(words => words.join(' '));
-}
-
 function createRenderedMultilineText(lines) {
   return lines.join('\n');
-}
-
-// Retained for testing/reference — the hot path now uses findOptimalLineBreaks.
-function enumerateSequentialLineGroupings(words, lineCount) {
-  if (lineCount <= 1) {
-    return [lineWordsToText([words])];
-  }
-
-  const groupings = [];
-
-  function visit(nextIndex, chosen) {
-    if (chosen.length === lineCount - 1) {
-      const grouping = createSequentialLineGrouping(words, chosen);
-      if (grouping) {
-        groupings.push(lineWordsToText(grouping));
-      }
-      return;
-    }
-
-    const remainingBreaks = lineCount - 1 - chosen.length;
-    for (let breakpoint = nextIndex; breakpoint <= words.length - remainingBreaks; breakpoint += 1) {
-      visit(breakpoint + 1, [...chosen, breakpoint]);
-    }
-  }
-
-  visit(1, []);
-  return groupings;
-}
-
-export function __enumerateSequentialTextLineBreaks(text, lineCount) {
-  const words = String(text).split(/\s+/u).filter(Boolean);
-  if (!words.length) {
-    return [];
-  }
-
-  const maxLines = Math.min(MAX_TEXT_LINES, words.length);
-  const targetLineCount = clamp(Math.trunc(Number(lineCount)) || 1, 1, maxLines);
-  return enumerateSequentialLineGroupings(words, targetLineCount).map(createRenderedMultilineText);
 }
 
 export function __findOptimalLineBreaks(text, lineCount, font) {
