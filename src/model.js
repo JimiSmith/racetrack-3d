@@ -1,6 +1,11 @@
 import earcut from 'earcut';
 
-import { buildBasePlate, buildTrackOutline } from './geometry.js';
+import { buildBasePlate, buildTrackOutline as _buildTrackOutline } from './geometry.js';
+
+function buildTrackOutline(...args) {
+  if (__modelPerfCounters) __modelPerfCounters.buildTrackOutline++;
+  return _buildTrackOutline(...args);
+}
 import { PRIMARY_ORIENTATION_AUTO, normalizeOrientationDeg, normalizePrimaryOrientationDeg } from './orientation.js';
 import { rotateOutlineByOrientation, rotatePointsByOrientation } from './orientation.js';
 import {
@@ -14,6 +19,18 @@ import {
 } from './text3d.js';
 
 let textPlacementCache = { token: null, byOrientation: new Map(), resolvedAutoDeg: null };
+
+// Performance counters for benchmarking — gated behind __perfCounters so they add zero cost in production.
+let __modelPerfCounters = null;
+export function __resetModelPerfCounters() {
+  __modelPerfCounters = {
+    buildTrackOutline: 0,
+    selectAutoOrientation: 0,
+    buildTrackPrismMesh: 0,
+  };
+}
+export function __getModelPerfCounters() { return __modelPerfCounters ? { ...__modelPerfCounters } : null; }
+export function __disableModelPerfCounters() { __modelPerfCounters = null; }
 
 export const BASE_THICKNESS_MM = 2.5;
 const BASE_CORNER_RADIUS_MM = 3;
@@ -387,6 +404,7 @@ function buildBasePlateMesh(basePlate, scale) {
 }
 
 function buildTrackPrismMesh(outline, scale, projectedNodes = null, forceOpen = false) {
+  if (__modelPerfCounters) __modelPerfCounters.buildTrackPrismMesh++;
   const raisedRibbonMesh = buildRaisedRibbonMesh(projectedNodes, scale, forceOpen);
   if (raisedRibbonMesh) {
     return raisedRibbonMesh;
@@ -546,13 +564,14 @@ function buildCombinedBasePlate(allOutlines, margin = 50) {
 // Returns { deg, placements: Map<deg, rankedResult|null> | null }
 // placements is null when trackName is empty (scoring used 'CIRCUIT' placeholder — not cacheable).
 function selectAutoOrientation(outlinePoints, basePlate, projectedNodes, trackName, secondaryProjectedNodes = []) {
+  if (__modelPerfCounters) __modelPerfCounters.selectAutoOrientation++;
   // Build an outline we can use for all candidates.
   // projectedNodes takes priority — same logic as orientTrackGeometry.
   const baseOutline = projectedNodes?.length
     ? buildTrackOutline(projectedNodes)
     : outlinePoints;
   const bp = basePlate ?? (baseOutline ? buildBasePlate(baseOutline) : null);
-  if (!bp) return { deg: 0, placements: null };
+  if (!bp) return { deg: 0, placements: null, geometry: null };
 
   const LANDSCAPE_BONUS = SCORING_WEIGHTS.landscapeBonus;
   const TEXT_BOTTOM_BONUS = SCORING_WEIGHTS.textBottomBonus;
@@ -567,15 +586,25 @@ function selectAutoOrientation(outlinePoints, basePlate, projectedNodes, trackNa
   let bestScore = -Infinity;
   const placementsMap = resultsAreCacheable ? new Map() : null;
 
+  // Store geometry for each orientation so the winner can be reused by buildTrackModel,
+  // avoiding a redundant buildTrackOutline call for the winning orientation.
+  const geometryByDeg = new Map();
+
   for (const deg of CANDIDATES) {
     // Rotate projected nodes when available, otherwise rotate outline directly.
-    const rotatedOutline = projectedNodes?.length
-      ? buildTrackOutline(rotatePointsByOrientation(projectedNodes, deg))
+    const rotatedProjectedNodes = projectedNodes?.length
+      ? rotatePointsByOrientation(projectedNodes, deg)
+      : null;
+    const rotatedOutline = rotatedProjectedNodes
+      ? buildTrackOutline(rotatedProjectedNodes)
       : rotateOutlineByOrientation(outlinePoints, deg);
 
     // In combined mode, rotate all secondary layouts and expand the base plate to fit all of them.
-    const rotatedSecondaryOutlines = secondaryProjectedNodes.map(nodes =>
-      buildTrackOutline(rotatePointsByOrientation(nodes, deg))
+    const rotatedSecondaryNodes = secondaryProjectedNodes.map(nodes =>
+      rotatePointsByOrientation(nodes, deg)
+    );
+    const rotatedSecondaryOutlines = rotatedSecondaryNodes.map(nodes =>
+      buildTrackOutline(nodes)
     );
     const rotatedBp = rotatedSecondaryOutlines.length > 0
       ? (buildCombinedBasePlate([rotatedOutline, ...rotatedSecondaryOutlines]) ?? buildBasePlate(rotatedOutline) ?? bp)
@@ -584,6 +613,14 @@ function selectAutoOrientation(outlinePoints, basePlate, projectedNodes, trackNa
     const allOutlinePoints = rotatedSecondaryOutlines.length > 0
       ? [rotatedOutline, ...rotatedSecondaryOutlines]
       : null;
+
+    geometryByDeg.set(deg, {
+      outlinePoints: rotatedOutline,
+      basePlate: rotatedBp,
+      projectedNodes: rotatedProjectedNodes,
+      secondaryOutlines: rotatedSecondaryOutlines,
+      orientedSecondaries: rotatedSecondaryNodes,
+    });
 
     let score = 0;
 
@@ -629,7 +666,7 @@ function selectAutoOrientation(outlinePoints, basePlate, projectedNodes, trackNa
     }
   }
 
-  return { deg: bestDeg, placements: placementsMap };
+  return { deg: bestDeg, placements: placementsMap, geometry: geometryByDeg.get(bestDeg) };
 }
 
 export function buildTrackModel({
@@ -656,6 +693,11 @@ export function buildTrackModel({
   const cacheActive = placementCacheToken !== null;
 
   let resolvedOrientationDeg;
+  // When selectAutoOrientation runs, it already computes the winning orientation's
+  // geometry (outline, basePlate, projected nodes, secondary outlines) and text placements.
+  // We reuse both to avoid redundant buildTrackOutline and computeRankedTextPlacements calls.
+  let autoGeometry = null;
+  let autoPlacementsForWinner = null;
   if (normalizedPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO) {
     if (cacheActive && textPlacementCache.resolvedAutoDeg !== null) {
       // Auto-orientation already computed and cached — use it directly.
@@ -667,6 +709,12 @@ export function buildTrackModel({
         outlinePoints, basePlate, projectedNodes, trackName, secondaryProjectedNodes,
       );
       resolvedOrientationDeg = autoResult.deg;
+      autoGeometry = autoResult.geometry;
+      // Retain the winning orientation's text placements for direct reuse below,
+      // avoiding a redundant computeRankedTextPlacements call even without a cache token.
+      if (autoResult.placements) {
+        autoPlacementsForWinner = autoResult.placements.get(resolvedOrientationDeg) ?? null;
+      }
       if (cacheActive) {
         textPlacementCache.resolvedAutoDeg = resolvedOrientationDeg;
         if (autoResult.placements) {
@@ -681,18 +729,32 @@ export function buildTrackModel({
   }
 
   const resolvedTextPositionRank = normalizeTextPositionRank(textPositionRank);
-  const orientedGeometry = orientTrackGeometry({
-    outlinePoints,
-    basePlate,
-    projectedNodes,
-    orientationDeg: resolvedOrientationDeg,
-  });
 
-  // Orient secondary layouts with the same rotation and build their outlines.
-  const orientedSecondaries = secondaryProjectedNodes.map(nodes =>
-    rotatePointsByOrientation(nodes, resolvedOrientationDeg)
-  );
-  const secondaryOutlines = orientedSecondaries.map(nodes => buildTrackOutline(nodes));
+  // Reuse geometry from selectAutoOrientation when available, otherwise compute fresh.
+  let orientedGeometry;
+  let orientedSecondaries;
+  let secondaryOutlines;
+  if (autoGeometry) {
+    orientedGeometry = {
+      outlinePoints: autoGeometry.outlinePoints,
+      basePlate: autoGeometry.basePlate,
+      projectedNodes: autoGeometry.projectedNodes,
+      orientationDeg: normalizeOrientationDeg(resolvedOrientationDeg),
+    };
+    orientedSecondaries = autoGeometry.orientedSecondaries;
+    secondaryOutlines = autoGeometry.secondaryOutlines;
+  } else {
+    orientedGeometry = orientTrackGeometry({
+      outlinePoints,
+      basePlate,
+      projectedNodes,
+      orientationDeg: resolvedOrientationDeg,
+    });
+    orientedSecondaries = secondaryProjectedNodes.map(nodes =>
+      rotatePointsByOrientation(nodes, resolvedOrientationDeg)
+    );
+    secondaryOutlines = orientedSecondaries.map(nodes => buildTrackOutline(nodes));
+  }
 
   // In combined mode, expand the base plate to encompass all layouts.
   const effectiveBasePlate = secondaryOutlines.length > 0
@@ -722,9 +784,13 @@ export function buildTrackModel({
   let rankedPlacements = null;
   const normalizedTrackName = String(trackName ?? '').trim();
   if (normalizedTrackName) {
+    // Try the cross-call cache first, then the local auto-orientation result.
     rankedPlacements = cacheActive
       ? textPlacementCache.byOrientation.get(resolvedOrientationDeg) ?? null
       : null;
+    if (!rankedPlacements) {
+      rankedPlacements = autoPlacementsForWinner;
+    }
 
     if (!rankedPlacements) {
       rankedPlacements = computeRankedTextPlacements(

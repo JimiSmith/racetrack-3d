@@ -14,6 +14,22 @@ const MAX_CANDIDATES = 16;
 const MIN_CELL_MM = 3;
 const MIN_GRID_CELLS_PER_SIDE = 8;
 
+// Performance counters for benchmarking — gated behind __perfCounters so they add zero cost in production.
+let __perfCounters = null;
+export function __resetPerfCounters() {
+  __perfCounters = {
+    findOptimalLineBreaks: 0,
+    buildMultilineContours: 0,
+    fitTextToRectangle: 0,
+    computePlacementMask: 0,
+    findPlacementCandidates: 0,
+    rankTextPlacements: 0,
+    computeRankedTextPlacements: 0,
+  };
+}
+export function __getPerfCounters() { return __perfCounters ? { ...__perfCounters } : null; }
+export function __disablePerfCounters() { __perfCounters = null; }
+
 /**
  * Scoring weights and magic numbers used by the text-placement scoring pipeline.
  * Collected here so the tuning surface is visible in one place.
@@ -762,6 +778,7 @@ function computeCentreDistance(rect, basePlate) {
 }
 
 function computePlacementMask(allObstacleOutlines, primaryOutline, basePlate) {
+  if (__perfCounters) __perfCounters.computePlacementMask++;
   const grid = createPlacementGrid(basePlate);
   const mask = Array.from({ length: grid.rows }, () => Array.from({ length: grid.columns }, () => false));
   const outside = Array.from({ length: grid.rows }, () => Array.from({ length: grid.columns }, () => true));
@@ -889,6 +906,7 @@ function dedupeCandidates(candidates, basePlate, grid, maxCandidates) {
 }
 
 function findPlacementCandidates(basePlate, placementMask, maxCandidates = MAX_CANDIDATES) {
+  if (__perfCounters) __perfCounters.findPlacementCandidates++;
   const heights = Array.from({ length: placementMask.columns }, () => 0);
   const rectangles = [];
   const outsidePrefix = buildPrefixSum(placementMask.outside ?? []);
@@ -1039,6 +1057,7 @@ function estimateLineWidth(wordWidths, spaceWidth, start, end) {
 }
 
 function findOptimalLineBreaks(words, lineCount, wordWidths, spaceWidth) {
+  if (__perfCounters) __perfCounters.findOptimalLineBreaks++;
   const n = words.length;
 
   if (lineCount <= 1 || n <= 1) {
@@ -1109,6 +1128,7 @@ function findOptimalLineBreaks(words, lineCount, wordWidths, spaceWidth) {
 }
 
 function buildMultilineContours(lines, font, cache) {
+  if (__perfCounters) __perfCounters.buildMultilineContours++;
   const measuredLines = lines.map(line => measureLine(font, line, cache));
   if (measuredLines.some(line => !line || line.bounds.width <= 0 || line.bounds.height <= 0)) {
     return null;
@@ -1245,7 +1265,33 @@ export function __debugCompareRankedTextPlacements(a, b) {
   return compareRankedTextPlacements(a, b);
 }
 
+// Pre-compute multiline layouts for all line-count variants of a text string.
+// These layouts are independent of the candidate rectangle and can be reused
+// across all candidates during ranking.
+function precomputeMultilineLayouts(text, font, cache) {
+  const words = String(text).split(/\s+/u).filter(Boolean);
+  if (!words.length) {
+    return [];
+  }
+
+  const { wordWidths, spaceWidth } = measureWordWidths(words, font, cache);
+  const multilines = [];
+  const maxLines = Math.min(MAX_TEXT_LINES, words.length);
+
+  for (let lineCount = 1; lineCount <= maxLines; lineCount += 1) {
+    const optimalLines = findOptimalLineBreaks(words, lineCount, wordWidths, spaceWidth);
+    const multiline = buildMultilineContours(optimalLines, font, cache);
+    if (!multiline || multiline.bounds.width <= 0 || multiline.bounds.height <= 0) {
+      continue;
+    }
+    multilines.push(multiline);
+  }
+
+  return multilines;
+}
+
 function fitTextToRectangle(text, font, rect, cache) {
+  if (__perfCounters) __perfCounters.fitTextToRectangle++;
   const words = String(text).split(/\s+/u).filter(Boolean);
   if (!words.length) {
     return [];
@@ -1262,6 +1308,43 @@ function fitTextToRectangle(text, font, rect, cache) {
       continue;
     }
 
+    const fittedScale = Math.min(
+      rect.width / multiline.bounds.width,
+      rect.height / multiline.bounds.height,
+      MAX_PREFERRED_HEIGHT_MM / multiline.averageLineHeight,
+    );
+
+    if (!Number.isFinite(fittedScale) || fittedScale * multiline.averageLineHeight < MIN_TEXT_HEIGHT_MM) {
+      continue;
+    }
+
+    const fittedWidth = multiline.bounds.width * fittedScale;
+    const fittedHeight = multiline.bounds.height * fittedScale;
+    layouts.push({
+      text: multiline.text,
+      lines: multiline.lines,
+      scale: fittedScale,
+      bounds: multiline.bounds,
+      contours: multiline.contours,
+      lineBounds: multiline.lineBounds,
+      fittedWidth,
+      fittedHeight,
+      averageLineHeight: multiline.averageLineHeight,
+      maxLineWidth: multiline.maxLineWidth,
+      minLineWidth: multiline.minLineWidth,
+      lineCount: multiline.lineCount,
+    });
+  }
+
+  return layouts;
+}
+
+// Scale pre-computed multiline layouts to fit a specific candidate rectangle.
+// Returns only layouts that meet the minimum text height requirement.
+function scaleLayoutsToRect(multilines, rect) {
+  const layouts = [];
+
+  for (const multiline of multilines) {
     const fittedScale = Math.min(
       rect.width / multiline.bounds.width,
       rect.height / multiline.bounds.height,
@@ -1311,12 +1394,38 @@ function findBestLayoutForLocation(text, font, candidate, cache, clearanceContex
   return bestLayout ? { layout: { ...bestLayout, score: bestScore }, score: bestScore } : null;
 }
 
+function findBestPrecomputedLayoutForLocation(multilines, candidate, clearanceContext = null) {
+  const layouts = scaleLayoutsToRect(multilines, candidate.bounds);
+  if (!layouts.length) return null;
+
+  let bestLayout = null;
+  let bestScore = -Infinity;
+
+  for (const layout of layouts) {
+    const score = scoreTextFit(candidate.bounds, layout, candidate, clearanceContext);
+    if (score > bestScore) {
+      bestScore = score;
+      bestLayout = layout;
+    }
+  }
+
+  return bestLayout ? { layout: { ...bestLayout, score: bestScore }, score: bestScore } : null;
+}
+
 function rankTextPlacements(text, font, candidates, clearanceContext = null) {
+  if (__perfCounters) __perfCounters.rankTextPlacements++;
   const cache = new Map();
+
+  // Pre-compute all multiline layouts once — line breaks and glyph contours
+  // depend only on text + line count, not on the candidate rectangle.
+  const multilines = precomputeMultilineLayouts(text, font, cache);
+  if (!multilines.length) {
+    return [];
+  }
 
   const locationResults = candidates
     .map((candidate, candidateIndex) => {
-      const best = findBestLayoutForLocation(text, font, candidate, cache, clearanceContext);
+      const best = findBestPrecomputedLayoutForLocation(multilines, candidate, clearanceContext);
       if (!best) return null;
       return { candidate, candidateIndex, layout: best.layout, score: best.score };
     })
@@ -1493,6 +1602,7 @@ export function buildTextMesh(text, outlinePoints, basePlate, scale, options = {
 }
 
 export function computeRankedTextPlacements(text, outlinePoints, basePlate, scale, options = {}) {
+  if (__perfCounters) __perfCounters.computeRankedTextPlacements++;
   const normalizedText = String(text ?? '').trim();
   if (!normalizedText) {
     return null;
