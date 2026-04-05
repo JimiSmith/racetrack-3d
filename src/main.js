@@ -69,6 +69,7 @@ let currentTextPositionRank = normalizeTextPositionRank(textPositionSelect?.valu
 let currentLabelOverride = null;
 let currentPlacementCacheToken = null;
 let currentCombinedLayoutMode = false;
+let currentSecondaryElevations = [];
 let isGeneratingStl = false;
 let isGenerating3mf = false;
 let isTrackSummaryExpanded = true;
@@ -265,6 +266,7 @@ function buildSelectedLayoutModel(elevations = currentElevations) {
     currentNodes = null;
     currentProjectedNodes = null;
     currentElevations = null;
+    currentSecondaryElevations = [];
     currentOutline = null;
     currentBasePlate = null;
     currentModel = null;
@@ -282,11 +284,11 @@ function buildSelectedLayoutModel(elevations = currentElevations) {
   };
   const projected = projectNodes(layout.nodes, elevations, center);
 
-  // Project secondary layouts (flat elevation, same center) when combined mode is active.
+  // Project secondary layouts with their elevation data (if available) when combined mode is active.
   const secondaryProjectedNodes = currentCombinedLayoutMode && currentLayouts.length > 1
     ? currentLayouts
       .filter((_, i) => i !== currentLayoutIndex)
-      .map(l => projectNodes(l.nodes, null, center))
+      .map((l, i) => projectNodes(l.nodes, currentSecondaryElevations[i] ?? null, center))
     : [];
 
   const trackNameState = getSelectedTrackNameState(layout);
@@ -333,8 +335,22 @@ function clearResults() {
 async function loadElevations(nodes, exaggeration) {
   if (!nodes?.length) return;
   try {
-    const elevations = await fetchElevations(nodes, exaggeration);
-    buildSelectedLayoutModel(elevations);
+    const secondaryLayouts = currentCombinedLayoutMode && currentLayouts.length > 1
+      ? currentLayouts.filter((_, i) => i !== currentLayoutIndex)
+      : [];
+
+    const allNodes = [...nodes, ...secondaryLayouts.flatMap(l => l.nodes)];
+    const allElevations = await fetchElevations(allNodes, exaggeration);
+
+    const primaryElevations = allElevations.slice(0, nodes.length);
+    let offset = nodes.length;
+    currentSecondaryElevations = secondaryLayouts.map(l => {
+      const elevs = allElevations.slice(offset, offset + l.nodes.length);
+      offset += l.nodes.length;
+      return elevs;
+    });
+
+    buildSelectedLayoutModel(primaryElevations);
     exaggerationWrap.hidden = false;
   } catch (err) {
     console.warn('Elevation loading failed, keeping flat model:', err);
@@ -529,8 +545,12 @@ layoutSelect.addEventListener('change', async () => {
 
 combinedLayoutToggle?.addEventListener('change', () => {
   currentCombinedLayoutMode = combinedLayoutToggle.checked;
+  if (!currentCombinedLayoutMode) currentSecondaryElevations = [];
   invalidatePlacementCache();
   buildSelectedLayoutModel();
+  if (currentCombinedLayoutMode && currentNodes?.length) {
+    loadElevations(currentNodes, Number(exaggerationSlider.value));
+  }
 });
 
 orientationSelect?.addEventListener('change', async () => {
