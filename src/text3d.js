@@ -1056,12 +1056,12 @@ function findOptimalLineBreaks(words, lineCount, wordWidths, spaceWidth) {
   const totalWidth = estimateLineWidth(wordWidths, spaceWidth, 0, n);
   const targetWidth = totalWidth / lineCount;
 
-  function lineCost(start, end, lineNum) {
+  function lineCost(start, end) {
     const w = estimateLineWidth(wordWidths, spaceWidth, start, end);
     const diff = targetWidth - w;
     let cost = diff * diff;
 
-    if (lineCount > 1 && end - start === 1 && targetWidth > 0 && w / targetWidth < SCORING_WEIGHTS.orphanThreshold) {
+    if (end - start === 1 && targetWidth > 0 && w / targetWidth < SCORING_WEIGHTS.orphanThreshold) {
       cost += SCORING_WEIGHTS.orphanPenaltyWeight * targetWidth * targetWidth;
     }
 
@@ -1075,14 +1075,14 @@ function findOptimalLineBreaks(words, lineCount, wordWidths, spaceWidth) {
 
   // Base case: 1 line covering words 0..j-1
   for (let j = 1; j <= n; j += 1) {
-    dp[1][j] = lineCost(0, j, 1);
+    dp[1][j] = lineCost(0, j);
   }
 
   // Fill DP for m = 2..lineCount
   for (let m = 2; m <= lineCount; m += 1) {
     for (let j = m; j <= n; j += 1) {
       for (let i = m - 1; i < j; i += 1) {
-        const cost = dp[m - 1][i] + lineCost(i, j, m);
+        const cost = dp[m - 1][i] + lineCost(i, j);
         if (cost < dp[m][j]) {
           dp[m][j] = cost;
           bp[m][j] = i;
