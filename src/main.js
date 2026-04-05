@@ -48,11 +48,6 @@ const combinedLayoutToggle = document.getElementById('combined-layout-toggle');
 const orientationSelect = document.getElementById('orientation-select');
 const textPositionSelect = document.getElementById('text-position-select');
 
-const TEXT_POSITION_LABELS = {
-  1: 'Best fit',
-  2: 'Alternate 1',
-  3: 'Alternate 2',
-};
 
 let currentNodes = null;
 let currentProjectedNodes = null;
@@ -114,18 +109,8 @@ function getSelectedTrackNameState(layout = getSelectedLayout(currentLayouts, cu
   });
 }
 
-function getOrientationLabel() {
-  return currentPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO
-    ? 'Auto'
-    : `${currentPrimaryOrientationDeg}°`;
-}
-
-function getTextPlacementLabel() {
-  return TEXT_POSITION_LABELS[currentTextPositionRank] ?? TEXT_POSITION_LABELS[DEFAULT_TEXT_POSITION_RANK];
-}
-
 function getEffectiveLabel(layout = getSelectedLayout(currentLayouts, currentLayoutIndex)) {
-  if (currentLabelOverride !== null) return currentLabelOverride;
+  if (currentLabelOverride !== null) {return currentLabelOverride;}
   return getSelectedTrackNameState(layout).printedName;
 }
 
@@ -180,8 +165,8 @@ function updateTrackSummary() {
     trackSummaryContent.hidden = true;
     selectedTrackMobileName.textContent = '';
 
-    if (summaryLabelInput) summaryLabelInput.value = '';
-    if (summaryLabelReset) summaryLabelReset.hidden = true;
+    if (summaryLabelInput) {summaryLabelInput.value = '';}
+    if (summaryLabelReset) {summaryLabelReset.hidden = true;}
     syncTrackSummaryForViewport();
     return;
   }
@@ -195,7 +180,7 @@ function updateTrackSummary() {
     if (currentLabelOverride === null && summaryLabelInput) {
       summaryLabelInput.value = currentTrack.name ?? 'Pending';
     }
-    if (summaryLabelReset) summaryLabelReset.hidden = currentLabelOverride === null;
+    if (summaryLabelReset) {summaryLabelReset.hidden = currentLabelOverride === null;}
 
     trackSummaryEmpty.hidden = true;
     trackSummaryContent.hidden = false;
@@ -216,7 +201,7 @@ function updateTrackSummary() {
   if (currentLabelOverride === null && summaryLabelInput) {
     summaryLabelInput.value = trackNameState.printedName;
   }
-  if (summaryLabelReset) summaryLabelReset.hidden = currentLabelOverride === null;
+  if (summaryLabelReset) {summaryLabelReset.hidden = currentLabelOverride === null;}
 
   trackSummaryEmpty.hidden = true;
   trackSummaryContent.hidden = false;
@@ -333,7 +318,7 @@ function clearResults() {
 }
 
 async function loadElevations(nodes, exaggeration) {
-  if (!nodes?.length) return;
+  if (!nodes?.length) {return;}
   try {
     const secondaryLayouts = currentCombinedLayoutMode && currentLayouts.length > 1
       ? currentLayouts.filter((_, i) => i !== currentLayoutIndex)
@@ -515,7 +500,7 @@ let elevationRefreshTimer;
 exaggerationSlider.addEventListener('input', () => {
   updateExaggerationSliderUI();
 
-  if (!currentNodes) return;
+  if (!currentNodes) {return;}
   clearTimeout(elevationRefreshTimer);
   elevationRefreshTimer = setTimeout(async () => {
     const exaggeration = Number(exaggerationSlider.value);
@@ -545,7 +530,7 @@ layoutSelect.addEventListener('change', async () => {
 
 combinedLayoutToggle?.addEventListener('change', () => {
   currentCombinedLayoutMode = combinedLayoutToggle.checked;
-  if (!currentCombinedLayoutMode) currentSecondaryElevations = [];
+  if (!currentCombinedLayoutMode) {currentSecondaryElevations = [];}
   invalidatePlacementCache();
   buildSelectedLayoutModel();
   if (currentCombinedLayoutMode && currentNodes?.length) {
@@ -579,7 +564,7 @@ textPositionSelect?.addEventListener('change', () => {
 
 summaryLabelInput?.addEventListener('input', () => {
   currentLabelOverride = summaryLabelInput.value;
-  if (summaryLabelReset) summaryLabelReset.hidden = false;
+  if (summaryLabelReset) {summaryLabelReset.hidden = false;}
 
   if (!currentLayouts.length || !currentTrack) {
     return;
@@ -593,7 +578,7 @@ summaryLabelReset?.addEventListener('click', () => {
   currentLabelOverride = null;
   const layout = getSelectedLayout(currentLayouts, currentLayoutIndex);
   const trackNameState = getSelectedTrackNameState(layout);
-  if (summaryLabelInput) summaryLabelInput.value = trackNameState.printedName ?? '';
+  if (summaryLabelInput) {summaryLabelInput.value = trackNameState.printedName ?? '';}
   summaryLabelReset.hidden = true;
 
   if (!currentLayouts.length || !currentTrack) {
@@ -631,7 +616,7 @@ input.addEventListener('input', () => {
       setStatus(`${tracks.length} result${tracks.length !== 1 ? 's' : ''} found`);
       renderResults(tracks);
     } catch (err) {
-      if (err.name === 'AbortError') return; // stale request, ignore
+      if (err.name === 'AbortError') {return;} // stale request, ignore
       setStatus(`Search error: ${err.message}`, true);
       console.error(err);
     }

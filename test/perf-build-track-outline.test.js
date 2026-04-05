@@ -1,10 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildBasePlate, buildTrackOutline } from '../src/geometry.js';
+import { buildBasePlate } from '../src/geometry.js';
 import {
   buildTrackModel,
-  computeScale,
   __resetModelPerfCounters,
   __getModelPerfCounters,
   __disableModelPerfCounters,
@@ -13,7 +12,6 @@ import {
   __resetPerfCounters,
   __getPerfCounters,
   __disablePerfCounters,
-  computeRankedTextPlacements,
 } from '../src/text3d.js';
 
 // ---------------------------------------------------------------------------

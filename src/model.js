@@ -3,13 +3,12 @@ import earcut from 'earcut';
 import { buildBasePlate, buildTrackOutline as _buildTrackOutline } from './geometry.js';
 
 function buildTrackOutline(...args) {
-  if (__modelPerfCounters) __modelPerfCounters.buildTrackOutline++;
+  if (__modelPerfCounters) {__modelPerfCounters.buildTrackOutline++;}
   return _buildTrackOutline(...args);
 }
 import { PRIMARY_ORIENTATION_AUTO, normalizeOrientationDeg, normalizePrimaryOrientationDeg } from './orientation.js';
 import { rotateOutlineByOrientation, rotatePointsByOrientation } from './orientation.js';
 import {
-  buildTextMesh,
   buildTextMeshFromRankedPlacements,
   computeRankedTextPlacements,
   DEFAULT_TEXT_POSITION_RANK,
@@ -43,7 +42,7 @@ const MAX_RIBBON_SECTION_STEP_METRES = 4;
 // Compute a scale factor so the outline fits within TARGET_MAX_SIZE_MM
 export function computeScale(basePlate) {
   const longestSide = Math.max(basePlate.width, basePlate.height); // metres
-  if (longestSide <= 0) return 1;
+  if (longestSide <= 0) {return 1;}
   return TARGET_MAX_SIZE_MM / longestSide;
 }
 
@@ -404,7 +403,7 @@ function buildBasePlateMesh(basePlate, scale) {
 }
 
 function buildTrackPrismMesh(outline, scale, projectedNodes = null, forceOpen = false) {
-  if (__modelPerfCounters) __modelPerfCounters.buildTrackPrismMesh++;
+  if (__modelPerfCounters) {__modelPerfCounters.buildTrackPrismMesh++;}
   const raisedRibbonMesh = buildRaisedRibbonMesh(projectedNodes, scale, forceOpen);
   if (raisedRibbonMesh) {
     return raisedRibbonMesh;
@@ -421,7 +420,7 @@ function buildTrackPrismMesh(outline, scale, projectedNodes = null, forceOpen = 
   const allVertices = []; // parallel flat list of {x,y} for vertex lookup
 
   for (const ring of allRings) {
-    if (flattened.length > 0) holeIndices.push(allVertices.length);
+    if (flattened.length > 0) {holeIndices.push(allVertices.length);}
     for (const point of ring) {
       flattened.push(toScaled(point.x, scale), toScaled(point.y, scale));
       allVertices.push(point);
@@ -438,7 +437,7 @@ function buildTrackPrismMesh(outline, scale, projectedNodes = null, forceOpen = 
   // Sample elevation from the nearest point along the path so each
   // cross-section stays level while the ribbon still rises and falls.
   function elevOffsetMm(px, py) {
-    if (!projectedNodes?.length) return 0;
+    if (!projectedNodes?.length) {return 0;}
     if (projectedNodes.length === 1) {
       return toScaled(projectedNodes[0].elevation ?? 0, scale);
     }
@@ -535,11 +534,11 @@ function getUniqueSubChains(secondaryNodes, primaryEdgeSet) {
     if (primaryEdgeSet.has(edgeKey(a, b))) {
       if (current) { chains.push(current); current = null; }
     } else {
-      if (!current) current = [a];
+      if (!current) {current = [a];}
       current.push(b);
     }
   }
-  if (current) chains.push(current);
+  if (current) {chains.push(current);}
   return chains;
 }
 
@@ -548,13 +547,13 @@ function buildCombinedBasePlate(allOutlines, margin = 50) {
   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
   for (const outline of allOutlines) {
     for (const { x, y } of (outline?.outerRing ?? [])) {
-      if (x < minX) minX = x;
-      if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
+      if (x < minX) {minX = x;}
+      if (x > maxX) {maxX = x;}
+      if (y < minY) {minY = y;}
+      if (y > maxY) {maxY = y;}
     }
   }
-  if (!Number.isFinite(minX)) return null;
+  if (!Number.isFinite(minX)) {return null;}
   minX -= margin; maxX += margin; minY -= margin; maxY += margin;
   return { minX, maxX, minY, maxY, width: maxX - minX, height: maxY - minY };
 }
@@ -564,14 +563,14 @@ function buildCombinedBasePlate(allOutlines, margin = 50) {
 // Returns { deg, placements: Map<deg, rankedResult|null> | null }
 // placements is null when trackName is empty (scoring used 'CIRCUIT' placeholder — not cacheable).
 function selectAutoOrientation(outlinePoints, basePlate, projectedNodes, trackName, secondaryProjectedNodes = []) {
-  if (__modelPerfCounters) __modelPerfCounters.selectAutoOrientation++;
+  if (__modelPerfCounters) {__modelPerfCounters.selectAutoOrientation++;}
   // Build an outline we can use for all candidates.
   // projectedNodes takes priority — same logic as orientTrackGeometry.
   const baseOutline = projectedNodes?.length
     ? buildTrackOutline(projectedNodes)
     : outlinePoints;
   const bp = basePlate ?? (baseOutline ? buildBasePlate(baseOutline) : null);
-  if (!bp) return { deg: 0, placements: null, geometry: null };
+  if (!bp) {return { deg: 0, placements: null, geometry: null };}
 
   const LANDSCAPE_BONUS = SCORING_WEIGHTS.landscapeBonus;
   const TEXT_BOTTOM_BONUS = SCORING_WEIGHTS.textBottomBonus;

@@ -51,7 +51,7 @@ async function runOverpassQueries(query, signal) {
       }
       results.push({ endpoint, data: await response.json() });
     } catch (err) {
-      if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+      if (signal?.aborted) {throw new DOMException('Aborted', 'AbortError');}
       errors.push(`${endpoint}: ${err.name === 'TimeoutError' ? 'timed out' : err.message}`);
     }
   }
@@ -141,7 +141,7 @@ function closeNodeChainIfNearClosed(nodes, maxGapMetres = 80) {
 // Reversing the section between the two reversal points fixes the winding.
 // Genuine sharp corners (hairpins) don't create paired reversals like this.
 function fixChainReversals(nodes) {
-  if (nodes.length < 6) return nodes;
+  if (nodes.length < 6) {return nodes;}
 
   const reversals = [];
   for (let i = 1; i < nodes.length - 1; i++) {
@@ -153,11 +153,11 @@ function fixChainReversals(nodes) {
     const m2 = Math.sqrt(d2lat * d2lat + d2lon * d2lon);
     if (m1 > 1e-10 && m2 > 1e-10) {
       const dot = (d1lat * d2lat + d1lon * d2lon) / (m1 * m2);
-      if (dot < -0.9) reversals.push(i);
+      if (dot < -0.9) {reversals.push(i);}
     }
   }
 
-  if (reversals.length < 2) return nodes;
+  if (reversals.length < 2) {return nodes;}
 
   // Fix in pairs: reverse the section between each consecutive pair of reversals
   const result = [...nodes];
@@ -242,7 +242,8 @@ function buildComponents(ways) {
   const n = ways.length;
   const parent = Array.from({ length: n }, (_, i) => i);
 
-  function find(i) {
+  function find(x) {
+    let i = x;
     while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i]; }
     return i;
   }
@@ -264,15 +265,15 @@ function buildComponents(ways) {
   const groups = new Map();
   for (let i = 0; i < n; i++) {
     const root = find(i);
-    if (!groups.has(root)) groups.set(root, []);
+    if (!groups.has(root)) {groups.set(root, []);}
     groups.get(root).push(i);
   }
   return [...groups.values()];
 }
 
 export function stitchWaysOrdered(ways) {
-  if (ways.length === 0) return [];
-  if (ways.length === 1) return ways[0].nodes;
+  if (ways.length === 0) {return [];}
+  if (ways.length === 1) {return ways[0].nodes;}
 
   const remaining = ways.map(w => ({ nodes: [...w.nodes] }));
   const chain = [...remaining.shift().nodes];
@@ -283,7 +284,7 @@ export function stitchWaysOrdered(ways) {
     let found = false;
 
     // First pass: exact snap
-    for (let snap of [SNAP_EXACT, SNAP_FUZZY]) {
+    for (const snap of [SNAP_EXACT, SNAP_FUZZY]) {
       for (let i = 0; i < remaining.length; i++) {
         const way = remaining[i];
         const wayStart = way.nodes[0];
@@ -303,10 +304,10 @@ export function stitchWaysOrdered(ways) {
           remaining.splice(i, 1); found = true; break;
         }
       }
-      if (found) break;
+      if (found) {break;}
     }
 
-    if (!found) break; // no more connectable ways in this component
+    if (!found) {break;} // no more connectable ways in this component
   }
 
   return chain;
@@ -361,8 +362,8 @@ export function buildCycleFromEdges(graph, edgeIds) {
   for (const edgeId of edgeIds) {
     const edge = graph.edges[edgeId];
 
-    if (!adjacency.has(edge.start)) adjacency.set(edge.start, []);
-    if (!adjacency.has(edge.end)) adjacency.set(edge.end, []);
+    if (!adjacency.has(edge.start)) {adjacency.set(edge.start, []);}
+    if (!adjacency.has(edge.end)) {adjacency.set(edge.end, []);}
     adjacency.get(edge.start).push(edgeId);
     adjacency.get(edge.end).push(edgeId);
   }
@@ -1145,8 +1146,8 @@ function buildOrderedCycleMetadata(graph, edgeIds) {
   for (const edgeId of edgeIds) {
     const edge = graph.edges[edgeId];
 
-    if (!adjacency.has(edge.start)) adjacency.set(edge.start, []);
-    if (!adjacency.has(edge.end)) adjacency.set(edge.end, []);
+    if (!adjacency.has(edge.start)) {adjacency.set(edge.start, []);}
+    if (!adjacency.has(edge.end)) {adjacency.set(edge.end, []);}
     adjacency.get(edge.start).push(edgeId);
     adjacency.get(edge.end).push(edgeId);
   }
@@ -1581,7 +1582,7 @@ function buildNamedCircuitLayouts(ways, trackName, referenceWays = ways) {
   const nameGroups = new Map();
   for (const way of ways) {
     for (const { name, source } of getWayCandidateNameEntries(way)) {
-      if (!NAMED_LAYOUT_KEYWORD_PATTERN.test(name)) continue;
+      if (!NAMED_LAYOUT_KEYWORD_PATTERN.test(name)) {continue;}
       if (!nameGroups.has(name)) {
         nameGroups.set(name, { ways: [], sourceRank: source === 'way' ? 1 : 0 });
       }
@@ -1592,7 +1593,7 @@ function buildNamedCircuitLayouts(ways, trackName, referenceWays = ways) {
     }
   }
 
-  if (nameGroups.size < 2) return [];
+  if (nameGroups.size < 2) {return [];}
 
   const eligibleNameGroups = new Map();
   const standaloneLayouts = [];
@@ -1614,10 +1615,10 @@ function buildNamedCircuitLayouts(ways, trackName, referenceWays = ways) {
 
     // Only use the named ways — no shared backbone mixing
     const candidate = buildCandidateFromWays(namedWays);
-    if (!candidate || candidate.nodes.length < 4) continue;
-    if (candidate.length < MIN_LENGTH) continue;
+    if (!candidate || candidate.nodes.length < 4) {continue;}
+    if (candidate.length < MIN_LENGTH) {continue;}
     // Must form a near-closed loop on its own
-    if (candidate.endpointGap > candidate.length * MAX_GAP_FRACTION) continue;
+    if (candidate.endpointGap > candidate.length * MAX_GAP_FRACTION) {continue;}
 
     standaloneLayouts.push({
       id: `layout-${standaloneLayouts.length + 1}`,
@@ -1650,7 +1651,7 @@ function buildNamedCircuitLayouts(ways, trackName, referenceWays = ways) {
         )
       : [];
 
-  const publicLayouts = standaloneLayouts.map(({ candidate, ways: groupedWays, ...publicLayout }) => publicLayout);
+  const publicLayouts = standaloneLayouts.map(({ candidate: _candidate, ways: _groupedWays, ...publicLayout }) => publicLayout);
   const dedupedCombinedLayouts = dedupeLayoutsByGeometry([...publicLayouts, ...substitutionLayouts], trackName);
   const implicitRelationLayouts = buildImplicitRelationLayouts(
     nameGroups,
@@ -1694,7 +1695,7 @@ export function buildLayoutsFromWays(ways, trackName) {
   const variantLayouts = buildVariantLayouts(ways, graph, sections, trackName, variantBackbone);
 
   if (variantLayouts.length > 1) {
-    return dedupeLayoutsByGeometry(variantLayouts.slice(0, 8), trackName).map(({ area, ...layout }) => layout);
+    return dedupeLayoutsByGeometry(variantLayouts.slice(0, 8), trackName).map(({ area: _area, ...layout }) => layout);
   }
 
   const singleLayout = variantBackbone
@@ -1720,8 +1721,8 @@ export function buildLayoutsFromWays(ways, trackName) {
 }
 
 function stitchWays(ways) {
-  if (ways.length === 0) return [];
-  if (ways.length === 1) return ways[0].nodes;
+  if (ways.length === 0) {return [];}
+  if (ways.length === 1) {return ways[0].nodes;}
 
   return stitchWaysOrdered(selectBestComponentWays(ways));
 }
@@ -1857,7 +1858,7 @@ function buildTrackGeometryResult(elements, trackName) {
   // (e.g. Mexican Grand Prix + Mexico City E-Prix), merging all their ways produces an
   // incorrect superset geometry. Try each relation independently and return the best result.
   const circuitRelations = allElements.filter(e => {
-    if (e.type !== 'relation') return false;
+    if (e.type !== 'relation') {return false;}
     const hw = String(e.tags?.highway ?? '').trim().toLowerCase();
     const type = String(e.tags?.type ?? '').trim().toLowerCase();
     const route = String(e.tags?.route ?? '').trim().toLowerCase();
@@ -1876,7 +1877,7 @@ function buildTrackGeometryResult(elements, trackName) {
     const allMemberIds = new Set(memberSets.flatMap(s => [...s]));
     let sharedCount = 0;
     for (const id of allMemberIds) {
-      if (memberSets.every(s => s.has(id))) sharedCount++;
+      if (memberSets.every(s => s.has(id))) {sharedCount++;}
     }
     const overlapRatio = allMemberIds.size > 0 ? sharedCount / allMemberIds.size : 1;
     const INDEPENDENT_CIRCUIT_OVERLAP_THRESHOLD = 0.5;
@@ -1896,7 +1897,7 @@ function buildTrackGeometryResult(elements, trackName) {
           relation,
         ];
         const result = buildTrackGeometryResult(relationElements, trackName);
-        if (!result?.layouts?.length) return [];
+        if (!result?.layouts?.length) {return [];}
         const relationName = relation.tags?.name?.trim();
         return result.layouts.map((layout, j) => ({
           ...layout,

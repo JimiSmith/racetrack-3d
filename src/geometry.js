@@ -44,10 +44,10 @@ export function buildBasePlate(outline, margin = 50) {
   const outlinePoints = outline?.outerRing ?? outline;
   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
   for (const { x, y } of outlinePoints) {
-    if (x < minX) minX = x;
-    if (x > maxX) maxX = x;
-    if (y < minY) minY = y;
-    if (y > maxY) maxY = y;
+    if (x < minX) {minX = x;}
+    if (x > maxX) {maxX = x;}
+    if (y < minY) {minY = y;}
+    if (y > maxY) {maxY = y;}
   }
   minX -= margin;
   maxX += margin;

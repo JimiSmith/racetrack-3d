@@ -98,6 +98,7 @@ function decodeBase64ToArrayBuffer(base64) {
     return bytes.buffer;
   }
 
+  /* global Buffer */
   if (typeof Buffer === 'function') {
     const buffer = Buffer.from(base64, 'base64');
     return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
@@ -553,9 +554,6 @@ function flipContoursY(contours) {
   })));
 }
 
-function computeOutlineBounds(points) {
-  return polygonBounds(points?.outerRing ?? points);
-}
 
 function createScaledBounds(bounds, scale) {
   return {
@@ -777,7 +775,7 @@ function computeCentreDistance(rect, basePlate) {
 }
 
 function computePlacementMask(allObstacleOutlines, primaryOutline, basePlate) {
-  if (__perfCounters) __perfCounters.computePlacementMask++;
+  if (__perfCounters) {__perfCounters.computePlacementMask++;}
   const grid = createPlacementGrid(basePlate);
   const mask = Array.from({ length: grid.rows }, () => Array.from({ length: grid.columns }, () => false));
   const outside = Array.from({ length: grid.rows }, () => Array.from({ length: grid.columns }, () => true));
@@ -905,7 +903,7 @@ function dedupeCandidates(candidates, basePlate, grid, maxCandidates) {
 }
 
 function findPlacementCandidates(basePlate, placementMask, maxCandidates = MAX_CANDIDATES) {
-  if (__perfCounters) __perfCounters.findPlacementCandidates++;
+  if (__perfCounters) {__perfCounters.findPlacementCandidates++;}
   const heights = Array.from({ length: placementMask.columns }, () => 0);
   const rectangles = [];
   const outsidePrefix = buildPrefixSum(placementMask.outside ?? []);
@@ -1056,7 +1054,7 @@ function estimateLineWidth(wordWidths, spaceWidth, start, end) {
 }
 
 function findOptimalLineBreaks(words, lineCount, wordWidths, spaceWidth) {
-  if (__perfCounters) __perfCounters.findOptimalLineBreaks++;
+  if (__perfCounters) {__perfCounters.findOptimalLineBreaks++;}
   const n = words.length;
 
   if (lineCount <= 1 || n <= 1) {
@@ -1127,7 +1125,7 @@ function findOptimalLineBreaks(words, lineCount, wordWidths, spaceWidth) {
 }
 
 function buildMultilineContours(lines, font, cache) {
-  if (__perfCounters) __perfCounters.buildMultilineContours++;
+  if (__perfCounters) {__perfCounters.buildMultilineContours++;}
   const measuredLines = lines.map(line => measureLine(font, line, cache));
   if (measuredLines.some(line => !line || line.bounds.width <= 0 || line.bounds.height <= 0)) {
     return null;
@@ -1328,7 +1326,7 @@ function scaleLayoutsToRect(multilines, rect) {
 
 function findBestPrecomputedLayoutForLocation(multilines, candidate, clearanceContext = null) {
   const layouts = scaleLayoutsToRect(multilines, candidate.bounds);
-  if (!layouts.length) return null;
+  if (!layouts.length) {return null;}
 
   let bestLayout = null;
   let bestScore = -Infinity;
@@ -1345,7 +1343,7 @@ function findBestPrecomputedLayoutForLocation(multilines, candidate, clearanceCo
 }
 
 function rankTextPlacements(text, font, candidates, clearanceContext = null) {
-  if (__perfCounters) __perfCounters.rankTextPlacements++;
+  if (__perfCounters) {__perfCounters.rankTextPlacements++;}
   const cache = new Map();
 
   // Pre-compute all multiline layouts once — line breaks and glyph contours
@@ -1358,7 +1356,7 @@ function rankTextPlacements(text, font, candidates, clearanceContext = null) {
   const locationResults = candidates
     .map((candidate, candidateIndex) => {
       const best = findBestPrecomputedLayoutForLocation(multilines, candidate, clearanceContext);
-      if (!best) return null;
+      if (!best) {return null;}
       return { candidate, candidateIndex, layout: best.layout, score: best.score };
     })
     .filter(Boolean);
@@ -1437,14 +1435,14 @@ export function __debugTextPlacement(text, outlinePoints, basePlate, scale, opti
 
 export function __debugAllPlacements(text, outlinePoints, basePlate, scale, options = {}) {
   const normalizedText = String(text ?? '').trim();
-  if (!normalizedText) return null;
+  if (!normalizedText) {return null;}
 
   const font = getLabelFont(options.font ?? null);
   const scaledOutline = scaleOutline(outlinePoints, scale);
   const scaledBasePlate = createScaledBounds(basePlate, scale);
   const placementMask = computePlacementMask([scaledOutline], scaledOutline, scaledBasePlate);
   const { candidates, distanceMap, maxTrackClearance } = findPlacementCandidates(scaledBasePlate, placementMask);
-  if (!candidates.length) return null;
+  if (!candidates.length) {return null;}
 
   const clearanceContext = {
     distanceMap,
@@ -1534,7 +1532,7 @@ export function buildTextMesh(text, outlinePoints, basePlate, scale, options = {
 }
 
 export function computeRankedTextPlacements(text, outlinePoints, basePlate, scale, options = {}) {
-  if (__perfCounters) __perfCounters.computeRankedTextPlacements++;
+  if (__perfCounters) {__perfCounters.computeRankedTextPlacements++;}
   const normalizedText = String(text ?? '').trim();
   if (!normalizedText) {
     return null;

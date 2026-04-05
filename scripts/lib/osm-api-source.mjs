@@ -16,7 +16,7 @@ const DEFAULT_ADAPTIVE_MIN_MARGIN = 0.001;
 const DEFAULT_ADAPTIVE_MAX_ATTEMPTS = 8;
 
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(resolve => { setTimeout(resolve, ms); });
 }
 
 function getNow(options = {}) {
@@ -384,7 +384,7 @@ function parseRelationMemberWayIds(xmlSource) {
   const ids = [];
   for (const m of String(xmlSource ?? '').matchAll(/<member\s[^>]*type="way"[^>]*ref="(\d+)"[^>]*/g)) {
     const id = Number(m[1]);
-    if (Number.isFinite(id)) ids.push(id);
+    if (Number.isFinite(id)) {ids.push(id);}
   }
   return ids;
 }
@@ -406,7 +406,7 @@ function parseRelationMemberWayIds(xmlSource) {
 // Falls back to the original payload on any network error.
 export async function supplementPayloadWithMissingRelationWays(payload, options = {}) {
   const relevantRelations = (payload?.elements ?? []).filter(e => {
-    if (e.type !== 'relation') return false;
+    if (e.type !== 'relation') {return false;}
     const hw = String(e.tags?.highway ?? '').trim().toLowerCase();
     const type = String(e.tags?.type ?? '').trim().toLowerCase();
     const route = String(e.tags?.route ?? '').trim().toLowerCase();
@@ -437,7 +437,7 @@ export async function supplementPayloadWithMissingRelationWays(payload, options 
         `${osmApiBase}/relation/${rel.id}`,
         { headers: { Accept: 'application/xml, text/xml;q=0.9' }, signal: AbortSignal.timeout(timeout) },
       );
-      if (!relResponse.ok) continue;
+      if (!relResponse.ok) {continue;}
 
       const allMemberIds = parseRelationMemberWayIds(await relResponse.text());
       fullMembersByRelId.set(rel.id, allMemberIds);

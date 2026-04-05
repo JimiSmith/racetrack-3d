@@ -597,7 +597,7 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
       },
     };
   } catch (error) {
-    throw new Error(`OSM API build path failed for ${track.trackName} (${error instanceof Error ? error.message : String(error)})`);
+    throw new Error(`OSM API build path failed for ${track.trackName} (${error instanceof Error ? error.message : String(error)})`, { cause: error });
   }
 }
 

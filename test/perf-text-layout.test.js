@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildBasePlate, buildTrackOutline, projectNodes } from '../src/geometry.js';
-import { computeScale, buildTrackModel } from '../src/model.js';
+import { buildBasePlate, buildTrackOutline } from '../src/geometry.js';
+import { computeScale } from '../src/model.js';
 import {
   __resetPerfCounters,
   __getPerfCounters,
