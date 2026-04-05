@@ -90,9 +90,7 @@ For each candidate rectangle, the algorithm tries every combination of:
 
 - **Line count**: 1 to `MAX_TEXT_LINES` (currently **4**, or word count if fewer)
 - **Word grouping**: all sequential assignments of words to lines for that line count
-- **Text rotation**:
-  - `[0°]` when `TEXT_ORIENTATION_FIXED`
-  - `[0°, 90°]` when `TEXT_ORIENTATION_AUTO`
+- **Text rotation**: always `0°` (horizontal text on the already-rotated model)
 
 Each layout is rendered, scaled to fit the candidate rectangle, and scored.
 
