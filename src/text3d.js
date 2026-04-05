@@ -51,6 +51,12 @@ export const SCORING_WEIGHTS = Object.freeze({
   /** Peak multiplier just above the preferred height ceiling. */
   sizeWindowHighPeak: 1.25,
 
+  // --- DP line-breaking cost function (findOptimalLineBreaks) ---
+  /** Last-line width / targetWidth below this ratio is considered an orphan. */
+  orphanThreshold: 0.4,
+  /** Multiplier on raggedness cost for orphan lines in the DP. */
+  orphanPenaltyWeight: 2.0,
+
   // --- Orientation selection bonuses (selectAutoOrientation in model.js) ---
   /** Score bonus for landscape (width >= height) orientation. */
   landscapeBonus: 1000,
@@ -994,6 +1000,7 @@ function createRenderedMultilineText(lines) {
   return lines.join('\n');
 }
 
+// Retained for testing/reference — the hot path now uses findOptimalLineBreaks.
 function enumerateSequentialLineGroupings(words, lineCount) {
   if (lineCount <= 1) {
     return [lineWordsToText([words])];
@@ -1031,6 +1038,18 @@ export function __enumerateSequentialTextLineBreaks(text, lineCount) {
   return enumerateSequentialLineGroupings(words, targetLineCount).map(createRenderedMultilineText);
 }
 
+export function __findOptimalLineBreaks(text, lineCount, font) {
+  const words = String(text).split(/\s+/u).filter(Boolean);
+  if (!words.length) {
+    return [];
+  }
+  const cache = new Map();
+  const { wordWidths, spaceWidth } = measureWordWidths(words, font, cache);
+  const maxLines = Math.min(MAX_TEXT_LINES, words.length);
+  const targetLineCount = clamp(Math.trunc(Number(lineCount)) || 1, 1, maxLines);
+  return findOptimalLineBreaks(words, targetLineCount, wordWidths, spaceWidth);
+}
+
 function measureLine(font, line, cache) {
   const cached = cache.get(line);
   if (cached) {
@@ -1052,6 +1071,105 @@ function measureLine(font, line, cache) {
   };
   cache.set(line, result);
   return result;
+}
+
+function measureWordWidths(words, font, cache) {
+  const wordWidths = words.map(word => {
+    const measured = measureLine(font, word, cache);
+    return measured ? measured.bounds.width : 0;
+  });
+
+  let spaceWidth;
+  if (font.charToGlyph && font.unitsPerEm) {
+    spaceWidth = font.charToGlyph(' ').advanceWidth / font.unitsPerEm;
+  } else {
+    const twoWords = measureLine(font, 'I I', cache);
+    const oneChar = measureLine(font, 'I', cache);
+    spaceWidth = twoWords && oneChar ? twoWords.bounds.width - oneChar.bounds.width * 2 : 0;
+  }
+
+  return { wordWidths, spaceWidth };
+}
+
+function estimateLineWidth(wordWidths, spaceWidth, start, end) {
+  let width = 0;
+  for (let i = start; i < end; i += 1) {
+    width += wordWidths[i];
+  }
+  width += spaceWidth * Math.max(0, end - start - 1);
+  return width;
+}
+
+function findOptimalLineBreaks(words, lineCount, wordWidths, spaceWidth) {
+  const n = words.length;
+
+  if (lineCount <= 1 || n <= 1) {
+    return [words.join(' ')];
+  }
+
+  if (lineCount >= n) {
+    return words.map(w => w);
+  }
+
+  const totalWidth = estimateLineWidth(wordWidths, spaceWidth, 0, n);
+  const targetWidth = totalWidth / lineCount;
+
+  function lineCost(start, end, lineNum) {
+    const w = estimateLineWidth(wordWidths, spaceWidth, start, end);
+    const diff = targetWidth - w;
+    let cost = diff * diff;
+
+    if (lineNum === lineCount && lineCount > 1) {
+      if (targetWidth > 0 && w / targetWidth < SCORING_WEIGHTS.orphanThreshold) {
+        cost *= SCORING_WEIGHTS.orphanPenaltyWeight;
+      }
+    }
+
+    return cost;
+  }
+
+  // dp[m][j] = min cost to place words 0..j-1 into m lines
+  // bp[m][j] = split point achieving that minimum
+  const dp = Array.from({ length: lineCount + 1 }, () => new Float64Array(n + 1).fill(Infinity));
+  const bp = Array.from({ length: lineCount + 1 }, () => new Int32Array(n + 1).fill(-1));
+
+  // Base case: 1 line covering words 0..j-1
+  for (let j = 1; j <= n; j += 1) {
+    dp[1][j] = lineCost(0, j, 1);
+  }
+
+  // Fill DP for m = 2..lineCount
+  for (let m = 2; m <= lineCount; m += 1) {
+    for (let j = m; j <= n; j += 1) {
+      for (let i = m - 1; i < j; i += 1) {
+        const cost = dp[m - 1][i] + lineCost(i, j, m);
+        if (cost < dp[m][j]) {
+          dp[m][j] = cost;
+          bp[m][j] = i;
+        }
+      }
+    }
+  }
+
+  // Backtrack to find break positions
+  const breaks = [];
+  let remaining = n;
+  for (let m = lineCount; m >= 2; m -= 1) {
+    breaks.push(bp[m][remaining]);
+    remaining = bp[m][remaining];
+  }
+  breaks.reverse();
+
+  // Build line strings from break positions
+  const lines = [];
+  let start = 0;
+  for (const brk of breaks) {
+    lines.push(words.slice(start, brk).join(' '));
+    start = brk;
+  }
+  lines.push(words.slice(start).join(' '));
+
+  return lines;
 }
 
 function buildMultilineContours(lines, font, cache) {
@@ -1197,45 +1315,44 @@ function fitTextToRectangle(text, font, rect, cache) {
     return [];
   }
 
+  const { wordWidths, spaceWidth } = measureWordWidths(words, font, cache);
   const layouts = [];
   const maxLines = Math.min(MAX_TEXT_LINES, words.length);
 
   for (let lineCount = 1; lineCount <= maxLines; lineCount += 1) {
-    const groupings = enumerateSequentialLineGroupings(words, lineCount);
-    for (const grouping of groupings) {
-      const multiline = buildMultilineContours(grouping, font, cache);
-      if (!multiline || multiline.bounds.width <= 0 || multiline.bounds.height <= 0) {
-        continue;
-      }
-
-      const fittedScale = Math.min(
-        rect.width / multiline.bounds.width,
-        rect.height / multiline.bounds.height,
-        MAX_PREFERRED_HEIGHT_MM / multiline.averageLineHeight,
-      );
-
-      if (!Number.isFinite(fittedScale) || fittedScale * multiline.averageLineHeight < MIN_TEXT_HEIGHT_MM) {
-        continue;
-      }
-
-      const fittedWidth = multiline.bounds.width * fittedScale;
-      const fittedHeight = multiline.bounds.height * fittedScale;
-      layouts.push({
-        text: multiline.text,
-        lines: multiline.lines,
-        scale: fittedScale,
-        bounds: multiline.bounds,
-        contours: multiline.contours,
-        lineBounds: multiline.lineBounds,
-        fittedWidth,
-        fittedHeight,
-        averageLineHeight: multiline.averageLineHeight,
-        maxLineWidth: multiline.maxLineWidth,
-        minLineWidth: multiline.minLineWidth,
-        lineCount: multiline.lineCount,
-        fittedScale,
-      });
+    const optimalLines = findOptimalLineBreaks(words, lineCount, wordWidths, spaceWidth);
+    const multiline = buildMultilineContours(optimalLines, font, cache);
+    if (!multiline || multiline.bounds.width <= 0 || multiline.bounds.height <= 0) {
+      continue;
     }
+
+    const fittedScale = Math.min(
+      rect.width / multiline.bounds.width,
+      rect.height / multiline.bounds.height,
+      MAX_PREFERRED_HEIGHT_MM / multiline.averageLineHeight,
+    );
+
+    if (!Number.isFinite(fittedScale) || fittedScale * multiline.averageLineHeight < MIN_TEXT_HEIGHT_MM) {
+      continue;
+    }
+
+    const fittedWidth = multiline.bounds.width * fittedScale;
+    const fittedHeight = multiline.bounds.height * fittedScale;
+    layouts.push({
+      text: multiline.text,
+      lines: multiline.lines,
+      scale: fittedScale,
+      bounds: multiline.bounds,
+      contours: multiline.contours,
+      lineBounds: multiline.lineBounds,
+      fittedWidth,
+      fittedHeight,
+      averageLineHeight: multiline.averageLineHeight,
+      maxLineWidth: multiline.maxLineWidth,
+      minLineWidth: multiline.minLineWidth,
+      lineCount: multiline.lineCount,
+      fittedScale,
+    });
   }
 
   return layouts;

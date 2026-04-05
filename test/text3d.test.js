@@ -12,6 +12,7 @@ import {
   __debugAllPlacements,
   __debugRectIntersectsPolygon,
   __enumerateSequentialTextLineBreaks,
+  __findOptimalLineBreaks,
   buildTextMesh,
 } from '../src/text3d.js';
 
@@ -27,6 +28,10 @@ function rectangleCommands(x, y, width, height) {
 
 function createMockFont() {
   return {
+    unitsPerEm: 1,
+    charToGlyph(char) {
+      return { advanceWidth: char === ' ' ? 0.4 : 1.2 };
+    },
     getPath(text, startX, startY, fontSize) {
       const commands = [];
       let cursor = startX;
@@ -809,4 +814,80 @@ test('placement score includes text clearance contribution and remains finite', 
   assert.ok(placement);
   assert.ok(Number.isFinite(placement.score), `expected finite score, got ${placement.score}`);
   assert.ok(placement.score > 0, 'score should be positive');
+});
+
+// --- DP line-breaking tests ---
+
+test('DP line breaks return correct number of lines', () => {
+  const font = createMockFont();
+  for (let k = 1; k <= 4; k += 1) {
+    const lines = __findOptimalLineBreaks('Las Vegas Strip Circuit', k, font);
+    assert.equal(lines.length, k, `expected ${k} lines, got ${lines.length}`);
+  }
+});
+
+test('DP line breaks preserve all words in order', () => {
+  const font = createMockFont();
+  for (let k = 1; k <= 3; k += 1) {
+    const lines = __findOptimalLineBreaks('Las Vegas Strip Circuit', k, font);
+    const reassembled = lines.join(' ');
+    assert.equal(reassembled, 'Las Vegas Strip Circuit');
+  }
+});
+
+test('DP line breaks avoid orphaning short words', () => {
+  const font = createMockFont();
+  const lines = __findOptimalLineBreaks('Autodromo Internazionale del Mugello', 3, font);
+  assert.equal(lines.length, 3);
+  // "del" (3 chars) should not be isolated on its own line
+  for (const line of lines) {
+    const words = line.split(' ');
+    if (words.length === 1) {
+      assert.ok(
+        words[0].length > 3,
+        `Short word "${words[0]}" isolated on its own line: ${JSON.stringify(lines)}`,
+      );
+    }
+  }
+});
+
+test('DP handles single word input', () => {
+  const font = createMockFont();
+  const lines = __findOptimalLineBreaks('Monza', 1, font);
+  assert.deepEqual(lines, ['Monza']);
+});
+
+test('DP handles word count equal to line count', () => {
+  const font = createMockFont();
+  const lines = __findOptimalLineBreaks('A B C', 3, font);
+  assert.equal(lines.length, 3);
+  assert.equal(lines.join(' '), 'A B C');
+});
+
+test('DP handles 10+ word names efficiently', () => {
+  const font = createMockFont();
+  const longName = 'Autodromo Internazionale del Mugello Formula One Grand Prix Racing Circuit';
+  const start = performance.now();
+  for (let k = 1; k <= 4; k += 1) {
+    const lines = __findOptimalLineBreaks(longName, k, font);
+    assert.equal(lines.length, k);
+    assert.equal(lines.join(' '), longName);
+  }
+  const elapsed = performance.now() - start;
+  assert.ok(elapsed < 100, `DP took ${elapsed.toFixed(1)}ms for 10-word name, expected < 100ms`);
+});
+
+test('DP produces balanced lines for even-width words', () => {
+  const font = createMockFont();
+  // 4 words of similar length into 2 lines should split evenly (2+2)
+  const lines = __findOptimalLineBreaks('AAAA BBBB CCCC DDDD', 2, font);
+  assert.equal(lines.length, 2);
+  const wordsPerLine = lines.map(l => l.split(' ').length);
+  assert.deepEqual(wordsPerLine, [2, 2]);
+});
+
+test('DP returns empty array for empty input', () => {
+  const font = createMockFont();
+  const lines = __findOptimalLineBreaks('', 2, font);
+  assert.deepEqual(lines, []);
 });
