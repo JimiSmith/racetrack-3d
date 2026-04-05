@@ -52,7 +52,7 @@ export const SCORING_WEIGHTS = Object.freeze({
   sizeWindowHighPeak: 1.25,
 
   // --- DP line-breaking cost function (findOptimalLineBreaks) ---
-  /** Line width / targetWidth below this ratio is considered an orphan. */
+  /** Last-line width / targetWidth below this ratio is considered an orphan. */
   orphanThreshold: 0.65,
   /** Additive penalty for orphan lines, as a multiple of targetWidth². */
   orphanPenaltyWeight: 10.0,
@@ -1056,12 +1056,12 @@ function findOptimalLineBreaks(words, lineCount, wordWidths, spaceWidth) {
   const totalWidth = estimateLineWidth(wordWidths, spaceWidth, 0, n);
   const targetWidth = totalWidth / lineCount;
 
-  function lineCost(start, end) {
+  function lineCost(start, end, isLastLine) {
     const w = estimateLineWidth(wordWidths, spaceWidth, start, end);
     const diff = targetWidth - w;
     let cost = diff * diff;
 
-    if (end - start === 1 && targetWidth > 0 && w / targetWidth < SCORING_WEIGHTS.orphanThreshold) {
+    if (isLastLine && end - start === 1 && targetWidth > 0 && w / targetWidth < SCORING_WEIGHTS.orphanThreshold) {
       cost += SCORING_WEIGHTS.orphanPenaltyWeight * targetWidth * targetWidth;
     }
 
@@ -1075,14 +1075,14 @@ function findOptimalLineBreaks(words, lineCount, wordWidths, spaceWidth) {
 
   // Base case: 1 line covering words 0..j-1
   for (let j = 1; j <= n; j += 1) {
-    dp[1][j] = lineCost(0, j);
+    dp[1][j] = lineCost(0, j, lineCount === 1);
   }
 
   // Fill DP for m = 2..lineCount
   for (let m = 2; m <= lineCount; m += 1) {
     for (let j = m; j <= n; j += 1) {
       for (let i = m - 1; i < j; i += 1) {
-        const cost = dp[m - 1][i] + lineCost(i, j);
+        const cost = dp[m - 1][i] + lineCost(i, j, m === lineCount);
         if (cost < dp[m][j]) {
           dp[m][j] = cost;
           bp[m][j] = i;

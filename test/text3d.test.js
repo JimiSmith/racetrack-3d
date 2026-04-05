@@ -886,14 +886,20 @@ test('DP clamps to one word per line when lineCount exceeds word count', () => {
   assert.deepEqual(lines, ['A', 'B']);
 });
 
-test('orphan penalty prevents isolating a single short word when raggedness favours it', () => {
+test('orphan penalty prevents isolating a single short word on the last line', () => {
   const font = createMockFont();
-  // "AAA BBBB C D" into 2 lines: pure raggedness prefers ["AAA", "BBBB C D"]
-  // (cost 8.08) over ["AAA BBBB", "C D"] (cost 18.08) because the first split
+  // "A B C DDD E" into 3 lines: pure raggedness prefers ["A B C", "DDD", "E"]
+  // (cost 5.76) over ["A", "B C", "DDD E"] (cost 8.32) because the first split
   // is closer to the target width. The orphan penalty must override this since
-  // "AAA" alone on a line is an orphan (width / target = 0.57 < 0.65 threshold).
-  const lines = __findOptimalLineBreaks('AAA BBBB C D', 2, font);
-  assert.deepEqual(lines, ['AAA BBBB', 'C D']);
+  // "E" alone on the last line is an orphan (width / target = 0.29 < 0.65).
+  const lines = __findOptimalLineBreaks('A B C DDD E', 3, font);
+  assert.equal(lines.length, 3);
+  // Last line must not be a single short word
+  const lastLineWords = lines[2].split(' ');
+  assert.ok(
+    lastLineWords.length > 1 || lastLineWords[0].length > 1,
+    `Single short word "${lines[2]}" orphaned on last line: ${JSON.stringify(lines)}`,
+  );
 });
 
 test('orphan penalty does not penalise long single words on a line', () => {
