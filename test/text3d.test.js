@@ -886,6 +886,16 @@ test('DP clamps to one word per line when lineCount exceeds word count', () => {
   assert.deepEqual(lines, ['A', 'B']);
 });
 
+test('orphan penalty prevents isolating a single short word when raggedness favours it', () => {
+  const font = createMockFont();
+  // "AAA BBBB C D" into 2 lines: pure raggedness prefers ["AAA", "BBBB C D"]
+  // (cost 9.76) over ["AAA BBBB", "C D"] (cost 18.08) because the first split
+  // is closer to the target width. The orphan penalty must override this since
+  // "AAA" alone on a line is an orphan (width / target = 0.6 < 0.65 threshold).
+  const lines = __findOptimalLineBreaks('AAA BBBB C D', 2, font);
+  assert.deepEqual(lines, ['AAA BBBB', 'C D']);
+});
+
 test('DP measures space width via fallback when charToGlyph is unavailable', () => {
   const font = createMockFont();
   delete font.charToGlyph;

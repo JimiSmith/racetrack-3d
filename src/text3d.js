@@ -52,10 +52,10 @@ export const SCORING_WEIGHTS = Object.freeze({
   sizeWindowHighPeak: 1.25,
 
   // --- DP line-breaking cost function (findOptimalLineBreaks) ---
-  /** Last-line width / targetWidth below this ratio is considered an orphan. */
-  orphanThreshold: 0.4,
-  /** Multiplier on raggedness cost for orphan lines in the DP. */
-  orphanPenaltyWeight: 2.0,
+  /** Line width / targetWidth below this ratio is considered an orphan. */
+  orphanThreshold: 0.65,
+  /** Additive penalty for orphan lines, as a multiple of targetWidth². */
+  orphanPenaltyWeight: 10.0,
 
   // --- Orientation selection bonuses (selectAutoOrientation in model.js) ---
   /** Score bonus for landscape (width >= height) orientation. */
@@ -1061,10 +1061,8 @@ function findOptimalLineBreaks(words, lineCount, wordWidths, spaceWidth) {
     const diff = targetWidth - w;
     let cost = diff * diff;
 
-    if (lineNum === lineCount && lineCount > 1) {
-      if (targetWidth > 0 && w / targetWidth < SCORING_WEIGHTS.orphanThreshold) {
-        cost *= SCORING_WEIGHTS.orphanPenaltyWeight;
-      }
+    if (lineCount > 1 && end - start === 1 && targetWidth > 0 && w / targetWidth < SCORING_WEIGHTS.orphanThreshold) {
+      cost += SCORING_WEIGHTS.orphanPenaltyWeight * targetWidth * targetWidth;
     }
 
     return cost;
