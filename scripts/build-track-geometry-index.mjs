@@ -147,6 +147,34 @@ const TRACK_BUILD_OVERRIDES = new Map([
       },
     ],
   }],
+  ['Q173766', {
+    key: 'killarney',
+    osmApiMargins: [0.001875, 0.00375, 0.0075],
+    // Way 42125321 is the complete main circuit loop.
+    // Ways 577101109 and 577101110 are drag strip access ways that share junction nodes
+    // at idx 74 (lat=-33.820469, lon=18.529898) and idx 133 (lat=-33.821229, lon=18.529697)
+    // of the main loop — including them creates a spurious triangular "A" shape at the
+    // northern start/finish area.
+    // Way 552975948 is an 8-node cross-cut connecting idx 73→idx 12 of the main loop,
+    // forming the short circuit by skipping the northern start/finish section.
+    manualLayoutWays: [
+      {
+        name: 'Main',
+        wayIds: [42125321],
+      },
+      {
+        name: 'Short',
+        // 42125321 from idx 12 (lat=-33.820682, lon=18.528707) to
+        // idx 73 (lat=-33.820102, lon=18.528738) — the main southern body,
+        // skipping the northern start/finish section and drag strip.
+        // 552975948 then runs from idx 73 back to idx 12 to close the loop.
+        wayIds: [
+          { wayId: 42125321, fromNode: { lat: -33.820682, lon: 18.528707 }, toNode: { lat: -33.820102, lon: 18.528738 } },
+          552975948,
+        ],
+      },
+    ],
+  }],
   ['Q847633', {
     key: 'virginia-international-raceway',
     manualLayoutWays: [
