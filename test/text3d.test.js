@@ -27,9 +27,9 @@ function rectangleCommands(x, y, width, height) {
 
 function createMockFont() {
   return {
-    unitsPerEm: 1,
+    unitsPerEm: 1000,
     charToGlyph(char) {
-      return { advanceWidth: char === ' ' ? 0.4 : 1.2 };
+      return { advanceWidth: char === ' ' ? 400 : 1200 };
     },
     getPath(text, startX, startY, fontSize) {
       const commands = [];
@@ -874,6 +874,12 @@ test('DP produces balanced lines for even-width words', () => {
   assert.deepEqual(wordsPerLine, [2, 2]);
 });
 
+test('DP splits one word per line when lineCount equals word count', () => {
+  const font = createMockFont();
+  const lines = __findOptimalLineBreaks('A B', 2, font);
+  assert.deepEqual(lines, ['A', 'B']);
+});
+
 test('DP returns empty array for empty input', () => {
   const font = createMockFont();
   const lines = __findOptimalLineBreaks('', 2, font);
@@ -893,13 +899,7 @@ test('orphan penalty prevents isolating a single short word on the last line', (
   // is closer to the target width. The orphan penalty must override this since
   // "E" alone on the last line is an orphan (width / target = 0.29 < 0.65).
   const lines = __findOptimalLineBreaks('A B C DDD E', 3, font);
-  assert.equal(lines.length, 3);
-  // Last line must not be a single short word
-  const lastLineWords = lines[2].split(' ');
-  assert.ok(
-    lastLineWords.length > 1 || lastLineWords[0].length > 1,
-    `Single short word "${lines[2]}" orphaned on last line: ${JSON.stringify(lines)}`,
-  );
+  assert.deepEqual(lines, ['A', 'B C', 'DDD E']);
 });
 
 test('orphan penalty does not penalise long single words on a line', () => {
@@ -908,6 +908,18 @@ test('orphan penalty does not penalise long single words on a line', () => {
   const lines = __findOptimalLineBreaks('Spa-Francorchamps Grand Prix', 2, font);
   assert.equal(lines.length, 2);
   assert.equal(lines.join(' '), 'Spa-Francorchamps Grand Prix');
+});
+
+test('DP produces valid splits when all words render to zero width', () => {
+  // Font that returns no path commands for any text
+  const emptyFont = {
+    unitsPerEm: 1000,
+    charToGlyph() { return { advanceWidth: 0 }; },
+    getPath() { return { commands: [] }; },
+  };
+  const lines = __findOptimalLineBreaks('A B C', 2, emptyFont);
+  assert.equal(lines.length, 2);
+  assert.equal(lines.join(' '), 'A B C');
 });
 
 test('DP measures space width via fallback when charToGlyph is unavailable', () => {

@@ -976,10 +976,6 @@ function normalizeContoursToOrigin(contours) {
   };
 }
 
-function createRenderedMultilineText(lines) {
-  return lines.join('\n');
-}
-
 export function __findOptimalLineBreaks(text, lineCount, font) {
   const words = String(text).split(/\s+/u).filter(Boolean);
   if (!words.length) {
@@ -1146,7 +1142,7 @@ function buildMultilineContours(lines, font, cache) {
   const normalized = normalizeContoursToOrigin(contours);
 
   return {
-    text: createRenderedMultilineText(lines),
+    text: lines.join('\n'),
     lines: [...lines],
     contours: normalized.contours,
     bounds: normalized.bounds,
@@ -1215,7 +1211,7 @@ function scoreTextFit(rect, layout, candidate = {}, clearanceContext = null) {
   const fittedHeight = layout.fittedHeight;
   const utilization = Math.min(1, (fittedWidth * fittedHeight) / Math.max(rect.width * rect.height, Number.EPSILON));
   const lineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
-  const sizeWindowMultiplier = computeSizeWindowMultiplier(layout.averageLineHeight * layout.fittedScale);
+  const sizeWindowMultiplier = computeSizeWindowMultiplier(layout.averageLineHeight * layout.scale);
   const outsideMultiplier = SCORING_WEIGHTS.outsideMultiplierMin + SCORING_WEIGHTS.outsideMultiplierRange * clamp(candidate.fractionOutside ?? 1, 0, 1);
   const trackClearanceMultiplier = computeTrackClearanceMultiplier(candidate.normalizedTrackClearance ?? 1);
   const centralityMultiplier = computeCentralityMultiplier(candidate.centreDistance ?? 0);
@@ -1291,7 +1287,6 @@ function fitTextToRectangle(text, font, rect, cache) {
       maxLineWidth: multiline.maxLineWidth,
       minLineWidth: multiline.minLineWidth,
       lineCount: multiline.lineCount,
-      fittedScale,
     });
   }
 
@@ -1421,7 +1416,7 @@ export function __debugAllPlacements(text, outlinePoints, basePlate, scale, opti
   const placements = rankTextPlacements(normalizedText, font, candidates, clearanceContext);
 
   return placements.map(({ candidateIndex, layout, score, candidate }) => {
-    const textHeight = layout.averageLineHeight * layout.fittedScale;
+    const textHeight = layout.averageLineHeight * layout.scale;
     const utilization = Math.min(1, (layout.fittedWidth * layout.fittedHeight) / Math.max(candidate.bounds.width * candidate.bounds.height, Number.EPSILON));
     const lineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
     return {
@@ -1433,7 +1428,7 @@ export function __debugAllPlacements(text, outlinePoints, basePlate, scale, opti
       utilization,
       lineBalance,
       averageLineHeight: layout.averageLineHeight,
-      fittedScale: layout.fittedScale,
+      fittedScale: layout.scale,
       fittedWidth: layout.fittedWidth,
       fittedHeight: layout.fittedHeight,
       candidateArea: candidate.area,
