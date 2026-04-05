@@ -11,7 +11,7 @@ import {
   __debugPlacementCandidates,
   __debugAllPlacements,
   __debugRectIntersectsPolygon,
-  __enumerateSequentialTextLineBreaks,
+  __findOptimalLineBreaks,
   buildTextMesh,
 } from '../src/text3d.js';
 
@@ -27,6 +27,10 @@ function rectangleCommands(x, y, width, height) {
 
 function createMockFont() {
   return {
+    unitsPerEm: 1000,
+    charToGlyph(char) {
+      return { advanceWidth: char === ' ' ? 400 : 1200 };
+    },
     getPath(text, startX, startY, fontSize) {
       const commands = [];
       let cursor = startX;
@@ -335,17 +339,6 @@ test('buildTextMesh uses multiline fitting when a single line would be unreadabl
   );
 
   assert.ok(triangles.length > 0);
-});
-
-test('line-break candidate generation preserves exact sequential word order', () => {
-  const candidates = __enumerateSequentialTextLineBreaks('Las Vegas Strip Circuit', 2);
-
-  assert.deepEqual(candidates, [
-    'Las\nVegas Strip Circuit',
-    'Las Vegas\nStrip Circuit',
-    'Las Vegas Strip\nCircuit',
-  ]);
-  assert.ok(candidates.every(candidate => collapseWhitespace(candidate) === 'Las Vegas Strip Circuit'));
 });
 
 test('text fit modifiers apply the size window, line count, and outside bonuses', () => {
@@ -809,4 +802,131 @@ test('placement score includes text clearance contribution and remains finite', 
   assert.ok(placement);
   assert.ok(Number.isFinite(placement.score), `expected finite score, got ${placement.score}`);
   assert.ok(placement.score > 0, 'score should be positive');
+});
+
+// --- DP line-breaking tests ---
+
+test('DP line breaks return correct number of lines', () => {
+  const font = createMockFont();
+  for (let k = 1; k <= 4; k += 1) {
+    const lines = __findOptimalLineBreaks('Las Vegas Strip Circuit', k, font);
+    assert.equal(lines.length, k, `expected ${k} lines, got ${lines.length}`);
+  }
+});
+
+test('DP line breaks preserve all words in order', () => {
+  const font = createMockFont();
+  for (let k = 1; k <= 3; k += 1) {
+    const lines = __findOptimalLineBreaks('Las Vegas Strip Circuit', k, font);
+    const reassembled = lines.join(' ');
+    assert.equal(reassembled, 'Las Vegas Strip Circuit');
+  }
+});
+
+test('DP line breaks avoid orphaning short words', () => {
+  const font = createMockFont();
+  const lines = __findOptimalLineBreaks('Autodromo Internazionale del Mugello', 3, font);
+  assert.equal(lines.length, 3);
+  // "del" (3 chars) should not be isolated on its own line
+  for (const line of lines) {
+    const words = line.split(' ');
+    if (words.length === 1) {
+      assert.ok(
+        words[0].length > 3,
+        `Short word "${words[0]}" isolated on its own line: ${JSON.stringify(lines)}`,
+      );
+    }
+  }
+});
+
+test('DP handles single word input', () => {
+  const font = createMockFont();
+  const lines = __findOptimalLineBreaks('Monza', 1, font);
+  assert.deepEqual(lines, ['Monza']);
+});
+
+test('DP handles word count equal to line count', () => {
+  const font = createMockFont();
+  const lines = __findOptimalLineBreaks('A B C', 3, font);
+  assert.equal(lines.length, 3);
+  assert.equal(lines.join(' '), 'A B C');
+});
+
+test('DP handles 10+ word names efficiently', () => {
+  const font = createMockFont();
+  const longName = 'Autodromo Internazionale del Mugello Formula One Grand Prix Racing Circuit';
+  const start = performance.now();
+  for (let k = 1; k <= 4; k += 1) {
+    const lines = __findOptimalLineBreaks(longName, k, font);
+    assert.equal(lines.length, k);
+    assert.equal(lines.join(' '), longName);
+  }
+  const elapsed = performance.now() - start;
+  assert.ok(elapsed < 100, `DP took ${elapsed.toFixed(1)}ms for 10-word name, expected < 100ms`);
+});
+
+test('DP produces balanced lines for even-width words', () => {
+  const font = createMockFont();
+  // 4 words of similar length into 2 lines should split evenly (2+2)
+  const lines = __findOptimalLineBreaks('AAAA BBBB CCCC DDDD', 2, font);
+  assert.equal(lines.length, 2);
+  const wordsPerLine = lines.map(l => l.split(' ').length);
+  assert.deepEqual(wordsPerLine, [2, 2]);
+});
+
+test('DP splits one word per line when lineCount equals word count', () => {
+  const font = createMockFont();
+  const lines = __findOptimalLineBreaks('A B', 2, font);
+  assert.deepEqual(lines, ['A', 'B']);
+});
+
+test('DP returns empty array for empty input', () => {
+  const font = createMockFont();
+  const lines = __findOptimalLineBreaks('', 2, font);
+  assert.deepEqual(lines, []);
+});
+
+test('DP clamps to one word per line when lineCount exceeds word count', () => {
+  const font = createMockFont();
+  const lines = __findOptimalLineBreaks('A B', 5, font);
+  assert.deepEqual(lines, ['A', 'B']);
+});
+
+test('orphan penalty prevents isolating a single short word on the last line', () => {
+  const font = createMockFont();
+  // "A B C DDD E" into 3 lines: pure raggedness prefers ["A B C", "DDD", "E"]
+  // (cost 5.76) over ["A", "B C", "DDD E"] (cost 8.32) because the first split
+  // is closer to the target width. The orphan penalty must override this since
+  // "E" alone on the last line is an orphan (width / target = 0.29 < 0.65).
+  const lines = __findOptimalLineBreaks('A B C DDD E', 3, font);
+  assert.deepEqual(lines, ['A', 'B C', 'DDD E']);
+});
+
+test('orphan penalty does not penalise long single words on a line', () => {
+  const font = createMockFont();
+  // A long word alone on a line is not an orphan — its width exceeds the threshold.
+  const lines = __findOptimalLineBreaks('Spa-Francorchamps Grand Prix', 2, font);
+  assert.equal(lines.length, 2);
+  assert.equal(lines.join(' '), 'Spa-Francorchamps Grand Prix');
+});
+
+test('DP produces valid splits when all words render to zero width', () => {
+  // Font that returns no path commands for any text
+  const emptyFont = {
+    unitsPerEm: 1000,
+    charToGlyph() { return { advanceWidth: 0 }; },
+    getPath() { return { commands: [] }; },
+  };
+  const lines = __findOptimalLineBreaks('A B C', 2, emptyFont);
+  assert.equal(lines.length, 2);
+  assert.equal(lines.join(' '), 'A B C');
+});
+
+test('DP measures space width via fallback when charToGlyph is unavailable', () => {
+  const font = createMockFont();
+  delete font.charToGlyph;
+  delete font.unitsPerEm;
+  const lines = __findOptimalLineBreaks('Las Vegas Strip Circuit', 2, font);
+  assert.equal(lines.length, 2);
+  assert.equal(lines.join(' '), 'Las Vegas Strip Circuit');
 });
