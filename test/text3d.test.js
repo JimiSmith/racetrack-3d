@@ -879,3 +879,18 @@ test('DP returns empty array for empty input', () => {
   const lines = __findOptimalLineBreaks('', 2, font);
   assert.deepEqual(lines, []);
 });
+
+test('DP clamps to one word per line when lineCount exceeds word count', () => {
+  const font = createMockFont();
+  const lines = __findOptimalLineBreaks('A B', 5, font);
+  assert.deepEqual(lines, ['A', 'B']);
+});
+
+test('DP measures space width via fallback when charToGlyph is unavailable', () => {
+  const font = createMockFont();
+  delete font.charToGlyph;
+  delete font.unitsPerEm;
+  const lines = __findOptimalLineBreaks('Las Vegas Strip Circuit', 2, font);
+  assert.equal(lines.length, 2);
+  assert.equal(lines.join(' '), 'Las Vegas Strip Circuit');
+});
