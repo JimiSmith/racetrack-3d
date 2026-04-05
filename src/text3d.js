@@ -1275,39 +1275,12 @@ function rankTextPlacements(text, font, candidates, clearanceContext = null) {
   return locationResults.slice(0, 3);
 }
 
-function computeTextPlacement(text, outlinePoints, basePlate, scale, options = {}) {
-  const normalizedText = String(text ?? '').trim();
-  if (!normalizedText) {
+function selectAndExpandPlacement(rankedResult, options = {}) {
+  if (!rankedResult?.placements?.length) {
     return null;
   }
 
-  const font = getLabelFont(options.font ?? null);
-  const scaledOutline = scaleOutline(outlinePoints, scale);
-  const scaledBasePlate = createScaledBounds(basePlate, scale);
-  const placementMask = computePlacementMask([scaledOutline], scaledOutline, scaledBasePlate);
-  const { candidates, distanceMap, maxTrackClearance } = findPlacementCandidates(scaledBasePlate, placementMask);
-  if (!candidates.length) {
-    return null;
-  }
-
-  const clearanceContext = {
-    distanceMap,
-    maxTrackClearance,
-    cellWidth: placementMask.cellWidth,
-    cellHeight: placementMask.cellHeight,
-    originX: scaledBasePlate.minX,
-    originY: scaledBasePlate.minY,
-  };
-  const placements = rankTextPlacements(
-    normalizedText,
-    font,
-    candidates,
-    clearanceContext,
-  );
-  if (!placements.length) {
-    return null;
-  }
-
+  const { placements, candidates } = rankedResult;
   const placementRank = Math.min(
     normalizeTextPositionRank(options.textPositionRank) - 1,
     placements.length - 1,
@@ -1329,8 +1302,22 @@ function computeTextPlacement(text, outlinePoints, basePlate, scale, options = {
     placementCount: placements.length,
     contours,
     lineBounds,
-    normalizedText,
   };
+}
+
+function computeTextPlacement(text, outlinePoints, basePlate, scale, options = {}) {
+  const normalizedText = String(text ?? '').trim();
+  if (!normalizedText) {
+    return null;
+  }
+
+  const rankedResult = computeRankedTextPlacements(text, outlinePoints, basePlate, scale, options);
+  const expanded = selectAndExpandPlacement(rankedResult, options);
+  if (!expanded) {
+    return null;
+  }
+
+  return { ...expanded, normalizedText };
 }
 
 export function __debugTextPlacement(text, outlinePoints, basePlate, scale, options = {}) {
@@ -1493,23 +1480,12 @@ export function computeRankedTextPlacements(text, outlinePoints, basePlate, scal
 }
 
 export function buildTextMeshFromRankedPlacements(rankedResult, options = {}) {
-  if (!rankedResult?.placements?.length) {
+  const expanded = selectAndExpandPlacement(rankedResult, options);
+  if (!expanded?.contours?.length) {
     return [];
   }
 
-  const { placements } = rankedResult;
-
-  const placementRank = Math.min(
-    normalizeTextPositionRank(options.textPositionRank) - 1,
-    placements.length - 1,
-  );
-  const selected = placements[placementRank];
-  const { candidate, layout } = selected;
-  const offsetX = candidate.bounds.minX + (candidate.bounds.width - layout.fittedWidth) / 2 - layout.bounds.minX * layout.scale;
-  const offsetY = candidate.bounds.minY + (candidate.bounds.height - layout.fittedHeight) / 2 - layout.bounds.minY * layout.scale;
-  const contours = translateAndScaleContours(layout.contours, layout.scale, offsetX, offsetY);
-
-  const shapes = collectShapes(buildContourTree(contours));
+  const shapes = collectShapes(buildContourTree(expanded.contours));
   const minZ = options.baseThickness ?? 8;
   const maxZ = minZ + (options.textHeight ?? TEXT_HEIGHT_MM);
 
