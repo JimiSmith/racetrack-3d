@@ -762,7 +762,8 @@ export function buildTrackModel({
   }
 
   // In combined mode, expand the base plate to encompass all layouts.
-  const effectiveBasePlate = secondaryOutlines.length > 0
+  // When reusing autoGeometry, the basePlate already accounts for secondary outlines.
+  const effectiveBasePlate = !autoGeometry && secondaryOutlines.length > 0
     ? (buildCombinedBasePlate([orientedGeometry.outlinePoints, ...secondaryOutlines]) ?? orientedGeometry.basePlate)
     : orientedGeometry.basePlate;
 

@@ -30,18 +30,6 @@ function ovalCircuitNodes(segments = 64) {
   return nodes;
 }
 
-// Complex circuit — irregular shape with more segments (like a street circuit)
-function complexCircuitNodes() {
-  const baseNodes = [
-    { x: 0, y: 0 }, { x: 50, y: 10 }, { x: 120, y: -5 },
-    { x: 200, y: 20 }, { x: 280, y: 60 }, { x: 320, y: 130 },
-    { x: 300, y: 210 }, { x: 250, y: 270 }, { x: 180, y: 290 },
-    { x: 100, y: 260 }, { x: 40, y: 200 }, { x: 10, y: 130 },
-    { x: -20, y: 70 },
-  ];
-  return baseNodes.map(n => ({ ...n, elevation: 0 }));
-}
-
 // Rectangle with hole — simulates an outline-based track (no projectedNodes)
 function outlineWithHole() {
   return {
@@ -64,15 +52,15 @@ function outlineWithHole() {
 // Issue 1: text layout pre-computation across candidates
 // ---------------------------------------------------------------------------
 
-test('perf: line breaks and contours are computed once regardless of candidate count', () => {
+test('perf: line breaks and contours are computed once regardless of candidate count', (t) => {
   const outline = outlineWithHole();
   const basePlate = buildBasePlate(outline, 50);
   const scale = computeScale(basePlate);
 
   __resetPerfCounters();
+  t.after(() => __disablePerfCounters());
   const result = computeRankedTextPlacements('SILVERSTONE GRAND PRIX CIRCUIT', outline, basePlate, scale);
   const counters = __getPerfCounters();
-  __disablePerfCounters();
 
   assert.ok(result, 'expected placements to be produced');
 
@@ -94,16 +82,16 @@ test('perf: line breaks and contours are computed once regardless of candidate c
     'buildMultilineContours should run once per line-count variant');
 });
 
-test('perf: line breaks pre-computed once with many candidates (oval circuit)', () => {
+test('perf: line breaks pre-computed once with many candidates (oval circuit)', (t) => {
   const nodes = ovalCircuitNodes();
   const outline = buildTrackOutline(nodes);
   const basePlate = buildBasePlate(outline, 50);
   const scale = computeScale(basePlate);
 
   __resetPerfCounters();
+  t.after(() => __disablePerfCounters());
   const result = computeRankedTextPlacements('CIRCUIT DE MONACO', outline, basePlate, scale);
   const counters = __getPerfCounters();
-  __disablePerfCounters();
 
   assert.ok(result, 'expected placements to be produced');
 
@@ -126,7 +114,7 @@ test('perf: line breaks pre-computed once with many candidates (oval circuit)', 
     'buildMultilineContours should run once per line-count variant');
 });
 
-test('perf: line breaks pre-computed once with long multi-word name', () => {
+test('perf: line breaks pre-computed once with long multi-word name', (t) => {
   // Use the oval circuit which produces many candidates
   const nodes = ovalCircuitNodes();
   const outline = buildTrackOutline(nodes);
@@ -134,11 +122,11 @@ test('perf: line breaks pre-computed once with long multi-word name', () => {
   const scale = computeScale(basePlate);
 
   __resetPerfCounters();
+  t.after(() => __disablePerfCounters());
   const result = computeRankedTextPlacements(
     'AUTODROMO JOSE CARLOS PACE INTERLAGOS', outline, basePlate, scale,
   );
   const counters = __getPerfCounters();
-  __disablePerfCounters();
 
   assert.ok(result, 'expected placements to be produced');
 

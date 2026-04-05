@@ -20,6 +20,11 @@ import {
 // Helpers
 // ---------------------------------------------------------------------------
 
+function disableAllPerfCounters() {
+  __disableModelPerfCounters();
+  __disablePerfCounters();
+}
+
 // Portrait track — triggers auto-orientation (will test all 4 orientations)
 function tallNarrowHoleOutline() {
   return {
@@ -34,24 +39,6 @@ function tallNarrowHoleOutline() {
       { x: 1575, y: 400 },
       { x: 1575, y: 3600 },
       { x: 425, y: 3600 },
-    ]],
-  };
-}
-
-// Landscape outline — auto-orientation still runs but 0° should win easily
-function landscapeOutline() {
-  return {
-    outerRing: [
-      { x: 0, y: 0 },
-      { x: 2400, y: 0 },
-      { x: 2400, y: 1800 },
-      { x: 0, y: 1800 },
-    ],
-    holes: [[
-      { x: 200, y: 200 },
-      { x: 900, y: 200 },
-      { x: 900, y: 700 },
-      { x: 200, y: 700 },
     ]],
   };
 }
@@ -76,12 +63,13 @@ function ovalCircuitNodes(segments = 64) {
 // Issue 2: Duplicate buildTrackOutline for winning orientation
 // ---------------------------------------------------------------------------
 
-test('perf: buildTrackOutline calls during auto-orientation (outline-based)', () => {
+test('perf: buildTrackOutline calls during auto-orientation (outline-based)', (t) => {
   const outline = tallNarrowHoleOutline();
   const basePlate = buildBasePlate(outline, 50);
 
   __resetModelPerfCounters();
   __resetPerfCounters();
+  t.after(disableAllPerfCounters);
   const model = buildTrackModel({
     outlinePoints: outline,
     basePlate,
@@ -89,14 +77,9 @@ test('perf: buildTrackOutline calls during auto-orientation (outline-based)', ()
   });
   const modelCounters = __getModelPerfCounters();
   const textCounters = __getPerfCounters();
-  __disableModelPerfCounters();
-  __disablePerfCounters();
 
   assert.ok(model.triangles.length > 0);
 
-  // With outline-based input (no projectedNodes), buildTrackOutline is NOT called
-  // because orientTrackGeometry uses rotateOutlineByOrientation instead.
-  // But selectAutoOrientation still checks projectedNodes first and falls through.
   console.log('--- Issue 2: buildTrackOutline calls (outline-based, portrait) ---');
   console.log(`  buildTrackOutline calls:           ${modelCounters.buildTrackOutline}`);
   console.log(`  selectAutoOrientation calls:       ${modelCounters.selectAutoOrientation}`);
@@ -104,20 +87,18 @@ test('perf: buildTrackOutline calls during auto-orientation (outline-based)', ()
   console.log(`  computeRankedTextPlacements calls:  ${textCounters.computeRankedTextPlacements}`);
   console.log(`  Auto-orientation resolved to:       ${model.orientationDeg}°`);
 
-  // Auto-orientation should fire since no explicit orientation provided
   assert.equal(model.primaryOrientationDeg, 'auto');
   assert.equal(modelCounters.selectAutoOrientation, 1);
-  // With outline-based input, buildTrackOutline is not called (rotateOutlineByOrientation is used)
   assert.equal(modelCounters.buildTrackOutline, 0);
-  // Text placements: 4 from auto-orientation, winner reused (no redundant 5th call)
   assert.equal(textCounters.computeRankedTextPlacements, 4);
 });
 
-test('perf: buildTrackOutline calls during auto-orientation (projectedNodes)', () => {
+test('perf: buildTrackOutline calls during auto-orientation (projectedNodes)', (t) => {
   const nodes = ovalCircuitNodes();
 
   __resetModelPerfCounters();
   __resetPerfCounters();
+  t.after(disableAllPerfCounters);
   const model = buildTrackModel({
     outlinePoints: null,
     basePlate: null,
@@ -126,17 +107,9 @@ test('perf: buildTrackOutline calls during auto-orientation (projectedNodes)', (
   });
   const modelCounters = __getModelPerfCounters();
   const textCounters = __getPerfCounters();
-  __disableModelPerfCounters();
-  __disablePerfCounters();
 
   assert.ok(model.triangles.length > 0);
 
-  // With projectedNodes, selectAutoOrientation calls buildTrackOutline for:
-  //   - 1x base outline (line ~570)
-  //   - 4x rotated outlines (once per candidate orientation)
-  // buildTrackModel now reuses the winning orientation's geometry from selectAutoOrientation,
-  // so no additional buildTrackOutline call is needed.
-  // Total: 5 calls (was 6 before the fix).
   console.log('--- Issue 2: buildTrackOutline calls (projectedNodes, oval) ---');
   console.log(`  buildTrackOutline calls:           ${modelCounters.buildTrackOutline}`);
   console.log(`  selectAutoOrientation calls:       ${modelCounters.selectAutoOrientation}`);
@@ -149,17 +122,16 @@ test('perf: buildTrackOutline calls during auto-orientation (projectedNodes)', (
 
   assert.equal(model.primaryOrientationDeg, 'auto');
   assert.equal(modelCounters.selectAutoOrientation, 1);
-
-  // No duplicate: winning orientation outline is reused from selectAutoOrientation.
   assert.equal(modelCounters.buildTrackOutline, 5,
     'should be 5 buildTrackOutline calls (1 base + 4 orientations, no duplicate)');
 });
 
-test('perf: buildTrackOutline calls with explicit orientation (no auto)', () => {
+test('perf: buildTrackOutline calls with explicit orientation (no auto)', (t) => {
   const nodes = ovalCircuitNodes();
 
   __resetModelPerfCounters();
   __resetPerfCounters();
+  t.after(disableAllPerfCounters);
   const model = buildTrackModel({
     outlinePoints: null,
     basePlate: null,
@@ -169,13 +141,9 @@ test('perf: buildTrackOutline calls with explicit orientation (no auto)', () => 
   });
   const modelCounters = __getModelPerfCounters();
   const textCounters = __getPerfCounters();
-  __disableModelPerfCounters();
-  __disablePerfCounters();
 
   assert.ok(model.triangles.length > 0);
 
-  // With explicit orientation, selectAutoOrientation is skipped.
-  // buildTrackOutline is called only once in orientTrackGeometry.
   console.log('--- Issue 2: buildTrackOutline calls (explicit orientation, baseline) ---');
   console.log(`  buildTrackOutline calls:           ${modelCounters.buildTrackOutline}`);
   console.log(`  selectAutoOrientation calls:       ${modelCounters.selectAutoOrientation}`);
@@ -186,11 +154,12 @@ test('perf: buildTrackOutline calls with explicit orientation (no auto)', () => 
     'explicit orientation should only build outline once');
 });
 
-test('perf: computeRankedTextPlacements calls during auto-orientation (no cache token)', () => {
+test('perf: computeRankedTextPlacements calls during auto-orientation (no cache token)', (t) => {
   const nodes = ovalCircuitNodes();
 
   __resetPerfCounters();
   __resetModelPerfCounters();
+  t.after(disableAllPerfCounters);
   const model = buildTrackModel({
     outlinePoints: null,
     basePlate: null,
@@ -198,12 +167,9 @@ test('perf: computeRankedTextPlacements calls during auto-orientation (no cache 
     trackName: 'INDIANAPOLIS',
   });
   const textCounters = __getPerfCounters();
-  __disablePerfCounters();
 
   assert.ok(model.textTriangleCount > 0);
 
-  // selectAutoOrientation computes 4 orientations. buildTrackModel now reuses the
-  // winning orientation's result directly (via autoPlacementsForWinner), so no 5th call.
   console.log('--- Issue 2: computeRankedTextPlacements during auto-orientation (no cache) ---');
   console.log(`  computeRankedTextPlacements calls:  ${textCounters.computeRankedTextPlacements}`);
   console.log(`  computePlacementMask calls:         ${textCounters.computePlacementMask}`);
@@ -217,12 +183,13 @@ test('perf: computeRankedTextPlacements calls during auto-orientation (no cache 
     'auto-orientation should compute text placements exactly 4 times, no redundant 5th call');
 });
 
-test('perf: computeRankedTextPlacements calls during auto-orientation (with cache token)', () => {
+test('perf: computeRankedTextPlacements calls during auto-orientation (with cache token)', (t) => {
   const nodes = ovalCircuitNodes();
   const token = {};
 
   __resetPerfCounters();
   __resetModelPerfCounters();
+  t.after(disableAllPerfCounters);
   const model = buildTrackModel({
     outlinePoints: null,
     basePlate: null,
@@ -231,21 +198,14 @@ test('perf: computeRankedTextPlacements calls during auto-orientation (with cach
     placementCacheToken: token,
   });
   const textCounters = __getPerfCounters();
-  __disablePerfCounters();
 
   assert.ok(model.textTriangleCount > 0);
 
-  // With a cache token, selectAutoOrientation's 4 results are stored, and
-  // buildTrackModel hits the cache for the winning orientation — 4 total.
   console.log('--- Issue 2: computeRankedTextPlacements during auto-orientation (cached) ---');
   console.log(`  computeRankedTextPlacements calls:  ${textCounters.computeRankedTextPlacements}`);
   console.log(`  computePlacementMask calls:         ${textCounters.computePlacementMask}`);
   console.log(`  findPlacementCandidates calls:      ${textCounters.findPlacementCandidates}`);
   console.log(`  rankTextPlacements calls:           ${textCounters.rankTextPlacements}`);
-  console.log('');
-  console.log('  Each of the 4 calls independently computes placement mask, candidates,');
-  console.log('  and ranks all candidates. Text layout work inside rankTextPlacements');
-  console.log('  is then multiplied by Issue 1 (text layout per candidate) without pre-computation.');
 
   assert.equal(textCounters.computeRankedTextPlacements, 4,
     'with cache token: 4 from auto-orientation, 0 redundant from buildTrackModel');
@@ -338,11 +298,12 @@ test('perf: wall-clock cost of full buildTrackModel with auto-orientation', () =
 // Edge cases and correctness
 // ---------------------------------------------------------------------------
 
-test('perf: empty track name with auto-orientation does not crash', () => {
+test('perf: empty track name with auto-orientation does not crash', (t) => {
   const nodes = ovalCircuitNodes();
 
   __resetModelPerfCounters();
   __resetPerfCounters();
+  t.after(disableAllPerfCounters);
   const model = buildTrackModel({
     outlinePoints: null,
     basePlate: null,
@@ -351,26 +312,22 @@ test('perf: empty track name with auto-orientation does not crash', () => {
   });
   const modelCounters = __getModelPerfCounters();
   const textCounters = __getPerfCounters();
-  __disableModelPerfCounters();
-  __disablePerfCounters();
 
   assert.ok(model.triangles.length > 0, 'model should have triangles even without a name');
   assert.equal(model.textTriangleCount, 0, 'no text triangles for empty name');
   assert.equal(model.primaryOrientationDeg, 'auto');
   assert.equal(modelCounters.selectAutoOrientation, 1);
-  // Empty name uses 'CIRCUIT' placeholder — results are NOT cacheable,
-  // so autoPlacementsForWinner should be null and no extra call happens.
-  // The 4 calls from selectAutoOrientation use the placeholder for scoring only.
   assert.equal(textCounters.computeRankedTextPlacements, 4);
 });
 
-test('perf: combined mode with secondary layouts counts outline calls correctly', () => {
+test('perf: combined mode with secondary layouts counts outline calls correctly', (t) => {
   const primary = ovalCircuitNodes(32);
   // Secondary is a smaller oval offset to the side
   const secondary = ovalCircuitNodes(32).map(n => ({ ...n, x: n.x + 700 }));
 
   __resetModelPerfCounters();
   __resetPerfCounters();
+  t.after(disableAllPerfCounters);
   const model = buildTrackModel({
     outlinePoints: null,
     basePlate: null,
@@ -380,8 +337,6 @@ test('perf: combined mode with secondary layouts counts outline calls correctly'
   });
   const modelCounters = __getModelPerfCounters();
   const textCounters = __getPerfCounters();
-  __disableModelPerfCounters();
-  __disablePerfCounters();
 
   assert.ok(model.triangles.length > 0);
   assert.ok(model.secondaryTrackTriangleCount > 0, 'should have secondary track triangles');
@@ -404,11 +359,9 @@ test('perf: auto-orientation output matches explicit orientation output', () => 
   const outline = tallNarrowHoleOutline();
   const basePlate = buildBasePlate(outline, 50);
 
-  // Auto should pick 90° or 270° for a portrait track
   const autoModel = buildTrackModel({ outlinePoints: outline, basePlate, trackName: 'IMOLA' });
   const resolvedDeg = autoModel.orientationDeg;
 
-  // Build with the same orientation explicitly
   const explicitModel = buildTrackModel({
     outlinePoints: outline,
     basePlate,
@@ -416,7 +369,6 @@ test('perf: auto-orientation output matches explicit orientation output', () => 
     primaryOrientationDeg: resolvedDeg,
   });
 
-  // Triangle counts should be identical
   assert.equal(autoModel.baseTriangleCount, explicitModel.baseTriangleCount,
     'base triangle count should match');
   assert.equal(autoModel.trackTriangleCount, explicitModel.trackTriangleCount,
@@ -425,8 +377,6 @@ test('perf: auto-orientation output matches explicit orientation output', () => 
     'text triangle count should match');
   assert.equal(autoModel.triangles.length, explicitModel.triangles.length,
     'total triangle count should match');
-
-  // Scale should be identical
   assert.equal(autoModel.scale, explicitModel.scale, 'scale should match');
 });
 
@@ -456,4 +406,36 @@ test('perf: auto-orientation with projectedNodes output matches explicit', () =>
   assert.equal(autoModel.textTriangleCount, explicitModel.textTriangleCount,
     'text triangle count should match');
   assert.equal(autoModel.scale, explicitModel.scale, 'scale should match');
+});
+
+// This test uses a caller-supplied basePlate with extra margin that differs from
+// the outline's tight bounding box. This stresses the basePlate alignment between
+// selectAutoOrientation and orientTrackGeometry — if the two paths compute
+// basePlate differently, auto and explicit will produce different scales.
+test('perf: auto-orientation basePlate alignment with non-default margin', () => {
+  const outline = tallNarrowHoleOutline();
+  // Use a much larger margin than buildBasePlate's default (50).
+  // This creates a basePlate whose bounds differ significantly from buildBasePlate(outline).
+  const basePlate = buildBasePlate(outline, 200);
+
+  const autoModel = buildTrackModel({ outlinePoints: outline, basePlate, trackName: 'IMOLA' });
+  const resolvedDeg = autoModel.orientationDeg;
+
+  const explicitModel = buildTrackModel({
+    outlinePoints: outline,
+    basePlate,
+    trackName: 'IMOLA',
+    primaryOrientationDeg: resolvedDeg,
+  });
+
+  // If basePlate computation diverges, scale will differ because
+  // computeScale depends on the basePlate dimensions.
+  assert.equal(autoModel.scale, explicitModel.scale,
+    'scale should match when caller supplies a custom basePlate');
+  assert.equal(autoModel.baseTriangleCount, explicitModel.baseTriangleCount,
+    'base triangle count should match with custom basePlate');
+  assert.equal(autoModel.trackTriangleCount, explicitModel.trackTriangleCount,
+    'track triangle count should match with custom basePlate');
+  assert.equal(autoModel.textTriangleCount, explicitModel.textTriangleCount,
+    'text triangle count should match with custom basePlate');
 });
