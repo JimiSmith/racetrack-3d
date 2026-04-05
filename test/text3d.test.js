@@ -5,7 +5,6 @@ import { BASE_THICKNESS_MM } from '../src/model.js';
 import { rotateOutlineByOrientation } from '../src/orientation.js';
 import {
   TEXT_HEIGHT_MM,
-  TEXT_ORIENTATION_FIXED,
   __debugTextPlacement,
   __debugTextFitModifiers,
   __debugCompareRankedTextPlacements,
@@ -99,17 +98,10 @@ function assertRenderedLineOrder(layout) {
 
   const centers = layout.lineBounds.map(boundsCenter);
   for (let index = 1; index < centers.length; index += 1) {
-    if (layout.rotation === 90) {
-      assert.ok(
-        centers[index - 1].x < centers[index].x,
-        `expected rotated line ${index} to render after line ${index - 1} along x, got ${centers[index - 1].x} and ${centers[index].x}`,
-      );
-    } else {
-      assert.ok(
-        centers[index - 1].y > centers[index].y,
-        `expected line ${index - 1} above line ${index}, got ${centers[index - 1].y} and ${centers[index].y}`,
-      );
-    }
+    assert.ok(
+      centers[index - 1].y > centers[index].y,
+      `expected line ${index - 1} above line ${index}, got ${centers[index - 1].y} and ${centers[index].y}`,
+    );
   }
 }
 
@@ -533,50 +525,19 @@ test('multiline line stacking preserves top-to-bottom order without rotation', (
     outline,
     { minX: 0, minY: 0, maxX: 300, maxY: 200, width: 300, height: 200 },
     1,
-    { font: createMockFont(), baseThickness: BASE_THICKNESS_MM, textOrientationMode: TEXT_ORIENTATION_FIXED },
-  );
-
-  assert.ok(layout);
-  assert.ok(layout.lines.length > 1, `expected multiline, got: ${JSON.stringify(layout.lines)}`);
-  assert.equal(layout.rotation, 0);
-  assert.equal(collapseWhitespace(layout.text), 'Autodromo Nazionale di Monza');
-  assertRenderedLineOrder(layout);
-});
-
-test('multiline line stacking preserves top-to-bottom order after 90 degree rotation', () => {
-  // A small near-square infield (30mm wide × 70mm tall) forces multiline at rotation=90:
-  // single-line rotated 90° is too short to score, while 3-line rotated 90° fits within
-  // the preferred size range. Auto orientation picks rotation=90 since rotation=0 scores
-  // near zero in such a narrow space.
-  const outline = centeredHoleOutline({
-    width: 200,
-    height: 200,
-    holeMinX: 85,
-    holeMaxX: 115,
-    holeMinY: 65,
-    holeMaxY: 135,
-  });
-
-  const layout = __debugTextPlacement(
-    'Autodromo Nazionale di Monza',
-    outline,
-    { minX: 0, minY: 0, maxX: 200, maxY: 200, width: 200, height: 200 },
-    1,
     { font: createMockFont(), baseThickness: BASE_THICKNESS_MM },
   );
 
   assert.ok(layout);
   assert.ok(layout.lines.length > 1, `expected multiline, got: ${JSON.stringify(layout.lines)}`);
-  assert.equal(layout.rotation, 90);
   assert.equal(collapseWhitespace(layout.text), 'Autodromo Nazionale di Monza');
   assertRenderedLineOrder(layout);
 });
 
-test('placement rank and orientation mode do not alter word order', () => {
+test('placement rank does not alter word order', () => {
   const outline = rankedHoleOutline();
   const basePlate = { minX: 0, maxX: 2400, minY: 0, maxY: 1800, width: 2400, height: 1800 };
   const rankText = 'Las Vegas Strip Circuit';
-  const orientationText = 'Imola Circuit';
   const font = createMockFont();
 
   const firstRank = __debugTextPlacement(rankText, outline, basePlate, 1, {
@@ -589,75 +550,15 @@ test('placement rank and orientation mode do not alter word order', () => {
     baseThickness: BASE_THICKNESS_MM,
     textPositionRank: 2,
   });
-  const autoOrientation = __debugTextPlacement(orientationText, centeredHoleOutline({
-    width: 300,
-    height: 2000,
-    holeMinX: 135,
-    holeMaxX: 165,
-    holeMinY: 200,
-    holeMaxY: 1800,
-  }), { minX: 0, maxX: 300, minY: 0, maxY: 2000, width: 300, height: 2000 }, 1, {
-    font,
-    baseThickness: BASE_THICKNESS_MM,
-  });
-  const fixedOrientation = __debugTextPlacement(orientationText, rankedHoleOutline(), basePlate, 1, {
-    font,
-    baseThickness: BASE_THICKNESS_MM,
-    textOrientationMode: TEXT_ORIENTATION_FIXED,
-  });
 
   for (const [layout, expectedText] of [
     [firstRank, rankText],
     [secondRank, rankText],
-    [autoOrientation, orientationText],
-    [fixedOrientation, orientationText],
   ]) {
     assert.ok(layout);
     assert.equal(collapseWhitespace(layout.text), expectedText);
     assert.equal(layout.text, layout.lines.join('\n'));
   }
-});
-
-test('buildTextMesh auto mode can choose 90 degree text orientation when fixed mode cannot fit', () => {
-  const width = 300;
-  const height = 2000;
-  const outline = centeredHoleOutline({
-    width,
-    height,
-    holeMinX: width * 0.48,
-    holeMaxX: width * 0.52,
-    holeMinY: 200,
-    holeMaxY: 1800,
-  });
-
-  const layout = __debugTextPlacement(
-    'DAYTONA ROAD COURSE',
-    outline,
-    { minX: 0, maxX: width, minY: 0, maxY: height, width, height },
-    1,
-    { font: createMockFont(), baseThickness: BASE_THICKNESS_MM },
-  );
-
-  assert.ok(layout);
-  assert.equal(layout.rotation, 90);
-
-  const autoTriangles = buildTextMesh(
-    'DAYTONA ROAD COURSE',
-    outline,
-    { minX: 0, maxX: width, minY: 0, maxY: height, width, height },
-    1,
-    { font: createMockFont(), baseThickness: BASE_THICKNESS_MM },
-  );
-  const fixedTriangles = buildTextMesh(
-    'DAYTONA ROAD COURSE',
-    outline,
-    { minX: 0, maxX: width, minY: 0, maxY: height, width, height },
-    1,
-    { font: createMockFont(), baseThickness: BASE_THICKNESS_MM, textOrientationMode: TEXT_ORIENTATION_FIXED },
-  );
-
-  assert.ok(autoTriangles.length > 0);
-  assert.deepEqual(fixedTriangles, []);
 });
 
 test('buildTextMesh recomputes placement in the rotated search space', () => {
@@ -726,15 +627,13 @@ test('buildTextMesh uses the selected ranked placement candidate', () => {
   assert.ok(second);
   assert.ok(third);
   assert.ok(
-    first.rotation !== second.rotation
-      || first.scale !== second.scale
+    first.scale !== second.scale
       || first.candidateIndex !== second.candidateIndex
       || first.lines.join('\n') !== second.lines.join('\n'),
     'expected rank 1 and rank 2 to select different placements',
   );
   assert.ok(
-    first.rotation !== third.rotation
-      || first.scale !== third.scale
+    first.scale !== third.scale
       || first.candidateIndex !== third.candidateIndex
       || first.lines.join('\n') !== third.lines.join('\n'),
     'expected rank 1 and rank 3 to select different placements',
@@ -824,7 +723,7 @@ test('debug placements expose textClearanceMultiplier in the expected range', ()
   });
 
   assert.ok(orientations);
-  const allPlacements = orientations.flatMap(o => o.placements);
+  const allPlacements = orientations;
   assert.ok(allPlacements.length > 0, 'expected at least one placement');
 
   for (const placement of allPlacements) {
@@ -860,8 +759,8 @@ test('text clearance multiplier is higher when text has more breathing room from
   assert.ok(shortText);
   assert.ok(longText);
 
-  const shortBest = shortText[0]?.placements[0];
-  const longBest = longText[0]?.placements[0];
+  const shortBest = shortText[0];
+  const longBest = longText[0];
 
   assert.ok(shortBest, 'expected a placement for short text');
   assert.ok(longBest, 'expected a placement for long text');
@@ -890,7 +789,7 @@ test('text clearance multiplier is above the floor when text is far from the tra
   });
 
   assert.ok(orientations);
-  const best = orientations[0]?.placements[0];
+  const best = orientations[0];
   assert.ok(best, 'expected a placement');
   assert.ok(
     best.textClearanceMultiplier > 0.96,

@@ -523,9 +523,7 @@ test('buildTrackModel auto orientation rotates the model for portrait tracks and
   const explicitModel = buildTrackModel({ outlinePoints, basePlate, trackName: 'IMOLA', primaryOrientationDeg: 0 });
 
   assert.equal(autoModel.primaryOrientationDeg, 'auto');
-  assert.equal(autoModel.textOrientationMode, 'fixed');
   assert.equal(explicitModel.primaryOrientationDeg, 0);
-  assert.equal(explicitModel.textOrientationMode, 'fixed');
   assert.ok(autoModel.textTriangleCount > 0);
   assert.ok(explicitModel.textTriangleCount > 0);
 

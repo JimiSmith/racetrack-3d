@@ -10,8 +10,6 @@ import {
   DEFAULT_TEXT_POSITION_RANK,
   normalizeTextPositionRank,
   TEXT_HEIGHT_MM,
-  TEXT_ORIENTATION_AUTO,
-  TEXT_ORIENTATION_FIXED,
 } from './text3d.js';
 
 let textPlacementCache = { token: null, byOrientation: new Map(), resolvedAutoDeg: null };
@@ -598,14 +596,11 @@ function selectAutoOrientation(outlinePoints, basePlate, projectedNodes, trackNa
     try {
       const scale = computeScale(rotatedBp);
       const ranked = computeRankedTextPlacements(scoringText, rotatedOutline, rotatedBp, scale, {
-        textOrientationMode: TEXT_ORIENTATION_FIXED,
         allOutlinePoints,
       });
       placementsMap?.set(deg, ranked);
       if (ranked) {
-        const chosenOrientation = ranked.orientationResults.find(o => o.rotation === 0)
-          ?? ranked.orientationResults[0];
-        const best = chosenOrientation?.placements[0];
+        const best = ranked.placements[0];
         if (best?.layout?.lineBounds?.length) {
           const { candidate, layout } = best;
           const offsetY = candidate.bounds.minY
@@ -644,7 +639,6 @@ export function buildTrackModel({
   secondaryProjectedNodes = [],
   primaryOrientationDeg = undefined,
   orientationDeg = undefined,
-  textOrientationMode = undefined,
   textPositionRank = DEFAULT_TEXT_POSITION_RANK,
   placementCacheToken = null,
 }) {
@@ -685,9 +679,6 @@ export function buildTrackModel({
     resolvedOrientationDeg = normalizedPrimaryOrientationDeg;
   }
 
-  // Text orientation is always fixed: the model is already rotated to the correct orientation,
-  // so text should be placed right-side-up on the rotated model.
-  const resolvedTextOrientationMode = textOrientationMode ?? TEXT_ORIENTATION_FIXED;
   const resolvedTextPositionRank = normalizeTextPositionRank(textPositionRank);
   const orientedGeometry = orientTrackGeometry({
     outlinePoints,
@@ -740,7 +731,7 @@ export function buildTrackModel({
         orientedGeometry.outlinePoints,
         effectiveBasePlate,
         scale,
-        { textOrientationMode: resolvedTextOrientationMode, allOutlinePoints },
+        { allOutlinePoints },
       );
       if (cacheActive) {
         textPlacementCache.byOrientation.set(resolvedOrientationDeg, rankedPlacements);
@@ -750,7 +741,6 @@ export function buildTrackModel({
 
   const textTriangles = buildTextMeshFromRankedPlacements(rankedPlacements, {
     textPositionRank: resolvedTextPositionRank,
-    textOrientationMode: resolvedTextOrientationMode,
     baseThickness: BASE_THICKNESS_MM,
     textHeight: TEXT_HEIGHT_MM,
   });
@@ -763,7 +753,6 @@ export function buildTrackModel({
     textTriangleCount: textTriangles.length,
     scale,
     primaryOrientationDeg: normalizedPrimaryOrientationDeg,
-    textOrientationMode: resolvedTextOrientationMode,
     textPositionRank: resolvedTextPositionRank,
     orientationDeg: orientedGeometry.orientationDeg,
     outlinePoints: orientedGeometry.outlinePoints,
