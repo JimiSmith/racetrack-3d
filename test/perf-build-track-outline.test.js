@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildBasePlate } from '../src/geometry.js';
+import { buildBasePlate, buildTrackOutline } from '../src/geometry.js';
 import {
   buildTrackModel,
+  computeScale,
   __resetModelPerfCounters,
   __getModelPerfCounters,
   __disableModelPerfCounters,
@@ -12,6 +13,7 @@ import {
   __resetPerfCounters,
   __getPerfCounters,
   __disablePerfCounters,
+  computeRankedTextPlacements,
 } from '../src/text3d.js';
 
 // ---------------------------------------------------------------------------
@@ -243,7 +245,7 @@ test('perf: computeRankedTextPlacements calls during auto-orientation (with cach
   console.log('');
   console.log('  Each of the 4 calls independently computes placement mask, candidates,');
   console.log('  and ranks all candidates. Text layout work inside rankTextPlacements');
-  console.log('  is then multiplied by Issue 1 (fitTextToRectangle per candidate).');
+  console.log('  is then multiplied by Issue 1 (text layout per candidate) without pre-computation.');
 
   assert.equal(textCounters.computeRankedTextPlacements, 4,
     'with cache token: 4 from auto-orientation, 0 redundant from buildTrackModel');
@@ -330,4 +332,128 @@ test('perf: wall-clock cost of full buildTrackModel with auto-orientation', () =
 
   assert.ok(autoMedian >= 0);
   assert.ok(explicitMedian >= 0);
+});
+
+// ---------------------------------------------------------------------------
+// Edge cases and correctness
+// ---------------------------------------------------------------------------
+
+test('perf: empty track name with auto-orientation does not crash', () => {
+  const nodes = ovalCircuitNodes();
+
+  __resetModelPerfCounters();
+  __resetPerfCounters();
+  const model = buildTrackModel({
+    outlinePoints: null,
+    basePlate: null,
+    projectedNodes: nodes,
+    trackName: '',
+  });
+  const modelCounters = __getModelPerfCounters();
+  const textCounters = __getPerfCounters();
+  __disableModelPerfCounters();
+  __disablePerfCounters();
+
+  assert.ok(model.triangles.length > 0, 'model should have triangles even without a name');
+  assert.equal(model.textTriangleCount, 0, 'no text triangles for empty name');
+  assert.equal(model.primaryOrientationDeg, 'auto');
+  assert.equal(modelCounters.selectAutoOrientation, 1);
+  // Empty name uses 'CIRCUIT' placeholder — results are NOT cacheable,
+  // so autoPlacementsForWinner should be null and no extra call happens.
+  // The 4 calls from selectAutoOrientation use the placeholder for scoring only.
+  assert.equal(textCounters.computeRankedTextPlacements, 4);
+});
+
+test('perf: combined mode with secondary layouts counts outline calls correctly', () => {
+  const primary = ovalCircuitNodes(32);
+  // Secondary is a smaller oval offset to the side
+  const secondary = ovalCircuitNodes(32).map(n => ({ ...n, x: n.x + 700 }));
+
+  __resetModelPerfCounters();
+  __resetPerfCounters();
+  const model = buildTrackModel({
+    outlinePoints: null,
+    basePlate: null,
+    projectedNodes: primary,
+    secondaryProjectedNodes: [secondary],
+    trackName: 'COMBINED TEST',
+  });
+  const modelCounters = __getModelPerfCounters();
+  const textCounters = __getPerfCounters();
+  __disableModelPerfCounters();
+  __disablePerfCounters();
+
+  assert.ok(model.triangles.length > 0);
+  assert.ok(model.secondaryTrackTriangleCount > 0, 'should have secondary track triangles');
+  assert.equal(model.primaryOrientationDeg, 'auto');
+  assert.equal(modelCounters.selectAutoOrientation, 1);
+
+  // selectAutoOrientation: 1 base outline + 4 × (1 primary + 1 secondary) = 9
+  // No extra calls from buildTrackModel (geometry reused).
+  console.log('--- Combined mode: buildTrackOutline calls ---');
+  console.log(`  buildTrackOutline calls:           ${modelCounters.buildTrackOutline}`);
+  console.log(`  computeRankedTextPlacements calls:  ${textCounters.computeRankedTextPlacements}`);
+
+  assert.equal(modelCounters.buildTrackOutline, 9,
+    '1 base + 4×(1 primary + 1 secondary) = 9 buildTrackOutline calls');
+  assert.equal(textCounters.computeRankedTextPlacements, 4,
+    '4 orientations, winner reused');
+});
+
+test('perf: auto-orientation output matches explicit orientation output', () => {
+  const outline = tallNarrowHoleOutline();
+  const basePlate = buildBasePlate(outline, 50);
+
+  // Auto should pick 90° or 270° for a portrait track
+  const autoModel = buildTrackModel({ outlinePoints: outline, basePlate, trackName: 'IMOLA' });
+  const resolvedDeg = autoModel.orientationDeg;
+
+  // Build with the same orientation explicitly
+  const explicitModel = buildTrackModel({
+    outlinePoints: outline,
+    basePlate,
+    trackName: 'IMOLA',
+    primaryOrientationDeg: resolvedDeg,
+  });
+
+  // Triangle counts should be identical
+  assert.equal(autoModel.baseTriangleCount, explicitModel.baseTriangleCount,
+    'base triangle count should match');
+  assert.equal(autoModel.trackTriangleCount, explicitModel.trackTriangleCount,
+    'track triangle count should match');
+  assert.equal(autoModel.textTriangleCount, explicitModel.textTriangleCount,
+    'text triangle count should match');
+  assert.equal(autoModel.triangles.length, explicitModel.triangles.length,
+    'total triangle count should match');
+
+  // Scale should be identical
+  assert.equal(autoModel.scale, explicitModel.scale, 'scale should match');
+});
+
+test('perf: auto-orientation with projectedNodes output matches explicit', () => {
+  const nodes = ovalCircuitNodes();
+
+  const autoModel = buildTrackModel({
+    outlinePoints: null,
+    basePlate: null,
+    projectedNodes: nodes,
+    trackName: 'INDIANAPOLIS',
+  });
+  const resolvedDeg = autoModel.orientationDeg;
+
+  const explicitModel = buildTrackModel({
+    outlinePoints: null,
+    basePlate: null,
+    projectedNodes: nodes,
+    trackName: 'INDIANAPOLIS',
+    primaryOrientationDeg: resolvedDeg,
+  });
+
+  assert.equal(autoModel.baseTriangleCount, explicitModel.baseTriangleCount,
+    'base triangle count should match');
+  assert.equal(autoModel.trackTriangleCount, explicitModel.trackTriangleCount,
+    'track triangle count should match');
+  assert.equal(autoModel.textTriangleCount, explicitModel.textTriangleCount,
+    'text triangle count should match');
+  assert.equal(autoModel.scale, explicitModel.scale, 'scale should match');
 });

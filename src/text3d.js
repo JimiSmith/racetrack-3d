@@ -20,7 +20,6 @@ export function __resetPerfCounters() {
   __perfCounters = {
     findOptimalLineBreaks: 0,
     buildMultilineContours: 0,
-    fitTextToRectangle: 0,
     computePlacementMask: 0,
     findPlacementCandidates: 0,
     rankTextPlacements: 0,
@@ -1290,55 +1289,6 @@ function precomputeMultilineLayouts(text, font, cache) {
   return multilines;
 }
 
-function fitTextToRectangle(text, font, rect, cache) {
-  if (__perfCounters) __perfCounters.fitTextToRectangle++;
-  const words = String(text).split(/\s+/u).filter(Boolean);
-  if (!words.length) {
-    return [];
-  }
-
-  const { wordWidths, spaceWidth } = measureWordWidths(words, font, cache);
-  const layouts = [];
-  const maxLines = Math.min(MAX_TEXT_LINES, words.length);
-
-  for (let lineCount = 1; lineCount <= maxLines; lineCount += 1) {
-    const optimalLines = findOptimalLineBreaks(words, lineCount, wordWidths, spaceWidth);
-    const multiline = buildMultilineContours(optimalLines, font, cache);
-    if (!multiline || multiline.bounds.width <= 0 || multiline.bounds.height <= 0) {
-      continue;
-    }
-
-    const fittedScale = Math.min(
-      rect.width / multiline.bounds.width,
-      rect.height / multiline.bounds.height,
-      MAX_PREFERRED_HEIGHT_MM / multiline.averageLineHeight,
-    );
-
-    if (!Number.isFinite(fittedScale) || fittedScale * multiline.averageLineHeight < MIN_TEXT_HEIGHT_MM) {
-      continue;
-    }
-
-    const fittedWidth = multiline.bounds.width * fittedScale;
-    const fittedHeight = multiline.bounds.height * fittedScale;
-    layouts.push({
-      text: multiline.text,
-      lines: multiline.lines,
-      scale: fittedScale,
-      bounds: multiline.bounds,
-      contours: multiline.contours,
-      lineBounds: multiline.lineBounds,
-      fittedWidth,
-      fittedHeight,
-      averageLineHeight: multiline.averageLineHeight,
-      maxLineWidth: multiline.maxLineWidth,
-      minLineWidth: multiline.minLineWidth,
-      lineCount: multiline.lineCount,
-    });
-  }
-
-  return layouts;
-}
-
 // Scale pre-computed multiline layouts to fit a specific candidate rectangle.
 // Returns only layouts that meet the minimum text height requirement.
 function scaleLayoutsToRect(multilines, rect) {
@@ -1374,24 +1324,6 @@ function scaleLayoutsToRect(multilines, rect) {
   }
 
   return layouts;
-}
-
-function findBestLayoutForLocation(text, font, candidate, cache, clearanceContext = null) {
-  const layouts = fitTextToRectangle(text, font, candidate.bounds, cache);
-  if (!layouts.length) return null;
-
-  let bestLayout = null;
-  let bestScore = -Infinity;
-
-  for (const layout of layouts) {
-    const score = scoreTextFit(candidate.bounds, layout, candidate, clearanceContext);
-    if (score > bestScore) {
-      bestScore = score;
-      bestLayout = layout;
-    }
-  }
-
-  return bestLayout ? { layout: { ...bestLayout, score: bestScore }, score: bestScore } : null;
 }
 
 function findBestPrecomputedLayoutForLocation(multilines, candidate, clearanceContext = null) {

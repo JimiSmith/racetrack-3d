@@ -20,7 +20,7 @@ import {
 
 let textPlacementCache = { token: null, byOrientation: new Map(), resolvedAutoDeg: null };
 
-// Performance counters for benchmarking — gated behind __perfCounters so they add zero cost in production.
+// Performance counters for benchmarking — gated behind __modelPerfCounters so they add zero cost in production.
 let __modelPerfCounters = null;
 export function __resetModelPerfCounters() {
   __modelPerfCounters = {
@@ -586,9 +586,9 @@ function selectAutoOrientation(outlinePoints, basePlate, projectedNodes, trackNa
   let bestScore = -Infinity;
   const placementsMap = resultsAreCacheable ? new Map() : null;
 
-  // Store geometry for each orientation so the winner can be reused by buildTrackModel,
-  // avoiding a redundant buildTrackOutline call for the winning orientation.
-  const geometryByDeg = new Map();
+  // Track the winning orientation's geometry so buildTrackModel can reuse it,
+  // avoiding a redundant buildTrackOutline call.
+  let bestGeometry = null;
 
   for (const deg of CANDIDATES) {
     // Rotate projected nodes when available, otherwise rotate outline directly.
@@ -606,21 +606,19 @@ function selectAutoOrientation(outlinePoints, basePlate, projectedNodes, trackNa
     const rotatedSecondaryOutlines = rotatedSecondaryNodes.map(nodes =>
       buildTrackOutline(nodes)
     );
+
+    // Compute basePlate using the same logic as orientTrackGeometry:
+    // prefer rotating the caller-supplied basePlate, fall back to building from the outline.
     const rotatedBp = rotatedSecondaryOutlines.length > 0
-      ? (buildCombinedBasePlate([rotatedOutline, ...rotatedSecondaryOutlines]) ?? buildBasePlate(rotatedOutline) ?? bp)
-      : ((rotatedOutline ? buildBasePlate(rotatedOutline) : null) ?? bp);
+      ? (buildCombinedBasePlate([rotatedOutline, ...rotatedSecondaryOutlines])
+        ?? rotateBasePlateByOrientation(basePlate, deg)
+        ?? buildBasePlate(rotatedOutline) ?? bp)
+      : (rotateBasePlateByOrientation(basePlate, deg)
+        ?? (rotatedOutline ? buildBasePlate(rotatedOutline) : null) ?? bp);
 
     const allOutlinePoints = rotatedSecondaryOutlines.length > 0
       ? [rotatedOutline, ...rotatedSecondaryOutlines]
       : null;
-
-    geometryByDeg.set(deg, {
-      outlinePoints: rotatedOutline,
-      basePlate: rotatedBp,
-      projectedNodes: rotatedProjectedNodes,
-      secondaryOutlines: rotatedSecondaryOutlines,
-      orientedSecondaries: rotatedSecondaryNodes,
-    });
 
     let score = 0;
 
@@ -663,10 +661,17 @@ function selectAutoOrientation(outlinePoints, basePlate, projectedNodes, trackNa
     if (score > bestScore) {
       bestScore = score;
       bestDeg = deg;
+      bestGeometry = {
+        outlinePoints: rotatedOutline,
+        basePlate: rotatedBp,
+        projectedNodes: rotatedProjectedNodes,
+        secondaryOutlines: rotatedSecondaryOutlines,
+        orientedSecondaries: rotatedSecondaryNodes,
+      };
     }
   }
 
-  return { deg: bestDeg, placements: placementsMap, geometry: geometryByDeg.get(bestDeg) };
+  return { deg: bestDeg, placements: placementsMap, geometry: bestGeometry };
 }
 
 export function buildTrackModel({

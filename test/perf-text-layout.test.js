@@ -61,7 +61,7 @@ function outlineWithHole() {
 }
 
 // ---------------------------------------------------------------------------
-// Issue 1: fitTextToRectangle repeated per candidate
+// Issue 1: text layout pre-computation across candidates
 // ---------------------------------------------------------------------------
 
 test('perf: line breaks and contours are computed once regardless of candidate count', () => {
@@ -82,7 +82,6 @@ test('perf: line breaks and contours are computed once regardless of candidate c
 
   console.log('--- Issue 1: line breaks pre-computed once (outline-based) ---');
   console.log(`  Candidates evaluated:           ${candidateCount}`);
-  console.log(`  fitTextToRectangle calls:        ${counters.fitTextToRectangle} (legacy path, should be 0)`);
   console.log(`  findOptimalLineBreaks calls:     ${counters.findOptimalLineBreaks}`);
   console.log(`  buildMultilineContours calls:    ${counters.buildMultilineContours}`);
   console.log(`  Optimal:                         ${maxLineVariants} (one per line count)`);
@@ -93,9 +92,6 @@ test('perf: line breaks and contours are computed once regardless of candidate c
     'findOptimalLineBreaks should run once per line-count variant');
   assert.equal(counters.buildMultilineContours, maxLineVariants,
     'buildMultilineContours should run once per line-count variant');
-  // fitTextToRectangle is no longer in the ranking hot path
-  assert.equal(counters.fitTextToRectangle, 0,
-    'fitTextToRectangle should not be called during ranking');
 });
 
 test('perf: line breaks pre-computed once with many candidates (oval circuit)', () => {
