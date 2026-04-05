@@ -488,11 +488,65 @@ function buildTrackPrismMesh(outline, scale, projectedNodes = null) {
   return triangles;
 }
 
+// Returns a canonical key for a directed edge (a→b), using ~1cm coordinate precision.
+// Uses lexicographic ordering so the same edge traversed in either direction hashes identically.
+function edgeKey(a, b) {
+  const ax = Math.round(a.x * 100), ay = Math.round(a.y * 100);
+  const bx = Math.round(b.x * 100), by = Math.round(b.y * 100);
+  return (ax < bx || (ax === bx && ay <= by))
+    ? `${ax},${ay}|${bx},${by}`
+    : `${bx},${by}|${ax},${ay}`;
+}
+
+function buildPrimaryEdgeSet(nodes) {
+  const set = new Set();
+  for (let i = 0; i < nodes.length - 1; i += 1) {
+    set.add(edgeKey(nodes[i], nodes[i + 1]));
+  }
+  return set;
+}
+
+// Splits a secondary layout's node chain into sub-chains containing only edges
+// not already present in the primary layout. This avoids rendering shared sections twice.
+function getUniqueSubChains(secondaryNodes, primaryEdgeSet) {
+  const chains = [];
+  let current = null;
+
+  for (let i = 0; i < secondaryNodes.length - 1; i += 1) {
+    const a = secondaryNodes[i];
+    const b = secondaryNodes[i + 1];
+    if (primaryEdgeSet.has(edgeKey(a, b))) {
+      if (current) { chains.push(current); current = null; }
+    } else {
+      if (!current) current = [a];
+      current.push(b);
+    }
+  }
+  if (current) chains.push(current);
+  return chains;
+}
+
+// Builds a base plate that encompasses all provided outlines (used for combined-layout mode).
+function buildCombinedBasePlate(allOutlines, margin = 50) {
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const outline of allOutlines) {
+    for (const { x, y } of (outline?.outerRing ?? [])) {
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    }
+  }
+  if (!Number.isFinite(minX)) return null;
+  minX -= margin; maxX += margin; minY -= margin; maxY += margin;
+  return { minX, maxX, minY, maxY, width: maxX - minX, height: maxY - minY };
+}
+
 // Selects the best auto orientation and returns the ranked text placements for all 4 candidate
 // orientations so that buildTrackModel can cache all of them in one pass.
 // Returns { deg, placements: Map<deg, rankedResult|null> | null }
 // placements is null when trackName is empty (scoring used 'CIRCUIT' placeholder — not cacheable).
-function selectAutoOrientation(outlinePoints, basePlate, projectedNodes, trackName) {
+function selectAutoOrientation(outlinePoints, basePlate, projectedNodes, trackName, secondaryProjectedNodes = []) {
   // Build an outline we can use for all candidates.
   // projectedNodes takes priority — same logic as orientTrackGeometry.
   const baseOutline = projectedNodes?.length
@@ -519,7 +573,18 @@ function selectAutoOrientation(outlinePoints, basePlate, projectedNodes, trackNa
     const rotatedOutline = projectedNodes?.length
       ? buildTrackOutline(rotatePointsByOrientation(projectedNodes, deg))
       : rotateOutlineByOrientation(outlinePoints, deg);
-    const rotatedBp = (rotatedOutline ? buildBasePlate(rotatedOutline) : null) ?? bp;
+
+    // In combined mode, rotate all secondary layouts and expand the base plate to fit all of them.
+    const rotatedSecondaryOutlines = secondaryProjectedNodes.map(nodes =>
+      buildTrackOutline(rotatePointsByOrientation(nodes, deg))
+    );
+    const rotatedBp = rotatedSecondaryOutlines.length > 0
+      ? (buildCombinedBasePlate([rotatedOutline, ...rotatedSecondaryOutlines]) ?? buildBasePlate(rotatedOutline) ?? bp)
+      : ((rotatedOutline ? buildBasePlate(rotatedOutline) : null) ?? bp);
+
+    const allOutlinePoints = rotatedSecondaryOutlines.length > 0
+      ? [rotatedOutline, ...rotatedSecondaryOutlines]
+      : null;
 
     let score = 0;
 
@@ -534,6 +599,7 @@ function selectAutoOrientation(outlinePoints, basePlate, projectedNodes, trackNa
       const scale = computeScale(rotatedBp);
       const ranked = computeRankedTextPlacements(scoringText, rotatedOutline, rotatedBp, scale, {
         textOrientationMode: TEXT_ORIENTATION_FIXED,
+        allOutlinePoints,
       });
       placementsMap?.set(deg, ranked);
       if (ranked) {
@@ -575,6 +641,7 @@ export function buildTrackModel({
   basePlate,
   trackName,
   projectedNodes = null,
+  secondaryProjectedNodes = [],
   primaryOrientationDeg = undefined,
   orientationDeg = undefined,
   textOrientationMode = undefined,
@@ -601,7 +668,9 @@ export function buildTrackModel({
     } else {
       // Compute auto orientation. This also runs text placement for all 4 candidate orientations,
       // so we pre-populate the cache with all of them in one pass.
-      const autoResult = selectAutoOrientation(outlinePoints, basePlate, projectedNodes, trackName);
+      const autoResult = selectAutoOrientation(
+        outlinePoints, basePlate, projectedNodes, trackName, secondaryProjectedNodes,
+      );
       resolvedOrientationDeg = autoResult.deg;
       if (cacheActive) {
         textPlacementCache.resolvedAutoDeg = resolvedOrientationDeg;
@@ -626,9 +695,37 @@ export function buildTrackModel({
     projectedNodes,
     orientationDeg: resolvedOrientationDeg,
   });
-  const scale = computeScale(orientedGeometry.basePlate);
-  const basePlateTriangles = buildBasePlateMesh(orientedGeometry.basePlate, scale);
-  const trackTriangles = buildTrackPrismMesh(orientedGeometry.outlinePoints, scale, orientedGeometry.projectedNodes);
+
+  // Orient secondary layouts with the same rotation and build their outlines.
+  const orientedSecondaries = secondaryProjectedNodes.map(nodes =>
+    rotatePointsByOrientation(nodes, resolvedOrientationDeg)
+  );
+  const secondaryOutlines = orientedSecondaries.map(nodes => buildTrackOutline(nodes));
+
+  // In combined mode, expand the base plate to encompass all layouts.
+  const effectiveBasePlate = secondaryOutlines.length > 0
+    ? (buildCombinedBasePlate([orientedGeometry.outlinePoints, ...secondaryOutlines]) ?? orientedGeometry.basePlate)
+    : orientedGeometry.basePlate;
+
+  const scale = computeScale(effectiveBasePlate);
+  const basePlateTriangles = buildBasePlateMesh(effectiveBasePlate, scale);
+
+  // Build secondary prism meshes — unique segments only to avoid z-fighting on shared sections.
+  const primaryEdgeSet = buildPrimaryEdgeSet(orientedGeometry.projectedNodes ?? []);
+  const secondaryTrackTriangles = orientedSecondaries.flatMap(nodes => {
+    const uniqueChains = getUniqueSubChains(nodes, primaryEdgeSet);
+    return uniqueChains.flatMap(chain => buildTrackPrismMesh(null, scale, chain));
+  });
+
+  // Primary layout prism mesh (shown in red in the preview/export).
+  const trackTriangles = buildTrackPrismMesh(
+    orientedGeometry.outlinePoints, scale, orientedGeometry.projectedNodes,
+  );
+
+  // Text placement uses all visible layouts as obstacles in combined mode.
+  const allOutlinePoints = secondaryOutlines.length > 0
+    ? [orientedGeometry.outlinePoints, ...secondaryOutlines]
+    : null;
 
   let rankedPlacements = null;
   const normalizedTrackName = String(trackName ?? '').trim();
@@ -641,9 +738,9 @@ export function buildTrackModel({
       rankedPlacements = computeRankedTextPlacements(
         normalizedTrackName,
         orientedGeometry.outlinePoints,
-        orientedGeometry.basePlate,
+        effectiveBasePlate,
         scale,
-        { textOrientationMode: resolvedTextOrientationMode },
+        { textOrientationMode: resolvedTextOrientationMode, allOutlinePoints },
       );
       if (cacheActive) {
         textPlacementCache.byOrientation.set(resolvedOrientationDeg, rankedPlacements);
@@ -659,8 +756,9 @@ export function buildTrackModel({
   });
 
   return {
-    triangles: [...basePlateTriangles, ...trackTriangles, ...textTriangles],
+    triangles: [...basePlateTriangles, ...secondaryTrackTriangles, ...trackTriangles, ...textTriangles],
     baseTriangleCount: basePlateTriangles.length,
+    secondaryTrackTriangleCount: secondaryTrackTriangles.length,
     trackTriangleCount: trackTriangles.length,
     textTriangleCount: textTriangles.length,
     scale,
@@ -669,7 +767,7 @@ export function buildTrackModel({
     textPositionRank: resolvedTextPositionRank,
     orientationDeg: orientedGeometry.orientationDeg,
     outlinePoints: orientedGeometry.outlinePoints,
-    basePlate: orientedGeometry.basePlate,
+    basePlate: effectiveBasePlate,
     projectedNodes: orientedGeometry.projectedNodes,
   };
 }

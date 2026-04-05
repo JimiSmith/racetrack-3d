@@ -723,12 +723,11 @@ function computeCentreDistance(rect, basePlate) {
   return Math.min(1, Math.hypot(rectCenterX - baseCenterX, rectCenterY - baseCenterY) / maxDistance);
 }
 
-function computePlacementMask(outlinePoints, basePlate) {
+function computePlacementMask(allObstacleOutlines, primaryOutline, basePlate) {
   const grid = createPlacementGrid(basePlate);
   const mask = Array.from({ length: grid.rows }, () => Array.from({ length: grid.columns }, () => false));
   const outside = Array.from({ length: grid.rows }, () => Array.from({ length: grid.columns }, () => true));
-  const hasOuterRing = outlinePoints?.outerRing?.length >= 3;
-  const holes = outlinePoints?.holes ?? [];
+  const hasOuterRing = primaryOutline?.outerRing?.length >= 3;
 
   for (let row = 0; row < grid.rows; row += 1) {
     for (let column = 0; column < grid.columns; column += 1) {
@@ -743,11 +742,14 @@ function computePlacementMask(outlinePoints, basePlate) {
         maxY: minY + grid.cellHeight,
       };
 
-      const intersectsOuterRing = rectIntersectsPolygon(rect, outlinePoints?.outerRing);
-      const fullyInsideHole = intersectsOuterRing && holes.some(hole => hole.length >= 3 && rectFullyInsidePolygon(rect, hole));
-
-      mask[row][column] = intersectsOuterRing && !fullyInsideHole;
-      outside[row][column] = !hasOuterRing || !pointInPolygon({ x, y }, outlinePoints.outerRing);
+      mask[row][column] = allObstacleOutlines.some(outline => {
+        const intersects = rectIntersectsPolygon(rect, outline?.outerRing);
+        const insideHole = intersects && (outline?.holes ?? []).some(
+          hole => hole.length >= 3 && rectFullyInsidePolygon(rect, hole),
+        );
+        return intersects && !insideHole;
+      });
+      outside[row][column] = !hasOuterRing || !pointInPolygon({ x, y }, primaryOutline.outerRing);
     }
   }
 
@@ -1283,7 +1285,7 @@ function computeTextPlacement(text, outlinePoints, basePlate, scale, options = {
   const font = getLabelFont(options.font ?? null);
   const scaledOutline = scaleOutline(outlinePoints, scale);
   const scaledBasePlate = createScaledBounds(basePlate, scale);
-  const placementMask = computePlacementMask(scaledOutline, scaledBasePlate);
+  const placementMask = computePlacementMask([scaledOutline], scaledOutline, scaledBasePlate);
   const { candidates, distanceMap, maxTrackClearance } = findPlacementCandidates(scaledBasePlate, placementMask);
   if (!candidates.length) {
     return null;
@@ -1374,7 +1376,7 @@ export function __debugAllPlacements(text, outlinePoints, basePlate, scale, opti
   const font = getLabelFont(options.font ?? null);
   const scaledOutline = scaleOutline(outlinePoints, scale);
   const scaledBasePlate = createScaledBounds(basePlate, scale);
-  const placementMask = computePlacementMask(scaledOutline, scaledBasePlate);
+  const placementMask = computePlacementMask([scaledOutline], scaledOutline, scaledBasePlate);
   const { candidates, distanceMap, maxTrackClearance } = findPlacementCandidates(scaledBasePlate, placementMask);
   if (!candidates.length) return null;
 
@@ -1424,7 +1426,7 @@ export function __debugAllPlacements(text, outlinePoints, basePlate, scale, opti
 export function __debugPlacementCandidates(outlinePoints, basePlate, scale) {
   const scaledOutline = scaleOutline(outlinePoints, scale);
   const scaledBasePlate = createScaledBounds(basePlate, scale);
-  const placementMask = computePlacementMask(scaledOutline, scaledBasePlate);
+  const placementMask = computePlacementMask([scaledOutline], scaledOutline, scaledBasePlate);
   return findPlacementCandidates(scaledBasePlate, placementMask).candidates;
 }
 
@@ -1478,7 +1480,10 @@ export function computeRankedTextPlacements(text, outlinePoints, basePlate, scal
   const font = getLabelFont(options.font ?? null);
   const scaledOutline = scaleOutline(outlinePoints, scale);
   const scaledBasePlate = createScaledBounds(basePlate, scale);
-  const placementMask = computePlacementMask(scaledOutline, scaledBasePlate);
+  const allScaledOutlines = options.allOutlinePoints
+    ? options.allOutlinePoints.map(o => scaleOutline(o, scale))
+    : [scaledOutline];
+  const placementMask = computePlacementMask(allScaledOutlines, scaledOutline, scaledBasePlate);
   const { candidates, distanceMap, maxTrackClearance } = findPlacementCandidates(scaledBasePlate, placementMask);
   if (!candidates.length) {
     return null;

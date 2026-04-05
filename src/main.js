@@ -43,6 +43,8 @@ const exaggerationValue = document.getElementById('exaggeration-value');
 const layoutWrap = document.getElementById('layout-wrap');
 const layoutSelect = document.getElementById('layout-select');
 const layoutHint = document.getElementById('layout-hint');
+const combinedLayoutWrap = document.getElementById('combined-layout-wrap');
+const combinedLayoutToggle = document.getElementById('combined-layout-toggle');
 const orientationSelect = document.getElementById('orientation-select');
 const textPositionSelect = document.getElementById('text-position-select');
 
@@ -66,6 +68,7 @@ let currentPrimaryOrientationDeg = normalizePrimaryOrientationDeg(orientationSel
 let currentTextPositionRank = normalizeTextPositionRank(textPositionSelect?.value ?? DEFAULT_TEXT_POSITION_RANK);
 let currentLabelOverride = null;
 let currentPlacementCacheToken = null;
+let currentCombinedLayoutMode = false;
 let isGeneratingStl = false;
 let isGenerating3mf = false;
 let isTrackSummaryExpanded = true;
@@ -234,6 +237,7 @@ function updateLayoutSelector() {
 
   layoutWrap.hidden = pickerState.hidden;
   layoutHint.textContent = pickerState.hint;
+  combinedLayoutWrap.hidden = currentLayouts.length < 2;
 }
 
 function buildDownloadFileName(extension) {
@@ -271,7 +275,20 @@ function buildSelectedLayoutModel(elevations = currentElevations) {
     return;
   }
 
-  const projected = projectNodes(layout.nodes, elevations);
+  // Use a shared projection center so all layouts occupy the same coordinate frame.
+  const center = {
+    lat: layout.nodes.reduce((s, n) => s + n.lat, 0) / layout.nodes.length,
+    lon: layout.nodes.reduce((s, n) => s + n.lon, 0) / layout.nodes.length,
+  };
+  const projected = projectNodes(layout.nodes, elevations, center);
+
+  // Project secondary layouts (flat elevation, same center) when combined mode is active.
+  const secondaryProjectedNodes = currentCombinedLayoutMode && currentLayouts.length > 1
+    ? currentLayouts
+      .filter((_, i) => i !== currentLayoutIndex)
+      .map(l => projectNodes(l.nodes, null, center))
+    : [];
+
   const trackNameState = getSelectedTrackNameState(layout);
   const effectiveLabel = getEffectiveLabel(layout);
   const model = buildTrackModel({
@@ -279,6 +296,7 @@ function buildSelectedLayoutModel(elevations = currentElevations) {
     basePlate: null,
     trackName: effectiveLabel,
     projectedNodes: projected,
+    secondaryProjectedNodes,
     primaryOrientationDeg: currentPrimaryOrientationDeg,
     textPositionRank: currentTextPositionRank,
     placementCacheToken: currentPlacementCacheToken,
@@ -507,6 +525,12 @@ layoutSelect.addEventListener('change', async () => {
 
   const exaggeration = Number(exaggerationSlider.value);
   await loadElevations(getSelectedLayout(currentLayouts, currentLayoutIndex)?.nodes ?? [], exaggeration);
+});
+
+combinedLayoutToggle?.addEventListener('change', () => {
+  currentCombinedLayoutMode = combinedLayoutToggle.checked;
+  invalidatePlacementCache();
+  buildSelectedLayoutModel();
 });
 
 orientationSelect?.addEventListener('change', async () => {

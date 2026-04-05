@@ -1,8 +1,8 @@
 import * as turf from '@turf/turf';
 
-export function projectNodes(nodes, elevations = null) {
-  const latC = nodes.reduce((s, n) => s + n.lat, 0) / nodes.length;
-  const lonC = nodes.reduce((s, n) => s + n.lon, 0) / nodes.length;
+export function projectNodes(nodes, elevations = null, center = null) {
+  const latC = center?.lat ?? nodes.reduce((s, n) => s + n.lat, 0) / nodes.length;
+  const lonC = center?.lon ?? nodes.reduce((s, n) => s + n.lon, 0) / nodes.length;
   const cosLat = Math.cos((latC * Math.PI) / 180);
 
   return nodes.map((n, i) => ({

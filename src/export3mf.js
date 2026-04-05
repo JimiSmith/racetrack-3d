@@ -22,7 +22,7 @@ export function build3mfModelXml(model) {
   const vertexIndexes = new Map();
   const vertices = [];
   const triangleEntries = [];
-  const { baseTriangles, trackTriangles } = splitModelTriangles(model);
+  const { baseTriangles, secondaryTrackTriangles, trackTriangles } = splitModelTriangles(model);
 
   function getVertexIndex(vertex) {
     const x = formatCoordinate(vertex.x);
@@ -50,6 +50,7 @@ export function build3mfModelXml(model) {
   }
 
   addTriangles(baseTriangles, 0);
+  addTriangles(secondaryTrackTriangles ?? [], 2);
   addTriangles(trackTriangles, 1);
 
   const vertexXml = vertices
@@ -67,6 +68,7 @@ export function build3mfModelXml(model) {
     <m:colorgroup id="1">
       <m:color color="#000000"/>
       <m:color color="#E8002D"/>
+      <m:color color="#888888"/>
     </m:colorgroup>
     <object id="2" type="model" pid="1" pindex="0">
       <mesh>

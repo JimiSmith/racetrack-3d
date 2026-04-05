@@ -152,12 +152,19 @@ export function updatePreview(model) {
     return;
   }
 
-  const { baseTriangles, trackTriangles } = splitModelTriangles(model);
+  const { baseTriangles, secondaryTrackTriangles, trackTriangles } = splitModelTriangles(model);
 
   if (baseTriangles.length > 0) {
     modelGroup.add(new THREE.Mesh(
       buildPreviewGeometry(baseTriangles),
       new THREE.MeshStandardMaterial({ color: '#000000', roughness: 0.85, metalness: 0.05 }),
+    ));
+  }
+
+  if (secondaryTrackTriangles?.length > 0) {
+    modelGroup.add(new THREE.Mesh(
+      buildPreviewGeometry(secondaryTrackTriangles),
+      new THREE.MeshStandardMaterial({ color: '#888888', roughness: 0.75, metalness: 0.05 }),
     ));
   }
 

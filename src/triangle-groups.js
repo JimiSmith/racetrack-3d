@@ -10,9 +10,14 @@ export function splitModelTriangles(model) {
   const triangles = model?.triangles ?? [];
 
   if (hasExplicitTriangleSegments(model)) {
+    const baseEnd = model.baseTriangleCount;
+    const secCount = model.secondaryTrackTriangleCount ?? 0;
+    const secondaryEnd = baseEnd + secCount;
+    // trackTriangles includes primary track + text (both rendered in the same red/primary colour).
     return {
-      baseTriangles: triangles.slice(0, model.baseTriangleCount),
-      trackTriangles: triangles.slice(model.baseTriangleCount),
+      baseTriangles: triangles.slice(0, baseEnd),
+      secondaryTrackTriangles: triangles.slice(baseEnd, secondaryEnd),
+      trackTriangles: triangles.slice(secondaryEnd),
     };
   }
 
@@ -27,5 +32,5 @@ export function splitModelTriangles(model) {
     }
   }
 
-  return { baseTriangles, trackTriangles };
+  return { baseTriangles, secondaryTrackTriangles: [], trackTriangles };
 }
