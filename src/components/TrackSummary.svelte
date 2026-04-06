@@ -41,6 +41,8 @@
     showResetButton = false;
   });
 
+  let labelDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
   function handleLabelInput(e: Event): void {
     const value = (e.currentTarget as HTMLInputElement).value;
     labelInputValue = value;
@@ -51,8 +53,15 @@
       return;
     }
 
-    invalidatePlacementCache();
-    rebuildModel();
+    // Debounce the expensive rebuild — only fire after 300ms of no typing
+    if (labelDebounceTimer !== null) {
+      clearTimeout(labelDebounceTimer);
+    }
+    labelDebounceTimer = setTimeout(() => {
+      labelDebounceTimer = null;
+      invalidatePlacementCache();
+      rebuildModel();
+    }, 300);
   }
 
   function handleLabelReset(): void {

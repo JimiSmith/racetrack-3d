@@ -66,10 +66,34 @@ function getOrCreateCacheToken(generation: number): object {
 
 // ── Worker message handler ────────────────────────────────────────────────────
 
+let latestRequest: ModelBuildRequest | null = null;
+let processingScheduled = false;
+
 self.onmessage = (event: MessageEvent<ModelBuildRequest>) => {
   const request = event.data;
 
   if (request.type !== 'build-model') {
+    return;
+  }
+
+  // Always keep only the latest request — earlier ones are stale
+  latestRequest = request;
+
+  // Schedule processing if not already scheduled; yield first so any other
+  // queued messages can arrive and overwrite latestRequest before we build
+  if (!processingScheduled) {
+    processingScheduled = true;
+    setTimeout(processLatest, 0);
+  }
+};
+
+function processLatest(): void {
+  // Grab the latest request (most recently arrived)
+  const request = latestRequest;
+  latestRequest = null;
+  processingScheduled = false;
+
+  if (!request) {
     return;
   }
 
@@ -137,4 +161,6 @@ self.onmessage = (event: MessageEvent<ModelBuildRequest>) => {
     };
     self.postMessage(errorResponse);
   }
-};
+  // After synchronous processing completes, any messages that arrived during
+  // buildTrackModel will fire onmessage and re-schedule processLatest if needed.
+}
