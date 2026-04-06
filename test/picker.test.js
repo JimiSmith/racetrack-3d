@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 
-import { fetchTrackGeometry } from '../src/search.js';
+import { buildTrackGeometryFromPayload } from '../src/search.js';
 import {
   buildLayoutPickerState,
   getSelectedLayout,
@@ -12,21 +12,6 @@ import { expectDistinctLayouts } from '../test-utils/layout-assertions.js';
 
 function loadFixture(name) {
   return JSON.parse(readFileSync(new URL(`./fixtures/${name}`, import.meta.url), 'utf8'));
-}
-
-function withMockedFetch(payload, callback) {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => ({
-    ok: true,
-    headers: new Headers({ 'content-type': 'application/json' }),
-    async json() {
-      return payload;
-    },
-  });
-
-  return Promise.resolve(callback()).finally(() => {
-    globalThis.fetch = originalFetch;
-  });
 }
 
 function n(lat, lon) {
@@ -49,11 +34,10 @@ test('picker state is hidden when only one layout is available', () => {
   assert.equal(pickerState.selectedLayout?.name, 'Main');
 });
 
-test('picker state is shown when multiple layouts are available', async () => {
+test('picker state is shown when multiple layouts are available', () => {
   const fixture = loadFixture('silverstone.json');
 
-  const result = await withMockedFetch(fixture, () =>
-    fetchTrackGeometry(52.0786, -1.0169, undefined, 'Silverstone Circuit'));
+  const result = buildTrackGeometryFromPayload(fixture, 'Silverstone Circuit');
   const pickerState = buildLayoutPickerState(result.layouts, result.selectedLayoutIndex);
 
   assert.equal(pickerState.hidden, false);
@@ -63,11 +47,10 @@ test('picker state is shown when multiple layouts are available', async () => {
   assert.match(pickerState.options[1].label, /^Alternate - /);
 });
 
-test('changing selected layout index yields different nodes', async () => {
+test('changing selected layout index yields different nodes', () => {
   const fixture = loadFixture('silverstone.json');
 
-  const result = await withMockedFetch(fixture, () =>
-    fetchTrackGeometry(52.0786, -1.0169, undefined, 'Silverstone Circuit'));
+  const result = buildTrackGeometryFromPayload(fixture, 'Silverstone Circuit');
 
   const firstLayout = getSelectedLayout(result.layouts, normalizeSelectedLayoutIndex(result.layouts, 0));
   const secondLayout = getSelectedLayout(result.layouts, normalizeSelectedLayoutIndex(result.layouts, 1));
@@ -76,11 +59,10 @@ test('changing selected layout index yields different nodes', async () => {
   expectDistinctLayouts(firstLayout, secondLayout);
 });
 
-test('picker data never exposes identical returned layouts', async () => {
+test('picker data never exposes identical returned layouts', () => {
   const fixture = loadFixture('bahrain.json');
 
-  const result = await withMockedFetch(fixture, () =>
-    fetchTrackGeometry(26.0325, 50.5106, undefined, 'Bahrain International Circuit'));
+  const result = buildTrackGeometryFromPayload(fixture, 'Bahrain International Circuit');
 
   for (let index = 0; index < result.layouts.length; index += 1) {
     for (let otherIndex = index + 1; otherIndex < result.layouts.length; otherIndex += 1) {

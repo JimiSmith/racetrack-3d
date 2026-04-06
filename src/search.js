@@ -19,47 +19,6 @@ export async function searchTracks(query, signal) {
   return searchLocalTrackIndex(query, trackSearchIndex);
 }
 
-const OVERPASS_ENDPOINTS = [
-  'https://overpass-api.de/api/interpreter',
-  'https://overpass.kumi.systems/api/interpreter',
-  'https://overpass.private.coffee/api/interpreter',
-];
-
-const ENDPOINT_TIMEOUT_MS = 12000;
-
-async function runOverpassQueries(query, signal) {
-  const body = `data=${encodeURIComponent(query)}`;
-  const errors = [];
-  const results = [];
-
-  for (const endpoint of OVERPASS_ENDPOINTS) {
-    const timeoutSignal = AbortSignal.timeout(ENDPOINT_TIMEOUT_MS);
-    const combined = signal
-      ? AbortSignal.any([signal, timeoutSignal])
-      : timeoutSignal;
-
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body,
-        signal: combined,
-      });
-      if (!response.ok || !response.headers.get('content-type')?.includes('json')) {
-        errors.push(`${endpoint}: ${response.status}`);
-        continue;
-      }
-      results.push({ endpoint, data: await response.json() });
-    } catch (err) {
-      if (signal?.aborted) {throw new DOMException('Aborted', 'AbortError');}
-      errors.push(`${endpoint}: ${err.name === 'TimeoutError' ? 'timed out' : err.message}`);
-    }
-  }
-  if (results.length > 0) {
-    return results;
-  }
-  throw new Error(`All Overpass endpoints failed: ${errors.join('; ')}`);
-}
 
 const dist = (a, b) => Math.abs(a.lat - b.lat) + Math.abs(a.lon - b.lon);
 const toRadians = value => (value * Math.PI) / 180;
@@ -777,21 +736,6 @@ function compareLayoutsForTrack(trackName, a, b) {
   return a.name.localeCompare(b.name);
 }
 
-function scoreGeometryResult(result, trackName) {
-  const selectedLayout = result.layouts[result.selectedLayoutIndex] ?? result.layouts[0];
-  const bestVenueNameScore = result.osmVenueNames.reduce((bestScore, name) => {
-    if (namesLikelyMatchCircuit(name, trackName)) {
-      return Math.max(bestScore, 600);
-    }
-
-    return bestScore;
-  }, 0);
-
-  return bestVenueNameScore
-    + scoreLayoutChoice(selectedLayout, trackName)
-    + (selectedLayout?.stats?.lengthMetres ?? 0) / 10
-    + result.layouts.length * 20;
-}
 
 function inferBranchName(branch, graph, trackName) {
   const { names, namedLength } = buildWeightedNames(branch.edgeIds, graph, trackName);
@@ -1729,7 +1673,7 @@ function stitchWays(ways) {
 
 const PIT_PATTERN = /pit[\s\-_]*lane|pit[\s\-_]*road|pitlane|pitroad|support[\s\-_]*pit|\bpit\s*$/i;
 
-function extractOverpassWays(elements) {
+function extractWays(elements) {
   const waysById = new Map();
 
   function mergeRelationTags(existingTags, relationTags) {
@@ -1822,7 +1766,7 @@ function collectNamedLayoutWays(filteredWays, componentWays) {
 
 function buildTrackGeometryResult(elements, trackName) {
   const allElements = elements || [];
-  const ways = extractOverpassWays(allElements);
+  const ways = extractWays(allElements);
 
   if (ways.length === 0) {
     return null;
@@ -1857,14 +1801,10 @@ function buildTrackGeometryResult(elements, trackName) {
   // Named layout detection failed. When multiple circuit relations exist at the same venue
   // (e.g. Mexican Grand Prix + Mexico City E-Prix), merging all their ways produces an
   // incorrect superset geometry. Try each relation independently and return the best result.
-  const circuitRelations = allElements.filter(e => {
-    if (e.type !== 'relation') {return false;}
-    const hw = String(e.tags?.highway ?? '').trim().toLowerCase();
-    const type = String(e.tags?.type ?? '').trim().toLowerCase();
-    const route = String(e.tags?.route ?? '').trim().toLowerCase();
-    const circuit = String(e.tags?.circuit ?? '').trim().toLowerCase();
-    return (hw === 'raceway' || type === 'circuit' || route === 'raceway') && circuit !== 'kart';
-  });
+  //
+  // All relations in allElements have already been filtered to circuit routes by
+  // parseOsmApiMapXml upstream, so a type check is sufficient here.
+  const circuitRelations = allElements.filter(e => e.type === 'relation');
 
   if (circuitRelations.length > 1) {
     // Only apply per-relation isolation when the relations are geometrically independent
@@ -1943,35 +1883,17 @@ function buildTrackGeometryResult(elements, trackName) {
   };
 }
 
-export function buildTrackGeometryFromOverpassPayload(payload, trackName) {
+export function buildTrackGeometryFromPayload(payload, trackName) {
   return buildTrackGeometryResult(payload?.elements ?? [], trackName);
 }
 
-// Fetch raceway geometry using Overpass bbox query around Wikidata P625 coordinates.
-// Much more reliable than P402 (stale OSM relation IDs) or name searches (timeouts).
-export async function fetchTrackGeometry(lat, lon, signal, trackName, options = {}) {
-  const localGeometry = options.skipLocal ? null : await getTrackGeometry(options.wikidataId);
+// Returns prebuilt geometry for a circuit from the local geometry index.
+// Throws if no prebuilt entry is found — there is no runtime network fallback.
+export async function fetchTrackGeometry(trackName, options = {}) {
+  const localGeometry = await getTrackGeometry(options.wikidataId);
   if (localGeometry) {
     return localGeometry;
   }
 
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    throw new Error('No coordinates available for this circuit');
-  }
-
-  // ~9km margin — covers any F1 circuit layout but avoids pulling in distant tracks
-  const MARGIN = 0.08;
-  const bbox = `${lat - MARGIN},${lon - MARGIN},${lat + MARGIN},${lon + MARGIN}`;
-  const query = `[out:json][timeout:30];(way["highway"="raceway"](${bbox});relation["highway"="raceway"](${bbox});relation["type"="circuit"](${bbox}););out geom;`;
-
-  const queryResults = await runOverpassQueries(query, signal);
-  const geometryResults = queryResults
-    .map(({ data }) => buildTrackGeometryFromOverpassPayload(data, trackName))
-    .filter(Boolean);
-
-  if (geometryResults.length === 0) {
-    throw new Error(`No raceway found near ${trackName ?? 'this location'}`);
-  }
-
-  return geometryResults.sort((a, b) => scoreGeometryResult(b, trackName) - scoreGeometryResult(a, trackName))[0];
+  throw new Error(`No prebuilt geometry available for ${trackName ?? 'this circuit'}`);
 }

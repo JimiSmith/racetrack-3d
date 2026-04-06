@@ -342,16 +342,26 @@ export function buildOsmApiMapUrl(lat, lon, margin = DEFAULT_BBOX_MARGIN) {
   return `${OSM_API_BASE_URL}?bbox=${minLon},${minLat},${maxLon},${maxLat}`;
 }
 
+// Returns true if an OSM relation element is a non-kart circuit route.
+// Used as a guard when applying wikidata-first selection, because the wikidata tag
+// sometimes appears on the facility multipolygon (type=multipolygon) rather than the
+// route relation. Requiring this predicate prevents selecting the wrong element.
+function isCircuitRoute(relation) {
+  const highway = String(relation.tags?.highway ?? '').trim().toLowerCase();
+  const type = String(relation.tags?.type ?? '').trim().toLowerCase();
+  const route = String(relation.tags?.route ?? '').trim().toLowerCase();
+  const circuit = String(relation.tags?.circuit ?? '').trim().toLowerCase();
+  return (highway === 'raceway' || type === 'circuit' || route === 'raceway') && circuit !== 'kart';
+}
+
 export function parseOsmApiMapXml(xmlSource) {
   const { ways, relations } = parseOsmXmlElements(xmlSource, { includeRelations: true });
 
-  const relevantRelations = relations.filter(relation => {
-    const highway = String(relation.tags?.highway ?? '').trim().toLowerCase();
-    const type = String(relation.tags?.type ?? '').trim().toLowerCase();
-    const route = String(relation.tags?.route ?? '').trim().toLowerCase();
-    const circuit = String(relation.tags?.circuit ?? '').trim().toLowerCase();
-    return (highway === 'raceway' || type === 'circuit' || route === 'raceway') && circuit !== 'kart';
-  });
+  // Select all circuit route relations. Using isCircuitRoute prevents facility multipolygons
+  // (e.g. the Hungaroring venue area has wikidata=Q171356 on a type=multipolygon relation,
+  // not on the circuit route) from being selected.
+  const relevantRelations = relations.filter(r => isCircuitRoute(r));
+
   const relevantWayIds = new Set([
     ...ways
       .filter(way => String(way.tags?.highway ?? '').trim().toLowerCase() === 'raceway')
@@ -405,14 +415,16 @@ function parseRelationMemberWayIds(xmlSource) {
 //
 // Falls back to the original payload on any network error.
 export async function supplementPayloadWithMissingRelationWays(payload, options = {}) {
-  const relevantRelations = (payload?.elements ?? []).filter(e => {
-    if (e.type !== 'relation') {return false;}
-    const hw = String(e.tags?.highway ?? '').trim().toLowerCase();
-    const type = String(e.tags?.type ?? '').trim().toLowerCase();
-    const route = String(e.tags?.route ?? '').trim().toLowerCase();
-    const circuit = String(e.tags?.circuit ?? '').trim().toLowerCase();
-    return (hw === 'raceway' || type === 'circuit' || route === 'raceway') && circuit !== 'kart';
-  });
+  const normId = options.wikidataId ? String(options.wikidataId).trim().toUpperCase() : null;
+  const elements = payload?.elements ?? [];
+
+  const wikidataMatches = normId
+    ? elements.filter(e => e.type === 'relation' && String(e.tags?.wikidata ?? '').trim().toUpperCase() === normId && isCircuitRoute(e))
+    : [];
+
+  const relevantRelations = wikidataMatches.length > 0
+    ? wikidataMatches
+    : elements.filter(e => e.type === 'relation' && isCircuitRoute(e));
 
   if (relevantRelations.length === 0) {
     return payload;
@@ -509,7 +521,7 @@ export async function supplementPayloadWithMissingRelationWays(payload, options 
       };
     });
 
-    // Append newly fetched ways as bare way elements so extractOverpassWays can
+    // Append newly fetched ways as bare way elements so extractWays can
     // include them; the relation merge will supply their tags.
     const additionalWays = [...newGeometries.entries()]
       .filter(([id]) => !existingWayIds.has(id))

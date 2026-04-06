@@ -3,7 +3,7 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 
 import {
-  buildTrackGeometryFromOverpassPayload,
+  buildTrackGeometryFromPayload,
   buildTrackSearchEntry,
   buildCycleFromEdges,
   buildLayoutsFromWays,
@@ -86,29 +86,6 @@ function duplicateNamedWays(ways, sourceName, duplicateName, coordinateOffset = 
   return [...ways, ...duplicates];
 }
 
-function withMockedFetch(payload, callback) {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => ({
-    ok: true,
-    headers: new Headers({ 'content-type': 'application/json' }),
-    async json() {
-      return payload;
-    },
-  });
-
-  return Promise.resolve(callback()).finally(() => {
-    globalThis.fetch = originalFetch;
-  });
-}
-
-function withFetchMock(fetchImpl, callback) {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = fetchImpl;
-
-  return Promise.resolve(callback()).finally(() => {
-    globalThis.fetch = originalFetch;
-  });
-}
 
 function n(lat, lon) {
   return { lat, lon };
@@ -508,59 +485,47 @@ test('getTrackGeometry returns null when the per-track file is missing', async (
   }
 });
 
-test('fetchTrackGeometry uses lazy-loaded local geometry when a known wikidata id is available', async () => {
-  const originalFetch = globalThis.fetch;
-  const localGeometryResponse = {
-    ok: true,
-    async json() {
-      return {
-        trackId: 'Q172851',
-        name: 'Circuit de Spa-Francorchamps',
-        source: { kind: 'prebuilt' },
-        layouts: [
-          {
-            name: 'Main',
-            nodes: [
-              { lat: 1, lon: 2 },
-              { lat: 3, lon: 4 },
-              { lat: 5, lon: 6 },
-              { lat: 1, lon: 2 },
-            ],
-            stats: { lengthMetres: 1000, segmentCount: 1, variantSectionCount: 0 },
-          },
-          {
-            name: 'Alternate',
-            nodes: [
-              { lat: 5, lon: 6 },
-              { lat: 7, lon: 8 },
-              { lat: 9, lon: 10 },
-              { lat: 5, lon: 6 },
-            ],
-            stats: { lengthMetres: 1100, segmentCount: 1, variantSectionCount: 0 },
-          },
-        ],
-      };
-    },
+test('fetchTrackGeometry returns prebuilt local geometry when available', async () => {
+  const prebuiltEntry = {
+    trackId: 'Q172851',
+    name: 'Circuit de Spa-Francorchamps',
+    source: { kind: 'prebuilt' },
+    layouts: [
+      {
+        name: 'Main',
+        nodes: [{ lat: 1, lon: 2 }, { lat: 3, lon: 4 }, { lat: 5, lon: 6 }, { lat: 1, lon: 2 }],
+        stats: { lengthMetres: 1000, segmentCount: 1, variantSectionCount: 0 },
+      },
+      {
+        name: 'Alternate',
+        nodes: [{ lat: 5, lon: 6 }, { lat: 7, lon: 8 }, { lat: 9, lon: 10 }, { lat: 5, lon: 6 }],
+        stats: { lengthMetres: 1100, segmentCount: 1, variantSectionCount: 0 },
+      },
+    ],
   };
 
+  const originalFetch = globalThis.fetch;
   globalThis.fetch = async url => {
-    if (url === '/generated/geometry/Q172851.json') {
-      return localGeometryResponse;
+    if (url.includes('/generated/geometry/Q172851.json')) {
+      return { ok: true, async json() { return prebuiltEntry; } };
     }
-
-    throw new Error(`fetch should not run for ${url}`);
+    throw new Error(`unexpected fetch: ${url}`);
   };
 
   try {
-    const result = await fetchTrackGeometry(Number.NaN, Number.NaN, undefined, 'Circuit de Spa-Francorchamps', {
-      wikidataId: 'Q172851',
-    });
-
+    const result = await fetchTrackGeometry('Circuit de Spa-Francorchamps', { wikidataId: 'Q172851' });
     assert.equal(result.trackId, 'Q172851');
     assertLayoutNames(result.layouts, ['Main', 'Alternate']);
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test('fetchTrackGeometry throws when no prebuilt geometry is available', async () => {
+  await assert.rejects(
+    fetchTrackGeometry('Unknown Circuit', { wikidataId: undefined }),
+    /No prebuilt geometry available for Unknown Circuit/,
+  );
 });
 
 test('build-only geometry cleanup is not applied to runtime payload parsing by default', () => {
@@ -575,7 +540,7 @@ test('build-only geometry cleanup is not applied to runtime payload parsing by d
     ],
   };
 
-  const runtimeResult = buildTrackGeometryFromOverpassPayload(payload, 'Synthetic Circuit');
+  const runtimeResult = buildTrackGeometryFromPayload(payload, 'Synthetic Circuit');
   const buildResult = normalizeTrackGeometryResult(runtimeResult, 'Synthetic Circuit');
 
   assert.ok(runtimeResult);
@@ -588,11 +553,10 @@ test('build-only geometry cleanup is not applied to runtime payload parsing by d
   assert.deepEqual(buildResult.layouts[0].nodes, [n(0, 0), n(0, 0.01), n(0.01, 0), n(0, 0)]);
 });
 
-test('fetchTrackGeometry leaves Silverstone fixture cleanup to the build path', async () => {
+test('buildTrackGeometryFromPayload leaves Silverstone fixture cleanup to the build path', () => {
   const fixture = loadFixture('silverstone.json');
 
-  const result = await withMockedFetch(fixture, () =>
-    fetchTrackGeometry(52.0786, -1.0169, undefined, 'Silverstone Circuit'));
+  const result = buildTrackGeometryFromPayload(fixture, 'Silverstone Circuit');
   const normalized = normalizeTrackGeometryResult(result, 'Silverstone Circuit');
 
   assert.equal(result.selectedLayoutIndex, 0);
@@ -603,7 +567,7 @@ test('fetchTrackGeometry leaves Silverstone fixture cleanup to the build path', 
   assert.ok(result.layouts.some((layout, index) => JSON.stringify(layout.nodes) !== JSON.stringify(normalized.layouts[index]?.nodes)));
 });
 
-test('buildTrackGeometryFromOverpassPayload prefers a large near-closed unnamed circuit over a small open named fragment', () => {
+test('buildTrackGeometryFromPayload prefers a large near-closed unnamed circuit over a small open named fragment', () => {
   // Regression for Albert Park (Q171288): a short section of track is named
   // "Albert Park Circuit" in OSM, but the full public-road loop carries street names.
   // The named fragment is open (high endpoint gap); the full loop is near-closed.
@@ -646,7 +610,7 @@ test('buildTrackGeometryFromOverpassPayload prefers a large near-closed unnamed 
     ],
   };
 
-  const result = buildTrackGeometryFromOverpassPayload(payload, 'Albert Park Circuit');
+  const result = buildTrackGeometryFromPayload(payload, 'Albert Park Circuit');
 
   assert.ok(result !== null, 'should return a result');
   assert.ok(result.layouts.length > 0, 'should have at least one layout');
@@ -656,12 +620,9 @@ test('buildTrackGeometryFromOverpassPayload prefers a large near-closed unnamed 
   );
 });
 
-test('fetchTrackGeometry prefers the named Shanghai circuit over a denser stray component', async () => {
+test('buildTrackGeometryFromPayload prefers the named Shanghai circuit over a denser stray component', () => {
   const fixture = loadFixture('shanghai.json');
-
-  const result = await withMockedFetch(fixture, () =>
-    fetchTrackGeometry(31.3389, 121.2197, undefined, 'Shanghai International Circuit'));
-
+  const result = buildTrackGeometryFromPayload(fixture, 'Shanghai International Circuit');
   assert.equal(result.selectedLayoutIndex, 0);
   assertLayoutNames(result.layouts, ['Main']);
   assert.deepEqual(result.osmVenueNames, ['Shanghai International Circuit']);
@@ -670,12 +631,9 @@ test('fetchTrackGeometry prefers the named Shanghai circuit over a denser stray 
   assert.ok(result.layouts[0].stats.lengthMetres > 5000);
 });
 
-test('fetchTrackGeometry returns named Bahrain layouts from frozen fixture data', async () => {
+test('buildTrackGeometryFromPayload returns named Bahrain layouts from frozen fixture data', () => {
   const fixture = loadFixture('bahrain.json');
-
-  const result = await withMockedFetch(fixture, () =>
-    fetchTrackGeometry(26.0325, 50.5106, undefined, 'Bahrain International Circuit'));
-
+  const result = buildTrackGeometryFromPayload(fixture, 'Bahrain International Circuit');
   assert.equal(result.selectedLayoutIndex, 0);
   assertLayoutNames(result.layouts, ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit']);
   result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 1 }));
@@ -686,12 +644,9 @@ test('fetchTrackGeometry returns named Bahrain layouts from frozen fixture data'
   }
 });
 
-test('fetchTrackGeometry resolves Brands Hatch to the grand prix and indy layouts', async () => {
+test('buildTrackGeometryFromPayload resolves Brands Hatch to the grand prix and indy layouts', () => {
   const fixture = loadFixture('brands-hatch.json');
-
-  const result = await withMockedFetch(fixture, () =>
-    fetchTrackGeometry(51.3562, 0.2631, undefined, 'Brands Hatch'));
-
+  const result = buildTrackGeometryFromPayload(fixture, 'Brands Hatch');
   assert.equal(result.selectedLayoutIndex, 0);
   assertLayoutNames(result.layouts, ['Brands Hatch Grand Prix', 'Brands Hatch Indy']);
   result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 20 }));
@@ -700,12 +655,9 @@ test('fetchTrackGeometry resolves Brands Hatch to the grand prix and indy layout
   expectApproxLength(result.layouts[1].nodes, 1.9, 0.2);
 });
 
-test('fetchTrackGeometry restores Mexico City grand prix geometry from frozen fixture data', async () => {
+test('buildTrackGeometryFromPayload restores Mexico City grand prix geometry from frozen fixture data', () => {
   const fixture = loadFixture('mexico-city.json');
-
-  const result = await withMockedFetch(fixture, () =>
-    fetchTrackGeometry(19.4042, -99.0907, undefined, 'Autódromo Hermanos Rodríguez'));
-
+  const result = buildTrackGeometryFromPayload(fixture, 'Autódromo Hermanos Rodríguez');
   assert.equal(result.selectedLayoutIndex, 0);
   assertLayoutNames(result.layouts, ['Mexican Grand Prix', 'Mexico City E-Prix']);
   assertLayoutInvariants(result.layouts[0], { maxGapMeters: 120 });
@@ -714,50 +666,35 @@ test('fetchTrackGeometry restores Mexico City grand prix geometry from frozen fi
   assert.ok(result.osmVenueNames.includes('Mexican Grand Prix'));
 });
 
-test('fetchTrackGeometry avoids Monaco mini-loops and keeps the full street circuit', async () => {
+test('buildTrackGeometryFromPayload avoids Monaco mini-loops and keeps the full street circuit', () => {
   const fixture = loadFixture('monaco.json');
-
-  const result = await withMockedFetch(fixture, () =>
-    fetchTrackGeometry(43.7347, 7.4206, undefined, 'Circuit de Monaco'));
-
+  const result = buildTrackGeometryFromPayload(fixture, 'Circuit de Monaco');
   assert.equal(result.selectedLayoutIndex, 0);
   assert.equal(result.layouts[0].name, 'Main');
   assertLayoutInvariants(result.layouts[0], { maxGapMeters: 400 });
   expectApproxLength(result.layouts[0].nodes, 3.3, 0.3);
 });
 
-test('fetchTrackGeometry keeps the current Monza road course from frozen fixture data', async () => {
+test('buildTrackGeometryFromPayload keeps the current Monza road course from frozen fixture data', () => {
   const fixture = loadFixture('monza.json');
-
-  const result = await withMockedFetch(fixture, () =>
-    fetchTrackGeometry(45.6213, 9.2812, undefined, 'Autodromo Nazionale Monza'));
-
+  const result = buildTrackGeometryFromPayload(fixture, 'Autodromo Nazionale Monza');
   assert.equal(result.selectedLayoutIndex, 0);
   assertLayoutInvariants(result.layouts[0], { maxGapMeters: 120 });
   expectApproxLength(result.layouts[0].nodes, 5.8, 0.3);
 });
 
-test('fetchTrackGeometry keeps the current Zandvoort grand prix circuit from frozen fixture data', async () => {
+test('buildTrackGeometryFromPayload keeps the current Zandvoort grand prix circuit from frozen fixture data', () => {
   const fixture = loadFixture('zandvoort.json');
-
-  const result = await withMockedFetch(fixture, () =>
-    fetchTrackGeometry(52.3888, 4.5409, undefined, 'Circuit Zandvoort'));
-
+  const result = buildTrackGeometryFromPayload(fixture, 'Circuit Zandvoort');
   assert.equal(result.selectedLayoutIndex, 0);
   assertLayoutInvariants(result.layouts[0], { maxGapMeters: 120 });
   expectApproxLength(result.layouts[0].nodes, 4.3, 0.3);
   assert.ok(/Grand Prix|Circuit Zandvoort|Main/.test(result.layouts[0].name));
 });
 
-test('named-circuit detection distinguishes Bahrain standalone layouts from Spa branch alternates', async () => {
-  const bahrain = loadFixture('bahrain.json');
-  const spa = loadFixture('spa.json');
-
-  const bahrainResult = await withMockedFetch(bahrain, () =>
-    fetchTrackGeometry(26.0325, 50.5106, undefined, 'Bahrain International Circuit'));
-  const spaResult = await withMockedFetch(spa, () =>
-    fetchTrackGeometry(50.4372, 5.9714, undefined, 'Circuit de Spa-Francorchamps'));
-
+test('named-circuit detection distinguishes Bahrain standalone layouts from Spa branch alternates', () => {
+  const bahrainResult = buildTrackGeometryFromPayload(loadFixture('bahrain.json'), 'Bahrain International Circuit');
+  const spaResult = buildTrackGeometryFromPayload(loadFixture('spa.json'), 'Circuit de Spa-Francorchamps');
   assertLayoutNames(bahrainResult.layouts, ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit']);
   assertLayoutNames(spaResult.layouts, ['Main', 'Moto']);
   assert.equal(bahrainResult.layouts.find(layout => layout.name === 'Grand Prix Circuit')?.stats.variantSectionCount, 0);
@@ -769,12 +706,8 @@ test('named-circuit detection distinguishes Bahrain standalone layouts from Spa 
   assert.equal(spaResult.layouts[1].stats.variantSectionCount, 1);
 });
 
-test('Bahrain named layouts keep distinct approximate circuit lengths', async () => {
-  const fixture = loadFixture('bahrain.json');
-
-  const result = await withMockedFetch(fixture, () =>
-    fetchTrackGeometry(26.0325, 50.5106, undefined, 'Bahrain International Circuit'));
-
+test('Bahrain named layouts keep distinct approximate circuit lengths', () => {
+  const result = buildTrackGeometryFromPayload(loadFixture('bahrain.json'), 'Bahrain International Circuit');
   const byName = new Map(result.layouts.map(layout => [layout.name, layout]));
   expectApproxLength(byName.get('Grand Prix Circuit').nodes, 5.4, 0.2);
   expectApproxLength(byName.get('Endurance Circuit').nodes, 6.3, 0.2);
@@ -784,193 +717,49 @@ test('Bahrain named layouts keep distinct approximate circuit lengths', async ()
   assert.equal(byName.has('Test Oval'), false);
 });
 
-test('Spa branch-only alternates are not promoted to standalone named circuits', async () => {
-  const ways = renamedWays(fixtureWays('spa.json'), {
-    Moto: 'Moto layout',
-  });
+test('Spa branch-only alternates are not promoted to standalone named circuits', () => {
+  const ways = renamedWays(fixtureWays('spa.json'), { Moto: 'Moto layout' });
   ways.push({
     id: 999001,
     tags: { name: 'Rallycross circuit' },
-    nodes: [
-      { lat: 50.432, lon: 5.965 },
-      { lat: 50.4324, lon: 5.9654 },
-      { lat: 50.4328, lon: 5.9659 },
-    ],
+    nodes: [{ lat: 50.432, lon: 5.965 }, { lat: 50.4324, lon: 5.9654 }, { lat: 50.4328, lon: 5.9659 }],
   });
   const payload = {
-    elements: ways.map(way => ({
-      type: 'way',
-      id: way.id,
-      tags: way.tags,
-      geometry: way.nodes,
-    })),
+    elements: ways.map(way => ({ type: 'way', id: way.id, tags: way.tags, geometry: way.nodes })),
   };
-
-  const result = await withMockedFetch(payload, () =>
-    fetchTrackGeometry(50.4372, 5.9714, undefined, 'Circuit de Spa-Francorchamps'));
-
+  const result = buildTrackGeometryFromPayload(payload, 'Circuit de Spa-Francorchamps');
   assertLayoutNames(result.layouts, ['Circuit de Spa-Francorchamps', 'Moto layout']);
   result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 20 }));
   assert.equal(result.layouts.some(layout => layout.name === 'Rallycross circuit'), false);
 });
 
-test('near-identical duplicate named layouts are filtered out', async () => {
-  const ways = duplicateNamedWays(
-    fixtureWays('bahrain.json'),
-    'Grand Prix Circuit',
-    'Grand Prix Circuit Alternate',
-  );
+test('near-identical duplicate named layouts are filtered out', () => {
+  const ways = duplicateNamedWays(fixtureWays('bahrain.json'), 'Grand Prix Circuit', 'Grand Prix Circuit Alternate');
   const payload = {
-    elements: ways.map(way => ({
-      type: 'way',
-      id: way.id,
-      tags: way.tags,
-      geometry: way.nodes,
-    })),
+    elements: ways.map(way => ({ type: 'way', id: way.id, tags: way.tags, geometry: way.nodes })),
   };
-
-  const result = await withMockedFetch(payload, () =>
-    fetchTrackGeometry(26.0325, 50.5106, undefined, 'Bahrain International Circuit'));
-
+  const result = buildTrackGeometryFromPayload(payload, 'Bahrain International Circuit');
   assert.equal(result.layouts.length, 4);
   assert.equal(result.layouts.filter(layout => layout.name === 'Grand Prix Circuit').length, 1);
   assert.equal(result.layouts.filter(layout => layout.name === 'Grand Prix Circuit Alternate').length, 0);
 });
 
-test('multi-layout fixtures keep their expected layout counts', async () => {
+test('multi-layout fixtures keep their expected layout counts', () => {
   const cases = [
-    ['brands-hatch.json', 51.3562, 0.2631, 'Brands Hatch', ['Brands Hatch Grand Prix', 'Brands Hatch Indy']],
-    ['silverstone.json', 52.0786, -1.0169, 'Silverstone Circuit', ['Main', 'Alternate']],
-    ['spa.json', 50.4372, 5.9714, 'Circuit de Spa-Francorchamps', ['Main', 'Moto']],
-    ['bahrain.json', 26.0325, 50.5106, 'Bahrain International Circuit', ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit']],
-    ['mexico-city.json', 19.4042, -99.0907, 'Autódromo Hermanos Rodríguez', ['Mexican Grand Prix', 'Mexico City E-Prix']],
+    ['brands-hatch.json', 'Brands Hatch', ['Brands Hatch Grand Prix', 'Brands Hatch Indy']],
+    ['silverstone.json', 'Silverstone Circuit', ['Main', 'Alternate']],
+    ['spa.json', 'Circuit de Spa-Francorchamps', ['Main', 'Moto']],
+    ['bahrain.json', 'Bahrain International Circuit', ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit']],
+    ['mexico-city.json', 'Autódromo Hermanos Rodríguez', ['Mexican Grand Prix', 'Mexico City E-Prix']],
   ];
 
-  for (const [fixtureName, lat, lon, trackName, expectedNames] of cases) {
-    const fixture = loadFixture(fixtureName);
-    const result = await withMockedFetch(fixture, () => fetchTrackGeometry(lat, lon, undefined, trackName));
-
+  for (const [fixtureName, trackName, expectedNames] of cases) {
+    const result = buildTrackGeometryFromPayload(loadFixture(fixtureName), trackName);
     assertLayoutNames(result.layouts, expectedNames);
   }
 });
 
-test('fetchTrackGeometry throws a useful error when no raceways are found in the bbox', async () => {
-  await withMockedFetch({ elements: [] }, async () => {
-    await assert.rejects(
-      fetchTrackGeometry(51.5, -0.1, undefined, 'Missing Circuit'),
-      /No raceway found near Missing Circuit/,
-    );
-  });
-});
-
-test('fetchTrackGeometry throws when coordinates are not finite', async () => {
-  await assert.rejects(
-    fetchTrackGeometry(Number.NaN, Infinity, undefined, 'Broken Circuit'),
-    /No coordinates available for this circuit/,
-  );
-});
-
-test('fetchTrackGeometry falls back to the next Overpass endpoint when the first response is not JSON', async () => {
-  const calls = [];
-  const payload = {
-    elements: [
-      {
-        type: 'way',
-        id: 1,
-        tags: { name: 'Fallback Circuit' },
-        geometry: [n(0, 0), n(0, 0.02), n(0.02, 0.02), n(0.02, 0), n(0, 0)],
-      },
-    ],
-  };
-
-  await withFetchMock(async url => {
-    calls.push(url);
-    if (calls.length === 1) {
-      return {
-        ok: true,
-        status: 200,
-        headers: new Headers({ 'content-type': 'text/html' }),
-      };
-    }
-
-    return {
-      ok: true,
-      status: 200,
-      headers: new Headers({ 'content-type': 'application/json' }),
-      async json() {
-        return payload;
-      },
-    };
-  }, async () => {
-    const result = await fetchTrackGeometry(0, 0, undefined, 'Fallback Circuit');
-
-    assert.equal(calls.length, 3);
-    assert.match(calls[0], /overpass-api\.de/);
-    assert.match(calls[1], /overpass\.kumi\.systems/);
-    assert.match(calls[2], /overpass\.private\.coffee/);
-    assert.equal(result.layouts.length, 1);
-    assert.equal(result.layouts[0].name, 'Main');
-  });
-});
-
-test('fetchTrackGeometry compares successful Overpass responses and keeps the stronger geometry', async () => {
-  const shortPayload = {
-    elements: [
-      {
-        type: 'way',
-        id: 1,
-        tags: { name: 'Endpoint Circuit', highway: 'raceway', sport: 'motor' },
-        geometry: [n(0, 0), n(0, 0.02), n(0.02, 0), n(0, 0)],
-      },
-    ],
-  };
-  const longPayload = {
-    elements: [
-      {
-        type: 'way',
-        id: 1,
-        tags: { name: 'Endpoint Circuit', highway: 'raceway', sport: 'motor' },
-        geometry: [n(0, 0), n(0, 0.02)],
-      },
-      {
-        type: 'way',
-        id: 2,
-        tags: { name: 'Endpoint Circuit', highway: 'raceway', sport: 'motor' },
-        geometry: [n(0, 0.02), n(0.02, 0.02)],
-      },
-      {
-        type: 'way',
-        id: 3,
-        tags: { name: 'Endpoint Circuit', highway: 'raceway', sport: 'motor' },
-        geometry: [n(0.02, 0.02), n(0.02, 0)],
-      },
-      {
-        type: 'way',
-        id: 4,
-        tags: { name: 'Endpoint Circuit', highway: 'raceway', sport: 'motor' },
-        geometry: [n(0.02, 0), n(0, 0)],
-      },
-    ],
-  };
-  const payloads = [shortPayload, longPayload, shortPayload];
-  let callIndex = 0;
-
-  await withFetchMock(async () => ({
-    ok: true,
-    status: 200,
-    headers: new Headers({ 'content-type': 'application/json' }),
-    async json() {
-      return payloads[callIndex++] ?? shortPayload;
-    },
-  }), async () => {
-    const result = await fetchTrackGeometry(0, 0, undefined, 'Endpoint Circuit');
-
-    assert.equal(result.layouts.length, 1);
-    assert.ok(result.layouts[0].stats.lengthMetres > 8000);
-  });
-});
-
-test('fetchTrackGeometry excludes pit lane ways from the main circuit', async () => {
+test('buildTrackGeometryFromPayload excludes pit lane ways from the main circuit', () => {
   const payload = {
     elements: [
       {
@@ -1006,18 +795,16 @@ test('fetchTrackGeometry excludes pit lane ways from the main circuit', async ()
     ],
   };
 
-  await withMockedFetch(payload, async () => {
-    const result = await fetchTrackGeometry(0, 0, undefined, 'Example Circuit');
+  const result = buildTrackGeometryFromPayload(payload, 'Example Circuit');
 
-    assert.equal(result.layouts.length, 1);
-    assert.equal(result.layouts[0].stats.segmentCount, 4);
-    result.layouts[0].nodes.forEach(node => {
-      assert.notDeepEqual(node, n(-0.005, 0.025));
-    });
+  assert.equal(result.layouts.length, 1);
+  assert.equal(result.layouts[0].stats.segmentCount, 4);
+  result.layouts[0].nodes.forEach(node => {
+    assert.notDeepEqual(node, n(-0.005, 0.025));
   });
 });
 
-test('fetchTrackGeometry keeps National Pit Straight in the main circuit', async () => {
+test('buildTrackGeometryFromPayload keeps National Pit Straight in the main circuit', () => {
   const payload = {
     elements: [
       {
@@ -1047,11 +834,9 @@ test('fetchTrackGeometry keeps National Pit Straight in the main circuit', async
     ],
   };
 
-  await withMockedFetch(payload, async () => {
-    const result = await fetchTrackGeometry(0, 0, undefined, 'Example Circuit');
+  const result = buildTrackGeometryFromPayload(payload, 'Example Circuit');
 
-    assert.equal(result.layouts.length, 1);
-    assert.equal(result.layouts[0].stats.segmentCount, 4);
-    assert.ok(result.layouts[0].nodes.some(node => node.lat === 0.02 && node.lon === 0.02));
-  });
+  assert.equal(result.layouts.length, 1);
+  assert.equal(result.layouts[0].stats.segmentCount, 4);
+  assert.ok(result.layouts[0].nodes.some(node => node.lat === 0.02 && node.lon === 0.02));
 });

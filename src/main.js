@@ -364,9 +364,7 @@ async function handleSelect(track) {
   setPreviewOverlayState('Loading preview', `Fetching track geometry for ${track.name}...`);
   updateGenerateButton();
   try {
-    const geometry = await fetchTrackGeometry(track.lat, track.lon, undefined, track.name, {
-      wikidataId: track.wikidataId,
-    });
+    const geometry = await fetchTrackGeometry(track.name, { wikidataId: track.wikidataId });
     currentLayouts = geometry.layouts ?? [];
     currentLayoutIndex = normalizeSelectedLayoutIndex(currentLayouts, geometry.selectedLayoutIndex ?? 0);
     currentOsmVenueNames = geometry.osmVenueNames ?? [];
@@ -387,7 +385,11 @@ async function handleSelect(track) {
     updateLayoutSelector();
     updatePreview(null);
     updateTrackSummary();
-    setPreviewOverlayState('Preview unavailable', 'Try another track or search again in a moment.');
+    const isUnavailable = err.message?.startsWith('No prebuilt geometry available');
+    const overlayBody = isUnavailable
+      ? 'Track geometry not available.'
+      : 'Try another track or search again in a moment.';
+    setPreviewOverlayState('Preview unavailable', overlayBody);
     setStatus(`Error loading geometry: ${err.message}`, true);
     console.error(err);
   }
