@@ -1,5 +1,7 @@
 import js from "@eslint/js";
 import globals from "globals";
+import tsParser from "@typescript-eslint/parser";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
 
 const sharedRules = {
   // Correctness
@@ -62,6 +64,44 @@ export default [
       "no-var": "error",
       "prefer-const": "error",
       "object-shorthand": "error",
+    },
+  },
+  {
+    files: ["src/**/*.ts"],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
+      globals: { ...globals.browser },
+    },
+    plugins: {
+      "@typescript-eslint": tsPlugin,
+    },
+    rules: {
+      ...tsPlugin.configs.recommended.rules,
+      // Disable base rule in favour of TypeScript-aware version
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", destructuredArrayIgnorePattern: "^_" }],
+      "eqeqeq": ["error", "always", { null: "ignore" }],
+      "no-throw-literal": "error",
+      "no-promise-executor-return": "error",
+      "prefer-promise-reject-errors": "error",
+      "no-unused-expressions": "error",
+      "no-var": "error",
+      "prefer-const": "error",
+      "prefer-template": "error",
+      "object-shorthand": "error",
+      "prefer-spread": "error",
+      "prefer-rest-params": "error",
+      "no-implicit-coercion": "error",
+      "curly": ["error", "all"],
+      "no-else-return": "error",
+      "no-lonely-if": "error",
+      "no-useless-return": "error",
+      "no-param-reassign": ["error", { props: false }],
+      "no-console": "off",
     },
   },
   {

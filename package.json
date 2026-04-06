@@ -9,6 +9,7 @@
     "build:geometry-index:ci": "node scripts/build-track-geometry-index.mjs --cache-dir .cache/track-geometry/osm-api",
     "validate:geometry-index": "node scripts/build-track-geometry-index.mjs --validate-only",
     "build:track-search-index": "node scripts/build-track-search-index.mjs",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint src/ scripts/",
     "test": "node --test",
     "build": "vite build",
@@ -16,8 +17,11 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.58.0",
+    "@typescript-eslint/parser": "^8.58.0",
     "eslint": "^10.2.0",
     "globals": "^17.4.0",
+    "typescript": "^6.0.2",
     "vite": "^8.0.1"
   },
   "dependencies": {
