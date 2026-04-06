@@ -2,14 +2,12 @@
   import { get } from 'svelte/store';
   import { serializeBinaryStl } from '../export/stl.js';
   import { package3mf } from '../export/threemf.js';
-  import { buildTrackModel } from '../model/index.js';
   import { canExport, isExportingStl, isExporting3mf } from '../stores/export.js';
-  import { currentModel, outline, basePlate, projectedNodes } from '../stores/model.js';
+  import { currentModel } from '../stores/model.js';
   import { selectedTrack, layouts, layoutIndex, osmVenueNames } from '../stores/track.js';
-  import { primaryOrientationDeg, textPositionRank, labelOverride } from '../stores/options.js';
+  import { labelOverride } from '../stores/options.js';
   import { statusMessage, statusIsError } from '../stores/ui.js';
   import { selectPrintedTrackName } from '../search/index.js';
-  import type { TrackModel } from '../types/model.js';
 
   function slugifyFileName(value: string): string {
     return value
@@ -55,28 +53,6 @@
     setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
-  function getOrBuildModel(): TrackModel {
-    const cached = get(currentModel);
-    if (cached) {
-      return cached;
-    }
-    const currentProjectedNodes = get(projectedNodes);
-    const currentOutline = get(outline);
-    const currentBasePlate = get(basePlate);
-    const currentOrientationDeg = get(primaryOrientationDeg);
-    const cachedOrientationDeg = currentProjectedNodes
-      ? currentOrientationDeg
-      : (cached as TrackModel | null)?.primaryOrientationDeg ?? currentOrientationDeg;
-    return buildTrackModel({
-      outlinePoints: currentProjectedNodes ? null : currentOutline,
-      basePlate: currentProjectedNodes ? null : currentBasePlate,
-      trackName: getEffectiveLabel(),
-      projectedNodes: currentProjectedNodes,
-      textPositionRank: get(textPositionRank),
-      primaryOrientationDeg: cachedOrientationDeg,
-    });
-  }
-
   async function handleStlClick(): Promise<void> {
     if (!$canExport || $isExportingStl) {
       return;
@@ -84,11 +60,12 @@
 
     isExportingStl.set(true);
     try {
-      statusMessage.set('Building STL mesh…');
-      statusIsError.set(false);
-      const model = getOrBuildModel();
-
       statusMessage.set('Serializing STL file…');
+      statusIsError.set(false);
+      const model = get(currentModel);
+      if (!model) {
+        throw new Error('No model available for export');
+      }
       const fileName = buildDownloadFileName('stl');
       const normalizedBase = String(fileName)
         .toLowerCase()
@@ -117,11 +94,12 @@
 
     isExporting3mf.set(true);
     try {
-      statusMessage.set('Building 3MF mesh…');
-      statusIsError.set(false);
-      const model = getOrBuildModel();
-
       statusMessage.set('Packaging 3MF file…');
+      statusIsError.set(false);
+      const model = get(currentModel);
+      if (!model) {
+        throw new Error('No model available for export');
+      }
       const fileName = buildDownloadFileName('3mf');
       const normalizedBase = String(fileName)
         .toLowerCase()

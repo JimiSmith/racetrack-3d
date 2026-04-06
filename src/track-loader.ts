@@ -8,7 +8,7 @@ import { fetchTrackGeometry, selectPrintedTrackName } from './search/index.js';
 import { getSelectedLayout, normalizeSelectedLayoutIndex } from './search/layout-picker.js';
 import { projectNodes } from './geometry/projection.js';
 import { fetchElevations } from './elevation/terrarium.js';
-import { buildTrackModel } from './model/index.js';
+import { createModelWorkerClient } from './workers/model-client.js';
 import { PRIMARY_ORIENTATION_AUTO } from './model/orientation.js';
 import { selectedTrack, layouts, layoutIndex, osmVenueNames } from './stores/track.js';
 import {
@@ -33,6 +33,27 @@ import { statusMessage, statusIsError, previewOverlayState } from './stores/ui.j
 import type { Layout } from './types/geometry.js';
 import type { SearchResult } from './types/search.js';
 
+// ── Worker client (singleton for the lifetime of the page) ───────────────────
+
+const modelWorkerClient = createModelWorkerClient();
+
+// ── Cache generation counter ─────────────────────────────────────────────────
+
+// Maps the placementCacheToken object reference to a numeric generation.
+// When a new token object is assigned (by invalidatePlacementCache), the
+// generation increments so the worker knows to discard its cached placements.
+let lastTokenRef: object | null = null;
+let cacheGeneration = 0;
+
+function getCacheGeneration(): number {
+  const token = get(placementCacheToken);
+  if (token !== null && token !== lastTokenRef) {
+    lastTokenRef = token;
+    cacheGeneration++;
+  }
+  return cacheGeneration;
+}
+
 export function invalidatePlacementCache(): void {
   placementCacheToken.set({});
 }
@@ -53,8 +74,9 @@ function getSelectedTrackNameState(layout: Layout | null | undefined): ReturnTyp
 /**
  * Rebuilds the 3D model from the current store state.
  * Accepts an optional elevation array to use instead of the stored one.
+ * Returns a Promise that resolves when the model has been built and stored.
  */
-export function rebuildModel(elevationData: number[] | null = get(elevations)): void {
+export async function rebuildModel(elevationData: number[] | null = get(elevations)): Promise<void> {
   const currentLayouts = get(layouts);
   const currentLayoutIndex = get(layoutIndex);
   const layout = getSelectedLayout(currentLayouts, currentLayoutIndex);
@@ -92,17 +114,15 @@ export function rebuildModel(elevationData: number[] | null = get(elevations)): 
   const trackLabel = get(effectiveLabel);
   const currentOrientationDeg = get(primaryOrientationDeg);
   const currentTextPositionRank = get(textPositionRank);
-  const currentCacheToken = get(placementCacheToken);
+  const generation = getCacheGeneration();
 
-  const model = buildTrackModel({
-    outlinePoints: null,
-    basePlate: null,
-    trackName: trackLabel,
+  const model = await modelWorkerClient.requestModelBuild({
     projectedNodes: projected,
     secondaryProjectedNodes,
+    trackName: trackLabel,
     primaryOrientationDeg: currentOrientationDeg,
     textPositionRank: currentTextPositionRank,
-    placementCacheToken: currentCacheToken,
+    cacheGeneration: generation,
   });
 
   nodes.set(layout.nodes);
@@ -158,7 +178,7 @@ export async function loadElevations(primaryNodes: import('./types/geometry.js')
     });
 
     secondaryElevations.set(newSecondaryElevations);
-    rebuildModel(primaryElevations);
+    await rebuildModel(primaryElevations);
   } catch (err) {
     console.warn('Elevation loading failed, keeping flat model:', err);
   }
@@ -206,7 +226,7 @@ export async function selectTrack(track: SearchResult): Promise<void> {
     layoutIndex.set(newLayoutIndex);
     osmVenueNames.set(newOsmVenueNames);
     invalidatePlacementCache();
-    rebuildModel();
+    await rebuildModel();
 
     const primaryNodes = getSelectedLayout(newLayouts, newLayoutIndex)?.nodes ?? [];
     await loadElevations(primaryNodes);
