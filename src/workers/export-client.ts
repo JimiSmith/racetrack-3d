@@ -22,6 +22,12 @@ interface ExportResponse {
   triangleCount: number;
 }
 
+interface ExportErrorResponse {
+  type: 'export-error';
+  id: number;
+  message: string;
+}
+
 let worker: Worker | null = null;
 let nextId = 0;
 const pending = new Map<number, { resolve: (result: ExportResult) => void; reject: (err: Error) => void }>();
@@ -30,8 +36,17 @@ function getWorker(): Worker {
   if (!worker) {
     worker = new Worker(new URL('./export.worker.ts', import.meta.url), { type: 'module' });
 
-    worker.addEventListener('message', (event: MessageEvent<ExportResponse>) => {
-      const { id, buffer, fileName, triangleCount } = event.data;
+    worker.addEventListener('message', (event: MessageEvent<ExportResponse | ExportErrorResponse>) => {
+      const data = event.data;
+      if (data.type === 'export-error') {
+        const entry = pending.get(data.id);
+        if (entry) {
+          pending.delete(data.id);
+          entry.reject(new Error(data.message));
+        }
+        return;
+      }
+      const { id, buffer, fileName, triangleCount } = data;
       const entry = pending.get(id);
       if (entry) {
         pending.delete(id);

@@ -25,6 +25,12 @@ interface ExportResponse {
   triangleCount: number;
 }
 
+interface ExportErrorResponse {
+  type: 'export-error';
+  id: number;
+  message: string;
+}
+
 // postMessage with a transfer list — use the structured-clone + transfer overload
 // available on both Window and DedicatedWorkerGlobalScope.
 type PostMessageFn = (message: unknown, transfer: ArrayBuffer[]) => void;
@@ -32,33 +38,42 @@ const postTransfer = (self.postMessage as PostMessageFn).bind(self);
 
 self.addEventListener('message', (event: MessageEvent<ExportRequest>) => {
   const { type, id, model, fileName } = event.data;
-
-  if (type === 'export-stl') {
-    const buffer = serializeBinaryStl(model.triangles, fileName);
-    const response: ExportResponse = {
-      type: 'export-ready',
+  try {
+    if (type === 'export-stl') {
+      const buffer = serializeBinaryStl(model.triangles, fileName);
+      const response: ExportResponse = {
+        type: 'export-ready',
+        id,
+        format: 'stl',
+        buffer,
+        fileName,
+        triangleCount: model.triangles.length,
+      };
+      postTransfer(response, [response.buffer]);
+    } else if (type === 'export-3mf') {
+      const uint8 = package3mf(model);
+      // Ensure we have the underlying ArrayBuffer (not a view slice)
+      const buffer =
+        uint8.byteOffset === 0 && uint8.byteLength === uint8.buffer.byteLength
+          ? uint8.buffer
+          : uint8.buffer.slice(uint8.byteOffset, uint8.byteOffset + uint8.byteLength);
+      const response: ExportResponse = {
+        type: 'export-ready',
+        id,
+        format: '3mf',
+        buffer,
+        fileName,
+        triangleCount: model.triangles.length,
+      };
+      postTransfer(response, [response.buffer]);
+    }
+  } catch (err) {
+    const error = err as Error;
+    const errorResponse: ExportErrorResponse = {
+      type: 'export-error',
       id,
-      format: 'stl',
-      buffer,
-      fileName,
-      triangleCount: model.triangles.length,
+      message: error.message ?? String(err),
     };
-    postTransfer(response, [response.buffer]);
-  } else if (type === 'export-3mf') {
-    const uint8 = package3mf(model);
-    // Ensure we have the underlying ArrayBuffer (not a view slice)
-    const buffer =
-      uint8.byteOffset === 0 && uint8.byteLength === uint8.buffer.byteLength
-        ? uint8.buffer
-        : uint8.buffer.slice(uint8.byteOffset, uint8.byteOffset + uint8.byteLength);
-    const response: ExportResponse = {
-      type: 'export-ready',
-      id,
-      format: '3mf',
-      buffer,
-      fileName,
-      triangleCount: model.triangles.length,
-    };
-    postTransfer(response, [response.buffer]);
+    self.postMessage(errorResponse);
   }
 });
