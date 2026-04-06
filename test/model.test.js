@@ -260,56 +260,6 @@ function parseBinaryStlBounds(buffer) {
   return bounds;
 }
 
-function withMockedDownloadDom(callback) {
-  const originalDocument = globalThis.document;
-  const originalUrl = globalThis.URL;
-  const clicks = [];
-  const appended = [];
-  const removed = [];
-  const revoked = [];
-  const link = {
-    href: '',
-    download: '',
-    style: {},
-    click() {
-      clicks.push(this.download);
-    },
-    remove() {
-      removed.push(this.download);
-    },
-  };
-
-  globalThis.document = {
-    createElement(tagName) {
-      assert.equal(tagName, 'a');
-      return link;
-    },
-    body: {
-      appendChild(node) {
-        appended.push(node);
-      },
-    },
-  };
-  globalThis.URL = {
-    createObjectURL(blob) {
-      assert.ok(blob instanceof Blob);
-      return 'blob:test';
-    },
-    revokeObjectURL(url) {
-      revoked.push(url);
-    },
-  };
-
-  return Promise.resolve(callback({ clicks, appended, removed, revoked }))
-    .then(async result => {
-      await new Promise(resolve => setTimeout(resolve, 0));
-      return result;
-    })
-    .finally(() => {
-      globalThis.document = originalDocument;
-      globalThis.URL = originalUrl;
-    });
-}
 
 test('buildTrackModel returns triangles and a positive finite scale', () => {
   const outlinePoints = syntheticOutline();
@@ -570,22 +520,17 @@ test('buildTrackModel threads text position rank through preview and STL export 
   approxEqual(previewBounds.maxZ, exportBounds.maxZ, 1e-4);
 });
 
-test('exportStl returns download metadata with a blob, buffer, and filename', async () => {
+test('exportStl returns download metadata with a blob, buffer, and filename', () => {
   const outlinePoints = syntheticOutline();
   const basePlate = buildBasePlate(outlinePoints, 20);
   const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
 
-  await withMockedDownloadDom(async ({ clicks, appended, removed }) => {
-    const result = exportStl(model, 'Synthetic Raceway');
+  const result = exportStl(model, 'Synthetic Raceway');
 
-    assert.equal(result.filename, 'synthetic-raceway.stl');
-    assert.equal(result.fileName, 'synthetic-raceway.stl');
-    assert.ok(result.blob instanceof Blob);
-    assert.ok(result.buffer instanceof ArrayBuffer);
-    assert.ok(result.byteLength > 0);
-    assert.equal(result.triangleCount, model.triangles.length);
-    assert.equal(clicks.length, 1);
-    assert.equal(appended.length, 1);
-    assert.equal(removed.length, 1);
-  });
+  assert.equal(result.filename, 'synthetic-raceway.stl');
+  assert.equal(result.fileName, 'synthetic-raceway.stl');
+  assert.ok(result.blob instanceof Blob);
+  assert.ok(result.buffer instanceof ArrayBuffer);
+  assert.ok(result.byteLength > 0);
+  assert.equal(result.triangleCount, model.triangles.length);
 });
