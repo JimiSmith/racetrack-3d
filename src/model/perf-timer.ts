@@ -20,10 +20,10 @@ export class PerfTimer {
     const entries: PerfEntry[] = [];
     let prev = this.start;
     for (const mark of this.marks) {
-      entries.push({ step: mark.name, ms: +(mark.time - prev).toFixed(1) });
+      entries.push({ step: mark.name, ms: Number((mark.time - prev).toFixed(1)) });
       prev = mark.time;
     }
-    entries.push({ step: 'total', ms: +(end - this.start).toFixed(1) });
+    entries.push({ step: 'total', ms: Number((end - this.start).toFixed(1)) });
     return entries;
   }
 }

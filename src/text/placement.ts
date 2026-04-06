@@ -1,4 +1,5 @@
 import type { Font } from 'opentype.js';
+import type { PerfTimer } from '../model/perf-timer.js';
 import type { Point2D } from '../types/geometry.js';
 import type { OutlinePoints, BasePlate } from '../types/model.js';
 import type {
@@ -14,7 +15,6 @@ import { findOptimalLineBreaks, measureWordWidths, MAX_TEXT_LINES } from './line
 import { loadFont } from './font-loader.js';
 import { scoreTextFit, computeSizeWindowMultiplier, computeLineCountMultiplier, computeTextClearanceMultiplier } from './scoring.js';
 import type { ClearanceContext } from './scoring.js';
-import type { PerfTimer } from '../model/perf-timer.js';
 
 export const MIN_CELL_MM = 3;
 export const MIN_GRID_CELLS_PER_SIDE = 8;

@@ -1,4 +1,3 @@
-import type { PerfTimer } from './perf-timer.js';
 import { buildTrackOutline as _buildTrackOutline } from '../geometry/outline.js';
 import {
   buildTextMeshFromRankedPlacements,
@@ -10,6 +9,7 @@ import {
 import type { TrackModel, OutlinePoints, BasePlate } from '../types/model.js';
 import type { ProjectedNode } from '../types/geometry.js';
 import type { RankedPlacements } from '../types/text.js';
+import type { PerfTimer } from './perf-timer.js';
 import { BASE_THICKNESS_MM, computeScale } from './base-plate.js';
 import { buildBasePlateMesh } from './base-plate.js';
 import { buildTrackPrismMesh, __setTrackPrismPerfCounters } from './track-prism.js';
