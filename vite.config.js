@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -48,5 +49,5 @@ function trackGeometryAssetsPlugin() {
 
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/racetrack-3d/' : '/',
-  plugins: [trackGeometryAssetsPlugin()],
+  plugins: [svelte(), trackGeometryAssetsPlugin()],
 }));
