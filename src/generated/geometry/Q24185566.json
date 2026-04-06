@@ -1,0 +1,9 @@
+{
+  "trackId": "Q24185566",
+  "name": "Borderline Speedway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Borderline Speedway / Main: length 399.00597609007053m is outside sane circuit bounds"
+  }
+}

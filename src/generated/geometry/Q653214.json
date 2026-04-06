@@ -1,0 +1,9 @@
+{
+  "trackId": "Q653214",
+  "name": "Aix-les-Bains Circuit du Lac",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "OSM API build path failed for Aix-les-Bains Circuit du Lac (Adaptive OSM API map request failed (margin 0.0025: did not yield geometry; margin 0.005: did not yield geometry; margin 0.01: did not yield geometry; margin 0.02: OSM API map request failed (400): You requested too many nodes (limit is 50000). Either request a smaller area, or use planet.osm))"
+  }
+}

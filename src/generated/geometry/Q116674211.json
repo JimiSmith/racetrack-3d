@@ -1,0 +1,9 @@
+{
+  "trackId": "Q116674211",
+  "name": "Olympic Park Speedway (Mildura)",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Olympic Park Speedway (Mildura) / Main: length 374.25938972914196m is outside sane circuit bounds"
+  }
+}

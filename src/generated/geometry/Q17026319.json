@@ -1,0 +1,9 @@
+{
+  "trackId": "Q17026319",
+  "name": "Sunny South Raceway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Sunny South Raceway / Main: length 381.71922516696566m is outside sane circuit bounds"
+  }
+}

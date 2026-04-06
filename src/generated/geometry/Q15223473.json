@@ -1,0 +1,9 @@
+{
+  "trackId": "Q15223473",
+  "name": "Hednesford Hills Raceway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Hednesford Hills Raceway / Main: length 392.2635177276118m is outside sane circuit bounds"
+  }
+}

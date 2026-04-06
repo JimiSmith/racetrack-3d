@@ -1,0 +1,9 @@
+{
+  "trackId": "Q25000544",
+  "name": "Ocean Speedway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Ocean Speedway / Main: length 403.20821264713703m is outside sane circuit bounds"
+  }
+}

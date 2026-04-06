@@ -1,0 +1,9 @@
+{
+  "trackId": "Q7962633",
+  "name": "Wall Township Speedway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Wall Township Speedway / Main: length 452.1325501746994m is outside sane circuit bounds"
+  }
+}

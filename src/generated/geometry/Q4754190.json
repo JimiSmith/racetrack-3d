@@ -1,0 +1,9 @@
+{
+  "trackId": "Q4754190",
+  "name": "Anderson Speedway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Anderson Speedway / Main: length 429.3381455221551m is outside sane circuit bounds"
+  }
+}

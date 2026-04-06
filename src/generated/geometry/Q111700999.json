@@ -1,0 +1,9 @@
+{
+  "trackId": "Q111700999",
+  "name": "Rosebank Speedway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Rosebank Speedway / Main: length 165.00511287781805m is outside sane circuit bounds"
+  }
+}

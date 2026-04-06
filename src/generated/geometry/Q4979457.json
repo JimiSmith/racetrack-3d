@@ -1,0 +1,9 @@
+{
+  "trackId": "Q4979457",
+  "name": "Brunots Island Race Track",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "OSM API build path failed for Brunots Island Race Track (Adaptive OSM API map request failed (margin 0.001875: did not yield geometry; margin 0.00375: did not yield geometry; margin 0.0075: did not yield geometry; margin 0.015: did not yield geometry; margin 0.025: OSM API map request failed (400): You requested too many nodes (limit is 50000). Either request a smaller area, or use planet.osm))"
+  }
+}

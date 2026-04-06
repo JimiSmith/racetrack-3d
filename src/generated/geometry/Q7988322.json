@@ -1,0 +1,9 @@
+{
+  "trackId": "Q7988322",
+  "name": "Western Springs Stadium",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Western Springs Stadium / Main: length 499.23399116209407m is outside sane circuit bounds"
+  }
+}

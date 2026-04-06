@@ -1,0 +1,9 @@
+{
+  "trackId": "Q7337239",
+  "name": "River Cities Speedway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "River Cities Speedway / River Cities Speedway: length 462.299424958568m is outside sane circuit bounds"
+  }
+}

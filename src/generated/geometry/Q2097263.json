@@ -1,0 +1,9 @@
+{
+  "trackId": "Q2097263",
+  "name": "Tsukuba Circuit",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Tsukuba Circuit / Main: length 431.4983138668622m is outside sane circuit bounds"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "trackId": "Q130222597",
+  "name": "Circuíto Choqueiro",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Circuíto Choqueiro / Main: length 155.42644731366698m is outside sane circuit bounds"
+  }
+}

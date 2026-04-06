@@ -1,0 +1,9 @@
+{
+  "trackId": "Q9254652",
+  "name": "White Mountain Motorsports Park",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "White Mountain Motorsports Park / Main: length 447.8594691012541m is outside sane circuit bounds"
+  }
+}

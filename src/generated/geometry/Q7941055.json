@@ -1,0 +1,9 @@
+{
+  "trackId": "Q7941055",
+  "name": "Volunteer Speedway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Volunteer Speedway / Main: length 469.914625848468m is outside sane circuit bounds"
+  }
+}

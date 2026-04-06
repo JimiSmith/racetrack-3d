@@ -1,0 +1,9 @@
+{
+  "trackId": "Q24901502",
+  "name": "Swaffham Raceway Stadium",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Swaffham Raceway Stadium / Main: length 346.02547959566647m is outside sane circuit bounds"
+  }
+}

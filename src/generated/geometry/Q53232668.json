@@ -1,0 +1,9 @@
+{
+  "trackId": "Q53232668",
+  "name": "Orlando Speed World Dragway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Orlando Speed World Dragway / Layout 1: expected non-negative variantSectionCount"
+  }
+}

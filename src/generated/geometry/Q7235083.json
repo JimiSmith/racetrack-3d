@@ -1,0 +1,9 @@
+{
+  "trackId": "Q7235083",
+  "name": "Potomac Speedway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Potomac Speedway / Layout 1: expected non-negative variantSectionCount"
+  }
+}

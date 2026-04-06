@@ -1,0 +1,9 @@
+{
+  "trackId": "Q59772440",
+  "name": "Riyadh Street Circuit",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Riyadh Street Circuit / Main: length 288.11989317280654m is outside sane circuit bounds"
+  }
+}

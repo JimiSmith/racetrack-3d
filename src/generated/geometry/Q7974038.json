@@ -1,0 +1,9 @@
+{
+  "trackId": "Q7974038",
+  "name": "Waterford Raceway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Waterford Raceway / Main: length 483.0039658682405m is outside sane circuit bounds"
+  }
+}

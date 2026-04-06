@@ -1,0 +1,9 @@
+{
+  "trackId": "Q113378664",
+  "name": "Seoul Street Circuit",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Seoul Street Circuit / Main: length 301.8681246138678m is outside sane circuit bounds"
+  }
+}

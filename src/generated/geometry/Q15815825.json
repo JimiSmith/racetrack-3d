@@ -1,0 +1,9 @@
+{
+  "trackId": "Q15815825",
+  "name": "Holsteinring",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Holsteinring / Main: length 433.97924888648305m is outside sane circuit bounds"
+  }
+}

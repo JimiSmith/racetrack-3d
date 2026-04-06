@@ -1,0 +1,9 @@
+{
+  "trackId": "Q5683161",
+  "name": "Havasu 95 Speedway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Havasu 95 Speedway / Main: length 451.9589940401902m is outside sane circuit bounds"
+  }
+}

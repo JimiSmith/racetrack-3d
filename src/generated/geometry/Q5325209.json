@@ -1,0 +1,9 @@
+{
+  "trackId": "Q5325209",
+  "name": "Eagle Raceway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Eagle Raceway / Main: length 487.0964257447672m is outside sane circuit bounds"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "trackId": "Q125878043",
+  "name": "Thunder Mountain Speedway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Thunder Mountain Speedway / Main: length 407.2971342296824m is outside sane circuit bounds"
+  }
+}

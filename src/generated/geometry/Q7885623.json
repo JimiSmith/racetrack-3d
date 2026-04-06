@@ -1,0 +1,9 @@
+{
+  "trackId": "Q7885623",
+  "name": "Union County Speedway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Union County Speedway / Main: length 437.44078907237173m is outside sane circuit bounds"
+  }
+}

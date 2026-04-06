@@ -1,0 +1,9 @@
+{
+  "trackId": "Q5583001",
+  "name": "Good Time Park",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Good Time Park / Main: length 341.8902506090285m is outside sane circuit bounds"
+  }
+}

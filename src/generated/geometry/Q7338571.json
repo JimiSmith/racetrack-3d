@@ -1,0 +1,9 @@
+{
+  "trackId": "Q7338571",
+  "name": "Riverside Park Speedway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Riverside Park Speedway / Layout 1: length 21.196108461020685m is outside sane circuit bounds"
+  }
+}

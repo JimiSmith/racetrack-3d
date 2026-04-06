@@ -1,0 +1,9 @@
+{
+  "trackId": "Q737299",
+  "name": "Alemannenring",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Alemannenring / Main: length 104.86405580909822m is outside sane circuit bounds"
+  }
+}

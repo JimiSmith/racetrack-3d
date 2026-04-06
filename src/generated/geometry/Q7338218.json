@@ -1,0 +1,9 @@
+{
+  "trackId": "Q7338218",
+  "name": "Riverhead Raceway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Riverhead Raceway / Main: length 464.0262316373929m is outside sane circuit bounds"
+  }
+}

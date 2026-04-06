@@ -1,0 +1,9 @@
+{
+  "trackId": "Q118947205",
+  "name": "Indianapolis Speedrome",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Indianapolis Speedrome / Main: length 481.3791271404068m is outside sane circuit bounds"
+  }
+}

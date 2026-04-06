@@ -1,0 +1,9 @@
+{
+  "trackId": "Q24189422",
+  "name": "Lismore Speedway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Lismore Speedway / Main: length 414.23126908601887m is outside sane circuit bounds"
+  }
+}

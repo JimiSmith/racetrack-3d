@@ -1,0 +1,9 @@
+{
+  "trackId": "Q16966785",
+  "name": "Edmonton International Raceway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Edmonton International Raceway / Main: length 410.4595434124271m is outside sane circuit bounds"
+  }
+}

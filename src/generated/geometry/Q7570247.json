@@ -1,0 +1,9 @@
+{
+  "trackId": "Q7570247",
+  "name": "Southern Oregon Speedway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Southern Oregon Speedway / Main: length 389.96617561414394m is outside sane circuit bounds"
+  }
+}

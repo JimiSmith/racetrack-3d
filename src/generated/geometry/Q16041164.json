@@ -1,0 +1,9 @@
+{
+  "trackId": "Q16041164",
+  "name": "Sunset Speedway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "Sunset Speedway / Main: length 373.94835971181084m is outside sane circuit bounds"
+  }
+}

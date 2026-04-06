@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build:geometry-index": "node scripts/build-track-geometry-index.mjs",
-    "build:geometry-index:ci": "node scripts/build-track-geometry-index.mjs --cache-dir .cache/track-geometry/osm-api",
-    "validate:geometry-index": "node scripts/build-track-geometry-index.mjs --validate-only",
+    "build:geometry-index": "node --import ./scripts/ts-resolver-register.mjs scripts/build-track-geometry-index.mjs",
+    "build:geometry-index:ci": "node --import ./scripts/ts-resolver-register.mjs scripts/build-track-geometry-index.mjs --cache-dir .cache/track-geometry/osm-api",
+    "validate:geometry-index": "node --import ./scripts/ts-resolver-register.mjs scripts/build-track-geometry-index.mjs --validate-only",
     "build:track-search-index": "node scripts/build-track-search-index.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/ scripts/",

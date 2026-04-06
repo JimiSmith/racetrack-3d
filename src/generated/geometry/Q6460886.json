@@ -1,0 +1,9 @@
+{
+  "trackId": "Q6460886",
+  "name": "LaSalle Speedway",
+  "source": {
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "failureMessage": "LaSalle Speedway / Main: length 495.20171067319757m is outside sane circuit bounds"
+  }
+}
