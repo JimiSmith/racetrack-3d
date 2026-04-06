@@ -230,13 +230,11 @@ test('parseOsmApiMapXml selects all circuit route relations regardless of wikida
   </relation>
 </osm>`;
 
-  for (const wikidataArg of ['Q999', 'Q000', undefined]) {
-    const payload = parseOsmApiMapXml(xml, wikidataArg);
-    const relations = payload.elements.filter(e => e.type === 'relation');
-    assert.equal(relations.length, 2, `expected 2 relations with wikidataId=${wikidataArg}`);
-    assert.ok(relations.some(r => r.id === 20));
-    assert.ok(relations.some(r => r.id === 21));
-  }
+  const payload = parseOsmApiMapXml(xml);
+  const relations = payload.elements.filter(e => e.type === 'relation');
+  assert.equal(relations.length, 2);
+  assert.ok(relations.some(r => r.id === 20));
+  assert.ok(relations.some(r => r.id === 21));
 });
 
 test('parseOsmApiMapXml excludes facility multipolygons even when they carry a wikidata tag', () => {

@@ -526,7 +526,7 @@ async function writeCachedOsmPayload(track, margin, response, options) {
 
 async function fetchOsmApiPayloadWithCache(track, margin, options) {
   const cachedResponse = await readCachedOsmPayload(track, margin, options);
-  const response = cachedResponse ?? await fetchOsmApiMapPayload(track.lat, track.lon, { margin, wikidataId: track.wikidataId });
+  const response = cachedResponse ?? await fetchOsmApiMapPayload(track.lat, track.lon, { margin });
   if (!cachedResponse) {
     await writeCachedOsmPayload(track, margin, response, options);
   }
