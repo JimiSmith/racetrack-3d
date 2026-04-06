@@ -863,6 +863,53 @@ test('fetchTrackGeometry throws a useful error when no raceways are found in the
   });
 });
 
+test('fetchTrackGeometry uses wikidata+circuit-route Overpass query when wikidataId is provided', async () => {
+  const requestBodies = [];
+  const circuitPayload = {
+    elements: [
+      {
+        type: 'relation',
+        id: 100,
+        tags: { wikidata: 'Q171288', type: 'circuit', name: 'Albert Park Circuit' },
+        members: [
+          { type: 'way', ref: 10, role: '', geometry: [n(0, 0), n(0, 0.045), n(0.045, 0.045), n(0.045, 0), n(0, 0)] },
+        ],
+      },
+    ],
+  };
+
+  await withFetchMock(async (_url, init) => {
+    const body = new URLSearchParams(init?.body ?? '').get('data') ?? '';
+    requestBodies.push(body);
+    return {
+      ok: true,
+      headers: new Headers({ 'content-type': 'application/json' }),
+      async json() { return circuitPayload; },
+    };
+  }, async () => {
+    const result = await fetchTrackGeometry(-37.85, 144.97, undefined, 'Albert Park Circuit', {
+      wikidataId: 'Q171288',
+      skipLocal: true,
+    });
+
+    // All three Overpass endpoints get the same query body
+    assert.ok(requestBodies.length > 0, 'at least one Overpass request should be made');
+    for (const body of requestBodies) {
+      assert.match(body, /\["wikidata"="Q171288"\]/, 'query should filter by wikidata tag');
+      assert.match(body, /\["type"="circuit"\]|\["highway"="raceway"\]|\["route"="raceway"\]/, 'query should also filter by circuit-route tag');
+      assert.doesNotMatch(body, /highway"="raceway"\]\(/, 'bare raceway way query should not be present when wikidataId is set');
+    }
+    assert.ok(result.layouts.length > 0, 'should return geometry');
+  });
+});
+
+test('fetchTrackGeometry throws invalid-ID error when wikidataId has bad format', async () => {
+  await assert.rejects(
+    fetchTrackGeometry(0, 0, undefined, 'Test', { wikidataId: 'not-a-wikidata-id', skipLocal: true }),
+    /Invalid wikidata ID format/,
+  );
+});
+
 test('fetchTrackGeometry throws when coordinates are not finite', async () => {
   await assert.rejects(
     fetchTrackGeometry(Number.NaN, Infinity, undefined, 'Broken Circuit'),

@@ -1857,6 +1857,10 @@ function buildTrackGeometryResult(elements, trackName) {
   // Named layout detection failed. When multiple circuit relations exist at the same venue
   // (e.g. Mexican Grand Prix + Mexico City E-Prix), merging all their ways produces an
   // incorrect superset geometry. Try each relation independently and return the best result.
+  //
+  // Invariant: callers are expected to pre-filter `allElements` to circuit route relations
+  // only (via parseOsmApiMapXml or the wikidata-scoped Overpass query), so the filter
+  // below operates on an already-screened set and will not select facility multipolygons.
   const circuitRelations = allElements.filter(e => {
     if (e.type !== 'relation') {return false;}
     const hw = String(e.tags?.highway ?? '').trim().toLowerCase();
@@ -1963,8 +1967,18 @@ export async function fetchTrackGeometry(lat, lon, signal, trackName, options = 
   // ~9km margin — covers any F1 circuit layout but avoids pulling in distant tracks
   const MARGIN = 0.08;
   const bbox = `${lat - MARGIN},${lon - MARGIN},${lat + MARGIN},${lon + MARGIN}`;
-  const query = options.wikidataId
-    ? `[out:json][timeout:30];(relation["wikidata"="${options.wikidataId}"](${bbox}););out geom;`
+
+  // When a wikidataId is available, build a union of wikidata + circuit-route tag filters.
+  // This prevents matching facility multipolygons that carry the wikidata tag but are not
+  // circuit route relations (e.g. Hungaroring's leisure=sports_centre multipolygon).
+  // The kart exclusion mirrors isCircuitRoute in the build pipeline.
+  // No fallback: if the circuit lacks wikidata tags in OSM it simply won't be found here.
+  const wikidataId = options.wikidataId;
+  if (wikidataId && !/^Q\d+$/i.test(wikidataId)) {
+    throw new Error(`Invalid wikidata ID format: ${wikidataId}`);
+  }
+  const query = wikidataId
+    ? `[out:json][timeout:30];(relation["wikidata"="${wikidataId}"]["type"="circuit"]["circuit"!="kart"](${bbox});relation["wikidata"="${wikidataId}"]["highway"="raceway"]["circuit"!="kart"](${bbox});relation["wikidata"="${wikidataId}"]["route"="raceway"]["circuit"!="kart"](${bbox}););out geom;`
     : `[out:json][timeout:30];(way["highway"="raceway"](${bbox});relation["highway"="raceway"](${bbox});relation["type"="circuit"](${bbox}););out geom;`;
 
   const queryResults = await runOverpassQueries(query, signal);
