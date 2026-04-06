@@ -759,7 +759,7 @@ test('multi-layout fixtures keep their expected layout counts', () => {
   }
 });
 
-test('fetchTrackGeometry excludes pit lane ways from the main circuit', async () => {
+test('buildTrackGeometryFromPayload excludes pit lane ways from the main circuit', () => {
   const payload = {
     elements: [
       {
@@ -804,7 +804,7 @@ test('fetchTrackGeometry excludes pit lane ways from the main circuit', async ()
   });
 });
 
-test('fetchTrackGeometry keeps National Pit Straight in the main circuit', async () => {
+test('buildTrackGeometryFromPayload keeps National Pit Straight in the main circuit', () => {
   const payload = {
     elements: [
       {

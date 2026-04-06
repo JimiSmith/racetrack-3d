@@ -13,10 +13,9 @@ import {
   sliceWayNodes,
 } from '../scripts/build-track-geometry-index.mjs';
 
-test('geometry index build defaults to OSM API source', () => {
+test('geometry index build defaults parse correctly', () => {
   const options = parseArgs([]);
 
-  assert.equal(options.source, 'osm-api');
   assert.equal(options.validateOnly, false);
   assert.equal(options.track, null);
 });

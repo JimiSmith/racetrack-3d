@@ -28,7 +28,6 @@ const GEOMETRY_STALE_AFTER_MS = 14 * 24 * 60 * 60 * 1000;
 const GEOMETRY_STALE_JITTER_MS = 3 * 24 * 60 * 60 * 1000;
 const GEOMETRY_FAILURE_STALE_AFTER_MS = 3 * 24 * 60 * 60 * 1000;
 const GEOMETRY_FAILURE_STALE_JITTER_MS = 1 * 24 * 60 * 60 * 1000;
-const BUILD_SOURCES = new Set(['osm-api']);
 
 const TRACK_BUILD_OVERRIDES = new Map([
   ['Q174090', {
@@ -356,7 +355,6 @@ export function parseArgs(argv) {
   const options = {
     track: null,
     limit: Number.POSITIVE_INFINITY,
-    source: 'osm-api',
     validateOnly: false,
     strict: false,
     force: false,
@@ -430,10 +428,6 @@ Options:
 
   if (options.force && !options.track) {
     throw new Error('--force requires exactly one track to be specified (e.g. --track Q171332)');
-  }
-
-  if (!BUILD_SOURCES.has(options.source)) {
-    throw new Error(`Unsupported build source "${options.source}"; expected: ${[...BUILD_SOURCES].join(', ')}`);
   }
 
   if (!Number.isInteger(options.limit) && options.limit !== Number.POSITIVE_INFINITY) {
@@ -1022,7 +1016,7 @@ export async function main(argv = process.argv.slice(2)) {
 
     try {
       let geometryResult;
-      let sourceUsed = options.source;
+      let sourceUsed = 'osm-api';
       let sourceDetails = '';
 
       if (Array.isArray(track.manualLayoutWays) && track.manualLayoutWays.length > 0) {
