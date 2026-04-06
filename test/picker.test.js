@@ -2,12 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 
-import { buildTrackGeometryFromPayload } from '../src/search.js';
+import { buildTrackGeometryFromPayload } from '../src/geometry/track-geometry.js';
 import {
   buildLayoutPickerState,
   getSelectedLayout,
   normalizeSelectedLayoutIndex,
-} from '../src/layout-picker.js';
+} from '../src/search/layout-picker.js';
 import { expectDistinctLayouts } from '../test-utils/layout-assertions.js';
 
 function loadFixture(name) {

@@ -3,10 +3,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import trackSearchIndex from '../src/generated/track-search-index.json' with { type: 'json' };
-import {
-  buildTrackGeometryFromPayload,
-  normalizeTrackGeometryResult,
-} from '../src/search.js';
+import { buildTrackGeometryFromPayload } from '../src/geometry/track-geometry.js';
+import { normalizeTrackGeometryResult } from '../src/geometry/normalize.js';
 import {
   fetchAdaptiveOsmApiMapPayload,
   fetchOsmApiMapPayload,

@@ -3,22 +3,21 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 
 import {
-  buildTrackGeometryFromPayload,
   buildTrackSearchEntry,
-  buildCycleFromEdges,
-  buildLayoutsFromWays,
-  buildVariantLayouts,
-  buildWayGraph,
-  detectForkSections,
   fetchTrackGeometry,
-  normalizeTrackGeometryResult,
   normalizeSearchText,
   searchLocalTrackIndex,
   searchTracks,
-  stitchWaysOrdered,
   tokenizeNormalizedText,
-} from '../src/search.js';
-import { getTrackGeometry } from '../src/geometry-index.js';
+} from '../src/search/index.js';
+import { getTrackGeometry } from '../src/search/geometry-index.js';
+import { buildWayGraph, buildCycleFromEdges } from '../src/geometry/way-graph.js';
+import { stitchWaysOrdered } from '../src/geometry/way-stitching.js';
+import { detectForkSections } from '../src/geometry/fork-detection.js';
+import { buildVariantLayouts, buildLayoutsFromWays } from '../src/geometry/layout-builder.js';
+import { normalizeTrackGeometryResult } from '../src/geometry/normalize.js';
+import { buildTrackGeometryFromPayload } from '../src/geometry/track-geometry.js';
+
 import {
   expectApproxLength,
   expectClosedish,

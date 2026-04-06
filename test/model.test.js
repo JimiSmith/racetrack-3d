@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildBasePlate } from '../src/geometry.js';
-import { BASE_THICKNESS_MM, buildTrackModel, computeScale, exportStl } from '../src/model.js';
+import { buildBasePlate } from '../src/geometry/outline.js';
+import { BASE_THICKNESS_MM, buildTrackModel, computeScale, exportStl } from '../src/model/index.js';
 
 function syntheticOutline() {
   return {

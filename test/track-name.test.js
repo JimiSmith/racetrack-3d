@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { selectPrintedTrackName } from '../src/track-name.js';
+import { selectPrintedTrackName } from '../src/search/track-name.js';
 
 test('prefers label over short name when label is canonical', () => {
   const result = selectPrintedTrackName({

@@ -5,8 +5,7 @@
 
 import { strToU8, zipSync } from 'fflate';
 
-// @ts-expect-error triangle-groups.js is a plain JS module without type declarations
-import { splitModelTriangles as _splitModelTriangles } from '../triangle-groups.js';
+import { splitModelTriangles as _splitModelTriangles } from '../model/triangle-groups.js';
 import type { TrackModel, Triangle, Vertex } from '../types/model.js';
 
 type SplitResult = {
@@ -90,7 +89,7 @@ ${triangleXml}
 </model>`;
 }
 
-export function package3mf(model: TrackModel): Uint8Array {
+export function package3mf(model: TrackModel): Uint8Array<ArrayBuffer> {
   const modelXml = build3mfModelXml(model);
   return zipSync({
     '[Content_Types].xml': strToU8(`<?xml version="1.0" encoding="UTF-8"?>
@@ -103,5 +102,34 @@ export function package3mf(model: TrackModel): Uint8Array {
   <Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>
 </Relationships>`),
     '3D/3dmodel.model': strToU8(modelXml),
-  });
+  }) as unknown as Uint8Array<ArrayBuffer>;
+}
+
+const MODEL_CONTENT_TYPE = 'application/vnd.ms-package.3dmanufacturing-3dmodel+zip';
+
+function normalizeFileName(fileName: string): string {
+  const normalizedBase = String(fileName)
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'racetrack';
+
+  return normalizedBase.endsWith('.3mf') ? normalizedBase : `${normalizedBase}.3mf`;
+}
+
+/**
+ * Convenience wrapper: package model as 3MF zip, wrap in a Blob.
+ * Returns the blob and a normalized filename for download.
+ */
+export function export3mf(
+  model: TrackModel,
+  fileName = 'racetrack.3mf',
+): { blob: Blob; fileName: string } {
+  const downloadFileName = normalizeFileName(fileName);
+  const zipBuffer = package3mf(model);
+
+  return {
+    blob: new Blob([zipBuffer], { type: MODEL_CONTENT_TYPE }),
+    fileName: downloadFileName,
+  };
 }
