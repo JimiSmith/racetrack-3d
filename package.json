@@ -13,13 +13,17 @@
     "lint": "eslint src/ scripts/",
     "test": "node --import ./scripts/ts-resolver-register.mjs --test",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check:file-sizes": "node scripts/check-file-sizes.mjs",
+    "check": "npm run typecheck && npm run lint && npm test && npm run check:file-sizes"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@typescript-eslint/eslint-plugin": "^8.58.0",
     "@typescript-eslint/parser": "^8.58.0",
     "eslint": "^10.2.0",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import-x": "^4.16.2",
     "globals": "^17.4.0",
     "typescript": "^6.0.2",
     "vite": "^8.0.1"
