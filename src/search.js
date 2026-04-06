@@ -1,6 +1,7 @@
-import trackSearchIndex from './generated/track-search-index.json' with { type: 'json' };
-import { getTrackGeometry } from './geometry-index.js';
-import { searchLocalTrackIndex } from './search-index.js';
+/**
+ * Thin re-export shim — all logic has moved to src/search/.
+ * This file exists so that existing imports from './search.js' continue to work.
+ */
 
 // Re-export geometry modules for backward compatibility
 export { buildWayGraph, buildCycleFromEdges } from './geometry/way-graph.js';
@@ -16,23 +17,6 @@ export {
   normalizeSearchText,
   searchLocalTrackIndex,
   tokenizeNormalizedText,
-} from './search-index.js';
-
-export async function searchTracks(query, signal) {
-  if (signal?.aborted) {
-    throw new DOMException('Aborted', 'AbortError');
-  }
-
-  return searchLocalTrackIndex(query, trackSearchIndex);
-}
-
-// Returns prebuilt geometry for a circuit from the local geometry index.
-// Throws if no prebuilt entry is found — there is no runtime network fallback.
-export async function fetchTrackGeometry(trackName, options = {}) {
-  const localGeometry = await getTrackGeometry(options.wikidataId);
-  if (localGeometry) {
-    return localGeometry;
-  }
-
-  throw new Error(`No prebuilt geometry available for ${trackName ?? 'this circuit'}`);
-}
+  searchTracks,
+  fetchTrackGeometry,
+} from './search/index.js';
