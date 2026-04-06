@@ -21,12 +21,6 @@ test('geometry index build defaults to OSM API source', () => {
   assert.equal(options.track, null);
 });
 
-test('geometry index build keeps Overpass as an explicit debug-only source', () => {
-  const options = parseArgs(['--overpass-only', '--track', 'spa']);
-
-  assert.equal(options.source, 'overpass');
-  assert.equal(options.track, 'spa');
-});
 
 test('geometry index build accepts strict cache options', () => {
   const options = parseArgs(['--strict', '--cache-dir', '/tmp/geometry-cache', '--cache-ttl-hours', '12', '--no-cache', '--limit', '10']);
@@ -43,12 +37,6 @@ test('geometry index build rejects invalid limit values', () => {
   assert.throws(() => parseArgs(['--limit', '1.5']), /Expected --limit to be an integer/);
 });
 
-test('geometry index build rejects the removed fixture source mode', () => {
-  assert.throws(
-    () => parseArgs(['--source', 'fixture']),
-    /Fixture source mode has been removed/,
-  );
-});
 
 test('geometry index build resolves the full supported search index', () => {
   assert.ok(SUPPORTED_TRACKS.length > 900);

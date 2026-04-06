@@ -4,8 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import trackSearchIndex from '../src/generated/track-search-index.json' with { type: 'json' };
 import {
-  buildTrackGeometryFromOverpassPayload,
-  fetchTrackGeometry,
+  buildTrackGeometryFromPayload,
   normalizeTrackGeometryResult,
 } from '../src/search.js';
 import {
@@ -29,7 +28,7 @@ const GEOMETRY_STALE_AFTER_MS = 14 * 24 * 60 * 60 * 1000;
 const GEOMETRY_STALE_JITTER_MS = 3 * 24 * 60 * 60 * 1000;
 const GEOMETRY_FAILURE_STALE_AFTER_MS = 3 * 24 * 60 * 60 * 1000;
 const GEOMETRY_FAILURE_STALE_JITTER_MS = 1 * 24 * 60 * 60 * 1000;
-const BUILD_SOURCES = new Set(['osm-api', 'overpass']);
+const BUILD_SOURCES = new Set(['osm-api']);
 
 const TRACK_BUILD_OVERRIDES = new Map([
   ['Q174090', {
@@ -378,8 +377,6 @@ Options:
                         Requires exactly one track to be specified via --track.
   --limit <n>           Maximum number of stale tracks to rebuild in one run
   --validate-only       Validate geometry without writing files
-  --source <src>        Build source: osm-api (default) or overpass
-  --overpass-only       Use Overpass as the sole source (no fallback)
   --strict              Exit with error if any track fails or uses cached geometry
   --cache-dir <path>    Local OSM API response cache directory
   --cache-ttl-hours <n> Cache TTL in hours (default: ${DEFAULT_CACHE_TTL_HOURS})
@@ -402,22 +399,6 @@ Options:
 
     if (arg === '--validate-only') {
       options.validateOnly = true;
-      continue;
-    }
-
-    if (arg === '--source') {
-      options.source = argv[index + 1] ?? options.source;
-      index += 1;
-      continue;
-    }
-
-    if (arg === '--live') {
-      options.source = 'osm-api';
-      continue;
-    }
-
-    if (arg === '--overpass-only') {
-      options.source = 'overpass';
       continue;
     }
 
@@ -451,12 +432,8 @@ Options:
     throw new Error('--force requires exactly one track to be specified (e.g. --track Q171332)');
   }
 
-  if (options.source === 'fixture') {
-    throw new Error('Fixture source mode has been removed; use the default OSM API build path or --overpass-only for debug');
-  }
-
   if (!BUILD_SOURCES.has(options.source)) {
-    throw new Error(`Unsupported build source "${options.source}"; expected one of ${[...BUILD_SOURCES].join(', ')}`);
+    throw new Error(`Unsupported build source "${options.source}"; expected: ${[...BUILD_SOURCES].join(', ')}`);
   }
 
   if (!Number.isInteger(options.limit) && options.limit !== Number.POSITIVE_INFINITY) {
@@ -579,7 +556,7 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
       fetchForMargin: margin => fetchOsmApiPayloadWithCache(track, margin, options),
       evaluateResponse: resolvedResponse => {
         const geometryResult = sanitizeBuildGeometryResult(normalizeTrackGeometryResult(
-          buildTrackGeometryFromOverpassPayload(resolvedResponse.payload, track.trackName),
+          buildTrackGeometryFromPayload(resolvedResponse.payload, track.trackName),
           track.trackName,
         ));
 
@@ -603,7 +580,7 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
     // than on every adaptive probe — patching the result we intend to keep, not discards.
     const supplementedPayload = await supplementPayloadWithMissingRelationWays(response.payload, { wikidataId: track.wikidataId });
     const supplementedGeometryResult = sanitizeBuildGeometryResult(normalizeTrackGeometryResult(
-      buildTrackGeometryFromOverpassPayload(supplementedPayload, track.trackName),
+      buildTrackGeometryFromPayload(supplementedPayload, track.trackName),
       track.trackName,
     ));
     const geometryResult = (supplementedGeometryResult?.layouts?.length ?? 0) > 0
@@ -629,15 +606,6 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
   }
 }
 
-async function fetchFallbackGeometryFromOverpass(track) {
-  return sanitizeBuildGeometryResult(normalizeTrackGeometryResult(
-    await fetchTrackGeometry(track.lat, track.lon, undefined, track.trackName, {
-      wikidataId: track.wikidataId,
-      skipLocal: true,
-    }),
-    track.trackName,
-  ));
-}
 
 async function buildGeometryFromManualWayIds(track, options) {
   const { manualLayoutWays } = track;
@@ -1063,14 +1031,6 @@ export async function main(argv = process.argv.slice(2)) {
         sourceUsed = manualResult.metadata.sourceUsed;
         const cacheLabel = manualResult.metadata.cacheHit ? 'cache' : 'live';
         sourceDetails = `osm-api manual-ways margin=${manualResult.metadata.margin} ${cacheLabel}`;
-      } else if (options.source === 'overpass') {
-        geometryResult = finalizeGeometryResult(track, await fetchFallbackGeometryFromOverpass(track));
-        report.flaggedForManualReview.push({
-          wikidataId: track.wikidataId,
-          name: track.trackName,
-          message: 'Built from the Overpass debug path',
-        });
-        sourceDetails = 'debug overpass';
       } else {
         const primaryResult = await fetchPrimaryGeometryFromOsmApi(track, options);
         geometryResult = finalizeGeometryResult(track, primaryResult.geometryResult);

@@ -526,7 +526,7 @@ export async function supplementPayloadWithMissingRelationWays(payload, options 
       };
     });
 
-    // Append newly fetched ways as bare way elements so extractOverpassWays can
+    // Append newly fetched ways as bare way elements so extractWays can
     // include them; the relation merge will supply their tags.
     const additionalWays = [...newGeometries.entries()]
       .filter(([id]) => !existingWayIds.has(id))

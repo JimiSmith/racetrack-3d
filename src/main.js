@@ -364,9 +364,7 @@ async function handleSelect(track) {
   setPreviewOverlayState('Loading preview', `Fetching track geometry for ${track.name}...`);
   updateGenerateButton();
   try {
-    const geometry = await fetchTrackGeometry(track.lat, track.lon, undefined, track.name, {
-      wikidataId: track.wikidataId,
-    });
+    const geometry = await fetchTrackGeometry(track.name, { wikidataId: track.wikidataId });
     currentLayouts = geometry.layouts ?? [];
     currentLayoutIndex = normalizeSelectedLayoutIndex(currentLayouts, geometry.selectedLayoutIndex ?? 0);
     currentOsmVenueNames = geometry.osmVenueNames ?? [];
