@@ -43,7 +43,71 @@ const TRACK_BUILD_OVERRIDES = new Map([
   ['Q171402', {
     key: 'silverstone',
     osmApiMargins: [0.02, 0.04, 0.08],
-    expectedLayoutNames: ['Main', 'Alternate'],
+    manualLayoutWays: [
+      {
+        name: 'Grand Prix',
+        // Full GP circuit without pit lane (~5890m).
+        // Pit Straight → Copse → Maggotts → Becketts → Chapel → Hangar Straight →
+        // Stowe → Vale → Club → Hamilton Straight → Abbey → Farm Curve → Village →
+        // The Loop → Aintree → Wellington Straight → Brooklands → Luffield → Woodcote.
+        wayIds: [
+          3571477, 169730585, 169730587, 169733768, 169730586, 430075118,
+          169733766, 169733769, 169733770, 169848880, 169848884, 169848881,
+          55224168, 55224167, 169854842, 169800226, 169800223, 169800225,
+          169848882, 169800224, 169800222, 169618242, 169618240, 169618241,
+          169618245, 169609611, 169730588,
+        ],
+      },
+      {
+        name: 'National',
+        // Pit Straight → Copse → Maggotts → connector (227820537) → Wellington Straight →
+        // Brooklands → Luffield → Woodcote (~2639m).
+        // Way 169730586 sliced at junction with connector 227820537 (position 2/6).
+        wayIds: [
+          3571477, 169730585, 169730587, 169733768,
+          { wayId: 169730586, toNode: { lat: 52.0731007, lon: -1.0096291 } },
+          227820537,
+          169618242, 169618240, 169618241,
+          169618245, 169609611, 169730588,
+        ],
+      },
+      {
+        name: 'Long National',
+        // Pit Straight → Copse → Maggotts → Becketts → partial Chapel →
+        // The Link (227820535 + 227820536 reversed) → partial Loop → Aintree →
+        // Wellington Straight → Brooklands → Luffield → Woodcote (~3257m).
+        // Way 169733766 (Chapel Curve) sliced at the Link junction (position 23/27).
+        // Way 227820536 sliced from Loop junction (idx 0) to shared node (idx 19);
+        // chainManualWays reverses it to connect from the 227820535 end.
+        // Way 169800224 (The Loop) sliced from the Link junction (position 9/35).
+        wayIds: [
+          3571477, 169730585, 169730587, 169733768, 169730586, 430075118,
+          { wayId: 169733766, toNode: { lat: 52.0704519, lon: -1.0097476 } },
+          227820535,
+          { wayId: 227820536, fromNode: { lat: 52.0714208, lon: -1.0124441 }, toNode: { lat: 52.0706238, lon: -1.0105705 } },
+          { wayId: 169800224, fromNode: { lat: 52.0714208, lon: -1.0124441 } },
+          169800222, 169618242, 169618240, 169618241,
+          169618245, 169609611, 169730588,
+        ],
+      },
+      {
+        name: 'International',
+        // Village → partial Loop → The Link (227820536 + 227820535 reversed) →
+        // partial Chapel → Hangar Straight → Stowe → Vale → Club →
+        // Hamilton Straight → Abbey → Farm Curve → Village (~2979m).
+        // Way 169800224 (The Loop) sliced to the Link junction (position 9/35).
+        // Way 227820536 sliced from Loop junction (idx 0) to shared node (idx 19).
+        wayIds: [
+          169848882,
+          { wayId: 169800224, toNode: { lat: 52.0714208, lon: -1.0124441 } },
+          { wayId: 227820536, fromNode: { lat: 52.0714208, lon: -1.0124441 }, toNode: { lat: 52.0706238, lon: -1.0105705 } },
+          227820535,
+          { wayId: 169733766, fromNode: { lat: 52.0704519, lon: -1.0097476 } },
+          169733769, 169733770, 169848880, 169848884, 169848881,
+          55224168, 55224167, 169854842, 169800226, 169800223, 169800225,
+        ],
+      },
+    ],
   }],
   ['Q172851', {
     key: 'spa',
