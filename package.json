@@ -11,7 +11,7 @@
     "build:track-search-index": "node scripts/build-track-search-index.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/ scripts/",
-    "test": "node --test",
+    "test": "node --import ./scripts/ts-resolver-register.mjs --test",
     "build": "vite build",
     "preview": "vite preview"
   },

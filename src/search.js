@@ -1,5 +1,19 @@
 import trackSearchIndex from './generated/track-search-index.json' with { type: 'json' };
 import { getTrackGeometry } from './geometry-index.js';
+import {
+  dist,
+  measurePolylineLength,
+  computeBoundingBoxArea,
+  computeEndpointGap,
+} from './geometry/geo-math.js';
+import {
+  SNAP_EXACT,
+  SNAP_FUZZY,
+  closeNodeChainIfNearClosed,
+  fixChainReversals,
+  collapseImmediateBacktracks,
+  dedupeSequentialNodes,
+} from './geometry/chain-cleanup.js';
 
 export {
   buildTrackDisplayName,
@@ -19,181 +33,6 @@ export async function searchTracks(query, signal) {
   return searchLocalTrackIndex(query, trackSearchIndex);
 }
 
-
-const dist = (a, b) => Math.abs(a.lat - b.lat) + Math.abs(a.lon - b.lon);
-const toRadians = value => (value * Math.PI) / 180;
-
-function measurePolylineLength(nodes) {
-  let length = 0;
-
-  for (let i = 1; i < nodes.length; i += 1) {
-    const prev = nodes[i - 1];
-    const next = nodes[i];
-    const avgLat = toRadians((prev.lat + next.lat) / 2);
-    const dx = (next.lon - prev.lon) * Math.cos(avgLat) * 111320;
-    const dy = (next.lat - prev.lat) * 111320;
-    length += Math.hypot(dx, dy);
-  }
-
-  return length;
-}
-
-function measureDistanceMetres(a, b) {
-  return measurePolylineLength([a, b]);
-}
-
-function computeBoundingBoxArea(nodes) {
-  if (!nodes.length) {
-    return 0;
-  }
-
-  let minLat = Infinity;
-  let maxLat = -Infinity;
-  let minLon = Infinity;
-  let maxLon = -Infinity;
-
-  for (const node of nodes) {
-    minLat = Math.min(minLat, node.lat);
-    maxLat = Math.max(maxLat, node.lat);
-    minLon = Math.min(minLon, node.lon);
-    maxLon = Math.max(maxLon, node.lon);
-  }
-
-  const cosLat = Math.cos(toRadians((minLat + maxLat) / 2));
-  const width = (maxLon - minLon) * cosLat * 111320;
-  const height = (maxLat - minLat) * 111320;
-  return Math.abs(width * height);
-}
-
-function computeEndpointGap(nodes) {
-  if (nodes.length < 2) {
-    return 0;
-  }
-
-  const first = nodes[0];
-  const last = nodes[nodes.length - 1];
-  const avgLat = toRadians((first.lat + last.lat) / 2);
-  const dx = (last.lon - first.lon) * Math.cos(avgLat) * 111320;
-  const dy = (last.lat - first.lat) * 111320;
-  return Math.hypot(dx, dy);
-}
-
-function closeNodeChainIfNearClosed(nodes, maxGapMetres = 80) {
-  if (nodes.length < 2) {
-    return nodes;
-  }
-
-  const first = nodes[0];
-  const last = nodes[nodes.length - 1];
-  if (first.lat === last.lat && first.lon === last.lon) {
-    return nodes;
-  }
-
-  return computeEndpointGap(nodes) <= maxGapMetres
-    ? [...nodes, first]
-    : nodes;
-}
-
-// Fix "spikes" in a node chain where a section is traversed backwards.
-// A spike shows up as two near-180° reversals — the chain goes forward, then
-// abruptly backward (reversal 1), then forward again (reversal 2).
-// Reversing the section between the two reversal points fixes the winding.
-// Genuine sharp corners (hairpins) don't create paired reversals like this.
-function fixChainReversals(nodes) {
-  if (nodes.length < 6) {return nodes;}
-
-  const reversals = [];
-  for (let i = 1; i < nodes.length - 1; i++) {
-    const d1lat = nodes[i].lat - nodes[i - 1].lat;
-    const d1lon = nodes[i].lon - nodes[i - 1].lon;
-    const d2lat = nodes[i + 1].lat - nodes[i].lat;
-    const d2lon = nodes[i + 1].lon - nodes[i].lon;
-    const m1 = Math.sqrt(d1lat * d1lat + d1lon * d1lon);
-    const m2 = Math.sqrt(d2lat * d2lat + d2lon * d2lon);
-    if (m1 > 1e-10 && m2 > 1e-10) {
-      const dot = (d1lat * d2lat + d1lon * d2lon) / (m1 * m2);
-      if (dot < -0.9) {reversals.push(i);}
-    }
-  }
-
-  if (reversals.length < 2) {return nodes;}
-
-  // Fix in pairs: reverse the section between each consecutive pair of reversals
-  const result = [...nodes];
-  for (let i = 0; i + 1 < reversals.length; i += 2) {
-    const start = reversals[i];
-    const end = reversals[i + 1];
-    const section = result.slice(start + 1, end + 1).reverse();
-    result.splice(start + 1, end - start, ...section);
-  }
-  return result;
-}
-
-function isImmediateBacktrack(prev, current, next) {
-  const lenA = measureDistanceMetres(prev, current);
-  const lenB = measureDistanceMetres(current, next);
-  if (lenA < 0.01 || lenB < 0.01) {
-    return false;
-  }
-
-  const d1x = current.lon - prev.lon;
-  const d1y = current.lat - prev.lat;
-  const d2x = next.lon - current.lon;
-  const d2y = next.lat - current.lat;
-  const dot = (d1x * d2x + d1y * d2y) / (Math.hypot(d1x, d1y) * Math.hypot(d2x, d2y));
-  const returnGap = measureDistanceMetres(prev, next);
-  if (dot < -0.98 && returnGap <= Math.max(lenA, lenB) * 0.25) {
-    return true;
-  }
-
-  return Math.max(lenA, lenB) <= 10
-    && dot < -0.8
-    && returnGap <= Math.max(lenA, lenB) * 0.75;
-}
-
-function collapseImmediateBacktracks(nodes) {
-  let result = [...nodes];
-  let changed = true;
-
-  while (changed && result.length >= 3) {
-    changed = false;
-    const collapsed = [result[0]];
-
-    for (let index = 1; index < result.length - 1; index += 1) {
-      const prev = collapsed[collapsed.length - 1];
-      const current = result[index];
-      const next = result[index + 1];
-
-      if (isImmediateBacktrack(prev, current, next)) {
-        changed = true;
-        continue;
-      }
-
-      collapsed.push(current);
-    }
-
-    collapsed.push(result[result.length - 1]);
-    result = dedupeSequentialNodes(collapsed);
-  }
-
-  return result;
-}
-
-function dedupeSequentialNodes(nodes) {
-  const deduped = [];
-
-  for (const node of nodes) {
-    const prev = deduped[deduped.length - 1];
-    if (!prev || dist(prev, node) >= SNAP_EXACT) {
-      deduped.push(node);
-    }
-  }
-
-  return deduped;
-}
-// Exact snap: shared OSM node (same coords). Fuzzy snap: slight gap in OSM data (~30m).
-const SNAP_EXACT = 1e-5;
-const SNAP_FUZZY = 3e-4; // ~30m — catches gaps in OSM data without pulling in distant outliers
 
 // Build connected components from a list of ways using endpoint proximity.
 // Returns arrays of way indices grouped by connectivity.
