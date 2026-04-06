@@ -1,0 +1,65 @@
+<script lang="ts">
+  import { primaryOrientationDeg, textPositionRank } from '../stores/options.js';
+  import { selectedTrack, layouts } from '../stores/track.js';
+  import { normalizePrimaryOrientationDeg } from '../model/orientation.js';
+  import { normalizeTextPositionRank, DEFAULT_TEXT_POSITION_RANK } from '../text3d.js';
+  import { rebuildModel, loadElevations, invalidatePlacementCache } from '../track-loader.js';
+  import { get } from 'svelte/store';
+  import { nodes } from '../stores/model.js';
+  import { exaggeration } from '../stores/options.js';
+  import LayoutPicker from './LayoutPicker.svelte';
+  import ElevationSlider from './ElevationSlider.svelte';
+
+  function handleOrientationChange(e: Event): void {
+    const value = (e.currentTarget as HTMLSelectElement).value;
+    primaryOrientationDeg.set(normalizePrimaryOrientationDeg(value));
+
+    if (!get(layouts).length || !get(selectedTrack)) {
+      return;
+    }
+
+    rebuildModel();
+    const currentNodes = get(nodes);
+    if (currentNodes?.length) {
+      void loadElevations(currentNodes);
+    }
+  }
+
+  function handleTextPositionChange(e: Event): void {
+    const value = (e.currentTarget as HTMLSelectElement).value;
+    textPositionRank.set(normalizeTextPositionRank(value));
+
+    if (!get(layouts).length || !get(selectedTrack)) {
+      return;
+    }
+
+    invalidatePlacementCache();
+    rebuildModel();
+  }
+</script>
+
+<section class="options-card" aria-label="Model options">
+  <div class="section-heading-row">
+    <p class="section-heading">Options</p>
+  </div>
+  <LayoutPicker />
+  <div class="field-card controls-wrap">
+    <label for="orientation-select">Model orientation</label>
+    <select id="orientation-select" onchange={handleOrientationChange}>
+      <option value="auto" selected={$primaryOrientationDeg === 'auto'}>Auto</option>
+      <option value="0" selected={$primaryOrientationDeg === 0}>0°</option>
+      <option value="90" selected={$primaryOrientationDeg === 90}>90°</option>
+      <option value="180" selected={$primaryOrientationDeg === 180}>180°</option>
+      <option value="270" selected={$primaryOrientationDeg === 270}>270°</option>
+    </select>
+  </div>
+  <div class="field-card controls-wrap">
+    <label for="text-position-select">Label placement</label>
+    <select id="text-position-select" onchange={handleTextPositionChange}>
+      <option value="1" selected={$textPositionRank === 1}>Best fit</option>
+      <option value="2" selected={$textPositionRank === 2}>Alternate 1</option>
+      <option value="3" selected={$textPositionRank === 3}>Alternate 2</option>
+    </select>
+  </div>
+  <ElevationSlider />
+</section>
