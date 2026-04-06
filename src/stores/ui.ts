@@ -20,6 +20,9 @@ export const isTrackSummaryExpanded = writable<boolean>(true);
 /** The current status bar message; empty string means no message. */
 export const statusMessage = writable<string>('');
 
+/** Whether the current status message represents an error. */
+export const statusIsError = writable<boolean>(false);
+
 /** State controlling the preview canvas overlay. */
 export const previewOverlayState = writable<PreviewOverlayState>({
   title: 'Search for a track',
