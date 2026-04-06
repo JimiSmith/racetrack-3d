@@ -12,15 +12,14 @@ This repo is configured for project-site deployment under `/racetrack-3d/`.
 
 ### Already OK
 
-- `src/search.js:2` - Wikidata REST API (`https://www.wikidata.org/w/api.php`) is called with `origin=*`. Verified response includes `Access-Control-Allow-Origin: *`.
-- `src/search.js:1` - Wikidata SPARQL (`https://query.wikidata.org/sparql`) is called directly from the browser. Verified response includes `Access-Control-Allow-Origin: *`.
-- `src/search.js:80` - Overpass endpoints (`overpass-api.de`, `overpass.kumi.systems`, `overpass.private.coffee`) are browser-side POST requests with `application/x-www-form-urlencoded`. Verified responses include `Access-Control-Allow-Origin: *`.
-- `src/elevation.js:1` - Terrarium elevation tiles from `https://s3.amazonaws.com/elevation-tiles-prod/terrarium` are fetched browser-side. Verified tile responses include `Access-Control-Allow-Origin: *` for cross-origin GET requests.
+- `src/search.js` - Wikidata REST API (`https://www.wikidata.org/w/api.php`) is called with `origin=*`. Verified response includes `Access-Control-Allow-Origin: *`.
+- `src/search.js` - Wikidata SPARQL (`https://query.wikidata.org/sparql`) is called directly from the browser. Verified response includes `Access-Control-Allow-Origin: *`.
+- `src/elevation.js` - Terrarium elevation tiles from `https://s3.amazonaws.com/elevation-tiles-prod/terrarium` are fetched browser-side. Verified tile responses include `Access-Control-Allow-Origin: *` for cross-origin GET requests.
 
 ### Risks, but not GitHub Pages blockers
 
-- `src/search.js:1` and `src/search.js:80` - Wikidata and Overpass are public shared services. GitHub Pages can call them directly, but runtime availability still depends on upstream rate limits, temporary outages, and query throttling.
-- `src/elevation.js:1` - Elevation tiles are publicly accessible and CORS-enabled, but the app still depends on a third-party bucket staying available.
+- Wikidata is a public shared service. GitHub Pages can call it directly, but runtime availability still depends on upstream rate limits, temporary outages, and query throttling.
+- `src/elevation.js` - Elevation tiles are publicly accessible and CORS-enabled, but the app still depends on a third-party bucket staying available.
 
 ### Current blocker status
 

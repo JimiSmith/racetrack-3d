@@ -257,7 +257,7 @@ test('parseOsmApiMapXml excludes facility multipolygons even when they carry a w
     <tag k="type" v="circuit"/>
     <tag k="name" v="Circuit Route"/>
   </relation>
-</osm>`, 'Q999');
+</osm>`);
 
   const relations = payload.elements.filter(e => e.type === 'relation');
   assert.equal(relations.length, 1);
@@ -282,7 +282,7 @@ test('parseOsmApiMapXml uses highway/type filter regardless of wikidataId argume
     <tag k="highway" v="raceway"/>
     <tag k="name" v="Other Raceway"/>
   </relation>
-</osm>`, 'Q000');
+</osm>`);
 
   const relations = payload.elements.filter(e => e.type === 'relation');
   assert.equal(relations.length, 2);
