@@ -2,6 +2,7 @@ import js from "@eslint/js";
 import globals from "globals";
 import tsParser from "@typescript-eslint/parser";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
+import importX from "eslint-plugin-import-x";
 
 const sharedRules = {
   // Correctness
@@ -31,16 +32,45 @@ const sharedRules = {
   "no-console": "off",
 };
 
+// DOM globals that must not appear in pure computation modules
+const DOM_GLOBALS = [
+  "document",
+  "window",
+  "HTMLElement",
+  "navigator",
+  "location",
+  "localStorage",
+  "sessionStorage",
+  "alert",
+  "confirm",
+  "prompt",
+];
+
 export default [
   js.configs.recommended,
   {
     files: ["src/**/*.js"],
+    plugins: {
+      "import-x": importX,
+    },
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
       globals: { ...globals.browser },
     },
-    rules: sharedRules,
+    rules: {
+      ...sharedRules,
+      // No circular dependencies
+      "import-x/no-cycle": "error",
+      // Import ordering: external → internal absolute → relative (warn — existing code has violations)
+      "import-x/order": [
+        "warn",
+        {
+          "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+          "newlines-between": "never",
+        },
+      ],
+    },
   },
   {
     files: ["scripts/**/*.{js,mjs}", "scripts/lib/**/*.{js,mjs}"],
@@ -68,6 +98,10 @@ export default [
   },
   {
     files: ["src/**/*.ts"],
+    plugins: {
+      "@typescript-eslint": tsPlugin,
+      "import-x": importX,
+    },
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -76,14 +110,22 @@ export default [
       },
       globals: { ...globals.browser },
     },
-    plugins: {
-      "@typescript-eslint": tsPlugin,
+    settings: {
+      "import-x/resolver": {
+        typescript: true,
+        node: true,
+      },
+      "import-x/parsers": {
+        "@typescript-eslint/parser": [".ts"],
+      },
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
       // Disable base rule in favour of TypeScript-aware version
       "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", destructuredArrayIgnorePattern: "^_" }],
+      // Warn on any — legacy code may still use it during migration
+      "@typescript-eslint/no-explicit-any": "warn",
       "eqeqeq": ["error", "always", { null: "ignore" }],
       "no-throw-literal": "error",
       "no-promise-executor-return": "error",
@@ -102,6 +144,35 @@ export default [
       "no-useless-return": "error",
       "no-param-reassign": ["error", { props: false }],
       "no-console": "off",
+      // No circular dependencies
+      "import-x/no-cycle": "error",
+      // Import ordering: external → internal absolute → relative (warn — existing code has violations)
+      "import-x/order": [
+        "warn",
+        {
+          "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+          "newlines-between": "never",
+        },
+      ],
+    },
+  },
+  // Pure computation modules must not access DOM globals
+  {
+    files: [
+      "src/geometry/**/*.ts",
+      "src/model/**/*.ts",
+      "src/text/**/*.ts",
+      "src/export/**/*.ts",
+    ],
+    rules: {
+      // Warn on DOM globals in pure modules — error in new code, warn during migration
+      "no-restricted-globals": [
+        "warn",
+        ...DOM_GLOBALS.map((name) => ({
+          name,
+          message: `Pure modules must not access DOM globals. Move DOM access to src/main.ts, src/preview/, or src/elevation/.`,
+        })),
+      ],
     },
   },
   {
