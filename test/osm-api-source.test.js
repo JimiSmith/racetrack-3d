@@ -290,6 +290,43 @@ test('parseOsmApiMapXml falls back to highway/type filter when wikidataId does n
   assert.ok(relations.some(r => r.id === 21), 'relation 21 selected via highway=raceway fallback');
 });
 
+test('parseOsmApiMapXml selects relation tagged route=raceway via wikidata path and fallback', () => {
+  // Via wikidata path
+  const withWikidata = parseOsmApiMapXml(`<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6">
+  <node id="1" lat="52.0" lon="-1.0" />
+  <node id="2" lat="52.1" lon="-1.1" />
+  <way id="10"><nd ref="1"/><nd ref="2"/></way>
+  <relation id="20">
+    <member type="way" ref="10" role=""/>
+    <tag k="wikidata" v="Q999"/>
+    <tag k="route" v="raceway"/>
+    <tag k="name" v="Route Raceway Circuit"/>
+  </relation>
+</osm>`, 'Q999');
+
+  const wikidataRelations = withWikidata.elements.filter(e => e.type === 'relation');
+  assert.equal(wikidataRelations.length, 1);
+  assert.equal(wikidataRelations[0].id, 20);
+
+  // Via fallback (no wikidataId)
+  const withFallback = parseOsmApiMapXml(`<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6">
+  <node id="1" lat="52.0" lon="-1.0" />
+  <node id="2" lat="52.1" lon="-1.1" />
+  <way id="10"><nd ref="1"/><nd ref="2"/></way>
+  <relation id="20">
+    <member type="way" ref="10" role=""/>
+    <tag k="route" v="raceway"/>
+    <tag k="name" v="Route Raceway Circuit"/>
+  </relation>
+</osm>`);
+
+  const fallbackRelations = withFallback.elements.filter(e => e.type === 'relation');
+  assert.equal(fallbackRelations.length, 1);
+  assert.equal(fallbackRelations[0].id, 20);
+});
+
 test('parseOsmApiMapXml uses highway/type filter when no wikidataId is passed', () => {
   const payload = parseOsmApiMapXml(`<?xml version="1.0" encoding="UTF-8"?>
 <osm version="0.6">
@@ -354,6 +391,78 @@ test('supplementPayloadWithMissingRelationWays uses wikidata-first selection whe
   assert.equal(fetchedUrls.length, 1, 'should fetch exactly one relation');
   assert.ok(fetchedUrls[0]?.includes('/relation/20'), 'should have fetched relation 20');
   assert.equal(result, syntheticPayload); // no missing members, so payload unchanged
+});
+
+test('supplementPayloadWithMissingRelationWays appends missing ways via wikidata-selected relation', async () => {
+  // Relation 20 (wikidata=Q999) references way 10 (present) and way 99 (absent).
+  // Relation 21 (highway=raceway, no wikidata) references only way 10.
+  // With wikidataId='Q999', only relation 20 is relevant, so way 99 should be fetched and appended.
+  const syntheticPayload = {
+    version: 0.6,
+    generator: 'test',
+    elements: [
+      {
+        type: 'way', id: 10,
+        tags: { highway: 'raceway' },
+        geometry: [{ lat: 52.0, lon: -1.0 }, { lat: 52.1, lon: -1.1 }],
+      },
+      {
+        type: 'relation', id: 20,
+        tags: { wikidata: 'Q999', type: 'circuit', name: 'Wikidata Circuit' },
+        members: [{ type: 'way', ref: 10, role: '' }, { type: 'way', ref: 99, role: '' }],
+      },
+      {
+        type: 'relation', id: 21,
+        tags: { highway: 'raceway', name: 'Other Raceway' },
+        members: [{ type: 'way', ref: 10, role: '' }],
+      },
+    ],
+  };
+
+  const result = await supplementPayloadWithMissingRelationWays(syntheticPayload, {
+    wikidataId: 'Q999',
+    fetch: async (url) => {
+      if (url.includes('/relation/20')) {
+        return {
+          ok: true,
+          text: async () => `<?xml version="1.0"?>
+<osm version="0.6">
+  <relation id="20">
+    <member type="way" ref="10" role=""/>
+    <member type="way" ref="99" role=""/>
+  </relation>
+</osm>`,
+        };
+      }
+      if (url.includes('/ways?ways=99')) {
+        return {
+          ok: true,
+          text: async () => `<?xml version="1.0"?>
+<osm version="0.6">
+  <node id="3" lat="52.2" lon="-1.2"/>
+  <node id="4" lat="52.3" lon="-1.3"/>
+  <way id="99"><nd ref="3"/><nd ref="4"/></way>
+</osm>`,
+        };
+      }
+      if (url.includes('/nodes?nodes=')) {
+        return {
+          ok: true,
+          text: async () => `<?xml version="1.0"?>
+<osm version="0.6">
+  <node id="3" lat="52.2" lon="-1.2"/>
+  <node id="4" lat="52.3" lon="-1.3"/>
+</osm>`,
+        };
+      }
+      throw new Error(`Unexpected fetch: ${url}`);
+    },
+  });
+
+  assert.notEqual(result, syntheticPayload, 'payload should be augmented');
+  const way99 = result.elements.find(e => e.type === 'way' && e.id === 99);
+  assert.ok(way99, 'way 99 should be appended to the payload');
+  assert.deepEqual(way99.geometry, [{ lat: 52.2, lon: -1.2 }, { lat: 52.3, lon: -1.3 }]);
 });
 
 test('buildAdaptiveOsmApiMargins grows from a smaller starting bbox up to the requested cap', () => {

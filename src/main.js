@@ -385,7 +385,11 @@ async function handleSelect(track) {
     updateLayoutSelector();
     updatePreview(null);
     updateTrackSummary();
-    setPreviewOverlayState('Preview unavailable', 'Try another track or search again in a moment.');
+    const isUnavailable = err.message?.startsWith('No prebuilt geometry available');
+    const overlayBody = isUnavailable
+      ? 'Track geometry not available.'
+      : 'Try another track or search again in a moment.';
+    setPreviewOverlayState('Preview unavailable', overlayBody);
     setStatus(`Error loading geometry: ${err.message}`, true);
     console.error(err);
   }

@@ -364,13 +364,22 @@ export function parseOsmApiMapXml(xmlSource, wikidataId) {
     ? relations.filter(r => String(r.tags?.wikidata ?? '').trim().toUpperCase() === normId && isCircuitRoute(r))
     : [];
 
-  const relevantRelations = wikidataCircuitRelations.length > 0
+  const usingWikidata = wikidataCircuitRelations.length > 0;
+  const relevantRelations = usingWikidata
     ? wikidataCircuitRelations
     : relations.filter(r => isCircuitRoute(r));
+
+  // When the wikidata path is active we trust the relation's member list exclusively.
+  // Including all standalone highway=raceway ways from the bbox would pull in unrelated
+  // ways (kart tracks, pit access roads, etc.) that happen to share the area.
+  const standaloneRacewayIds = usingWikidata
+    ? []
+    : ways
+        .filter(way => String(way.tags?.highway ?? '').trim().toLowerCase() === 'raceway')
+        .map(way => way.id);
+
   const relevantWayIds = new Set([
-    ...ways
-      .filter(way => String(way.tags?.highway ?? '').trim().toLowerCase() === 'raceway')
-      .map(way => way.id),
+    ...standaloneRacewayIds,
     ...relevantRelations.flatMap(relation => relation.members.map(member => member.ref)),
   ]);
   const relevantWays = ways.filter(way => relevantWayIds.has(way.id));
