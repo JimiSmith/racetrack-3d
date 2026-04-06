@@ -342,16 +342,28 @@ export function buildOsmApiMapUrl(lat, lon, margin = DEFAULT_BBOX_MARGIN) {
   return `${OSM_API_BASE_URL}?bbox=${minLon},${minLat},${maxLon},${maxLat}`;
 }
 
-export function parseOsmApiMapXml(xmlSource) {
+export function parseOsmApiMapXml(xmlSource, wikidataId) {
   const { ways, relations } = parseOsmXmlElements(xmlSource, { includeRelations: true });
 
-  const relevantRelations = relations.filter(relation => {
+  const isCircuitRoute = relation => {
     const highway = String(relation.tags?.highway ?? '').trim().toLowerCase();
     const type = String(relation.tags?.type ?? '').trim().toLowerCase();
     const route = String(relation.tags?.route ?? '').trim().toLowerCase();
     const circuit = String(relation.tags?.circuit ?? '').trim().toLowerCase();
     return (highway === 'raceway' || type === 'circuit' || route === 'raceway') && circuit !== 'kart';
-  });
+  };
+
+  // Wikidata-first: prefer relations whose wikidata tag matches the track ID and that also
+  // look like a circuit route. The wikidata tag sometimes appears on the facility
+  // multipolygon (type=multipolygon) rather than the route relation, so we additionally
+  // require the element to pass the circuit-route check.
+  const wikidataCircuitRelations = wikidataId
+    ? relations.filter(r => String(r.tags?.wikidata ?? '').trim() === wikidataId && isCircuitRoute(r))
+    : [];
+
+  const relevantRelations = wikidataCircuitRelations.length > 0
+    ? wikidataCircuitRelations
+    : relations.filter(isCircuitRoute);
   const relevantWayIds = new Set([
     ...ways
       .filter(way => String(way.tags?.highway ?? '').trim().toLowerCase() === 'raceway')
@@ -405,14 +417,25 @@ function parseRelationMemberWayIds(xmlSource) {
 //
 // Falls back to the original payload on any network error.
 export async function supplementPayloadWithMissingRelationWays(payload, options = {}) {
-  const relevantRelations = (payload?.elements ?? []).filter(e => {
+  const wikidataId = options.wikidataId ?? null;
+  const elements = payload?.elements ?? [];
+
+  const isCircuitRoute = e => {
     if (e.type !== 'relation') {return false;}
     const hw = String(e.tags?.highway ?? '').trim().toLowerCase();
     const type = String(e.tags?.type ?? '').trim().toLowerCase();
     const route = String(e.tags?.route ?? '').trim().toLowerCase();
     const circuit = String(e.tags?.circuit ?? '').trim().toLowerCase();
     return (hw === 'raceway' || type === 'circuit' || route === 'raceway') && circuit !== 'kart';
-  });
+  };
+
+  const wikidataMatches = wikidataId
+    ? elements.filter(e => String(e.tags?.wikidata ?? '').trim() === wikidataId && isCircuitRoute(e))
+    : [];
+
+  const relevantRelations = wikidataMatches.length > 0
+    ? wikidataMatches
+    : elements.filter(isCircuitRoute);
 
   if (relevantRelations.length === 0) {
     return payload;
@@ -570,7 +593,7 @@ export async function fetchOsmApiMapPayload(lat, lon, options = {}) {
     return {
       url,
       xml,
-      payload: parseOsmApiMapXml(xml),
+      payload: parseOsmApiMapXml(xml, options.wikidataId),
       metadata: {
         requestAttempts: retryCount + 1,
         retryCount,

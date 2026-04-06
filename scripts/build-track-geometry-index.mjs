@@ -533,7 +533,7 @@ async function readCachedOsmPayload(track, margin, options) {
     cacheHit: true,
     url: cachedEntry.url,
     xml: cachedEntry.xml,
-    payload: parseOsmApiMapXml(cachedEntry.xml),
+    payload: parseOsmApiMapXml(cachedEntry.xml, track.wikidataId),
   };
 }
 
@@ -555,7 +555,7 @@ async function writeCachedOsmPayload(track, margin, response, options) {
 
 async function fetchOsmApiPayloadWithCache(track, margin, options) {
   const cachedResponse = await readCachedOsmPayload(track, margin, options);
-  const response = cachedResponse ?? await fetchOsmApiMapPayload(track.lat, track.lon, { margin });
+  const response = cachedResponse ?? await fetchOsmApiMapPayload(track.lat, track.lon, { margin, wikidataId: track.wikidataId });
   if (!cachedResponse) {
     await writeCachedOsmPayload(track, margin, response, options);
   }
@@ -601,7 +601,7 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
     // the bbox (e.g. street circuits like Albert Park whose relation spans roads beyond
     // the node-limit-safe bbox). This runs once on the selected margin's response rather
     // than on every adaptive probe — patching the result we intend to keep, not discards.
-    const supplementedPayload = await supplementPayloadWithMissingRelationWays(response.payload);
+    const supplementedPayload = await supplementPayloadWithMissingRelationWays(response.payload, { wikidataId: track.wikidataId });
     const supplementedGeometryResult = sanitizeBuildGeometryResult(normalizeTrackGeometryResult(
       buildTrackGeometryFromOverpassPayload(supplementedPayload, track.trackName),
       track.trackName,

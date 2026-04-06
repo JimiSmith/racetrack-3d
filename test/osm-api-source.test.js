@@ -209,6 +209,141 @@ test('supplementPayloadWithMissingRelationWays falls back gracefully on network 
   assert.equal(result, initialPayload);
 });
 
+test('parseOsmApiMapXml selects relation by wikidata tag when wikidataId is provided', () => {
+  // Relation 20 has wikidata=Q999 AND type=circuit — should be selected over relation 21 (highway=raceway, no wikidata)
+  const payload = parseOsmApiMapXml(`<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6">
+  <node id="1" lat="52.0" lon="-1.0" />
+  <node id="2" lat="52.1" lon="-1.1" />
+  <way id="10"><nd ref="1"/><nd ref="2"/><tag k="highway" v="raceway"/></way>
+  <relation id="20">
+    <member type="way" ref="10" role=""/>
+    <tag k="wikidata" v="Q999"/>
+    <tag k="type" v="circuit"/>
+    <tag k="name" v="Wikidata Circuit"/>
+  </relation>
+  <relation id="21">
+    <member type="way" ref="10" role=""/>
+    <tag k="highway" v="raceway"/>
+    <tag k="name" v="Other Raceway"/>
+  </relation>
+</osm>`, 'Q999');
+
+  const relations = payload.elements.filter(e => e.type === 'relation');
+  assert.equal(relations.length, 1);
+  assert.equal(relations[0].id, 20);
+  assert.equal(relations[0].tags.name, 'Wikidata Circuit');
+});
+
+test('parseOsmApiMapXml falls back to highway/type filter when wikidata match is not a circuit route', () => {
+  // Relation 20 has wikidata=Q999 but type=multipolygon (facility outline, not a route).
+  // Should fall back to relation 21 which has type=circuit.
+  const payload = parseOsmApiMapXml(`<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6">
+  <node id="1" lat="52.0" lon="-1.0" />
+  <node id="2" lat="52.1" lon="-1.1" />
+  <way id="10"><nd ref="1"/><nd ref="2"/></way>
+  <relation id="20">
+    <member type="way" ref="10" role="outer"/>
+    <tag k="wikidata" v="Q999"/>
+    <tag k="type" v="multipolygon"/>
+    <tag k="name" v="Circuit Facility Area"/>
+  </relation>
+  <relation id="21">
+    <member type="way" ref="10" role=""/>
+    <tag k="type" v="circuit"/>
+    <tag k="name" v="Circuit Route"/>
+  </relation>
+</osm>`, 'Q999');
+
+  const relations = payload.elements.filter(e => e.type === 'relation');
+  assert.equal(relations.length, 1);
+  assert.equal(relations[0].id, 21);
+});
+
+test('parseOsmApiMapXml falls back to highway/type filter when no wikidata match', () => {
+  const payload = parseOsmApiMapXml(`<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6">
+  <node id="1" lat="52.0" lon="-1.0" />
+  <node id="2" lat="52.1" lon="-1.1" />
+  <way id="10"><nd ref="1"/><nd ref="2"/><tag k="highway" v="raceway"/></way>
+  <relation id="20">
+    <member type="way" ref="10" role=""/>
+    <tag k="wikidata" v="Q999"/>
+    <tag k="name" v="Wikidata Circuit"/>
+  </relation>
+  <relation id="21">
+    <member type="way" ref="10" role=""/>
+    <tag k="type" v="circuit"/>
+    <tag k="name" v="Type Circuit"/>
+  </relation>
+</osm>`, 'Q000');
+
+  // Q000 doesn't match Q999 — falls back to the highway/type filter
+  const relations = payload.elements.filter(e => e.type === 'relation');
+  assert.equal(relations.length, 1);
+  assert.equal(relations[0].id, 21);
+});
+
+test('parseOsmApiMapXml uses highway/type filter when no wikidataId is passed', () => {
+  const payload = parseOsmApiMapXml(`<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6">
+  <node id="1" lat="52.0" lon="-1.0" />
+  <node id="2" lat="52.1" lon="-1.1" />
+  <way id="10"><nd ref="1"/><nd ref="2"/><tag k="highway" v="raceway"/></way>
+  <relation id="20">
+    <member type="way" ref="10" role=""/>
+    <tag k="wikidata" v="Q999"/>
+    <tag k="name" v="Wikidata Only Circuit"/>
+  </relation>
+  <relation id="21">
+    <member type="way" ref="10" role=""/>
+    <tag k="highway" v="raceway"/>
+    <tag k="name" v="Raceway Circuit"/>
+  </relation>
+</osm>`);
+
+  const relations = payload.elements.filter(e => e.type === 'relation');
+  assert.equal(relations.length, 1);
+  assert.equal(relations[0].id, 21);
+});
+
+test('supplementPayloadWithMissingRelationWays uses wikidata-first selection when wikidataId is provided', async () => {
+  // Relation 20 has wikidata=Q999 AND type=circuit; relation 21 has highway=raceway but no wikidata.
+  // With wikidataId='Q999', only relation 20 should be treated as relevant.
+  const payload = parseOsmApiMapXml(`<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6">
+  <node id="1" lat="52.0" lon="-1.0" />
+  <node id="2" lat="52.1" lon="-1.1" />
+  <way id="10"><nd ref="1"/><nd ref="2"/><tag k="highway" v="raceway"/></way>
+  <relation id="20">
+    <member type="way" ref="10" role=""/>
+    <tag k="wikidata" v="Q999"/>
+    <tag k="type" v="circuit"/>
+    <tag k="name" v="Wikidata Circuit"/>
+  </relation>
+  <relation id="21">
+    <member type="way" ref="10" role=""/>
+    <tag k="highway" v="raceway"/>
+    <tag k="name" v="Other Raceway"/>
+  </relation>
+</osm>`, 'Q999');
+
+  const fetchedUrls = [];
+  const result = await supplementPayloadWithMissingRelationWays(payload, {
+    wikidataId: 'Q999',
+    fetch: async (url) => {
+      fetchedUrls.push(url);
+      return { ok: true, text: async () => '<osm><relation id="20"></relation></osm>' };
+    },
+  });
+
+  // Should have fetched only relation 20 (the wikidata match), not relation 21
+  assert.equal(fetchedUrls.length, 1, 'should fetch exactly one relation');
+  assert.ok(fetchedUrls[0]?.includes('/relation/20'), 'should have fetched relation 20');
+  assert.equal(result, payload); // no missing members, so payload unchanged
+});
+
 test('buildAdaptiveOsmApiMargins grows from a smaller starting bbox up to the requested cap', () => {
   assert.deepEqual(buildAdaptiveOsmApiMargins([0.02, 0.04, 0.08]), [0.0025, 0.005, 0.01, 0.02, 0.04, 0.08]);
   assert.deepEqual(buildAdaptiveOsmApiMargins([0.015, 0.03, 0.06]), [0.001875, 0.00375, 0.0075, 0.015, 0.03, 0.06]);

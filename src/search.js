@@ -1948,7 +1948,8 @@ export function buildTrackGeometryFromOverpassPayload(payload, trackName) {
 }
 
 // Fetch raceway geometry using Overpass bbox query around Wikidata P625 coordinates.
-// Much more reliable than P402 (stale OSM relation IDs) or name searches (timeouts).
+// When a wikidataId is available the query targets the exact circuit via its wikidata tag.
+// Falls back to highway/type tag matching when no wikidataId is provided.
 export async function fetchTrackGeometry(lat, lon, signal, trackName, options = {}) {
   const localGeometry = options.skipLocal ? null : await getTrackGeometry(options.wikidataId);
   if (localGeometry) {
@@ -1962,7 +1963,9 @@ export async function fetchTrackGeometry(lat, lon, signal, trackName, options = 
   // ~9km margin — covers any F1 circuit layout but avoids pulling in distant tracks
   const MARGIN = 0.08;
   const bbox = `${lat - MARGIN},${lon - MARGIN},${lat + MARGIN},${lon + MARGIN}`;
-  const query = `[out:json][timeout:30];(way["highway"="raceway"](${bbox});relation["highway"="raceway"](${bbox});relation["type"="circuit"](${bbox}););out geom;`;
+  const query = options.wikidataId
+    ? `[out:json][timeout:30];(relation["wikidata"="${options.wikidataId}"](${bbox}););out geom;`
+    : `[out:json][timeout:30];(way["highway"="raceway"](${bbox});relation["highway"="raceway"](${bbox});relation["type"="circuit"](${bbox}););out geom;`;
 
   const queryResults = await runOverpassQueries(query, signal);
   const geometryResults = queryResults
