@@ -1,7 +1,20 @@
+import type { Font } from 'opentype.js';
+import type { Point2D } from '../types/geometry.js';
+import type { OutlinePoints, BasePlate } from '../types/model.js';
+import type {
+  Rect2D,
+  TextPlacementCandidate,
+  FittedTextLayout,
+  RankedTextPlacement,
+  RankedPlacements,
+} from '../types/text.js';
+
 import { buildMultilineContours, polygonBounds } from './contours.js';
+import type { MultilineContours } from './contours.js';
 import { findOptimalLineBreaks, measureWordWidths, MAX_TEXT_LINES } from './line-breaking.js';
 import { loadFont } from './font-loader.js';
 import { scoreTextFit, computeSizeWindowMultiplier, computeLineCountMultiplier, computeTextClearanceMultiplier } from './scoring.js';
+import type { ClearanceContext } from './scoring.js';
 
 export const MIN_CELL_MM = 3;
 export const MIN_GRID_CELLS_PER_SIDE = 8;
@@ -12,8 +25,15 @@ const MAX_PREFERRED_HEIGHT_MM = 24 * 25.4 / 72;
 const MIN_TEXT_HEIGHT_MM = 2;
 
 // Performance counters for benchmarking — gated behind __perfCounters so they add zero cost in production.
-let __perfCounters = null;
-export function __resetPerfCounters() {
+interface PlacementCounters {
+  computePlacementMask: number;
+  findPlacementCandidates: number;
+  rankTextPlacements: number;
+  computeRankedTextPlacements: number;
+}
+
+let __perfCounters: PlacementCounters | null = null;
+export function __resetPerfCounters(): void {
   __perfCounters = {
     computePlacementMask: 0,
     findPlacementCandidates: 0,
@@ -21,15 +41,15 @@ export function __resetPerfCounters() {
     computeRankedTextPlacements: 0,
   };
 }
-export function __getPerfCounters() { return __perfCounters ? { ...__perfCounters } : null; }
-export function __disablePerfCounters() { __perfCounters = null; }
+export function __getPerfCounters(): PlacementCounters | null { return __perfCounters ? { ...__perfCounters } : null; }
+export function __disablePerfCounters(): void { __perfCounters = null; }
 
-function pointInPolygon(point, polygon) {
+function pointInPolygon(point: Point2D, polygon: Point2D[]): boolean {
   let inside = false;
 
   for (let index = 0, previous = polygon.length - 1; index < polygon.length; previous = index, index += 1) {
-    const a = polygon[index];
-    const b = polygon[previous];
+    const a = polygon[index]!;
+    const b = polygon[previous]!;
     const intersects = ((a.y > point.y) !== (b.y > point.y))
       && (point.x < ((b.x - a.x) * (point.y - a.y)) / ((b.y - a.y) || Number.EPSILON) + a.x);
 
@@ -41,11 +61,11 @@ function pointInPolygon(point, polygon) {
   return inside;
 }
 
-function orientation(a, b, c) {
+function orientation(a: Point2D, b: Point2D, c: Point2D): number {
   return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
 }
 
-function pointOnSegment(point, a, b) {
+function pointOnSegment(point: Point2D, a: Point2D, b: Point2D): boolean {
   const cross = orientation(a, b, point);
   if (Math.abs(cross) > SEGMENT_INTERSECTION_EPSILON) {
     return false;
@@ -57,7 +77,7 @@ function pointOnSegment(point, a, b) {
     && point.y <= Math.max(a.y, b.y) + SEGMENT_INTERSECTION_EPSILON;
 }
 
-function segmentsIntersect(a, b, c, d) {
+function segmentsIntersect(a: Point2D, b: Point2D, c: Point2D, d: Point2D): boolean {
   const o1 = orientation(a, b, c);
   const o2 = orientation(a, b, d);
   const o3 = orientation(c, d, a);
@@ -77,12 +97,12 @@ function segmentsIntersect(a, b, c, d) {
     || pointOnSegment(b, c, d);
 }
 
-export function rectIntersectsPolygon(rect, polygon) {
+export function rectIntersectsPolygon(rect: Rect2D, polygon: Point2D[] | null | undefined): boolean {
   if (!polygon?.length) {
     return false;
   }
 
-  const corners = [
+  const corners: Point2D[] = [
     { x: rect.minX, y: rect.minY },
     { x: rect.maxX, y: rect.minY },
     { x: rect.maxX, y: rect.maxY },
@@ -102,16 +122,16 @@ export function rectIntersectsPolygon(rect, polygon) {
     return true;
   }
 
-  const rectangleEdges = [
-    [corners[0], corners[1]],
-    [corners[1], corners[2]],
-    [corners[2], corners[3]],
-    [corners[3], corners[0]],
+  const rectangleEdges: [Point2D, Point2D][] = [
+    [corners[0]!, corners[1]!],
+    [corners[1]!, corners[2]!],
+    [corners[2]!, corners[3]!],
+    [corners[3]!, corners[0]!],
   ];
 
   for (let index = 0; index < polygon.length; index += 1) {
-    const a = polygon[index];
-    const b = polygon[(index + 1) % polygon.length];
+    const a = polygon[index]!;
+    const b = polygon[(index + 1) % polygon.length]!;
 
     for (const [rectA, rectB] of rectangleEdges) {
       if (segmentsIntersect(rectA, rectB, a, b)) {
@@ -123,7 +143,7 @@ export function rectIntersectsPolygon(rect, polygon) {
   return false;
 }
 
-function rectFullyInsidePolygon(rect, polygon) {
+function rectFullyInsidePolygon(rect: Rect2D, polygon: Point2D[] | null | undefined): boolean {
   if (!polygon?.length) {
     return false;
   }
@@ -136,7 +156,17 @@ function rectFullyInsidePolygon(rect, polygon) {
   ].every(corner => pointInPolygon(corner, polygon));
 }
 
-function createPlacementGrid(basePlate) {
+/** Internal grid descriptor produced by createPlacementGrid(). */
+interface PlacementGrid {
+  columns: number;
+  rows: number;
+  cellWidth: number;
+  cellHeight: number;
+  edgeMarginCells: number;
+  obstacleMarginCells: number;
+}
+
+function createPlacementGrid(basePlate: Rect2D): PlacementGrid {
   const longSide = Math.max(basePlate.width, basePlate.height);
   const shortSide = Math.min(basePlate.width, basePlate.height);
   const longCells = Math.max(MIN_GRID_CELLS_PER_SIDE, Math.floor(longSide / MIN_CELL_MM));
@@ -159,7 +189,7 @@ function createPlacementGrid(basePlate) {
   };
 }
 
-function dilateBlockedCells(mask, radius) {
+function dilateBlockedCells(mask: boolean[][], radius: number): boolean[][] {
   if (radius <= 0) {
     return mask;
   }
@@ -170,7 +200,7 @@ function dilateBlockedCells(mask, radius) {
 
   for (let row = 0; row < rows; row += 1) {
     for (let column = 0; column < columns; column += 1) {
-      if (!mask[row][column]) {
+      if (!mask[row]![column]) {
         continue;
       }
 
@@ -179,7 +209,7 @@ function dilateBlockedCells(mask, radius) {
           const nextRow = row + deltaY;
           const nextColumn = column + deltaX;
           if (nextRow >= 0 && nextRow < rows && nextColumn >= 0 && nextColumn < columns) {
-            dilated[nextRow][nextColumn] = true;
+            dilated[nextRow]![nextColumn] = true;
           }
         }
       }
@@ -189,26 +219,26 @@ function dilateBlockedCells(mask, radius) {
   return dilated;
 }
 
-function buildDistanceMap(mask) {
+function buildDistanceMap(mask: boolean[][]): number[][] {
   const rows = mask.length;
   const columns = mask[0]?.length ?? 0;
-  const distances = Array.from({ length: rows }, () => Array.from({ length: columns }, () => Infinity));
-  const queue = [];
+  const distances: number[][] = Array.from({ length: rows }, () => Array.from({ length: columns }, () => Infinity));
+  const queue: [number, number][] = [];
 
   for (let row = 0; row < rows; row += 1) {
     for (let column = 0; column < columns; column += 1) {
-      if (!mask[row][column]) {
+      if (!mask[row]![column]) {
         continue;
       }
 
-      distances[row][column] = 0;
+      distances[row]![column] = 0;
       queue.push([row, column]);
     }
   }
 
   for (let index = 0; index < queue.length; index += 1) {
-    const [row, column] = queue[index];
-    const nextDistance = distances[row][column] + 1;
+    const [row, column] = queue[index]!;
+    const nextDistance = distances[row]![column]! + 1;
 
     for (let deltaY = -1; deltaY <= 1; deltaY += 1) {
       for (let deltaX = -1; deltaX <= 1; deltaX += 1) {
@@ -222,8 +252,8 @@ function buildDistanceMap(mask) {
           continue;
         }
 
-        if (nextDistance < distances[nextRow][nextColumn]) {
-          distances[nextRow][nextColumn] = nextDistance;
+        if (nextDistance < distances[nextRow]![nextColumn]!) {
+          distances[nextRow]![nextColumn] = nextDistance;
           queue.push([nextRow, nextColumn]);
         }
       }
@@ -233,7 +263,15 @@ function buildDistanceMap(mask) {
   return distances;
 }
 
-function computeCandidateTrackClearance(candidate, distanceMap) {
+/** Minimal candidate shape for clearance computation. */
+interface CandidateCell {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
+function computeCandidateTrackClearance(candidate: CandidateCell, distanceMap: number[][]): number {
   let trackClearance = Infinity;
 
   for (let row = candidate.top; row <= candidate.bottom; row += 1) {
@@ -245,7 +283,7 @@ function computeCandidateTrackClearance(candidate, distanceMap) {
   return Number.isFinite(trackClearance) ? trackClearance : 0;
 }
 
-function computeCentreDistance(rect, basePlate) {
+function computeCentreDistance(rect: Rect2D, basePlate: Rect2D): number {
   const rectCenterX = rect.minX + rect.width / 2;
   const rectCenterY = rect.minY + rect.height / 2;
   const baseCenterX = basePlate.minX + basePlate.width / 2;
@@ -254,12 +292,19 @@ function computeCentreDistance(rect, basePlate) {
   return Math.min(1, Math.hypot(rectCenterX - baseCenterX, rectCenterY - baseCenterY) / maxDistance);
 }
 
-export function computePlacementMask(allObstacleOutlines, primaryOutline, basePlate) {
+/** The result of computePlacementMask(). */
+export interface PlacementMask extends PlacementGrid {
+  blockedBeforeDilation: boolean[][];
+  blocked: boolean[][];
+  outside: boolean[][];
+}
+
+export function computePlacementMask(allObstacleOutlines: OutlinePoints[], primaryOutline: OutlinePoints | null | undefined, basePlate: Rect2D): PlacementMask {
   if (__perfCounters) { __perfCounters.computePlacementMask++; }
   const grid = createPlacementGrid(basePlate);
-  const mask = Array.from({ length: grid.rows }, () => Array.from({ length: grid.columns }, () => false));
-  const outside = Array.from({ length: grid.rows }, () => Array.from({ length: grid.columns }, () => true));
-  const hasOuterRing = primaryOutline?.outerRing?.length >= 3;
+  const mask: boolean[][] = Array.from({ length: grid.rows }, () => Array.from({ length: grid.columns }, () => false));
+  const outside: boolean[][] = Array.from({ length: grid.rows }, () => Array.from({ length: grid.columns }, () => true));
+  const hasOuterRing = (primaryOutline?.outerRing?.length ?? 0) >= 3;
 
   for (let row = 0; row < grid.rows; row += 1) {
     for (let column = 0; column < grid.columns; column += 1) {
@@ -267,21 +312,23 @@ export function computePlacementMask(allObstacleOutlines, primaryOutline, basePl
       const minY = basePlate.minY + row * grid.cellHeight;
       const x = minX + grid.cellWidth / 2;
       const y = minY + grid.cellHeight / 2;
-      const rect = {
+      const rect: Rect2D = {
         minX,
         minY,
         maxX: minX + grid.cellWidth,
         maxY: minY + grid.cellHeight,
+        width: grid.cellWidth,
+        height: grid.cellHeight,
       };
 
-      mask[row][column] = allObstacleOutlines.some(outline => {
+      mask[row]![column] = allObstacleOutlines.some(outline => {
         const intersects = rectIntersectsPolygon(rect, outline?.outerRing);
         const insideHole = intersects && (outline?.holes ?? []).some(
           hole => hole.length >= 3 && rectFullyInsidePolygon(rect, hole),
         );
         return intersects && !insideHole;
       });
-      outside[row][column] = !hasOuterRing || !pointInPolygon({ x, y }, primaryOutline.outerRing);
+      outside[row]![column] = !hasOuterRing || !pointInPolygon({ x, y }, primaryOutline!.outerRing);
     }
   }
 
@@ -295,7 +342,7 @@ export function computePlacementMask(allObstacleOutlines, primaryOutline, basePl
         || row >= grid.rows - grid.edgeMarginCells
         || column >= grid.columns - grid.edgeMarginCells
       ) {
-        dilated[row][column] = true;
+        dilated[row]![column] = true;
       }
     }
   }
@@ -308,37 +355,37 @@ export function computePlacementMask(allObstacleOutlines, primaryOutline, basePl
   };
 }
 
-function buildPrefixSum(grid) {
+function buildPrefixSum(grid: boolean[][]): number[][] {
   const rows = grid.length;
   const columns = grid[0]?.length ?? 0;
-  const prefix = Array.from({ length: rows + 1 }, () => Array.from({ length: columns + 1 }, () => 0));
+  const prefix: number[][] = Array.from({ length: rows + 1 }, () => Array.from({ length: columns + 1 }, () => 0));
 
   for (let row = 0; row < rows; row += 1) {
     for (let column = 0; column < columns; column += 1) {
-      prefix[row + 1][column + 1] = (grid[row][column] ? 1 : 0)
-        + prefix[row][column + 1]
-        + prefix[row + 1][column]
-        - prefix[row][column];
+      prefix[row + 1]![column + 1] = (grid[row]![column] ? 1 : 0)
+        + prefix[row]![column + 1]!
+        + prefix[row + 1]![column]!
+        - prefix[row]![column]!;
     }
   }
 
   return prefix;
 }
 
-function sumPrefixArea(prefix, left, top, right, bottom) {
-  return prefix[bottom + 1][right + 1]
-    - prefix[top][right + 1]
-    - prefix[bottom + 1][left]
-    + prefix[top][left];
+function sumPrefixArea(prefix: number[][], left: number, top: number, right: number, bottom: number): number {
+  return prefix[bottom + 1]![right + 1]!
+    - prefix[top]![right + 1]!
+    - prefix[bottom + 1]![left]!
+    + prefix[top]![left]!;
 }
 
-function rectIntersectionArea(a, b) {
+function rectIntersectionArea(a: Rect2D, b: Rect2D): number {
   const overlapWidth = Math.max(0, Math.min(a.maxX, b.maxX) - Math.max(a.minX, b.minX));
   const overlapHeight = Math.max(0, Math.min(a.maxY, b.maxY) - Math.max(a.minY, b.minY));
   return overlapWidth * overlapHeight;
 }
 
-function candidateToBounds(candidate, basePlate, grid) {
+function candidateToBounds(candidate: CandidateCell, basePlate: Rect2D, grid: PlacementGrid): Rect2D {
   const minX = basePlate.minX + candidate.left * grid.cellWidth;
   const maxX = basePlate.minX + (candidate.right + 1) * grid.cellWidth;
   const minY = basePlate.minY + candidate.top * grid.cellHeight;
@@ -354,8 +401,23 @@ function candidateToBounds(candidate, basePlate, grid) {
   };
 }
 
-function dedupeCandidates(candidates, basePlate, grid, maxCandidates) {
-  const deduped = [];
+/** Internal rectangle found by the histogram sweep, before deduplication. */
+interface RawCandidate extends CandidateCell {
+  widthCells: number;
+  heightCells: number;
+  areaCells: number;
+  fractionOutside: number;
+  trackClearance: number;
+}
+
+/** Deduplicated candidate with mm bounds and area, before final index/clearance fields. */
+interface DedupedCandidate extends RawCandidate {
+  bounds: Rect2D;
+  area: number;
+}
+
+function dedupeCandidates(candidates: RawCandidate[], basePlate: Rect2D, grid: PlacementGrid, maxCandidates: number): DedupedCandidate[] {
+  const deduped: DedupedCandidate[] = [];
 
   for (const candidate of candidates) {
     const bounds = candidateToBounds(candidate, basePlate, grid);
@@ -382,26 +444,39 @@ function dedupeCandidates(candidates, basePlate, grid, maxCandidates) {
   return deduped;
 }
 
-export function findPlacementCandidates(basePlate, placementMask, maxCandidates = MAX_CANDIDATES) {
+/** Result of findPlacementCandidates(). */
+export interface PlacementCandidatesResult {
+  candidates: TextPlacementCandidate[];
+  distanceMap: number[][];
+  maxTrackClearance: number;
+}
+
+/** Stack item used during the histogram sweep. */
+interface StackItem {
+  start: number;
+  height: number;
+}
+
+export function findPlacementCandidates(basePlate: Rect2D, placementMask: PlacementMask, maxCandidates: number = MAX_CANDIDATES): PlacementCandidatesResult {
   if (__perfCounters) { __perfCounters.findPlacementCandidates++; }
-  const heights = Array.from({ length: placementMask.columns }, () => 0);
-  const rectangles = [];
+  const heights: number[] = Array.from({ length: placementMask.columns }, () => 0);
+  const rectangles: RawCandidate[] = [];
   const outsidePrefix = buildPrefixSum(placementMask.outside ?? []);
   const blockedDistanceMap = buildDistanceMap(placementMask.blockedBeforeDilation ?? placementMask.blocked ?? []);
   const maxTrackClearance = Math.max(placementMask.rows - 1, placementMask.columns - 1) || 1;
 
   for (let row = 0; row < placementMask.rows; row += 1) {
     for (let column = 0; column < placementMask.columns; column += 1) {
-      heights[column] = placementMask.blocked[row][column] ? 0 : heights[column] + 1;
+      heights[column] = placementMask.blocked[row]![column] ? 0 : (heights[column] ?? 0) + 1;
     }
 
-    const stack = [];
+    const stack: StackItem[] = [];
     for (let column = 0; column <= placementMask.columns; column += 1) {
-      const currentHeight = column < placementMask.columns ? heights[column] : 0;
+      const currentHeight = column < placementMask.columns ? (heights[column] ?? 0) : 0;
       let start = column;
 
-      while (stack.length && stack[stack.length - 1].height > currentHeight) {
-        const item = stack.pop();
+      while (stack.length && stack[stack.length - 1]!.height > currentHeight) {
+        const item = stack.pop()!;
         start = item.start;
         if (item.height <= 0 || column <= item.start) {
           continue;
@@ -431,7 +506,7 @@ export function findPlacementCandidates(basePlate, placementMask, maxCandidates 
         });
       }
 
-      if (!stack.length || stack[stack.length - 1].height < currentHeight) {
+      if (!stack.length || stack[stack.length - 1]!.height < currentHeight) {
         stack.push({ start, height: currentHeight });
       }
     }
@@ -444,7 +519,7 @@ export function findPlacementCandidates(basePlate, placementMask, maxCandidates 
       || a.left - b.left
   ));
 
-  const candidates = dedupeCandidates(rectangles, basePlate, placementMask, maxCandidates).map((candidate, index) => ({
+  const candidates: TextPlacementCandidate[] = dedupeCandidates(rectangles, basePlate, placementMask, maxCandidates).map((candidate, index) => ({
     ...candidate,
     index,
     fractionOutside: candidate.fractionOutside ?? 0,
@@ -456,8 +531,8 @@ export function findPlacementCandidates(basePlate, placementMask, maxCandidates 
   return { candidates, distanceMap: blockedDistanceMap, maxTrackClearance };
 }
 
-function scaleLayoutsToRect(multilines, rect) {
-  const layouts = [];
+function scaleLayoutsToRect(multilines: MultilineContours[], rect: Rect2D): Omit<FittedTextLayout, 'score'>[] {
+  const layouts: Omit<FittedTextLayout, 'score'>[] = [];
 
   for (const multiline of multilines) {
     const fittedScale = Math.min(
@@ -491,14 +566,14 @@ function scaleLayoutsToRect(multilines, rect) {
   return layouts;
 }
 
-function precomputeMultilineLayouts(text, font, cache) {
+function precomputeMultilineLayouts(text: string, font: Font, cache: Map<string, import('./contours.js').LineMeasurement | null>): MultilineContours[] {
   const words = String(text).split(/\s+/u).filter(Boolean);
   if (!words.length) {
     return [];
   }
 
   const { wordWidths, spaceWidth } = measureWordWidths(words, font, cache);
-  const multilines = [];
+  const multilines: MultilineContours[] = [];
   const maxLines = Math.min(MAX_TEXT_LINES, words.length);
 
   for (let lineCount = 1; lineCount <= maxLines; lineCount += 1) {
@@ -513,15 +588,21 @@ function precomputeMultilineLayouts(text, font, cache) {
   return multilines;
 }
 
-function findBestPrecomputedLayoutForLocation(multilines, candidate, clearanceContext = null) {
+/** Result of finding the best layout for a single candidate location. */
+interface BestLayoutResult {
+  layout: FittedTextLayout;
+  score: number;
+}
+
+function findBestPrecomputedLayoutForLocation(multilines: MultilineContours[], candidate: TextPlacementCandidate, clearanceContext: ClearanceContext | null = null): BestLayoutResult | null {
   const layouts = scaleLayoutsToRect(multilines, candidate.bounds);
   if (!layouts.length) { return null; }
 
-  let bestLayout = null;
+  let bestLayout: Omit<FittedTextLayout, 'score'> | null = null;
   let bestScore = -Infinity;
 
   for (const layout of layouts) {
-    const score = scoreTextFit(candidate.bounds, layout, candidate, clearanceContext);
+    const score = scoreTextFit(candidate.bounds, { ...layout, score: 0 }, candidate, clearanceContext);
     if (score > bestScore) {
       bestScore = score;
       bestLayout = layout;
@@ -531,14 +612,14 @@ function findBestPrecomputedLayoutForLocation(multilines, candidate, clearanceCo
   return bestLayout ? { layout: { ...bestLayout, score: bestScore }, score: bestScore } : null;
 }
 
-export function compareRankedTextPlacements(a, b) {
+export function compareRankedTextPlacements(a: RankedTextPlacement, b: RankedTextPlacement): number {
   return b.score - a.score
     || a.candidateIndex - b.candidateIndex;
 }
 
-export function rankTextPlacements(text, font, candidates, clearanceContext = null) {
+export function rankTextPlacements(text: string, font: Font, candidates: TextPlacementCandidate[], clearanceContext: ClearanceContext | null = null): RankedTextPlacement[] {
   if (__perfCounters) { __perfCounters.rankTextPlacements++; }
-  const cache = new Map();
+  const cache = new Map<string, import('./contours.js').LineMeasurement | null>();
 
   // Pre-compute all multiline layouts once — line breaks and glyph contours
   // depend only on text + line count, not on the candidate rectangle.
@@ -547,34 +628,35 @@ export function rankTextPlacements(text, font, candidates, clearanceContext = nu
     return [];
   }
 
-  const locationResults = candidates
+  const locationResults: RankedTextPlacement[] = candidates
     .map((candidate, candidateIndex) => {
       const best = findBestPrecomputedLayoutForLocation(multilines, candidate, clearanceContext);
       if (!best) { return null; }
       return { candidate, candidateIndex, layout: best.layout, score: best.score };
     })
-    .filter(Boolean);
+    .filter((r): r is RankedTextPlacement => r !== null);
 
   locationResults.sort(compareRankedTextPlacements);
 
   return locationResults.slice(0, 3);
 }
 
-function scaleRing(points, scale) {
+function scaleRing(points: Point2D[] | null | undefined, scale: number): Point2D[] {
   return (points ?? []).map(point => ({
     x: point.x * scale,
     y: point.y * scale,
   }));
 }
 
-export function scaleOutline(outlinePoints, scale) {
+export function scaleOutline(outlinePoints: OutlinePoints | Point2D[] | null | undefined, scale: number): OutlinePoints {
+  const asOutline = outlinePoints as OutlinePoints | null | undefined;
   return {
-    outerRing: scaleRing(outlinePoints?.outerRing ?? outlinePoints ?? [], scale),
-    holes: (outlinePoints?.holes ?? []).map(hole => scaleRing(hole, scale)),
+    outerRing: scaleRing(asOutline?.outerRing ?? (outlinePoints as Point2D[] | null | undefined) ?? [], scale),
+    holes: (asOutline?.holes ?? []).map(hole => scaleRing(hole, scale)),
   };
 }
 
-export function createScaledBounds(bounds, scale) {
+export function createScaledBounds(bounds: BasePlate, scale: number): Rect2D {
   return {
     minX: bounds.minX * scale,
     minY: bounds.minY * scale,
@@ -585,7 +667,19 @@ export function createScaledBounds(bounds, scale) {
   };
 }
 
-export function computeRankedTextPlacements(text, outlinePoints, basePlate, scale, options = {}) {
+/** Options for computeRankedTextPlacements(). */
+interface ComputeRankedOptions {
+  font?: import('opentype.js').Font | null;
+  allOutlinePoints?: OutlinePoints[] | null;
+}
+
+export function computeRankedTextPlacements(
+  text: string,
+  outlinePoints: OutlinePoints | null | undefined,
+  basePlate: BasePlate,
+  scale: number,
+  options: ComputeRankedOptions = {},
+): RankedPlacements | null {
   if (__perfCounters) { __perfCounters.computeRankedTextPlacements++; }
   const normalizedText = String(text ?? '').trim();
   if (!normalizedText) {
@@ -604,7 +698,7 @@ export function computeRankedTextPlacements(text, outlinePoints, basePlate, scal
     return null;
   }
 
-  const clearanceContext = {
+  const clearanceContext: ClearanceContext = {
     distanceMap,
     maxTrackClearance,
     cellWidth: placementMask.cellWidth,

@@ -1,6 +1,12 @@
 import earcut from 'earcut';
 
+import type { Triangle, Vertex } from '../types/model.js';
+import type { RankedPlacements, FittedTextLayout, TextPlacementCandidate } from '../types/text.js';
+import type { Point2D } from '../types/geometry.js';
+import type { Rect2D } from '../types/text.js';
+
 import { buildContourTree, collectShapes, translateAndScaleContours, translateAndScaleBounds } from './contours.js';
+import type { ContourShape } from './contours.js';
 
 export const TEXT_HEIGHT_MM = 0.8;
 export const DEFAULT_TEXT_POSITION_RANK = 1;
@@ -9,41 +15,41 @@ const MIN_TEXT_HEIGHT_MM = 2;
 // Keep MIN_TEXT_HEIGHT_MM accessible (used in tests and debug)
 export { MIN_TEXT_HEIGHT_MM };
 
-export function normalizeTextPositionRank(value) {
+export function normalizeTextPositionRank(value: unknown): number {
   const normalized = Math.trunc(Number(value));
   return Number.isFinite(normalized) && normalized >= 1 ? normalized : DEFAULT_TEXT_POSITION_RANK;
 }
 
-function createVertex(x, y, z) {
+function createVertex(x: number, y: number, z: number): Vertex {
   return { x, y, z };
 }
 
-function addTriangle(triangles, a, b, c) {
+function addTriangle(triangles: Triangle[], a: Vertex, b: Vertex, c: Vertex): void {
   triangles.push([a, b, c]);
 }
 
-function addQuad(triangles, a, b, c, d) {
+function addQuad(triangles: Triangle[], a: Vertex, b: Vertex, c: Vertex, d: Vertex): void {
   addTriangle(triangles, a, b, c);
   addTriangle(triangles, a, c, d);
 }
 
-function signedArea(points) {
+function signedArea(points: Point2D[]): number {
   let area = 0;
 
   for (let index = 0; index < points.length; index += 1) {
-    const current = points[index];
-    const next = points[(index + 1) % points.length];
+    const current = points[index]!;
+    const next = points[(index + 1) % points.length]!;
     area += current.x * next.y - next.x * current.y;
   }
 
   return area / 2;
 }
 
-function triangulateShape(shape, minZ, maxZ) {
+function triangulateShape(shape: ContourShape, minZ: number, maxZ: number): Triangle[] {
   const rings = [shape.outer, ...shape.holes];
-  const flattened = [];
-  const holeIndices = [];
-  const vertices2d = [];
+  const flattened: number[] = [];
+  const holeIndices: number[] = [];
+  const vertices2d: Point2D[] = [];
 
   for (const ring of rings) {
     if (flattened.length > 0) {
@@ -59,15 +65,15 @@ function triangulateShape(shape, minZ, maxZ) {
   const indices = earcut(flattened, holeIndices.length ? holeIndices : null);
   const bottomVertices = vertices2d.map(point => createVertex(point.x, point.y, minZ));
   const topVertices = vertices2d.map(point => createVertex(point.x, point.y, maxZ));
-  const triangles = [];
+  const triangles: Triangle[] = [];
 
   for (let index = 0; index < indices.length; index += 3) {
-    const a = indices[index];
-    const b = indices[index + 1];
-    const c = indices[index + 2];
+    const a = indices[index]!;
+    const b = indices[index + 1]!;
+    const c = indices[index + 2]!;
 
-    addTriangle(triangles, topVertices[a], topVertices[b], topVertices[c]);
-    addTriangle(triangles, bottomVertices[c], bottomVertices[b], bottomVertices[a]);
+    addTriangle(triangles, topVertices[a]!, topVertices[b]!, topVertices[c]!);
+    addTriangle(triangles, bottomVertices[c]!, bottomVertices[b]!, bottomVertices[a]!);
   }
 
   let ringOffset = 0;
@@ -78,9 +84,9 @@ function triangulateShape(shape, minZ, maxZ) {
       const current = ringOffset + index;
       const next = ringOffset + ((index + 1) % ring.length);
       if (clockwise) {
-        addQuad(triangles, bottomVertices[next], bottomVertices[current], topVertices[current], topVertices[next]);
+        addQuad(triangles, bottomVertices[next]!, bottomVertices[current]!, topVertices[current]!, topVertices[next]!);
       } else {
-        addQuad(triangles, bottomVertices[current], bottomVertices[next], topVertices[next], topVertices[current]);
+        addQuad(triangles, bottomVertices[current]!, bottomVertices[next]!, topVertices[next]!, topVertices[current]!);
       }
     }
 
@@ -90,7 +96,21 @@ function triangulateShape(shape, minZ, maxZ) {
   return triangles;
 }
 
-export function selectAndExpandPlacement(rankedResult, options = {}) {
+/** The result of selectAndExpandPlacement — a layout with absolute contour coordinates. */
+export interface ExpandedPlacement extends FittedTextLayout {
+  candidate: TextPlacementCandidate;
+  candidateIndex: number;
+  candidateCount: number;
+  placementRank: number;
+  placementCount: number;
+  contours: Point2D[][];
+  lineBounds: Rect2D[];
+}
+
+export function selectAndExpandPlacement(
+  rankedResult: RankedPlacements | null | undefined,
+  options: { textPositionRank?: number } = {},
+): ExpandedPlacement | null {
   if (!rankedResult?.placements?.length) {
     return null;
   }
@@ -100,7 +120,7 @@ export function selectAndExpandPlacement(rankedResult, options = {}) {
     normalizeTextPositionRank(options.textPositionRank) - 1,
     placements.length - 1,
   );
-  const selected = placements[placementRank];
+  const selected = placements[placementRank]!;
   const { candidate, candidateIndex, layout, score } = selected;
   const offsetX = candidate.bounds.minX + (candidate.bounds.width - layout.fittedWidth) / 2 - layout.bounds.minX * layout.scale;
   const offsetY = candidate.bounds.minY + (candidate.bounds.height - layout.fittedHeight) / 2 - layout.bounds.minY * layout.scale;
@@ -120,7 +140,10 @@ export function selectAndExpandPlacement(rankedResult, options = {}) {
   };
 }
 
-export function buildTextMeshFromRankedPlacements(rankedResult, options = {}) {
+export function buildTextMeshFromRankedPlacements(
+  rankedResult: RankedPlacements | null | undefined,
+  options: { textPositionRank?: number; baseThickness?: number; textHeight?: number } = {},
+): Triangle[] {
   const expanded = selectAndExpandPlacement(rankedResult, options);
   if (!expanded?.contours?.length) {
     return [];

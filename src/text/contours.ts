@@ -1,34 +1,42 @@
+import type { Font, PathCommand } from 'opentype.js';
+import type { Point2D } from '../types/geometry.js';
+import type { Rect2D } from '../types/text.js';
+
 export const CURVE_SEGMENTS = 8;
 
 // Performance counters for benchmarking — gated behind __perfCounters so they add zero cost in production.
-let __perfCounters = null;
-export function __resetPerfCounters() {
+interface ContoursCounters {
+  buildMultilineContours: number;
+}
+
+let __perfCounters: ContoursCounters | null = null;
+export function __resetPerfCounters(): void {
   __perfCounters = { buildMultilineContours: 0 };
 }
-export function __getPerfCounters() { return __perfCounters ? { ...__perfCounters } : null; }
-export function __disablePerfCounters() { __perfCounters = null; }
+export function __getPerfCounters(): ContoursCounters | null { return __perfCounters ? { ...__perfCounters } : null; }
+export function __disablePerfCounters(): void { __perfCounters = null; }
 
-function signedArea(points) {
+function signedArea(points: Point2D[]): number {
   let area = 0;
 
   for (let index = 0; index < points.length; index += 1) {
-    const current = points[index];
-    const next = points[(index + 1) % points.length];
+    const current = points[index]!;
+    const next = points[(index + 1) % points.length]!;
     area += current.x * next.y - next.x * current.y;
   }
 
   return area / 2;
 }
 
-function ensureClockwise(points) {
+function ensureClockwise(points: Point2D[]): Point2D[] {
   return signedArea(points) <= 0 ? points : [...points].reverse();
 }
 
-function ensureCounterClockwise(points) {
+function ensureCounterClockwise(points: Point2D[]): Point2D[] {
   return signedArea(points) >= 0 ? points : [...points].reverse();
 }
 
-export function polygonBounds(points) {
+export function polygonBounds(points: Point2D[]): Rect2D {
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
@@ -51,12 +59,12 @@ export function polygonBounds(points) {
   };
 }
 
-function pointInPolygon(point, polygon) {
+function pointInPolygon(point: Point2D, polygon: Point2D[]): boolean {
   let inside = false;
 
   for (let index = 0, previous = polygon.length - 1; index < polygon.length; previous = index, index += 1) {
-    const a = polygon[index];
-    const b = polygon[previous];
+    const a = polygon[index]!;
+    const b = polygon[previous]!;
     const intersects = ((a.y > point.y) !== (b.y > point.y))
       && (point.x < ((b.x - a.x) * (point.y - a.y)) / ((b.y - a.y) || Number.EPSILON) + a.x);
 
@@ -68,11 +76,11 @@ function pointInPolygon(point, polygon) {
   return inside;
 }
 
-function normalizeContour(points) {
-  const contour = [];
+function normalizeContour(points: Point2D[]): Point2D[] | null {
+  const contour: Point2D[] = [];
 
   for (const point of points) {
-    if (!Number.isFinite(point?.x) || !Number.isFinite(point?.y)) {
+    if (!Number.isFinite((point as Partial<Point2D>)?.x) || !Number.isFinite((point as Partial<Point2D>)?.y)) {
       continue;
     }
 
@@ -83,8 +91,8 @@ function normalizeContour(points) {
   }
 
   if (contour.length >= 2) {
-    const first = contour[0];
-    const last = contour[contour.length - 1];
+    const first = contour[0]!;
+    const last = contour[contour.length - 1]!;
     if (first.x === last.x && first.y === last.y) {
       contour.pop();
     }
@@ -93,8 +101,8 @@ function normalizeContour(points) {
   return contour.length >= 3 ? contour : null;
 }
 
-function sampleQuadraticCurve(start, control, end, segments) {
-  const points = [];
+function sampleQuadraticCurve(start: Point2D, control: Point2D, end: Point2D, segments: number): Point2D[] {
+  const points: Point2D[] = [];
 
   for (let step = 1; step <= segments; step += 1) {
     const t = step / segments;
@@ -108,8 +116,8 @@ function sampleQuadraticCurve(start, control, end, segments) {
   return points;
 }
 
-function sampleCubicCurve(start, controlA, controlB, end, segments) {
-  const points = [];
+function sampleCubicCurve(start: Point2D, controlA: Point2D, controlB: Point2D, end: Point2D, segments: number): Point2D[] {
+  const points: Point2D[] = [];
 
   for (let step = 1; step <= segments; step += 1) {
     const t = step / segments;
@@ -129,13 +137,13 @@ function sampleCubicCurve(start, controlA, controlB, end, segments) {
   return points;
 }
 
-function pathCommandsToContours(commands) {
-  const contours = [];
-  let currentContour = [];
-  let currentPoint = null;
-  let contourStart = null;
+function pathCommandsToContours(commands: PathCommand[]): Point2D[][] {
+  const contours: Point2D[][] = [];
+  let currentContour: Point2D[] = [];
+  let currentPoint: Point2D | null = null;
+  let contourStart: Point2D | null = null;
 
-  function closeContour() {
+  function closeContour(): void {
     const contour = normalizeContour(currentContour);
     if (contour) {
       contours.push(contour);
@@ -167,7 +175,7 @@ function pathCommandsToContours(commands) {
       const endPoint = { x: command.x, y: command.y };
       currentContour.push(...sampleQuadraticCurve(
         currentPoint,
-        { x: command.x1, y: command.y1 },
+        { x: command.x1 ?? 0, y: command.y1 ?? 0 },
         endPoint,
         CURVE_SEGMENTS,
       ));
@@ -179,8 +187,8 @@ function pathCommandsToContours(commands) {
       const endPoint = { x: command.x, y: command.y };
       currentContour.push(...sampleCubicCurve(
         currentPoint,
-        { x: command.x1, y: command.y1 },
-        { x: command.x2, y: command.y2 },
+        { x: command.x1 ?? 0, y: command.y1 ?? 0 },
+        { x: command.x2 ?? 0, y: command.y2 ?? 0 },
         endPoint,
         CURVE_SEGMENTS,
       ));
@@ -201,8 +209,24 @@ function pathCommandsToContours(commands) {
   return contours;
 }
 
-export function buildContourTree(contours) {
-  const nodes = contours.map((points, index) => ({
+/** A node in the contour tree built by buildContourTree(). */
+export interface ContourNode {
+  index: number;
+  points: Point2D[];
+  bounds: Rect2D;
+  absoluteArea: number;
+  parent: ContourNode | null;
+  children: ContourNode[];
+}
+
+/** A shape with an outer ring and optional holes, produced by collectShapes(). */
+export interface ContourShape {
+  outer: Point2D[];
+  holes: Point2D[][];
+}
+
+export function buildContourTree(contours: Point2D[][]): ContourNode[] {
+  const nodes: ContourNode[] = contours.map((points, index) => ({
     index,
     points,
     bounds: polygonBounds(points),
@@ -212,8 +236,8 @@ export function buildContourTree(contours) {
   }));
 
   for (const node of nodes) {
-    const samplePoint = node.points[0];
-    let bestParent = null;
+    const samplePoint = node.points[0]!;
+    let bestParent: ContourNode | null = null;
 
     for (const candidate of nodes) {
       if (candidate.index === node.index) {
@@ -244,11 +268,11 @@ export function buildContourTree(contours) {
   return nodes;
 }
 
-export function collectShapes(nodes) {
+export function collectShapes(nodes: ContourNode[]): ContourShape[] {
   const roots = nodes.filter(node => !node.parent);
-  const shapes = [];
+  const shapes: ContourShape[] = [];
 
-  function visit(node, depth) {
+  function visit(node: ContourNode, depth: number): void {
     if (depth % 2 === 0) {
       shapes.push({
         outer: ensureCounterClockwise(node.points),
@@ -268,21 +292,21 @@ export function collectShapes(nodes) {
   return shapes;
 }
 
-export function translateAndScaleContours(contours, scale, offsetX, offsetY) {
+export function translateAndScaleContours(contours: Point2D[][], scale: number, offsetX: number, offsetY: number): Point2D[][] {
   return contours.map(contour => contour.map(point => ({
     x: point.x * scale + offsetX,
     y: point.y * scale + offsetY,
   })));
 }
 
-export function flipContoursY(contours) {
+export function flipContoursY(contours: Point2D[][]): Point2D[][] {
   return contours.map(contour => contour.map(point => ({
     x: point.x,
     y: -point.y,
   })));
 }
 
-export function translateAndScaleBounds(bounds, scale, offsetX, offsetY) {
+export function translateAndScaleBounds(bounds: Rect2D, scale: number, offsetX: number, offsetY: number): Rect2D {
   return {
     minX: bounds.minX * scale + offsetX,
     minY: bounds.minY * scale + offsetY,
@@ -293,7 +317,7 @@ export function translateAndScaleBounds(bounds, scale, offsetX, offsetY) {
   };
 }
 
-function normalizeBoundsListToOrigin(boundsList) {
+function normalizeBoundsListToOrigin(boundsList: Rect2D[]): Rect2D[] {
   const combined = polygonBounds(boundsList.flatMap(bounds => [
     { x: bounds.minX, y: bounds.minY },
     { x: bounds.maxX, y: bounds.maxY },
@@ -309,7 +333,7 @@ function normalizeBoundsListToOrigin(boundsList) {
   }));
 }
 
-export function computeTextBounds(contours) {
+export function computeTextBounds(contours: Point2D[][]): Rect2D {
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
@@ -333,7 +357,7 @@ export function computeTextBounds(contours) {
   };
 }
 
-function normalizeContoursToOrigin(contours) {
+function normalizeContoursToOrigin(contours: Point2D[][]): { contours: Point2D[][]; bounds: Rect2D } {
   const bounds = computeTextBounds(contours);
   return {
     contours: translateAndScaleContours(contours, 1, -bounds.minX, -bounds.minY),
@@ -348,7 +372,14 @@ function normalizeContoursToOrigin(contours) {
   };
 }
 
-export function measureLine(font, line, cache) {
+/** Result of measuring a single text line. */
+export interface LineMeasurement {
+  text: string;
+  contours: Point2D[][];
+  bounds: Rect2D;
+}
+
+export function measureLine(font: Font, line: string, cache: Map<string, LineMeasurement | null>): LineMeasurement | null {
   const cached = cache.get(line);
   if (cached !== undefined) {
     return cached;
@@ -362,7 +393,7 @@ export function measureLine(font, line, cache) {
   }
 
   const normalized = normalizeContoursToOrigin(contours);
-  const result = {
+  const result: LineMeasurement = {
     text: line,
     contours: normalized.contours,
     bounds: normalized.bounds,
@@ -371,34 +402,48 @@ export function measureLine(font, line, cache) {
   return result;
 }
 
-export function buildMultilineContours(lines, font, cache) {
+/** Result of building multiline contours. */
+export interface MultilineContours {
+  text: string;
+  lines: string[];
+  contours: Point2D[][];
+  bounds: Rect2D;
+  lineBounds: Rect2D[];
+  averageLineHeight: number;
+  maxLineWidth: number;
+  minLineWidth: number;
+  lineCount: number;
+}
+
+export function buildMultilineContours(lines: string[], font: Font, cache: Map<string, LineMeasurement | null>): MultilineContours | null {
   if (__perfCounters) { __perfCounters.buildMultilineContours++; }
   const measuredLines = lines.map(line => measureLine(font, line, cache));
   if (measuredLines.some(line => !line || line.bounds.width <= 0 || line.bounds.height <= 0)) {
     return null;
   }
 
-  const maxWidth = Math.max(...measuredLines.map(line => line.bounds.width));
-  const averageHeight = measuredLines.reduce((sum, line) => sum + line.bounds.height, 0) / measuredLines.length;
+  const validLines = measuredLines as LineMeasurement[];
+  const maxWidth = Math.max(...validLines.map(line => line.bounds.width));
+  const averageHeight = validLines.reduce((sum, line) => sum + line.bounds.height, 0) / validLines.length;
   const lineGap = averageHeight * 0.35;
-  const contours = [];
-  const lineBounds = [];
-  const lineWidths = measuredLines.map(line => line.bounds.width);
-  const lineOffsetsY = [];
+  const contours: Point2D[][] = [];
+  const lineBounds: Rect2D[] = [];
+  const lineWidths = validLines.map(line => line.bounds.width);
+  const lineOffsetsY: number[] = [];
   let totalHeight = 0;
 
-  for (let index = 0; index < measuredLines.length; index += 1) {
+  for (let index = 0; index < validLines.length; index += 1) {
     lineOffsetsY.push(totalHeight);
-    totalHeight += measuredLines[index].bounds.height;
-    if (index < measuredLines.length - 1) {
+    totalHeight += validLines[index]!.bounds.height;
+    if (index < validLines.length - 1) {
       totalHeight += lineGap;
     }
   }
 
-  for (let index = 0; index < measuredLines.length; index += 1) {
-    const line = measuredLines[index];
+  for (let index = 0; index < validLines.length; index += 1) {
+    const line = validLines[index]!;
     const offsetX = (maxWidth - line.bounds.width) / 2;
-    const offsetY = totalHeight - lineOffsetsY[index] - line.bounds.height;
+    const offsetY = totalHeight - lineOffsetsY[index]! - line.bounds.height;
     contours.push(...translateAndScaleContours(line.contours, 1, offsetX, offsetY));
     lineBounds.push(translateAndScaleBounds(line.bounds, 1, offsetX, offsetY));
   }
@@ -414,6 +459,6 @@ export function buildMultilineContours(lines, font, cache) {
     averageLineHeight: averageHeight,
     maxLineWidth: Math.max(...lineWidths),
     minLineWidth: Math.min(...lineWidths),
-    lineCount: measuredLines.length,
+    lineCount: validLines.length,
   };
 }

@@ -2,7 +2,9 @@
  * Scoring weights and magic numbers used by the text-placement scoring pipeline.
  * Collected here so the tuning surface is visible in one place.
  */
-export const SCORING_WEIGHTS = Object.freeze({
+import type { ScoringWeights, FittedTextLayout, Rect2D } from '../types/text.js';
+
+export const SCORING_WEIGHTS: ScoringWeights = Object.freeze({
   /** Exponent applied to area-utilization ratio in scoreTextFit. */
   utilizationExponent: 0.2,
 
@@ -25,7 +27,7 @@ export const SCORING_WEIGHTS = Object.freeze({
   centralityPenaltyFactor: 0.04,
 
   /** Per-line-count multipliers; index 0 = 1 line, index 3 = 4 lines. */
-  lineCountMultipliers: [1, 1, 0.94, 0.91],
+  lineCountMultipliers: [1, 1, 0.94, 0.91] as [number, number, number, number],
 
   // --- Size-window curve breakpoints (computeSizeWindowMultiplier) ---
   /** Maximum multiplier at the low end of the preferred height range. */
@@ -52,11 +54,11 @@ const MIN_TEXT_HEIGHT_MM = 2;
 const MIN_PREFERRED_HEIGHT_MM = 16 * 25.4 / 72;
 const MAX_PREFERRED_HEIGHT_MM = 24 * 25.4 / 72;
 
-function clamp(value, min, max) {
+function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-export function computeSizeWindowMultiplier(heightMm) {
+export function computeSizeWindowMultiplier(heightMm: number): number {
   if (heightMm <= MIN_TEXT_HEIGHT_MM) {
     return 0;
   }
@@ -86,16 +88,26 @@ export function computeSizeWindowMultiplier(heightMm) {
   return 0;
 }
 
-export function computeLineCountMultiplier(lineCount) {
-  return SCORING_WEIGHTS.lineCountMultipliers[Math.min(Math.max(lineCount, 1), SCORING_WEIGHTS.lineCountMultipliers.length) - 1] ?? SCORING_WEIGHTS.lineCountMultipliers[SCORING_WEIGHTS.lineCountMultipliers.length - 1];
+export function computeLineCountMultiplier(lineCount: number): number {
+  return SCORING_WEIGHTS.lineCountMultipliers[Math.min(Math.max(lineCount, 1), SCORING_WEIGHTS.lineCountMultipliers.length) - 1] ?? SCORING_WEIGHTS.lineCountMultipliers[SCORING_WEIGHTS.lineCountMultipliers.length - 1] ?? 1;
 }
 
-function computeTrackClearanceMultiplier(normalizedClearance) {
+function computeTrackClearanceMultiplier(normalizedClearance: number): number {
   return SCORING_WEIGHTS.trackClearanceMultiplierBase + SCORING_WEIGHTS.trackClearanceMultiplierRange * normalizedClearance;
 }
 
-function computeTextClearance(rect, layout, clearanceContext) {
-  if (!clearanceContext?.distanceMap) {
+/** Context used to compute text-vs-text spacing. */
+export interface ClearanceContext {
+  distanceMap: number[][];
+  maxTrackClearance: number;
+  cellWidth: number;
+  cellHeight: number;
+  originX: number;
+  originY: number;
+}
+
+function computeTextClearance(rect: Rect2D, layout: FittedTextLayout, clearanceContext: ClearanceContext): number {
+  if (!clearanceContext.distanceMap) {
     return Infinity;
   }
 
@@ -123,18 +135,18 @@ function computeTextClearance(rect, layout, clearanceContext) {
   let minDistance = Infinity;
 
   for (let col = colMin; col <= colMax; col += 1) {
-    minDistance = Math.min(minDistance, distanceMap[rowMin][col]);
-    minDistance = Math.min(minDistance, distanceMap[rowMax][col]);
+    minDistance = Math.min(minDistance, distanceMap[rowMin]?.[col] ?? Infinity);
+    minDistance = Math.min(minDistance, distanceMap[rowMax]?.[col] ?? Infinity);
   }
   for (let row = rowMin + 1; row < rowMax; row += 1) {
-    minDistance = Math.min(minDistance, distanceMap[row][colMin]);
-    minDistance = Math.min(minDistance, distanceMap[row][colMax]);
+    minDistance = Math.min(minDistance, distanceMap[row]?.[colMin] ?? Infinity);
+    minDistance = Math.min(minDistance, distanceMap[row]?.[colMax] ?? Infinity);
   }
 
   return Number.isFinite(minDistance) ? minDistance : 0;
 }
 
-export function computeTextClearanceMultiplier(rect, layout, clearanceContext) {
+export function computeTextClearanceMultiplier(rect: Rect2D, layout: FittedTextLayout, clearanceContext: ClearanceContext | null): number {
   if (!clearanceContext) {
     return 1;
   }
@@ -144,11 +156,18 @@ export function computeTextClearanceMultiplier(rect, layout, clearanceContext) {
   return SCORING_WEIGHTS.textClearanceMultiplierBase + SCORING_WEIGHTS.textClearanceMultiplierRange * normalizedTextClearance;
 }
 
-function computeCentralityMultiplier(centreDistance) {
+function computeCentralityMultiplier(centreDistance: number): number {
   return 1.0 - SCORING_WEIGHTS.centralityPenaltyFactor * clamp(centreDistance, 0, 1);
 }
 
-export function scoreTextFit(rect, layout, candidate = {}, clearanceContext = null) {
+/** Partial candidate fields needed for scoring. */
+interface ScoringCandidate {
+  fractionOutside?: number;
+  normalizedTrackClearance?: number;
+  centreDistance?: number;
+}
+
+export function scoreTextFit(rect: Rect2D, layout: FittedTextLayout, candidate: ScoringCandidate = {}, clearanceContext: ClearanceContext | null = null): number {
   const { fittedWidth, fittedHeight } = layout;
   const utilization = Math.min(1, (fittedWidth * fittedHeight) / Math.max(rect.width * rect.height, Number.EPSILON));
   const lineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
