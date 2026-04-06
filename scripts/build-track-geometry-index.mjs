@@ -504,7 +504,7 @@ async function readCachedOsmPayload(track, margin, options) {
     cacheHit: true,
     url: cachedEntry.url,
     xml: cachedEntry.xml,
-    payload: parseOsmApiMapXml(cachedEntry.xml, track.wikidataId),
+    payload: parseOsmApiMapXml(cachedEntry.xml),
   };
 }
 

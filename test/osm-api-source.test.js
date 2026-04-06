@@ -209,9 +209,10 @@ test('supplementPayloadWithMissingRelationWays falls back gracefully on network 
   assert.equal(result, initialPayload);
 });
 
-test('parseOsmApiMapXml selects relation by wikidata tag when wikidataId is provided', () => {
-  // Relation 20 has wikidata=Q999 AND type=circuit — should be selected over relation 21 (highway=raceway, no wikidata)
-  const payload = parseOsmApiMapXml(`<?xml version="1.0" encoding="UTF-8"?>
+test('parseOsmApiMapXml selects all circuit route relations regardless of wikidataId', () => {
+  // Both relations pass isCircuitRoute — both should be selected whether or not wikidataId is provided.
+  // Venues with multiple layout relations (e.g. Bahrain, Silverstone) need all of them included.
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <osm version="0.6">
   <node id="1" lat="52.0" lon="-1.0" />
   <node id="2" lat="52.1" lon="-1.1" />
@@ -227,17 +228,21 @@ test('parseOsmApiMapXml selects relation by wikidata tag when wikidataId is prov
     <tag k="highway" v="raceway"/>
     <tag k="name" v="Other Raceway"/>
   </relation>
-</osm>`, 'Q999');
+</osm>`;
 
-  const relations = payload.elements.filter(e => e.type === 'relation');
-  assert.equal(relations.length, 1);
-  assert.equal(relations[0].id, 20);
-  assert.equal(relations[0].tags.name, 'Wikidata Circuit');
+  for (const wikidataArg of ['Q999', 'Q000', undefined]) {
+    const payload = parseOsmApiMapXml(xml, wikidataArg);
+    const relations = payload.elements.filter(e => e.type === 'relation');
+    assert.equal(relations.length, 2, `expected 2 relations with wikidataId=${wikidataArg}`);
+    assert.ok(relations.some(r => r.id === 20));
+    assert.ok(relations.some(r => r.id === 21));
+  }
 });
 
-test('parseOsmApiMapXml falls back to highway/type filter when wikidata match is not a circuit route', () => {
-  // Relation 20 has wikidata=Q999 but type=multipolygon (facility outline, not a route).
-  // Should fall back to relation 21 which has type=circuit.
+test('parseOsmApiMapXml excludes facility multipolygons even when they carry a wikidata tag', () => {
+  // Relation 20 has wikidata=Q999 but type=multipolygon (facility area, not a circuit route).
+  // isCircuitRoute must exclude it so that only the actual circuit relation (21) is returned.
+  // This guards against the Hungaroring case where the venue area has the wikidata tag.
   const payload = parseOsmApiMapXml(`<?xml version="1.0" encoding="UTF-8"?>
 <osm version="0.6">
   <node id="1" lat="52.0" lon="-1.0" />
@@ -261,10 +266,8 @@ test('parseOsmApiMapXml falls back to highway/type filter when wikidata match is
   assert.equal(relations[0].id, 21);
 });
 
-test('parseOsmApiMapXml falls back to highway/type filter when wikidataId does not match any relation', () => {
-  // Relation 20 has wikidata=Q999 AND type=circuit but the caller provides Q000 — ID mismatch.
-  // Relation 21 has no wikidata tag but is a circuit route. The fallback should select both
-  // (both pass the highway/type predicate), confirming the ID mismatch triggers the fallback.
+test('parseOsmApiMapXml uses highway/type filter regardless of wikidataId argument', () => {
+  // Both relations pass isCircuitRoute and are always selected, regardless of wikidataId.
   const payload = parseOsmApiMapXml(`<?xml version="1.0" encoding="UTF-8"?>
 <osm version="0.6">
   <node id="1" lat="52.0" lon="-1.0" />
@@ -283,34 +286,14 @@ test('parseOsmApiMapXml falls back to highway/type filter when wikidataId does n
   </relation>
 </osm>`, 'Q000');
 
-  // Q000 doesn't match Q999 — falls back to the highway/type filter, which selects both
   const relations = payload.elements.filter(e => e.type === 'relation');
   assert.equal(relations.length, 2);
-  assert.ok(relations.some(r => r.id === 20), 'relation 20 selected via type=circuit fallback');
-  assert.ok(relations.some(r => r.id === 21), 'relation 21 selected via highway=raceway fallback');
+  assert.ok(relations.some(r => r.id === 20));
+  assert.ok(relations.some(r => r.id === 21));
 });
 
-test('parseOsmApiMapXml selects relation tagged route=raceway via wikidata path and fallback', () => {
-  // Via wikidata path
-  const withWikidata = parseOsmApiMapXml(`<?xml version="1.0" encoding="UTF-8"?>
-<osm version="0.6">
-  <node id="1" lat="52.0" lon="-1.0" />
-  <node id="2" lat="52.1" lon="-1.1" />
-  <way id="10"><nd ref="1"/><nd ref="2"/></way>
-  <relation id="20">
-    <member type="way" ref="10" role=""/>
-    <tag k="wikidata" v="Q999"/>
-    <tag k="route" v="raceway"/>
-    <tag k="name" v="Route Raceway Circuit"/>
-  </relation>
-</osm>`, 'Q999');
-
-  const wikidataRelations = withWikidata.elements.filter(e => e.type === 'relation');
-  assert.equal(wikidataRelations.length, 1);
-  assert.equal(wikidataRelations[0].id, 20);
-
-  // Via fallback (no wikidataId)
-  const withFallback = parseOsmApiMapXml(`<?xml version="1.0" encoding="UTF-8"?>
+test('parseOsmApiMapXml selects relations tagged route=raceway', () => {
+  const payload = parseOsmApiMapXml(`<?xml version="1.0" encoding="UTF-8"?>
 <osm version="0.6">
   <node id="1" lat="52.0" lon="-1.0" />
   <node id="2" lat="52.1" lon="-1.1" />
@@ -322,12 +305,14 @@ test('parseOsmApiMapXml selects relation tagged route=raceway via wikidata path 
   </relation>
 </osm>`);
 
-  const fallbackRelations = withFallback.elements.filter(e => e.type === 'relation');
-  assert.equal(fallbackRelations.length, 1);
-  assert.equal(fallbackRelations[0].id, 20);
+  const relations = payload.elements.filter(e => e.type === 'relation');
+  assert.equal(relations.length, 1);
+  assert.equal(relations[0].id, 20);
 });
 
-test('parseOsmApiMapXml uses highway/type filter when no wikidataId is passed', () => {
+test('parseOsmApiMapXml excludes relations without standard circuit tags', () => {
+  // Relation 20 has only a wikidata tag — no highway/type/route tag — so isCircuitRoute rejects it.
+  // Relation 21 has highway=raceway and is selected.
   const payload = parseOsmApiMapXml(`<?xml version="1.0" encoding="UTF-8"?>
 <osm version="0.6">
   <node id="1" lat="52.0" lon="-1.0" />

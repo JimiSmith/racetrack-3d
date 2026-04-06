@@ -354,32 +354,18 @@ function isCircuitRoute(relation) {
   return (highway === 'raceway' || type === 'circuit' || route === 'raceway') && circuit !== 'kart';
 }
 
-export function parseOsmApiMapXml(xmlSource, wikidataId) {
+export function parseOsmApiMapXml(xmlSource) {
   const { ways, relations } = parseOsmXmlElements(xmlSource, { includeRelations: true });
 
-  // Wikidata-first: prefer relations whose wikidata tag matches the track ID and that also
-  // pass the circuit-route check. Falls back to the generic highway/type filter.
-  const normId = wikidataId ? String(wikidataId).trim().toUpperCase() : null;
-  const wikidataCircuitRelations = normId
-    ? relations.filter(r => String(r.tags?.wikidata ?? '').trim().toUpperCase() === normId && isCircuitRoute(r))
-    : [];
-
-  const usingWikidata = wikidataCircuitRelations.length > 0;
-  const relevantRelations = usingWikidata
-    ? wikidataCircuitRelations
-    : relations.filter(r => isCircuitRoute(r));
-
-  // When the wikidata path is active we trust the relation's member list exclusively.
-  // Including all standalone highway=raceway ways from the bbox would pull in unrelated
-  // ways (kart tracks, pit access roads, etc.) that happen to share the area.
-  const standaloneRacewayIds = usingWikidata
-    ? []
-    : ways
-        .filter(way => String(way.tags?.highway ?? '').trim().toLowerCase() === 'raceway')
-        .map(way => way.id);
+  // Select all circuit route relations. Using isCircuitRoute prevents facility multipolygons
+  // (e.g. the Hungaroring venue area has wikidata=Q171356 on a type=multipolygon relation,
+  // not on the circuit route) from being selected.
+  const relevantRelations = relations.filter(r => isCircuitRoute(r));
 
   const relevantWayIds = new Set([
-    ...standaloneRacewayIds,
+    ...ways
+      .filter(way => String(way.tags?.highway ?? '').trim().toLowerCase() === 'raceway')
+      .map(way => way.id),
     ...relevantRelations.flatMap(relation => relation.members.map(member => member.ref)),
   ]);
   const relevantWays = ways.filter(way => relevantWayIds.has(way.id));
@@ -596,7 +582,7 @@ export async function fetchOsmApiMapPayload(lat, lon, options = {}) {
     return {
       url,
       xml,
-      payload: parseOsmApiMapXml(xml, options.wikidataId),
+      payload: parseOsmApiMapXml(xml),
       metadata: {
         requestAttempts: retryCount + 1,
         retryCount,
