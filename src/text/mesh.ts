@@ -1,10 +1,8 @@
 import earcut from 'earcut';
-
 import type { Triangle, Vertex } from '../types/model.js';
 import type { RankedPlacements, FittedTextLayout, TextPlacementCandidate } from '../types/text.js';
 import type { Point2D } from '../types/geometry.js';
 import type { Rect2D } from '../types/text.js';
-
 import { buildContourTree, collectShapes, translateAndScaleContours, translateAndScaleBounds } from './contours.js';
 import type { ContourShape } from './contours.js';
 

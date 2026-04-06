@@ -8,7 +8,6 @@ import type {
   RankedTextPlacement,
   RankedPlacements,
 } from '../types/text.js';
-
 import { buildMultilineContours, polygonBounds } from './contours.js';
 import type { MultilineContours } from './contours.js';
 import { findOptimalLineBreaks, measureWordWidths, MAX_TEXT_LINES } from './line-breaking.js';

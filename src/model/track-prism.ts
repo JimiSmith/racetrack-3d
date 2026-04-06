@@ -1,5 +1,4 @@
 import earcut from 'earcut';
-
 import type { Triangle, OutlinePoints } from '../types/model.js';
 import type { ProjectedNode } from '../types/geometry.js';
 import { createVertex, addTriangle, addQuad, normalizeRing, ensureCounterClockwise } from './mesh-primitives.js';

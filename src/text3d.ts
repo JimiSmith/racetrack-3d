@@ -10,9 +10,30 @@
  * the public API. Internal helpers are accessed via `any` casts.
  */
 
+import earcut from 'earcut';
 import type { OutlinePoints, BasePlate, Triangle } from './types/model.js';
 import type { RankedPlacements, ScoringWeights, TextPlacementCandidate, RankedTextPlacement } from './types/text.js';
 import type { Point2D } from './types/geometry.js';
+// --- Internal module access (text/* modules are still .js — use any for internals) ---
+import * as _placementMod from './text/placement.js';
+import * as _contoursMod from './text/contours.js';
+import * as _lineBreakingMod from './text/line-breaking.js';
+import * as _scoringMod from './text/scoring.js';
+import * as _meshMod from './text/mesh.js';
+import * as _fontLoaderMod from './text/font-loader.js';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const P = _placementMod as any; // internal exports not in .d.ts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const C = _contoursMod as any; // internal exports not in .d.ts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const LB = _lineBreakingMod as any; // internal exports not in .d.ts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SC = _scoringMod as any; // internal exports not in .d.ts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const M = _meshMod as any; // internal exports not in .d.ts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const FL = _fontLoaderMod as any; // internal exports not in .d.ts
 
 // --- Public API re-exports ---
 export {
@@ -25,33 +46,6 @@ export {
 export { SCORING_WEIGHTS } from './text/scoring.js';
 
 export { computeRankedTextPlacements } from './text/placement.js';
-
-// --- Internal module access (text/* modules are still .js — use any for internals) ---
-import * as _placementMod from './text/placement.js';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const P = _placementMod as any; // internal exports not in .d.ts
-
-import * as _contoursMod from './text/contours.js';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const C = _contoursMod as any; // internal exports not in .d.ts
-
-import * as _lineBreakingMod from './text/line-breaking.js';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const LB = _lineBreakingMod as any; // internal exports not in .d.ts
-
-import * as _scoringMod from './text/scoring.js';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const SC = _scoringMod as any; // internal exports not in .d.ts
-
-import * as _meshMod from './text/mesh.js';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const M = _meshMod as any; // internal exports not in .d.ts
-
-import * as _fontLoaderMod from './text/font-loader.js';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const FL = _fontLoaderMod as any; // internal exports not in .d.ts
-
-import earcut from 'earcut';
 
 // --- Performance counter aggregation across all sub-modules ---
 

@@ -1,5 +1,5 @@
-import { BASE_THICKNESS_MM } from './base-plate.js';
 import type { TrackModel, Triangle } from '../types/model.js';
+import { BASE_THICKNESS_MM } from './base-plate.js';
 
 interface SplitModelTriangles {
   baseTriangles: Triangle[];

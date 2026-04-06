@@ -78,25 +78,6 @@ export function exportStl(
   const stlBytes = serializeBinaryStl(model.triangles, downloadFileName);
   const blob = new Blob([stlBytes], { type: 'model/stl' });
 
-  const canDownloadInBrowser =
-    typeof document !== 'undefined' &&
-    typeof document.createElement === 'function' &&
-    typeof document.body?.appendChild === 'function' &&
-    typeof URL?.createObjectURL === 'function';
-
-  if (canDownloadInBrowser) {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-
-    link.href = url;
-    link.download = downloadFileName;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 0);
-  }
-
   return {
     blob,
     buffer: stlBytes,

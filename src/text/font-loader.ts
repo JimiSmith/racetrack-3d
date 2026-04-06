@@ -1,6 +1,5 @@
 import opentype from 'opentype.js';
 import type { Font } from 'opentype.js';
-
 import { LABEL_FONT_BASE64 } from '../label-font-data.js';
 
 let cachedFont: Font | null = null;

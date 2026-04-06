@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-
 import type { Vertex } from '../types/model.js';
 
 const PREVIEW_CREASE_ANGLE = Math.PI / 3;

@@ -1,5 +1,4 @@
 import type { Font } from 'opentype.js';
-
 import { measureLine } from './contours.js';
 import type { LineMeasurement } from './contours.js';
 import { SCORING_WEIGHTS } from './scoring.js';

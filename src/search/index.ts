@@ -1,7 +1,7 @@
 import trackSearchIndex from '../generated/track-search-index.json' with { type: 'json' };
+import type { TrackSearchEntry, SearchResult } from '../types/search.js';
 import { getTrackGeometry } from './geometry-index.js';
 import { searchLocalTrackIndex } from './scoring.js';
-import type { TrackSearchEntry, SearchResult } from '../types/search.js';
 
 export { normalizeSearchText, tokenizeNormalizedText, buildTrackSearchEntry, buildTrackDisplayName } from './normalize.js';
 export { searchLocalTrackIndex, compareTrackSearchResults } from './scoring.js';

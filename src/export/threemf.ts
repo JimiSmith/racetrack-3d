@@ -4,7 +4,6 @@
  */
 
 import { strToU8, zipSync } from 'fflate';
-
 import { splitModelTriangles as _splitModelTriangles } from '../model/triangle-groups.js';
 import type { TrackModel, Triangle, Vertex } from '../types/model.js';
 

@@ -1,5 +1,4 @@
 import earcut from 'earcut';
-
 import type { Triangle, BasePlate } from '../types/model.js';
 import type { Point2D } from '../types/geometry.js';
 import { createVertex, addTriangle, addQuad } from './mesh-primitives.js';

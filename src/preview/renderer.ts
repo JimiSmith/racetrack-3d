@@ -1,9 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-
-import { buildPreviewGeometry } from './model-mesh.js';
 import { splitModelTriangles } from '../model/triangle-groups.js';
 import type { TrackModel } from '../types/model.js';
+import { buildPreviewGeometry } from './model-mesh.js';
 
 const PREVIEW_BACKGROUND = '#0f0f13';
 
