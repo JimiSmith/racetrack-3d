@@ -1,3 +1,4 @@
+import type { PerfTimer } from './perf-timer.js';
 import { buildTrackOutline as _buildTrackOutline } from '../geometry/outline.js';
 import {
   buildTextMeshFromRankedPlacements,
@@ -89,6 +90,7 @@ export interface BuildTrackModelOptions {
   orientationDeg?: number | 'auto';
   textPositionRank?: number;
   placementCacheToken?: unknown;
+  perfTimer?: PerfTimer;
 }
 
 // ── buildTrackModel ──────────────────────────────────────────────────────────
@@ -103,6 +105,7 @@ export function buildTrackModel({
   orientationDeg = undefined,
   textPositionRank = DEFAULT_TEXT_POSITION_RANK,
   placementCacheToken = null,
+  perfTimer,
 }: BuildTrackModelOptions): TrackModel {
   const normalizedPrimaryOrientationDeg = normalizePrimaryOrientationDeg(
     primaryOrientationDeg === undefined
@@ -152,6 +155,8 @@ export function buildTrackModel({
     resolvedOrientationDeg = normalizedPrimaryOrientationDeg;
   }
 
+  perfTimer?.step('orientation');
+
   const resolvedTextPositionRank = normalizeTextPositionRank(textPositionRank);
 
   // Reuse geometry from selectAutoOrientation when available, otherwise compute fresh.
@@ -180,6 +185,8 @@ export function buildTrackModel({
     secondaryOutlines = orientedSecondaries.map(nodes => buildTrackOutline(nodes));
   }
 
+  perfTimer?.step('geometry');
+
   // In combined mode, expand the base plate to encompass all layouts.
   // When reusing autoGeometry, the basePlate already accounts for secondary outlines.
   const effectiveBasePlate = !autoGeometry && secondaryOutlines.length > 0
@@ -189,6 +196,8 @@ export function buildTrackModel({
   const scale = computeScale(effectiveBasePlate);
   const basePlateTriangles = buildBasePlateMesh(effectiveBasePlate, scale);
 
+  perfTimer?.step('basePlate');
+
   // Build secondary prism meshes — unique segments only to avoid z-fighting on shared sections.
   const primaryEdgeSet = buildPrimaryEdgeSet(orientedGeometry.projectedNodes ?? []);
   const secondaryTrackTriangles = orientedSecondaries.flatMap(nodes => {
@@ -196,10 +205,14 @@ export function buildTrackModel({
     return uniqueChains.flatMap(chain => buildTrackPrismMesh(null, scale, chain, true));
   });
 
+  perfTimer?.step('secondaryTracks');
+
   // Primary layout prism mesh (shown in red in the preview/export).
   const trackTriangles = buildTrackPrismMesh(
     orientedGeometry.outlinePoints, scale, orientedGeometry.projectedNodes,
   );
+
+  perfTimer?.step('primaryTrack');
 
   // Text placement uses all visible layouts as obstacles in combined mode.
   const allOutlinePoints = secondaryOutlines.length > 0
@@ -223,7 +236,7 @@ export function buildTrackModel({
         orientedGeometry.outlinePoints,
         effectiveBasePlate,
         scale,
-        { allOutlinePoints },
+        { allOutlinePoints, perfTimer },
       );
       if (cacheActive) {
         textPlacementCache.byOrientation.set(resolvedOrientationDeg, rankedPlacements);
@@ -231,11 +244,15 @@ export function buildTrackModel({
     }
   }
 
+  perfTimer?.step('textPlacement');
+
   const textTriangles = buildTextMeshFromRankedPlacements(rankedPlacements, {
     textPositionRank: resolvedTextPositionRank,
     baseThickness: BASE_THICKNESS_MM,
     textHeight: TEXT_HEIGHT_MM,
   });
+
+  perfTimer?.step('textMesh');
 
   return {
     triangles: [...basePlateTriangles, ...secondaryTrackTriangles, ...trackTriangles, ...textTriangles],

@@ -14,6 +14,7 @@ import { findOptimalLineBreaks, measureWordWidths, MAX_TEXT_LINES } from './line
 import { loadFont } from './font-loader.js';
 import { scoreTextFit, computeSizeWindowMultiplier, computeLineCountMultiplier, computeTextClearanceMultiplier } from './scoring.js';
 import type { ClearanceContext } from './scoring.js';
+import type { PerfTimer } from '../model/perf-timer.js';
 
 export const MIN_CELL_MM = 3;
 export const MIN_GRID_CELLS_PER_SIDE = 8;
@@ -670,6 +671,7 @@ export function createScaledBounds(bounds: BasePlate, scale: number): Rect2D {
 interface ComputeRankedOptions {
   font?: import('opentype.js').Font | null;
   allOutlinePoints?: OutlinePoints[] | null;
+  perfTimer?: PerfTimer | undefined;
 }
 
 export function computeRankedTextPlacements(
@@ -680,19 +682,24 @@ export function computeRankedTextPlacements(
   options: ComputeRankedOptions = {},
 ): RankedPlacements | null {
   if (__perfCounters) { __perfCounters.computeRankedTextPlacements++; }
+  const { perfTimer } = options;
   const normalizedText = String(text ?? '').trim();
   if (!normalizedText) {
     return null;
   }
 
   const font = loadFont(options.font ?? null);
+  perfTimer?.step('textPlacement:font');
   const scaledOutline = scaleOutline(outlinePoints, scale);
   const scaledBasePlate = createScaledBounds(basePlate, scale);
   const allScaledOutlines = options.allOutlinePoints
     ? options.allOutlinePoints.map(o => scaleOutline(o, scale))
     : [scaledOutline];
+  perfTimer?.step('textPlacement:scale');
   const placementMask = computePlacementMask(allScaledOutlines, scaledOutline, scaledBasePlate);
+  perfTimer?.step('textPlacement:mask');
   const { candidates, distanceMap, maxTrackClearance } = findPlacementCandidates(scaledBasePlate, placementMask);
+  perfTimer?.step('textPlacement:candidates');
   if (!candidates.length) {
     return null;
   }
@@ -711,6 +718,7 @@ export function computeRankedTextPlacements(
     candidates,
     clearanceContext,
   );
+  perfTimer?.step('textPlacement:rank');
   if (!placements.length) {
     return null;
   }

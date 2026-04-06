@@ -5,6 +5,7 @@
  * ModelBuildResponse with a transferable Float32Array of triangle vertex data.
  */
 
+import { PerfTimer } from '../model/perf-timer.js';
 import { buildTrackModel } from '../model/track-model.js';
 import type { ProjectedNode } from '../types/geometry.js';
 import type { BasePlate, OutlinePoints } from '../types/model.js';
@@ -99,6 +100,7 @@ function processLatest(): void {
 
   try {
     const placementCacheToken = getOrCreateCacheToken(request.cacheGeneration);
+    const perfTimer = new PerfTimer();
 
     const model = buildTrackModel({
       outlinePoints: null,
@@ -109,6 +111,7 @@ function processLatest(): void {
       primaryOrientationDeg: request.primaryOrientationDeg,
       textPositionRank: request.textPositionRank,
       placementCacheToken,
+      perfTimer,
     });
 
     // Flatten Triangle[] into a Float32Array (9 floats per triangle: 3 vertices × 3 coords).
@@ -148,6 +151,9 @@ function processLatest(): void {
         projectedNodes: model.projectedNodes,
       },
     };
+
+    perfTimer.step('flatten');
+    console.table(perfTimer.finish());
 
     // Transfer the buffer to avoid copying.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
