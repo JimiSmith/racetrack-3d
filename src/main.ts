@@ -1,86 +1,89 @@
 import './style.css';
-import { searchTracks, fetchTrackGeometry } from './search.js';
-import { projectNodes } from './geometry.js';
-import { fetchElevations } from './elevation.js';
-import { buildTrackModel, exportStl } from './model.js';
-import { export3mf } from './export3mf.js';
-import { PRIMARY_ORIENTATION_AUTO, normalizePrimaryOrientationDeg } from './orientation.js';
-import { initPreview, updatePreview } from './preview.js';
-import { DEFAULT_TEXT_POSITION_RANK, normalizeTextPositionRank } from './text3d.js';
-import { selectPrintedTrackName } from './track-name.js';
+import { searchTracks, fetchTrackGeometry, selectPrintedTrackName } from './search/index.js';
 import {
   buildLayoutPickerState,
   getSelectedLayout,
   normalizeSelectedLayoutIndex,
-} from './layout-picker.js';
+} from './search/layout-picker.js';
+import { projectNodes } from './geometry/projection.js';
+import { fetchElevations } from './elevation/terrarium.js';
+import { buildTrackModel } from './model/index.js';
+import { PRIMARY_ORIENTATION_AUTO, normalizePrimaryOrientationDeg } from './model/orientation.js';
+import { serializeBinaryStl } from './export/stl.js';
+import { package3mf } from './export/threemf.js';
+import { initPreview, updatePreview } from './preview/renderer.js';
+import { DEFAULT_TEXT_POSITION_RANK, normalizeTextPositionRank } from './text3d.js';
+import type { TrackModel } from './types/model.js';
+import type { Layout } from './types/geometry.js';
+import type { SearchResult } from './types/search.js';
 
-const input = document.getElementById('search-input');
-const resultsList = document.getElementById('search-results');
-const status = document.getElementById('status');
-const trackSummaryEmpty = document.getElementById('track-summary-empty');
-const trackSummaryContent = document.getElementById('track-summary-content');
-const selectedTrackName = document.getElementById('selected-track-name');
-const selectedTrackMeta = document.getElementById('selected-track-meta');
-const selectedTrackMobileName = document.getElementById('selected-track-mobile-name');
+const input = document.getElementById('search-input') as HTMLInputElement;
+const resultsList = document.getElementById('search-results') as HTMLUListElement;
+const status = document.getElementById('status') as HTMLElement;
+const trackSummaryEmpty = document.getElementById('track-summary-empty') as HTMLElement;
+const trackSummaryContent = document.getElementById('track-summary-content') as HTMLElement;
+const selectedTrackName = document.getElementById('selected-track-name') as HTMLElement;
+const selectedTrackMeta = document.getElementById('selected-track-meta') as HTMLElement;
+const selectedTrackMobileName = document.getElementById('selected-track-mobile-name') as HTMLElement;
 
-const summaryLabelInput = document.getElementById('summary-label-input');
-const summaryLabelReset = document.getElementById('summary-label-reset');
-const trackSummaryToggle = document.getElementById('track-summary-toggle');
-const trackSummaryPanel = document.getElementById('track-summary-panel');
-const previewOverlay = document.getElementById('preview-overlay');
-const previewOverlayTitle = document.getElementById('preview-overlay-title');
-const previewOverlayBody = document.getElementById('preview-overlay-body');
-const exportBar = document.getElementById('export-bar');
-const generateStlButton = document.getElementById('generate-stl');
-const generateStlButtonText = generateStlButton.querySelector('.action-text');
-const generateStlButtonLabel = generateStlButtonText.textContent;
-const generate3mfButton = document.getElementById('generate-3mf');
-const generate3mfButtonText = generate3mfButton.querySelector('.action-text');
-const generate3mfButtonLabel = generate3mfButtonText.textContent;
-const exaggerationWrap = document.getElementById('exaggeration-wrap');
-const exaggerationSlider = document.getElementById('exaggeration');
-const exaggerationValue = document.getElementById('exaggeration-value');
-const layoutWrap = document.getElementById('layout-wrap');
-const layoutSelect = document.getElementById('layout-select');
-const layoutHint = document.getElementById('layout-hint');
-const combinedLayoutWrap = document.getElementById('combined-layout-wrap');
-const combinedLayoutToggle = document.getElementById('combined-layout-toggle');
-const orientationSelect = document.getElementById('orientation-select');
-const textPositionSelect = document.getElementById('text-position-select');
+const summaryLabelInput = document.getElementById('summary-label-input') as HTMLInputElement | null;
+const summaryLabelReset = document.getElementById('summary-label-reset') as HTMLButtonElement | null;
+const trackSummaryToggle = document.getElementById('track-summary-toggle') as HTMLButtonElement | null;
+const trackSummaryPanel = document.getElementById('track-summary-panel') as HTMLElement;
+const previewOverlay = document.getElementById('preview-overlay') as HTMLElement;
+const previewOverlayTitle = document.getElementById('preview-overlay-title') as HTMLElement;
+const previewOverlayBody = document.getElementById('preview-overlay-body') as HTMLElement;
+const exportBar = document.getElementById('export-bar') as HTMLElement;
+const generateStlButton = document.getElementById('generate-stl') as HTMLButtonElement;
+const generateStlButtonText = generateStlButton.querySelector('.action-text') as HTMLElement;
+const generateStlButtonLabel = generateStlButtonText.textContent ?? '';
+const generate3mfButton = document.getElementById('generate-3mf') as HTMLButtonElement;
+const generate3mfButtonText = generate3mfButton.querySelector('.action-text') as HTMLElement;
+const generate3mfButtonLabel = generate3mfButtonText.textContent ?? '';
+const exaggerationWrap = document.getElementById('exaggeration-wrap') as HTMLElement;
+const exaggerationSlider = document.getElementById('exaggeration') as HTMLInputElement;
+const exaggerationValue = document.getElementById('exaggeration-value') as HTMLElement;
+const layoutWrap = document.getElementById('layout-wrap') as HTMLElement;
+const layoutSelect = document.getElementById('layout-select') as HTMLSelectElement;
+const layoutHint = document.getElementById('layout-hint') as HTMLElement;
+const combinedLayoutWrap = document.getElementById('combined-layout-wrap') as HTMLElement;
+const combinedLayoutToggle = document.getElementById('combined-layout-toggle') as HTMLInputElement | null;
+const orientationSelect = document.getElementById('orientation-select') as HTMLSelectElement | null;
+const textPositionSelect = document.getElementById('text-position-select') as HTMLSelectElement | null;
 
 
-let currentNodes = null;
-let currentProjectedNodes = null;
-let currentElevations = null;
-let currentTrack = null;
-let currentOutline = null;
-let currentBasePlate = null;
-let currentModel = null;
-let currentLayouts = [];
+let currentNodes: import('./types/geometry.js').LatLonNode[] | null = null;
+let currentProjectedNodes: import('./types/geometry.js').ProjectedNode[] | null = null;
+let currentElevations: number[] | null = null;
+let currentTrack: SearchResult | null = null;
+let currentOutline: import('./types/model.js').OutlinePoints | null = null;
+let currentBasePlate: import('./types/model.js').BasePlate | null = null;
+let currentModel: TrackModel | null = null;
+let currentLayouts: Layout[] = [];
 let currentLayoutIndex = 0;
-let currentOsmVenueNames = [];
-let currentPrimaryOrientationDeg = normalizePrimaryOrientationDeg(orientationSelect?.value);
-let currentTextPositionRank = normalizeTextPositionRank(textPositionSelect?.value ?? DEFAULT_TEXT_POSITION_RANK);
-let currentLabelOverride = null;
-let currentPlacementCacheToken = null;
+let currentOsmVenueNames: string[] = [];
+let currentPrimaryOrientationDeg: number | 'auto' = normalizePrimaryOrientationDeg(orientationSelect?.value);
+let currentTextPositionRank: number = normalizeTextPositionRank(textPositionSelect?.value ?? DEFAULT_TEXT_POSITION_RANK);
+let currentLabelOverride: string | null = null;
+let currentPlacementCacheToken: object | null = null;
 let currentCombinedLayoutMode = false;
-let currentSecondaryElevations = [];
+let currentSecondaryElevations: (number[] | null)[] = [];
 let isGeneratingStl = false;
 let isGenerating3mf = false;
 let isTrackSummaryExpanded = true;
 
 const mobileSummaryMedia = window.matchMedia('(max-width: 699px)');
 
-function invalidatePlacementCache() {
+function invalidatePlacementCache(): void {
   currentPlacementCacheToken = {};
 }
 
-function setStatus(msg, isError = false) {
+function setStatus(msg: string, isError = false): void {
   status.textContent = msg;
   status.className = isError ? 'error' : '';
 }
 
-function updateGenerateButton() {
+function updateGenerateButton(): void {
   const disabled = !currentOutline || !currentBasePlate || !currentTrack;
   const hasLoadedModel = Boolean(currentOutline && currentBasePlate && currentTrack);
 
@@ -91,30 +94,30 @@ function updateGenerateButton() {
   exportBar.hidden = !hasLoadedModel;
 }
 
-function slugifyFileName(value) {
+function slugifyFileName(value: string): string {
   return value
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '') || 'racetrack';
 }
 
-function getSelectedTrackNameState(layout = getSelectedLayout(currentLayouts, currentLayoutIndex)) {
+function getSelectedTrackNameState(layout: Layout | null | undefined = getSelectedLayout(currentLayouts, currentLayoutIndex)) {
   return selectPrintedTrackName({
-    wikidataLabel: currentTrack?.wikidataLabel ?? currentTrack?.name,
-    wikidataAliases: currentTrack?.wikidataAliases,
-    wikidataShortName: currentTrack?.wikidataShortName,
-    description: currentTrack?.wikidataDescription,
+    wikidataLabel: currentTrack?.wikidataLabel ?? currentTrack?.name ?? null,
+    wikidataAliases: currentTrack?.wikidataAliases ?? [],
+    wikidataShortName: currentTrack?.wikidataShortName ?? null,
+    description: currentTrack?.wikidataDescription ?? null,
     osmVenueNames: currentOsmVenueNames,
-    selectedLayoutName: layout?.name,
+    selectedLayoutName: layout?.name ?? null,
   });
 }
 
-function getEffectiveLabel(layout = getSelectedLayout(currentLayouts, currentLayoutIndex)) {
+function getEffectiveLabel(layout: Layout | null | undefined = getSelectedLayout(currentLayouts, currentLayoutIndex)): string {
   if (currentLabelOverride !== null) {return currentLabelOverride;}
   return getSelectedTrackNameState(layout).printedName;
 }
 
-function updateExaggerationSliderUI() {
+function updateExaggerationSliderUI(): void {
   const value = Number(exaggerationSlider.value);
   const min = Number(exaggerationSlider.min);
   const max = Number(exaggerationSlider.max);
@@ -124,7 +127,7 @@ function updateExaggerationSliderUI() {
   exaggerationSlider.style.background = `linear-gradient(90deg, var(--accent) 0%, var(--accent) ${progress}%, rgba(99, 108, 128, 0.45) ${progress}%, rgba(99, 108, 128, 0.45) 100%)`;
 }
 
-function setPreviewOverlayState(title, body, hidden = false) {
+function setPreviewOverlayState(title: string, body: string, hidden = false): void {
   previewOverlay.hidden = hidden;
   if (hidden) {
     return;
@@ -134,21 +137,21 @@ function setPreviewOverlayState(title, body, hidden = false) {
   previewOverlayBody.textContent = body;
 }
 
-function setTrackSummaryExpanded(expanded) {
+function setTrackSummaryExpanded(expanded: boolean): void {
   isTrackSummaryExpanded = expanded;
 
   if (!currentTrack) {
     trackSummaryPanel.hidden = false;
-    trackSummaryToggle.setAttribute('aria-expanded', 'false');
+    trackSummaryToggle?.setAttribute('aria-expanded', 'false');
     return;
   }
 
   const shouldExpand = mobileSummaryMedia.matches ? expanded : true;
   trackSummaryPanel.hidden = !shouldExpand;
-  trackSummaryToggle.setAttribute('aria-expanded', String(shouldExpand));
+  trackSummaryToggle?.setAttribute('aria-expanded', String(shouldExpand));
 }
 
-function syncTrackSummaryForViewport() {
+function syncTrackSummaryForViewport(): void {
   if (!currentTrack) {
     setTrackSummaryExpanded(false);
     return;
@@ -157,7 +160,7 @@ function syncTrackSummaryForViewport() {
   setTrackSummaryExpanded(mobileSummaryMedia.matches ? isTrackSummaryExpanded : true);
 }
 
-function updateTrackSummary() {
+function updateTrackSummary(): void {
   const layout = getSelectedLayout(currentLayouts, currentLayoutIndex);
 
   if (!currentTrack) {
@@ -208,7 +211,7 @@ function updateTrackSummary() {
   syncTrackSummaryForViewport();
 }
 
-function updateLayoutSelector() {
+function updateLayoutSelector(): void {
   const pickerState = buildLayoutPickerState(currentLayouts, currentLayoutIndex);
   currentLayoutIndex = pickerState.selectedIndex;
   layoutSelect.innerHTML = '';
@@ -226,13 +229,13 @@ function updateLayoutSelector() {
   combinedLayoutWrap.hidden = currentLayouts.length < 2;
 }
 
-function buildDownloadFileName(extension) {
+function buildDownloadFileName(extension: string): string {
   const { printedName } = getSelectedTrackNameState();
   const effectiveName = (currentLabelOverride !== null && currentLabelOverride) ? currentLabelOverride : printedName;
   return `${slugifyFileName(effectiveName)}.${extension}`;
 }
 
-function triggerDownload(blob, fileName) {
+function triggerDownload(blob: Blob, fileName: string): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
 
@@ -245,7 +248,7 @@ function triggerDownload(blob, fileName) {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-function buildSelectedLayoutModel(elevations = currentElevations) {
+function buildSelectedLayoutModel(elevations: number[] | null = currentElevations): void {
   const layout = getSelectedLayout(currentLayouts, currentLayoutIndex);
   if (!layout) {
     currentNodes = null;
@@ -299,7 +302,7 @@ function buildSelectedLayoutModel(elevations = currentElevations) {
   const segmentCount = layout.stats?.segmentCount;
   const lengthKm = layout.stats?.lengthMetres ? layout.stats.lengthMetres / 1000 : null;
   const detailParts = [
-    Number.isFinite(lengthKm) ? `${lengthKm.toFixed(1)} km` : null,
+    Number.isFinite(lengthKm) ? `${lengthKm!.toFixed(1)} km` : null,
     Number.isFinite(segmentCount) ? `${segmentCount} segment${segmentCount === 1 ? '' : 's'}` : null,
     `${model.basePlate.width.toFixed(0)}m×${model.basePlate.height.toFixed(0)}m`,
     currentPrimaryOrientationDeg === PRIMARY_ORIENTATION_AUTO ? 'Auto orientation' : `${currentPrimaryOrientationDeg}° orientation`,
@@ -312,12 +315,12 @@ function buildSelectedLayoutModel(elevations = currentElevations) {
   updateGenerateButton();
 }
 
-function clearResults() {
+function clearResults(): void {
   resultsList.innerHTML = '';
   resultsList.hidden = true;
 }
 
-async function loadElevations(nodes, exaggeration) {
+async function loadElevations(nodes: import('./types/geometry.js').LatLonNode[], exaggeration: number): Promise<void> {
   if (!nodes?.length) {return;}
   try {
     const secondaryLayouts = currentCombinedLayoutMode && currentLayouts.length > 1
@@ -342,7 +345,7 @@ async function loadElevations(nodes, exaggeration) {
   }
 }
 
-async function handleSelect(track) {
+async function handleSelect(track: SearchResult): Promise<void> {
   clearResults();
   setStatus(`Loading geometry for ${track.name}...`);
   exaggerationWrap.hidden = true;
@@ -364,7 +367,11 @@ async function handleSelect(track) {
   setPreviewOverlayState('Loading preview', `Fetching track geometry for ${track.name}...`);
   updateGenerateButton();
   try {
-    const geometry = await fetchTrackGeometry(track.name, { wikidataId: track.wikidataId });
+    const geometry = await fetchTrackGeometry(track.name, { wikidataId: track.wikidataId }) as {
+      layouts?: Layout[];
+      selectedLayoutIndex?: number;
+      osmVenueNames?: string[];
+    };
     currentLayouts = geometry.layouts ?? [];
     currentLayoutIndex = normalizeSelectedLayoutIndex(currentLayouts, geometry.selectedLayoutIndex ?? 0);
     currentOsmVenueNames = geometry.osmVenueNames ?? [];
@@ -385,12 +392,13 @@ async function handleSelect(track) {
     updateLayoutSelector();
     updatePreview(null);
     updateTrackSummary();
-    const isUnavailable = err.message?.startsWith('No prebuilt geometry available');
+    const error = err as Error;
+    const isUnavailable = error.message?.startsWith('No prebuilt geometry available');
     const overlayBody = isUnavailable
       ? 'Track geometry not available.'
       : 'Try another track or search again in a moment.';
     setPreviewOverlayState('Preview unavailable', overlayBody);
-    setStatus(`Error loading geometry: ${err.message}`, true);
+    setStatus(`Error loading geometry: ${error.message}`, true);
     console.error(err);
   }
 }
@@ -421,23 +429,34 @@ generateStlButton.addEventListener('click', async () => {
 
   try {
     setStatus('Building STL mesh…');
-    const model = currentModel ?? buildTrackModel({
+    const cachedModel = currentModel;
+    const orientationForStl = currentProjectedNodes
+      ? currentPrimaryOrientationDeg
+      : (cachedModel?.primaryOrientationDeg ?? currentPrimaryOrientationDeg);
+    const model: TrackModel = cachedModel ?? buildTrackModel({
       outlinePoints: currentProjectedNodes ? null : currentOutline,
       basePlate: currentProjectedNodes ? null : currentBasePlate,
       trackName: getEffectiveLabel(),
       projectedNodes: currentProjectedNodes,
       textPositionRank: currentTextPositionRank,
-      primaryOrientationDeg: currentProjectedNodes
-        ? currentPrimaryOrientationDeg
-        : (currentModel?.primaryOrientationDeg ?? currentPrimaryOrientationDeg),
+      primaryOrientationDeg: orientationForStl,
     });
 
     setStatus('Serializing STL file…');
     const fileName = buildDownloadFileName('stl');
-    const result = exportStl(model, fileName);
-    setStatus(`Downloaded ${result.fileName} (${result.triangleCount} triangles)`);
+    const normalizedBase = String(fileName)
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'racetrack';
+    const downloadFileName = normalizedBase.endsWith('.stl') ? normalizedBase : `${normalizedBase}.stl`;
+    const stlBytes = serializeBinaryStl(model.triangles, downloadFileName);
+    const blob = new Blob([stlBytes], { type: 'model/stl' });
+    triggerDownload(blob, downloadFileName);
+    setStatus(`Downloaded ${downloadFileName} (${model.triangles.length} triangles)`);
   } catch (err) {
-    setStatus(`STL export failed: ${err.message}`, true);
+    const error = err as Error;
+    setStatus(`STL export failed: ${error.message}`, true);
     console.error(err);
   } finally {
     isGeneratingStl = false;
@@ -455,24 +474,34 @@ generate3mfButton.addEventListener('click', async () => {
 
   try {
     setStatus('Building 3MF mesh…');
-    const model = currentModel ?? buildTrackModel({
+    const cachedModel = currentModel;
+    const orientationFor3mf = currentProjectedNodes
+      ? currentPrimaryOrientationDeg
+      : (cachedModel?.primaryOrientationDeg ?? currentPrimaryOrientationDeg);
+    const model: TrackModel = cachedModel ?? buildTrackModel({
       outlinePoints: currentProjectedNodes ? null : currentOutline,
       basePlate: currentProjectedNodes ? null : currentBasePlate,
       trackName: getEffectiveLabel(),
       projectedNodes: currentProjectedNodes,
       textPositionRank: currentTextPositionRank,
-      primaryOrientationDeg: currentProjectedNodes
-        ? currentPrimaryOrientationDeg
-        : (currentModel?.primaryOrientationDeg ?? currentPrimaryOrientationDeg),
+      primaryOrientationDeg: orientationFor3mf,
     });
 
     setStatus('Packaging 3MF file…');
     const fileName = buildDownloadFileName('3mf');
-    const result = export3mf(model, fileName);
-    triggerDownload(result.blob, result.fileName);
-    setStatus(`Downloaded ${result.fileName}`);
+    const normalizedBase = String(fileName)
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'racetrack';
+    const downloadFileName = normalizedBase.endsWith('.3mf') ? normalizedBase : `${normalizedBase}.3mf`;
+    const zipBuffer = package3mf(model);
+    const blob = new Blob([zipBuffer], { type: 'application/vnd.ms-package.3dmanufacturing-3dmodel+zip' });
+    triggerDownload(blob, downloadFileName);
+    setStatus(`Downloaded ${downloadFileName}`);
   } catch (err) {
-    setStatus(`3MF export failed: ${err.message}`, true);
+    const error = err as Error;
+    setStatus(`3MF export failed: ${error.message}`, true);
     console.error(err);
   } finally {
     isGenerating3mf = false;
@@ -480,7 +509,7 @@ generate3mfButton.addEventListener('click', async () => {
   }
 });
 
-function renderResults(tracks) {
+function renderResults(tracks: SearchResult[]): void {
   resultsList.innerHTML = '';
   if (tracks.length === 0) {
     const li = document.createElement('li');
@@ -498,7 +527,7 @@ function renderResults(tracks) {
   resultsList.hidden = false;
 }
 
-let elevationRefreshTimer;
+let elevationRefreshTimer: ReturnType<typeof setTimeout> | undefined;
 exaggerationSlider.addEventListener('input', () => {
   updateExaggerationSliderUI();
 
@@ -506,7 +535,7 @@ exaggerationSlider.addEventListener('input', () => {
   clearTimeout(elevationRefreshTimer);
   elevationRefreshTimer = setTimeout(async () => {
     const exaggeration = Number(exaggerationSlider.value);
-    await loadElevations(currentNodes, exaggeration);
+    await loadElevations(currentNodes!, exaggeration);
   }, 150);
 });
 
@@ -536,7 +565,7 @@ combinedLayoutToggle?.addEventListener('change', () => {
   invalidatePlacementCache();
   buildSelectedLayoutModel();
   if (currentCombinedLayoutMode && currentNodes?.length) {
-    loadElevations(currentNodes, Number(exaggerationSlider.value));
+    void loadElevations(currentNodes, Number(exaggerationSlider.value));
   }
 });
 
@@ -581,7 +610,7 @@ summaryLabelReset?.addEventListener('click', () => {
   const layout = getSelectedLayout(currentLayouts, currentLayoutIndex);
   const trackNameState = getSelectedTrackNameState(layout);
   if (summaryLabelInput) {summaryLabelInput.value = trackNameState.printedName ?? '';}
-  summaryLabelReset.hidden = true;
+  if (summaryLabelReset) {summaryLabelReset.hidden = true;}
 
   if (!currentLayouts.length || !currentTrack) {
     return;
@@ -591,8 +620,8 @@ summaryLabelReset?.addEventListener('click', () => {
   buildSelectedLayoutModel();
 });
 
-let debounceTimer;
-let searchAbortController = null;
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+let searchAbortController: AbortController | null = null;
 
 input.addEventListener('input', () => {
   const query = input.value.trim();
@@ -618,15 +647,16 @@ input.addEventListener('input', () => {
       setStatus(`${tracks.length} result${tracks.length !== 1 ? 's' : ''} found`);
       renderResults(tracks);
     } catch (err) {
-      if (err.name === 'AbortError') {return;} // stale request, ignore
-      setStatus(`Search error: ${err.message}`, true);
+      const error = err as Error;
+      if (error.name === 'AbortError') {return;} // stale request, ignore
+      setStatus(`Search error: ${error.message}`, true);
       console.error(err);
     }
   }, 800);
 });
 
 document.addEventListener('click', e => {
-  if (!resultsList.contains(e.target) && e.target !== input) {
+  if (!resultsList.contains(e.target as Node) && e.target !== input) {
     clearResults();
   }
 });

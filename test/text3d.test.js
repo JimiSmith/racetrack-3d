@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { BASE_THICKNESS_MM } from '../src/model.js';
-import { rotateOutlineByOrientation } from '../src/orientation.js';
+import { BASE_THICKNESS_MM } from '../src/model/index.js';
+import { rotateOutlineByOrientation } from '../src/model/orientation.js';
 import {
   TEXT_HEIGHT_MM,
   __debugTextPlacement,

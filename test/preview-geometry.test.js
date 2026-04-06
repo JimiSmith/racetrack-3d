@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildPreviewGeometry } from '../src/preview-geometry.js';
+import { buildPreviewGeometry } from '../src/preview/model-mesh.js';
 
 function readVector(attribute, index) {
   return {

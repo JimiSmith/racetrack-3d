@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildBasePlate, buildTrackOutline, projectNodes } from '../src/geometry.js';
+import { buildBasePlate, buildTrackOutline } from '../src/geometry/outline.js';
+import { projectNodes } from '../src/geometry/projection.js';
 
 function approxEqual(actual, expected, tolerance = 1e-6) {
   assert.ok(Math.abs(actual - expected) <= tolerance, `expected ${actual} to be within ${tolerance} of ${expected}`);

@@ -6,7 +6,7 @@ import {
   buildElevationProfile,
   fetchElevations,
   smoothElevationProfile,
-} from '../src/elevation.js';
+} from '../src/elevation/terrarium.js';
 
 function latLonToTileXY(lat, lon, zoom) {
   const n = 2 ** zoom;

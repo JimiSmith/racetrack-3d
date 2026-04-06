@@ -3,10 +3,10 @@ import test from 'node:test';
 
 import { strFromU8, unzipSync } from 'fflate';
 
-import { buildBasePlate } from '../src/geometry.js';
-import { splitModelTriangles } from '../src/triangle-groups.js';
-import { buildTrackModel } from '../src/model.js';
-import { export3mf } from '../src/export3mf.js';
+import { buildBasePlate } from '../src/geometry/outline.js';
+import { splitModelTriangles } from '../src/model/triangle-groups.js';
+import { buildTrackModel } from '../src/model/index.js';
+import { export3mf } from '../src/export/threemf.js';
 
 function syntheticOutline() {
   return {

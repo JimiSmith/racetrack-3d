@@ -23,3 +23,4 @@ export {
 } from './track-model.js';
 export type { BuildTrackModelOptions } from './track-model.js';
 export type { OrientTrackGeometryOptions, OrientedTrackGeometry, AutoOrientationResult } from './orientation.js';
+export { serializeBinaryStl, computeNormal, exportStl } from '../export/stl.js';

@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildBasePlate } from '../src/geometry.js';
+import { buildBasePlate } from '../src/geometry/outline.js';
 import {
   buildTrackModel,
   __resetModelPerfCounters,
   __getModelPerfCounters,
   __disableModelPerfCounters,
-} from '../src/model.js';
+} from '../src/model/index.js';
 import {
   __resetPerfCounters,
   __getPerfCounters,
@@ -214,7 +214,7 @@ test('perf: computeRankedTextPlacements calls during auto-orientation (with cach
 // ---------------------------------------------------------------------------
 
 test('perf: wall-clock cost of buildTrackOutline (Turf buffer)', async () => {
-  const { buildTrackOutline } = await import('../src/geometry.js');
+  const { buildTrackOutline } = await import('../src/geometry/outline.js');
   const nodes = ovalCircuitNodes();
 
   // Warm up
