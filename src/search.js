@@ -1802,17 +1802,9 @@ function buildTrackGeometryResult(elements, trackName) {
   // (e.g. Mexican Grand Prix + Mexico City E-Prix), merging all their ways produces an
   // incorrect superset geometry. Try each relation independently and return the best result.
   //
-  // Invariant: callers are expected to pre-filter `allElements` to circuit route relations
-  // only (via parseOsmApiMapXml), so the filter below operates on an already-screened set
-  // and will not select facility multipolygons.
-  const circuitRelations = allElements.filter(e => {
-    if (e.type !== 'relation') {return false;}
-    const hw = String(e.tags?.highway ?? '').trim().toLowerCase();
-    const type = String(e.tags?.type ?? '').trim().toLowerCase();
-    const route = String(e.tags?.route ?? '').trim().toLowerCase();
-    const circuit = String(e.tags?.circuit ?? '').trim().toLowerCase();
-    return (hw === 'raceway' || type === 'circuit' || route === 'raceway') && circuit !== 'kart';
-  });
+  // All relations in allElements have already been filtered to circuit routes by
+  // parseOsmApiMapXml upstream, so a type check is sufficient here.
+  const circuitRelations = allElements.filter(e => e.type === 'relation');
 
   if (circuitRelations.length > 1) {
     // Only apply per-relation isolation when the relations are geometrically independent
