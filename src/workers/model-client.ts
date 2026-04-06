@@ -115,6 +115,12 @@ export function createModelWorkerClient(): {
   function requestModelBuild(params: ModelBuildParams): Promise<TrackModel> {
     const id = ++currentRequestId;
 
+    // Cancel any in-flight requests that are now stale.
+    for (const [oldId, handler] of pending) {
+      handler.reject(new Error('Superseded by newer request'));
+      pending.delete(oldId);
+    }
+
     const request: ModelBuildRequest = {
       type: 'build-model',
       id,

@@ -116,35 +116,40 @@ export async function rebuildModel(elevationData: number[] | null = get(elevatio
   const currentTextPositionRank = get(textPositionRank);
   const generation = getCacheGeneration();
 
-  const model = await modelWorkerClient.requestModelBuild({
-    projectedNodes: projected,
-    secondaryProjectedNodes,
-    trackName: trackLabel,
-    primaryOrientationDeg: currentOrientationDeg,
-    textPositionRank: currentTextPositionRank,
-    cacheGeneration: generation,
-  });
+  try {
+    const model = await modelWorkerClient.requestModelBuild({
+      projectedNodes: projected,
+      secondaryProjectedNodes,
+      trackName: trackLabel,
+      primaryOrientationDeg: currentOrientationDeg,
+      textPositionRank: currentTextPositionRank,
+      cacheGeneration: generation,
+    });
 
-  nodes.set(layout.nodes);
-  projectedNodes.set(projected);
-  elevations.set(elevationData);
-  outline.set(model.outlinePoints);
-  basePlate.set(model.basePlate);
-  currentModel.set(model);
+    nodes.set(layout.nodes);
+    projectedNodes.set(projected);
+    elevations.set(elevationData);
+    outline.set(model.outlinePoints);
+    basePlate.set(model.basePlate);
+    currentModel.set(model);
 
-  const trackNameState = getSelectedTrackNameState(layout);
-  const segmentCount = layout.stats?.segmentCount;
-  const lengthKm = layout.stats?.lengthMetres ? layout.stats.lengthMetres / 1000 : null;
-  const detailParts = [
-    Number.isFinite(lengthKm) ? `${lengthKm!.toFixed(1)} km` : null,
-    Number.isFinite(segmentCount) ? `${segmentCount} segment${segmentCount === 1 ? '' : 's'}` : null,
-    `${model.basePlate.width.toFixed(0)}m×${model.basePlate.height.toFixed(0)}m`,
-    currentOrientationDeg === PRIMARY_ORIENTATION_AUTO ? 'Auto orientation' : `${currentOrientationDeg}° orientation`,
-  ].filter(Boolean);
-  statusMessage.set(`${trackNameState.printedName} · ${detailParts.join(' · ')}`);
-  statusIsError.set(false);
+    const trackNameState = getSelectedTrackNameState(layout);
+    const segmentCount = layout.stats?.segmentCount;
+    const lengthKm = layout.stats?.lengthMetres ? layout.stats.lengthMetres / 1000 : null;
+    const detailParts = [
+      Number.isFinite(lengthKm) ? `${lengthKm!.toFixed(1)} km` : null,
+      Number.isFinite(segmentCount) ? `${segmentCount} segment${segmentCount === 1 ? '' : 's'}` : null,
+      `${model.basePlate.width.toFixed(0)}m×${model.basePlate.height.toFixed(0)}m`,
+      currentOrientationDeg === PRIMARY_ORIENTATION_AUTO ? 'Auto orientation' : `${currentOrientationDeg}° orientation`,
+    ].filter(Boolean);
+    statusMessage.set(`${trackNameState.printedName} · ${detailParts.join(' · ')}`);
+    statusIsError.set(false);
 
-  previewOverlayState.set({ title: '', body: '', hidden: true });
+    previewOverlayState.set({ title: '', body: '', hidden: true });
+  } catch (err) {
+    if (err instanceof Error && err.message === 'Superseded by newer request') { return; }
+    throw err;
+  }
 }
 
 /**
