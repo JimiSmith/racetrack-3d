@@ -4,6 +4,7 @@
  */
 
 import type { Point2D, ProjectedNode } from './geometry.js';
+import type { RankedTextPlacement, TextPlacementCandidate, Rect2D } from './text.js';
 
 /** A 3D vertex with millimetre coordinates. */
 export interface Vertex {
@@ -71,4 +72,10 @@ export interface TrackModel {
   basePlate: BasePlate;
   /** Projected nodes of the primary layout after orientation, or null if unavailable. */
   projectedNodes: ProjectedNode[] | null;
+  /** All scored placements with breakdown data (debug only). */
+  allScoredPlacements?: RankedTextPlacement[];
+  /** Placement candidates evaluated during scoring (debug only). */
+  placementCandidates?: TextPlacementCandidate[];
+  /** Scaled base plate used for placement scoring (debug only). */
+  scaledBasePlate?: Rect2D;
 }

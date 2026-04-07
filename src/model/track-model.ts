@@ -254,7 +254,7 @@ export function buildTrackModel({
 
   perfTimer?.step('textMesh');
 
-  return {
+  const result: TrackModel = {
     triangles: [...basePlateTriangles, ...secondaryTrackTriangles, ...trackTriangles, ...textTriangles],
     baseTriangleCount: basePlateTriangles.length,
     secondaryTrackTriangleCount: secondaryTrackTriangles.length,
@@ -268,4 +268,14 @@ export function buildTrackModel({
     basePlate: effectiveBasePlate,
     projectedNodes: orientedGeometry.projectedNodes,
   };
+  if (rankedPlacements?.allScoredPlacements) {
+    result.allScoredPlacements = rankedPlacements.allScoredPlacements;
+  }
+  if (rankedPlacements?.candidates) {
+    result.placementCandidates = rankedPlacements.candidates;
+  }
+  if (rankedPlacements?.scaledBasePlate) {
+    result.scaledBasePlate = rankedPlacements.scaledBasePlate;
+  }
+  return result;
 }

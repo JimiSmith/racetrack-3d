@@ -85,6 +85,26 @@ export interface FittedTextLayout {
 }
 
 /**
+ * Per-multiplier breakdown of a placement score, returned by `scoreTextFit`.
+ * `averageLineHeight` is the base term; `utilization` is the raw ratio
+ * (raised to `utilizationExponent` in the composite); `textHeight` is
+ * informational (input to `sizeWindowMultiplier`). The remaining fields
+ * are direct multipliers in the composite product.
+ */
+export interface PlacementScoreBreakdown {
+  utilization: number;
+  lineBalance: number;
+  averageLineHeight: number;
+  textHeight: number;
+  outsideMultiplier: number;
+  lineCountMultiplier: number;
+  sizeWindowMultiplier: number;
+  trackClearanceMultiplier: number;
+  centralityMultiplier: number;
+  textClearanceMultiplier: number;
+}
+
+/**
  * A single ranked text placement: a candidate region paired with its
  * best-fitting layout and a composite score.
  */
@@ -93,6 +113,7 @@ export interface RankedTextPlacement {
   candidateIndex: number;
   layout: FittedTextLayout;
   score: number;
+  scoreBreakdown?: PlacementScoreBreakdown;
 }
 
 /**
@@ -102,6 +123,8 @@ export interface RankedTextPlacement {
 export interface RankedPlacements {
   /** Up to 3 ranked placement options (best first). */
   placements: RankedTextPlacement[];
+  /** All scored placements (for debug inspection). */
+  allScoredPlacements?: RankedTextPlacement[];
   /** Clearance context used for text-vs-text spacing. */
   clearanceContext: {
     distanceMap: number[][];

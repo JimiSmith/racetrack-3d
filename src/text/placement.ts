@@ -8,6 +8,7 @@ import type {
   FittedTextLayout,
   RankedTextPlacement,
   RankedPlacements,
+  PlacementScoreBreakdown,
 } from '../types/text.js';
 import { buildMultilineContours, polygonBounds } from './contours.js';
 import type { MultilineContours } from './contours.js';
@@ -731,6 +732,7 @@ function precomputeMultilineLayouts(text: string, font: Font, cache: Map<string,
 interface BestLayoutResult {
   layout: FittedTextLayout;
   score: number;
+  breakdown: PlacementScoreBreakdown;
 }
 
 function findBestPrecomputedLayoutForLocation(multilines: MultilineContours[], candidate: TextPlacementCandidate, clearanceContext: ClearanceContext | null = null): BestLayoutResult | null {
@@ -739,16 +741,18 @@ function findBestPrecomputedLayoutForLocation(multilines: MultilineContours[], c
 
   let bestLayout: Omit<FittedTextLayout, 'score'> | null = null;
   let bestScore = -Infinity;
+  let bestBreakdown: PlacementScoreBreakdown | null = null;
 
   for (const layout of layouts) {
-    const score = scoreTextFit(candidate.bounds, { ...layout, score: 0 }, candidate, clearanceContext);
+    const { score, breakdown } = scoreTextFit(candidate.bounds, { ...layout, score: 0 }, candidate, clearanceContext);
     if (score > bestScore) {
       bestScore = score;
       bestLayout = layout;
+      bestBreakdown = breakdown;
     }
   }
 
-  return bestLayout ? { layout: { ...bestLayout, score: bestScore }, score: bestScore } : null;
+  return bestLayout && bestBreakdown ? { layout: { ...bestLayout, score: bestScore }, score: bestScore, breakdown: bestBreakdown } : null;
 }
 
 export function compareRankedTextPlacements(a: RankedTextPlacement, b: RankedTextPlacement): number {
@@ -767,17 +771,18 @@ export function rankTextPlacements(text: string, font: Font, candidates: TextPla
     return [];
   }
 
-  const locationResults: RankedTextPlacement[] = candidates
-    .map((candidate, candidateIndex) => {
-      const best = findBestPrecomputedLayoutForLocation(multilines, candidate, clearanceContext);
-      if (!best) { return null; }
-      return { candidate, candidateIndex, layout: best.layout, score: best.score };
-    })
-    .filter((r): r is RankedTextPlacement => r !== null);
+  const locationResults: RankedTextPlacement[] = [];
+  for (let candidateIndex = 0; candidateIndex < candidates.length; candidateIndex++) {
+    const candidate = candidates[candidateIndex]!;
+    const best = findBestPrecomputedLayoutForLocation(multilines, candidate, clearanceContext);
+    if (best) {
+      locationResults.push({ candidate, candidateIndex, layout: best.layout, score: best.score, scoreBreakdown: best.breakdown });
+    }
+  }
 
   locationResults.sort(compareRankedTextPlacements);
 
-  return locationResults.slice(0, 3);
+  return locationResults;
 }
 
 function scaleRing(points: Point2D[] | null | undefined, scale: number): Point2D[] {
@@ -862,7 +867,7 @@ export function computeRankedTextPlacements(
     return null;
   }
 
-  return { placements, clearanceContext, candidates, scaledBasePlate };
+  return { placements: placements.slice(0, 3), allScoredPlacements: placements, clearanceContext, candidates, scaledBasePlate };
 }
 
 export { computeSizeWindowMultiplier, computeLineCountMultiplier, computeTextClearanceMultiplier, polygonBounds };

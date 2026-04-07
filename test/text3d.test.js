@@ -9,10 +9,10 @@ import {
   __debugTextFitModifiers,
   __debugCompareRankedTextPlacements,
   __debugPlacementCandidates,
-  __debugAllPlacements,
   __debugRectIntersectsPolygon,
   __findOptimalLineBreaks,
   buildTextMesh,
+  computeRankedTextPlacements,
 } from '../src/text3d.js';
 
 function rectangleCommands(x, y, width, height) {
@@ -707,26 +707,27 @@ test('fully outside candidates outrank larger fully inside candidates', () => {
   assert.ok(placement.candidateArea < largestInsideCandidate.area);
 });
 
-test('debug placements expose textClearanceMultiplier in the expected range', () => {
+test('scored placements expose textClearanceMultiplier in the expected range', () => {
   const outline = largeHoleOutline();
   const basePlate = { minX: -200, maxX: 4200, minY: -200, maxY: 2700, width: 4400, height: 2900 };
 
-  const orientations = __debugAllPlacements('Circuit Name', outline, basePlate, 1, {
+  const result = computeRankedTextPlacements('Circuit Name', outline, basePlate, 1, {
     font: createMockFont(),
   });
 
-  assert.ok(orientations);
-  const allPlacements = orientations;
+  assert.ok(result);
+  const allPlacements = result.allScoredPlacements;
   assert.ok(allPlacements.length > 0, 'expected at least one placement');
 
   for (const placement of allPlacements) {
+    const tcm = placement.scoreBreakdown?.textClearanceMultiplier;
     assert.ok(
-      typeof placement.textClearanceMultiplier === 'number',
+      typeof tcm === 'number',
       'textClearanceMultiplier should be a number',
     );
     assert.ok(
-      placement.textClearanceMultiplier >= 0.96 && placement.textClearanceMultiplier <= 1.0,
-      `textClearanceMultiplier ${placement.textClearanceMultiplier} should be in [0.96, 1.0]`,
+      tcm >= 0.96 && tcm <= 1.0,
+      `textClearanceMultiplier ${tcm} should be in [0.96, 1.0]`,
     );
   }
 });
@@ -742,26 +743,29 @@ test('text clearance multiplier is higher when text has more breathing room from
   });
   const basePlate = { minX: 0, maxX: 2200, minY: 0, maxY: 2200, width: 2200, height: 2200 };
 
-  const shortText = __debugAllPlacements('GO', outline, basePlate, 1, {
+  const shortResult = computeRankedTextPlacements('GO', outline, basePlate, 1, {
     font: createMockFont(),
   });
-  const longText = __debugAllPlacements('A Very Long Circuit Name', outline, basePlate, 1, {
+  const longResult = computeRankedTextPlacements('A Very Long Circuit Name', outline, basePlate, 1, {
     font: createMockFont(),
   });
 
-  assert.ok(shortText);
-  assert.ok(longText);
+  assert.ok(shortResult);
+  assert.ok(longResult);
 
-  const shortBest = shortText[0];
-  const longBest = longText[0];
+  const shortBest = shortResult.allScoredPlacements[0];
+  const longBest = longResult.allScoredPlacements[0];
 
   assert.ok(shortBest, 'expected a placement for short text');
   assert.ok(longBest, 'expected a placement for long text');
 
+  const shortTcm = shortBest.scoreBreakdown?.textClearanceMultiplier;
+  const longTcm = longBest.scoreBreakdown?.textClearanceMultiplier;
+
   // Short text fills less of the rectangle, so it has more margin → higher text clearance
   assert.ok(
-    shortBest.textClearanceMultiplier >= longBest.textClearanceMultiplier,
-    `short text clearance ${shortBest.textClearanceMultiplier} should be >= long text clearance ${longBest.textClearanceMultiplier}`,
+    shortTcm >= longTcm,
+    `short text clearance ${shortTcm} should be >= long text clearance ${longTcm}`,
   );
 });
 
@@ -777,16 +781,17 @@ test('text clearance multiplier is above the floor when text is far from the tra
   });
   const basePlate = { minX: -200, maxX: 6200, minY: -200, maxY: 6200, width: 6400, height: 6400 };
 
-  const orientations = __debugAllPlacements('Hi', outline, basePlate, 1, {
+  const result = computeRankedTextPlacements('Hi', outline, basePlate, 1, {
     font: createMockFont(),
   });
 
-  assert.ok(orientations);
-  const best = orientations[0];
+  assert.ok(result);
+  const best = result.allScoredPlacements[0];
   assert.ok(best, 'expected a placement');
+  const tcm = best.scoreBreakdown?.textClearanceMultiplier;
   assert.ok(
-    best.textClearanceMultiplier > 0.96,
-    `text far from track should have clearance above the 0.96 floor, got ${best.textClearanceMultiplier}`,
+    tcm > 0.96,
+    `text far from track should have clearance above the 0.96 floor, got ${tcm}`,
   );
 });
 
