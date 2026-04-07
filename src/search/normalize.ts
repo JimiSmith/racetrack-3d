@@ -68,8 +68,11 @@ export function buildTrackSearchEntry(record: {
   const country = collapseWhitespace(String(record?.country ?? '')) || null;
   const city = collapseWhitespace(String(record?.city ?? '')) || null;
 
+  const usefulLabel = Boolean(label) && !isRawIdentifierLike(label);
+  const resolvedLabel = usefulLabel ? label : (aliases[0] ?? label);
+
   const normalized = {
-    label: normalizeSearchText(label),
+    label: normalizeSearchText(resolvedLabel) || null,
     aliases: normalizeStringArray(aliases),
     shortName: normalizeSearchText(shortName),
     city: normalizeSearchText(city),
@@ -97,7 +100,6 @@ export function buildTrackSearchEntry(record: {
     return null;
   }
 
-  const usefulLabel = normalized.label && !isRawIdentifierLike(label);
   const usefulAliases = normalized.aliases.filter(alias => !isRawIdentifierLike(alias));
   if (!usefulLabel && usefulAliases.length === 0) {
     return null;
@@ -105,7 +107,7 @@ export function buildTrackSearchEntry(record: {
 
   return {
     wikidataId: record.wikidataId,
-    label: usefulLabel ? label : (aliases[0] ?? label),
+    label: resolvedLabel,
     aliases,
     description: record.description ?? null,
     type: record.type ?? null,

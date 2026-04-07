@@ -40,7 +40,7 @@ function scoreTokenOverlap(
 }
 
 function includesSubstring(values: string[], query: string): boolean {
-  return values.some(value => value.includes(query) || query.includes(value));
+  return values.some(value => value.length > 0 && (value.includes(query) || query.includes(value)));
 }
 
 interface ScoreResult {

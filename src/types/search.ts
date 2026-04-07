@@ -30,7 +30,7 @@ export interface TrackSearchEntry {
   wikidataShortName: string | null;
   /** Pre-normalised versions of the text fields for fast matching. */
   normalized: {
-    label: string;
+    label: string | null;
     aliases: string[];
     shortName: string;
     city: string;
