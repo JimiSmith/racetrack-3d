@@ -69,8 +69,8 @@ export function buildTrackSearchEntry(record: {
   const city = collapseWhitespace(String(record?.city ?? '')) || null;
 
   const usefulLabel = Boolean(label) && !isRawIdentifierLike(label);
-  const usefulAliases = aliases.filter(alias => !isRawIdentifierLike(alias));
-  const resolvedLabel = usefulLabel ? label : (usefulAliases[0] ?? label);
+  const usefulRawAliases = aliases.filter(alias => !isRawIdentifierLike(alias));
+  const resolvedLabel = usefulLabel ? label : (usefulRawAliases[0] ?? label);
 
   const normalized = {
     label: normalizeSearchText(resolvedLabel) || null,
@@ -101,7 +101,8 @@ export function buildTrackSearchEntry(record: {
     return null;
   }
 
-  if (!usefulLabel && usefulAliases.length === 0) {
+  const usefulNormalizedAliases = normalized.aliases.filter(alias => !isRawIdentifierLike(alias));
+  if (!usefulLabel && usefulNormalizedAliases.length === 0) {
     return null;
   }
 
