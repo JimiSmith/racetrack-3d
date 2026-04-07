@@ -280,9 +280,10 @@ function scanlineRasterizeOutline(
   scanlineMarkEdgeCells(outerRing, rows, columns, cellWidth, cellHeight, originX, originY, result);
 
   // Subtract cells that are fully inside a hole: centre inside AND no hole edge
-  // crosses the cell. This is slightly different from the previous all-four-corners
-  // test but equivalent in practice — if no edge crosses the cell and its centre is
-  // inside, the entire cell is inside the hole polygon.
+  // crosses the cell. This replaces the previous all-four-corners test. The two are
+  // equivalent when cells are small relative to the hole's curvature (guaranteed by
+  // MIN_CELL_MM = 3): if no edge crosses a cell and its centre is inside, the entire
+  // cell must be inside the polygon — there is no boundary to put a corner outside.
   const holes = outline?.holes ?? [];
   for (const hole of holes) {
     if (hole.length < 3) {continue;}
