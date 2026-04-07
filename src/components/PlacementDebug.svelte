@@ -85,10 +85,9 @@
     {#if $placementDebugData}
       <svg class="placement-debug-svg" viewBox={viewBox} xmlns="http://www.w3.org/2000/svg">
         <!-- Base plate -->
-        {@const bp = $placementDebugData.scaledBasePlate}
         <rect
-          x={bp.minX} y={bp.minY}
-          width={bp.width} height={bp.height}
+          x={$placementDebugData.scaledBasePlate.minX} y={$placementDebugData.scaledBasePlate.minY}
+          width={$placementDebugData.scaledBasePlate.width} height={$placementDebugData.scaledBasePlate.height}
           fill="rgba(20, 24, 32, 0.9)" stroke="var(--border-strong)" stroke-width={fontSize * 0.1}
         />
 
