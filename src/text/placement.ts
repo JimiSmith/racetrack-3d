@@ -163,19 +163,20 @@ function scanlineFillInterior(
   originX: number,
   originY: number,
   out: boolean[][],
+  value: boolean = true,
 ): void {
   if (polygon.length < 3) {return;}
 
+  const intercepts: number[] = [];
   for (let row = 0; row < rows; row += 1) {
     const cy = originY + (row + 0.5) * cellHeight;
     // Collect X intercepts with the polygon edges at y = cy
-    const intercepts: number[] = [];
+    intercepts.length = 0;
     for (let i = 0, prev = polygon.length - 1; i < polygon.length; prev = i, i += 1) {
       const a = polygon[i]!;
       const b = polygon[prev]!;
       if ((a.y > cy) === (b.y > cy)) {continue;} // edge doesn't straddle cy
       const dy = b.y - a.y;
-      if (dy === 0) {continue;}
       intercepts.push((b.x - a.x) * (cy - a.y) / dy + a.x);
     }
     if (intercepts.length < 2) {continue;}
@@ -189,7 +190,7 @@ function scanlineFillInterior(
       const colStart = Math.max(0, Math.ceil((xEnter - originX) / cellWidth - 0.5));
       const colEnd = Math.min(columns - 1, Math.floor((xExit - originX) / cellWidth - 0.5));
       for (let col = colStart; col <= colEnd; col += 1) {
-        out[row]![col] = true;
+        out[row]![col] = value;
       }
     }
   }
@@ -278,7 +279,10 @@ function scanlineRasterizeOutline(
   scanlineFillInterior(outerRing, rows, columns, cellWidth, cellHeight, originX, originY, result);
   scanlineMarkEdgeCells(outerRing, rows, columns, cellWidth, cellHeight, originX, originY, result);
 
-  // Subtract cells that are fully inside a hole (interior minus boundary)
+  // Subtract cells that are fully inside a hole: centre inside AND no hole edge
+  // crosses the cell. This is slightly different from the previous all-four-corners
+  // test but equivalent in practice — if no edge crosses the cell and its centre is
+  // inside, the entire cell is inside the hole polygon.
   const holes = outline?.holes ?? [];
   for (const hole of holes) {
     if (hole.length < 3) {continue;}
@@ -459,17 +463,11 @@ export function computePlacementMask(allObstacleOutlines: OutlinePoints[], prima
     }
   }
 
-  // Build the outside mask using scanline interior fill on the primary outerRing.
+  // Build the outside mask: start all-true, then clear cells inside the primary outerRing.
   const outside: boolean[][] = Array.from({ length: rows }, () => Array.from({ length: columns }, () => true));
   const hasOuterRing = (primaryOutline?.outerRing?.length ?? 0) >= 3;
   if (hasOuterRing) {
-    const inside: boolean[][] = Array.from({ length: rows }, () => Array.from({ length: columns }, () => false));
-    scanlineFillInterior(primaryOutline!.outerRing, rows, columns, cellWidth, cellHeight, originX, originY, inside);
-    for (let r = 0; r < rows; r += 1) {
-      for (let c = 0; c < columns; c += 1) {
-        if (inside[r]![c]) {outside[r]![c] = false;}
-      }
-    }
+    scanlineFillInterior(primaryOutline!.outerRing, rows, columns, cellWidth, cellHeight, originX, originY, outside, false);
   }
 
   const dilated = dilateBlockedCells(mask, grid.obstacleMarginCells);
