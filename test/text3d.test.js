@@ -7,6 +7,7 @@ import {
   TEXT_HEIGHT_MM,
   __debugTextPlacement,
   __debugTextFitModifiers,
+  __debugScoreTextFit,
   __debugCompareRankedTextPlacements,
   __debugPlacementCandidates,
   __debugRectIntersectsPolygon,
@@ -934,4 +935,78 @@ test('DP measures space width via fallback when charToGlyph is unavailable', () 
   const lines = __findOptimalLineBreaks('Las Vegas Strip Circuit', 2, font);
   assert.equal(lines.length, 2);
   assert.equal(lines.join(' '), 'Las Vegas Strip Circuit');
+});
+
+test('line-balance damping: 2-line gets most damping, decreasing for more lines', () => {
+  // A layout with poor raw balance (min/max = 0.3) should get progressively
+  // less forgiveness as line count increases: 2-line > 3-line > 4-line.
+  const rect = { minX: 0, minY: 0, maxX: 50, maxY: 20, width: 50, height: 20 };
+  const baseLayout = {
+    text: 'test',
+    lines: ['test'],
+    scale: 1,
+    bounds: rect,
+    lineBounds: [rect],
+    contours: [],
+    fittedWidth: 50,
+    fittedHeight: 20,
+    averageLineHeight: 6,
+    maxLineWidth: 10,
+    minLineWidth: 3, // raw balance = 0.3
+    score: 0,
+  };
+
+  const score2 = __debugScoreTextFit(rect, { ...baseLayout, lineCount: 2 });
+  const score3 = __debugScoreTextFit(rect, { ...baseLayout, lineCount: 3 });
+  const score4 = __debugScoreTextFit(rect, { ...baseLayout, lineCount: 4 });
+
+  // 2-line damping=0.75: balance = 0.3 + 0.7*0.75 = 0.825
+  // 3-line damping=0.25: balance = 0.3 + 0.7*0.25 = 0.475
+  // 4-line damping=0:    balance = 0.3
+  assert.ok(
+    score2.breakdown.lineBalance > score3.breakdown.lineBalance,
+    `2-line balance (${score2.breakdown.lineBalance}) should exceed 3-line (${score3.breakdown.lineBalance})`,
+  );
+  assert.ok(
+    score3.breakdown.lineBalance > score4.breakdown.lineBalance,
+    `3-line balance (${score3.breakdown.lineBalance}) should exceed 4-line (${score4.breakdown.lineBalance})`,
+  );
+  assert.ok(
+    Math.abs(score2.breakdown.lineBalance - 0.825) < 0.001,
+    `2-line balance should be ~0.825, got ${score2.breakdown.lineBalance}`,
+  );
+  assert.ok(
+    Math.abs(score3.breakdown.lineBalance - 0.475) < 0.001,
+    `3-line balance should be ~0.475, got ${score3.breakdown.lineBalance}`,
+  );
+  assert.ok(
+    Math.abs(score4.breakdown.lineBalance - 0.3) < 0.001,
+    `4-line balance should be ~0.3, got ${score4.breakdown.lineBalance}`,
+  );
+});
+
+test('2-line split beats 3-line for "Circuit de Spa-Francorchamps"', () => {
+  // Regression: inverted damping array caused 3-line ("Circuit"/"de"/"Spa-Francorchamps")
+  // to outscore the natural 2-line split ("Circuit de"/"Spa-Francorchamps").
+  // Use a narrow infield to force multi-line splitting.
+  const outline = centeredHoleOutline({
+    width: 400,
+    height: 300,
+    holeMinX: 160,
+    holeMaxX: 240,
+    holeMinY: 30,
+    holeMaxY: 270,
+  });
+  const basePlate = { minX: 0, maxX: 400, minY: 0, maxY: 300, width: 400, height: 300 };
+
+  const placement = __debugTextPlacement('Circuit de Spa-Francorchamps', outline, basePlate, 1, {
+    font: createMockFont(),
+    baseThickness: BASE_THICKNESS_MM,
+  });
+
+  assert.ok(placement);
+  assert.ok(
+    placement.lines.length <= 2,
+    `expected at most 2-line split, got ${placement.lines.length}: ${placement.lines.join(' / ')}`,
+  );
 });
