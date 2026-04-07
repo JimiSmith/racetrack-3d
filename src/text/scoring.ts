@@ -5,9 +5,6 @@
 import type { ScoringWeights, FittedTextLayout, Rect2D, PlacementScoreBreakdown } from '../types/text.js';
 
 export const SCORING_WEIGHTS: ScoringWeights = Object.freeze({
-  /** Exponent applied to area-utilization ratio in scoreTextFit. */
-  utilizationExponent: 0.2,
-
   /** Minimum multiplier when the candidate is fully inside the track outline. */
   outsideMultiplierMin: 0.25,
   /** Additional multiplier range scaled by fractionOutside (0-1). */
@@ -168,9 +165,10 @@ interface ScoringCandidate {
 }
 
 export function scoreTextFit(rect: Rect2D, layout: FittedTextLayout, candidate: ScoringCandidate = {}, clearanceContext: ClearanceContext | null = null): { score: number; breakdown: PlacementScoreBreakdown } {
-  const { fittedWidth, fittedHeight } = layout;
-  const utilization = Math.min(1, (fittedWidth * fittedHeight) / Math.max(rect.width * rect.height, Number.EPSILON));
-  const lineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
+  const LINE_BALANCE_DAMPING = [0, 0.75, 0.25] as const;
+  const rawLineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
+  const damping = LINE_BALANCE_DAMPING[layout.lineCount - 2] ?? 0;
+  const lineBalance = rawLineBalance + (1 - rawLineBalance) * damping;
   const textHeight = layout.averageLineHeight * layout.scale;
   const sizeWindowMultiplier = computeSizeWindowMultiplier(textHeight);
   const outsideMultiplier = SCORING_WEIGHTS.outsideMultiplierMin + SCORING_WEIGHTS.outsideMultiplierRange * clamp(candidate.fractionOutside ?? 1, 0, 1);
@@ -179,9 +177,7 @@ export function scoreTextFit(rect: Rect2D, layout: FittedTextLayout, candidate: 
   const centralityMultiplier = computeCentralityMultiplier(candidate.centreDistance ?? 0);
   const textClearanceMultiplier = computeTextClearanceMultiplier(rect, layout, clearanceContext);
 
-  const score = layout.averageLineHeight
-    * Math.pow(utilization, SCORING_WEIGHTS.utilizationExponent)
-    * lineBalance
+  const score = lineBalance
     * outsideMultiplier
     * lineCountMultiplier
     * sizeWindowMultiplier
@@ -192,9 +188,7 @@ export function scoreTextFit(rect: Rect2D, layout: FittedTextLayout, candidate: 
   return {
     score,
     breakdown: {
-      utilization,
       lineBalance,
-      averageLineHeight: layout.averageLineHeight,
       textHeight,
       outsideMultiplier,
       lineCountMultiplier,
