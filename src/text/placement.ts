@@ -568,7 +568,7 @@ function dedupeCandidates(candidates: RawCandidate[], basePlate: Rect2D, grid: P
 
     const duplicate = deduped.find(existing => {
       const intersection = rectIntersectionArea(bounds, existing.bounds);
-      return intersection / Math.min(area, existing.area) > 0.5;
+      return intersection / Math.min(area, existing.area) > 0.75;
     });
 
     if (duplicate) {
