@@ -7,7 +7,7 @@ const STRONG_VENUE_PATTERNS = [
   /\bAutodromo\b/i,
   /\bRaceway\b/i,
   /\bSpeedway\b/i,
-  /\bRing\b/i,
+  /ring\b/i,
 ];
 
 const COMPACT_BASE_SUFFIX_PATTERN =
@@ -256,6 +256,11 @@ function buildMeaningfulLayoutSuffix(
     return null;
   }
   if (baseKey.includes(layoutKey) || layoutKey.includes(baseKey)) {
+    return null;
+  }
+  const baseWords = new Set(baseKey.split(/\s+/));
+  const layoutWords = new Set(layoutKey.split(/\s+/));
+  if (baseWords.size === layoutWords.size && [...layoutWords].every(w => baseWords.has(w))) {
     return null;
   }
 
