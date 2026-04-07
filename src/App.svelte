@@ -4,7 +4,9 @@
   import PreviewCanvas from './components/PreviewCanvas.svelte';
   import OptionsPanel from './components/OptionsPanel.svelte';
   import ExportBar from './components/ExportBar.svelte';
+  import PlacementDebug from './components/PlacementDebug.svelte';
   import { statusMessage, statusIsError } from './stores/ui.js';
+  import { debugScreenVisible } from './stores/debug.js';
 </script>
 
 <div id="app">
@@ -19,3 +21,7 @@
   <OptionsPanel />
   <ExportBar />
 </div>
+
+{#if $debugScreenVisible}
+  <PlacementDebug />
+{/if}

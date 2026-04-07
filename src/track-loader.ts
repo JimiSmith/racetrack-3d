@@ -30,6 +30,7 @@ import {
   effectiveLabel,
 } from './stores/options.js';
 import { statusMessage, statusIsError, previewOverlayState } from './stores/ui.js';
+import { placementDebugData } from './stores/debug.js';
 import type { Layout } from './types/geometry.js';
 import type { SearchResult } from './types/search.js';
 
@@ -89,6 +90,7 @@ export async function rebuildModel(elevationData: number[] | null = get(elevatio
     outline.set(null);
     basePlate.set(null);
     currentModel.set(null);
+    placementDebugData.set(null);
     previewOverlayState.set({
       title: 'No preview available',
       body: 'This selection does not include a printable layout yet.',
@@ -132,6 +134,15 @@ export async function rebuildModel(elevationData: number[] | null = get(elevatio
     outline.set(model.outlinePoints);
     basePlate.set(model.basePlate);
     currentModel.set(model);
+    placementDebugData.set(
+      model.allScoredPlacements?.length
+        ? {
+            allScoredPlacements: model.allScoredPlacements,
+            candidates: model.placementCandidates!,
+            scaledBasePlate: model.scaledBasePlate!,
+          }
+        : null,
+    );
 
     const trackNameState = getSelectedTrackNameState(layout);
     const segmentCount = layout.stats?.segmentCount;
@@ -205,6 +216,7 @@ export async function selectTrack(track: SearchResult): Promise<void> {
   outline.set(null);
   basePlate.set(null);
   currentModel.set(null);
+  placementDebugData.set(null);
   layouts.set([]);
   layoutIndex.set(0);
   osmVenueNames.set([]);

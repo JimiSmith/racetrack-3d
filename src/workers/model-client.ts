@@ -89,6 +89,15 @@ export function createModelWorkerClient(): {
         outlinePoints: metadata.outlinePoints,
         projectedNodes: metadata.projectedNodes,
       };
+      if (metadata.allScoredPlacements) {
+        model.allScoredPlacements = metadata.allScoredPlacements;
+      }
+      if (metadata.placementCandidates) {
+        model.placementCandidates = metadata.placementCandidates;
+      }
+      if (metadata.scaledBasePlate) {
+        model.scaledBasePlate = metadata.scaledBasePlate;
+      }
 
       handler.resolve(model);
     } else if (response.type === 'model-error') {

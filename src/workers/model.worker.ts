@@ -9,6 +9,7 @@ import { PerfTimer } from '../model/perf-timer.js';
 import { buildTrackModel } from '../model/track-model.js';
 import type { ProjectedNode } from '../types/geometry.js';
 import type { BasePlate, OutlinePoints } from '../types/model.js';
+import type { RankedTextPlacement, TextPlacementCandidate, Rect2D } from '../types/text.js';
 
 // ── Message types ─────────────────────────────────────────────────────────────
 
@@ -43,6 +44,9 @@ export interface ModelBuildResponse {
     textPositionRank: number;
     outlinePoints: OutlinePoints;
     projectedNodes: ProjectedNode[] | null;
+    allScoredPlacements?: RankedTextPlacement[];
+    placementCandidates?: TextPlacementCandidate[];
+    scaledBasePlate?: Rect2D;
   };
 }
 
@@ -149,6 +153,14 @@ function processLatest(): void {
         textPositionRank: model.textPositionRank,
         outlinePoints: model.outlinePoints,
         projectedNodes: model.projectedNodes,
+        ...(model.allScoredPlacements ? {
+          allScoredPlacements: model.allScoredPlacements.map(p => ({
+            ...p,
+            layout: { ...p.layout, contours: [] },
+          })),
+        } : {}),
+        ...(model.placementCandidates ? { placementCandidates: model.placementCandidates } : {}),
+        ...(model.scaledBasePlate ? { scaledBasePlate: model.scaledBasePlate } : {}),
       },
     };
 

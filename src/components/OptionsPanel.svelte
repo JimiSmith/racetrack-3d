@@ -9,6 +9,7 @@
   import { exaggeration } from '../stores/options.js';
   import LayoutPicker from './LayoutPicker.svelte';
   import ElevationSlider from './ElevationSlider.svelte';
+  import { debugScreenVisible } from '../stores/debug.js';
 
   function handleOrientationChange(e: Event): void {
     const value = (e.currentTarget as HTMLSelectElement).value;
@@ -60,6 +61,7 @@
       <option value="2" selected={$textPositionRank === 2}>Alternate 1</option>
       <option value="3" selected={$textPositionRank === 3}>Alternate 2</option>
     </select>
+    <button class="debug-btn" onclick={() => debugScreenVisible.set(true)}>Debug</button>
   </div>
   <ElevationSlider />
 </section>

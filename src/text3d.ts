@@ -285,68 +285,6 @@ export function __debugTextPlacement(
   };
 }
 
-export function __debugAllPlacements(
-  text: string,
-  outlinePoints: OutlinePoints | null | undefined,
-  basePlate: BasePlate,
-  scale: number,
-  options: Record<string, unknown> = {},
-): unknown[] | null {
-  const normalizedText = String(text ?? '').trim();
-  if (!normalizedText) { return null; }
-
-  const font = (FL.loadFont as (f: null) => unknown)(options['font'] as null ?? null);
-  const scaledOutline = (P.scaleOutline as (o: unknown, s: number) => unknown)(outlinePoints, scale);
-  const scaledBasePlate = (P.createScaledBounds as (b: unknown, s: number) => unknown)(basePlate, scale);
-  const placementMask = (P.computePlacementMask as (...a: unknown[]) => unknown)([scaledOutline], scaledOutline, scaledBasePlate);
-  const { candidates, distanceMap, maxTrackClearance } = (P.findPlacementCandidates as (...a: unknown[]) => {
-    candidates: TextPlacementCandidate[];
-    distanceMap: number[][];
-    maxTrackClearance: number;
-  })(scaledBasePlate, placementMask);
-  if (!candidates.length) { return null; }
-
-  const maskTyped = placementMask as { cellWidth: number; cellHeight: number };
-  const scaledBPTyped = scaledBasePlate as { minX: number; minY: number };
-  const clearanceContext = {
-    distanceMap,
-    maxTrackClearance,
-    cellWidth: maskTyped.cellWidth,
-    cellHeight: maskTyped.cellHeight,
-    originX: scaledBPTyped.minX,
-    originY: scaledBPTyped.minY,
-  };
-  const placements = (P.rankTextPlacements as (...a: unknown[]) => RankedTextPlacement[])(normalizedText, font, candidates, clearanceContext);
-
-  return placements.map(({ candidateIndex, layout, score, candidate }) => {
-    const textHeight = layout.averageLineHeight * layout.scale;
-    const utilization = Math.min(1, (layout.fittedWidth * layout.fittedHeight) / Math.max(candidate.bounds.width * candidate.bounds.height, Number.EPSILON));
-    const lineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
-    return {
-      candidateIndex,
-      lines: layout.lines,
-      lineCount: layout.lineCount,
-      score,
-      textHeight,
-      utilization,
-      lineBalance,
-      averageLineHeight: layout.averageLineHeight,
-      fittedScale: layout.scale,
-      fittedWidth: layout.fittedWidth,
-      fittedHeight: layout.fittedHeight,
-      candidateArea: candidate.area,
-      candidateWidth: candidate.bounds.width,
-      candidateHeight: candidate.bounds.height,
-      fractionOutside: candidate.fractionOutside,
-      normalizedTrackClearance: candidate.normalizedTrackClearance,
-      centreDistance: candidate.centreDistance,
-      sizeWindowMultiplier: (SC.computeSizeWindowMultiplier as (h: number) => number)(textHeight),
-      lineCountMultiplier: (SC.computeLineCountMultiplier as (n: number) => number)(layout.lineCount),
-      textClearanceMultiplier: (SC.computeTextClearanceMultiplier as (b: unknown, l: unknown, c: unknown) => number)(candidate.bounds, layout, clearanceContext),
-    };
-  });
-}
-
 export function __debugPlacementCandidates(
   outlinePoints: OutlinePoints | null | undefined,
   basePlate: BasePlate,

@@ -2,7 +2,7 @@
  * Scoring weights and magic numbers used by the text-placement scoring pipeline.
  * Collected here so the tuning surface is visible in one place.
  */
-import type { ScoringWeights, FittedTextLayout, Rect2D } from '../types/text.js';
+import type { ScoringWeights, FittedTextLayout, Rect2D, PlacementScoreBreakdown } from '../types/text.js';
 
 export const SCORING_WEIGHTS: ScoringWeights = Object.freeze({
   /** Exponent applied to area-utilization ratio in scoreTextFit. */
@@ -167,23 +167,41 @@ interface ScoringCandidate {
   centreDistance?: number;
 }
 
-export function scoreTextFit(rect: Rect2D, layout: FittedTextLayout, candidate: ScoringCandidate = {}, clearanceContext: ClearanceContext | null = null): number {
+export function scoreTextFit(rect: Rect2D, layout: FittedTextLayout, candidate: ScoringCandidate = {}, clearanceContext: ClearanceContext | null = null): { score: number; breakdown: PlacementScoreBreakdown } {
   const { fittedWidth, fittedHeight } = layout;
   const utilization = Math.min(1, (fittedWidth * fittedHeight) / Math.max(rect.width * rect.height, Number.EPSILON));
   const lineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
-  const sizeWindowMultiplier = computeSizeWindowMultiplier(layout.averageLineHeight * layout.scale);
+  const textHeight = layout.averageLineHeight * layout.scale;
+  const sizeWindowMultiplier = computeSizeWindowMultiplier(textHeight);
   const outsideMultiplier = SCORING_WEIGHTS.outsideMultiplierMin + SCORING_WEIGHTS.outsideMultiplierRange * clamp(candidate.fractionOutside ?? 1, 0, 1);
+  const lineCountMultiplier = computeLineCountMultiplier(layout.lineCount);
   const trackClearanceMultiplier = computeTrackClearanceMultiplier(candidate.normalizedTrackClearance ?? 1);
   const centralityMultiplier = computeCentralityMultiplier(candidate.centreDistance ?? 0);
-  const textClearanceMult = computeTextClearanceMultiplier(rect, layout, clearanceContext);
+  const textClearanceMultiplier = computeTextClearanceMultiplier(rect, layout, clearanceContext);
 
-  return layout.averageLineHeight
+  const score = layout.averageLineHeight
     * Math.pow(utilization, SCORING_WEIGHTS.utilizationExponent)
     * lineBalance
     * outsideMultiplier
-    * computeLineCountMultiplier(layout.lineCount)
+    * lineCountMultiplier
     * sizeWindowMultiplier
     * trackClearanceMultiplier
     * centralityMultiplier
-    * textClearanceMult;
+    * textClearanceMultiplier;
+
+  return {
+    score,
+    breakdown: {
+      utilization,
+      lineBalance,
+      averageLineHeight: layout.averageLineHeight,
+      textHeight,
+      outsideMultiplier,
+      lineCountMultiplier,
+      sizeWindowMultiplier,
+      trackClearanceMultiplier,
+      centralityMultiplier,
+      textClearanceMultiplier,
+    },
+  };
 }
