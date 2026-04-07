@@ -361,13 +361,21 @@ function isCircuitRoute(relation) {
   return false;
 }
 
-export function parseOsmApiMapXml(xmlSource) {
+export function parseOsmApiMapXml(xmlSource, options = {}) {
   const { ways, relations } = parseOsmXmlElements(xmlSource, { includeRelations: true });
 
   // Select all circuit route relations. Using isCircuitRoute prevents facility multipolygons
   // (e.g. the Hungaroring venue area has wikidata=Q171356 on a type=multipolygon relation,
   // not on the circuit route) from being selected.
-  const relevantRelations = relations.filter(r => isCircuitRoute(r));
+  //
+  // When a wikidataId is provided, also include relations whose wikidata tag matches —
+  // this catches circuits tagged unconventionally (e.g. Nordschleife: type=route +
+  // route=road with no sport/circuit tags).
+  const normWikidataId = options.wikidataId ? String(options.wikidataId).trim().toUpperCase() : null;
+  const relevantRelations = relations.filter(r =>
+    isCircuitRoute(r)
+    || (normWikidataId && String(r.tags?.wikidata ?? '').trim().toUpperCase() === normWikidataId),
+  );
 
   const relevantWayIds = new Set([
     ...ways
@@ -426,7 +434,7 @@ export async function supplementPayloadWithMissingRelationWays(payload, options 
   const elements = payload?.elements ?? [];
 
   const wikidataMatches = normId
-    ? elements.filter(e => e.type === 'relation' && String(e.tags?.wikidata ?? '').trim().toUpperCase() === normId && isCircuitRoute(e))
+    ? elements.filter(e => e.type === 'relation' && String(e.tags?.wikidata ?? '').trim().toUpperCase() === normId)
     : [];
 
   const relevantRelations = wikidataMatches.length > 0
@@ -517,14 +525,20 @@ export async function supplementPayloadWithMissingRelationWays(payload, options 
       if (!fullMemberIds) {
         return e;
       }
-      // Build a complete member list: existing members (with their geometry) + newly fetched ones
+      // Build a complete member list: patch existing members whose geometry was null
+      // (fell outside the bbox) and append any entirely new members.
       const existingMemberRefs = new Set(e.members.map(m => m.ref));
+      const patchedMembers = e.members.map(m =>
+        m.geometry == null && newGeometries.has(m.ref)
+          ? { ...m, geometry: newGeometries.get(m.ref) }
+          : m,
+      );
       const addedMembers = fullMemberIds
         .filter(id => !existingMemberRefs.has(id) && newGeometries.has(id))
         .map(id => ({ type: 'way', ref: id, role: '', geometry: newGeometries.get(id) }));
       return {
         ...e,
-        members: [...e.members, ...addedMembers],
+        members: [...patchedMembers, ...addedMembers],
       };
     });
 
@@ -589,7 +603,7 @@ export async function fetchOsmApiMapPayload(lat, lon, options = {}) {
     return {
       url,
       xml,
-      payload: parseOsmApiMapXml(xml),
+      payload: parseOsmApiMapXml(xml, { wikidataId: options.wikidataId }),
       metadata: {
         requestAttempts: retryCount + 1,
         retryCount,

@@ -9,6 +9,7 @@ const WIKIDATA_SPARQL = 'https://query.wikidata.org/sparql';
 const TRACK_INSTANCE_IDS = {
   Q2338524: 'motorsport racing track',
   Q926439: 'street circuit',
+  Q66436502: 'race track layout',
 };
 const ENTITY_BATCH_SIZE = 50;
 
@@ -64,7 +65,7 @@ async function fetchTrackRows() {
   for (let offset = 0; ; offset += pageSize) {
     const sparql = `
 SELECT DISTINCT ?item ?type ?lat ?lon WHERE {
-  VALUES ?type { wd:Q2338524 wd:Q926439 }
+  VALUES ?type { wd:Q2338524 wd:Q926439 wd:Q66436502 }
   ?item wdt:P31 ?type .
   ?item p:P625 ?coordinateStatement .
   ?coordinateStatement psv:P625 ?coordinateNode .

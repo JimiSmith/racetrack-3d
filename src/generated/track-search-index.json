@@ -5981,6 +5981,39 @@
     "labelWordCount": 3
   },
   {
+    "wikidataId": "Q13406632",
+    "label": "Baku City Challenge Circuit",
+    "aliases": [],
+    "description": "German event organisation",
+    "type": "race track layout",
+    "country": "Azerbaijan",
+    "city": null,
+    "lat": 40.373768,
+    "lon": 49.853057,
+    "wikidataShortName": null,
+    "normalized": {
+      "label": "baku city challenge circuit",
+      "aliases": [],
+      "shortName": "",
+      "city": "",
+      "country": "azerbaijan"
+    },
+    "tokens": [
+      "baku",
+      "city",
+      "challenge",
+      "circuit",
+      "azerbaijan"
+    ],
+    "phrases": [
+      "baku city challenge circuit",
+      "azerbaijan"
+    ],
+    "tokenCount": 5,
+    "aliasCount": 0,
+    "labelWordCount": 4
+  },
+  {
     "wikidataId": "Q17004958",
     "label": "Baku City Circuit",
     "aliases": [
@@ -24549,6 +24582,39 @@
     "labelWordCount": 3
   },
   {
+    "wikidataId": "Q896797",
+    "label": "Nordschleife Nürburgring",
+    "aliases": [],
+    "description": "race track",
+    "type": "race track layout",
+    "country": "Germany",
+    "city": "Adenau",
+    "lat": 50.3461,
+    "lon": 6.96611,
+    "wikidataShortName": null,
+    "normalized": {
+      "label": "nordschleife nurburgring",
+      "aliases": [],
+      "shortName": "",
+      "city": "adenau",
+      "country": "germany"
+    },
+    "tokens": [
+      "nordschleife",
+      "nurburgring",
+      "adenau",
+      "germany"
+    ],
+    "phrases": [
+      "nordschleife nurburgring",
+      "adenau",
+      "germany"
+    ],
+    "tokenCount": 4,
+    "aliasCount": 0,
+    "labelWordCount": 2
+  },
+  {
     "wikidataId": "Q702903",
     "label": "Norisring",
     "aliases": [],
@@ -24795,6 +24861,42 @@
     "tokenCount": 8,
     "aliasCount": 3,
     "labelWordCount": 1
+  },
+  {
+    "wikidataId": "Q115125370",
+    "label": "Nürburgring Grand Prix Track",
+    "aliases": [],
+    "description": "Formula One approved race track layout",
+    "type": "race track layout",
+    "country": "Germany",
+    "city": null,
+    "lat": 50.335555555556,
+    "lon": 6.9475,
+    "wikidataShortName": "GP-Strecke",
+    "normalized": {
+      "label": "nurburgring grand prix track",
+      "aliases": [],
+      "shortName": "gp strecke",
+      "city": "",
+      "country": "germany"
+    },
+    "tokens": [
+      "nurburgring",
+      "grand",
+      "prix",
+      "track",
+      "gp",
+      "strecke",
+      "germany"
+    ],
+    "phrases": [
+      "nurburgring grand prix track",
+      "gp strecke",
+      "germany"
+    ],
+    "tokenCount": 7,
+    "aliasCount": 0,
+    "labelWordCount": 4
   },
   {
     "wikidataId": "Q2411203",
@@ -31549,6 +31651,38 @@
     "tokenCount": 4,
     "aliasCount": 0,
     "labelWordCount": 3
+  },
+  {
+    "wikidataId": "Q469590",
+    "label": "Südschleife",
+    "aliases": [],
+    "description": "German race track",
+    "type": "race track layout",
+    "country": "Germany",
+    "city": "Adenau",
+    "lat": 50.3206,
+    "lon": 6.92033,
+    "wikidataShortName": null,
+    "normalized": {
+      "label": "sudschleife",
+      "aliases": [],
+      "shortName": "",
+      "city": "adenau",
+      "country": "germany"
+    },
+    "tokens": [
+      "sudschleife",
+      "adenau",
+      "germany"
+    ],
+    "phrases": [
+      "sudschleife",
+      "adenau",
+      "germany"
+    ],
+    "tokenCount": 3,
+    "aliasCount": 0,
+    "labelWordCount": 1
   },
   {
     "wikidataId": "Q17026319",
