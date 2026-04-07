@@ -29,22 +29,32 @@ function extractWikidataId(value) {
   return String(value ?? '').split('/').pop() || null;
 }
 
-async function fetchJson(url, options = {}) {
+async function fetchJson(url, options = {}, { retries = 4, baseDelayMs = 1000 } = {}) {
   const { headers: optionHeaders, ...restOptions } = options;
-  const response = await fetch(url, {
-    headers: {
-      Accept: 'application/json',
-      'User-Agent': 'racetrack-3d-search-index-builder/1.0 (https://github.com/)',
-      ...(optionHeaders ?? {}),
-    },
-    ...restOptions,
-  });
 
-  if (!response.ok) {
-    throw new Error(`Request failed with ${response.status} for ${url}`);
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const response = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'racetrack-3d-search-index-builder/1.0 (https://github.com/)',
+        ...(optionHeaders ?? {}),
+      },
+      ...restOptions,
+    });
+
+    if (response.ok) {
+      return response.json();
+    }
+
+    const retryable = response.status === 429 || response.status >= 500;
+    if (!retryable || attempt === retries) {
+      throw new Error(`Request failed with ${response.status} for ${url}`);
+    }
+
+    const delayMs = baseDelayMs * 2 ** attempt;
+    console.warn(`Request failed with ${response.status} for ${url} — retrying in ${delayMs}ms (attempt ${attempt + 1}/${retries})`);
+    await new Promise(resolve => { setTimeout(resolve, delayMs); });
   }
-
-  return response.json();
 }
 
 async function fetchTrackRows() {
