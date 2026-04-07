@@ -1,6 +1,6 @@
 ---
 name: testing
-description: Test framework, frozen OSM fixtures, and regression test conventions for racetrack-3d. Use when writing new tests, adding regression fixtures for broken venues, investigating test failures, or understanding what each test file covers. Triggers on tasks like "add a test", "add a regression fixture", "tests are failing", or anything touching the test/ directory.
+description: Test framework, frozen OSM fixtures, and regression test conventions for racetrack-3d. Use when writing, running, or debugging automated tests — including adding regression fixtures for broken venues, investigating test or build failures, verifying a fix didn't break anything, or working in the test/ directory. Triggers on: "run the tests", "npm test", "tests are failing", "add a test", "add a regression fixture", "make sure this doesn't regress", "verify the fix", "check the build passes", "broken venue", or any task that requires confirming correctness through the test suite.
 ---
 
 # Testing
