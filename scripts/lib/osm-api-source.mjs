@@ -346,12 +346,19 @@ export function buildOsmApiMapUrl(lat, lon, margin = DEFAULT_BBOX_MARGIN) {
 // Used as a guard when applying wikidata-first selection, because the wikidata tag
 // sometimes appears on the facility multipolygon (type=multipolygon) rather than the
 // route relation. Requiring this predicate prevents selecting the wrong element.
+//
+// Street circuits (e.g. Long Beach) are often tagged route=road + sport=motor
+// rather than route=raceway, because the roads are only temporarily used as a circuit.
 function isCircuitRoute(relation) {
   const highway = String(relation.tags?.highway ?? '').trim().toLowerCase();
   const type = String(relation.tags?.type ?? '').trim().toLowerCase();
   const route = String(relation.tags?.route ?? '').trim().toLowerCase();
   const circuit = String(relation.tags?.circuit ?? '').trim().toLowerCase();
-  return (highway === 'raceway' || type === 'circuit' || route === 'raceway') && circuit !== 'kart';
+  const sport = String(relation.tags?.sport ?? '').trim().toLowerCase();
+  if (circuit === 'kart') { return false; }
+  if (highway === 'raceway' || type === 'circuit' || route === 'raceway') { return true; }
+  if (sport === 'motor' && type === 'route') { return true; }
+  return false;
 }
 
 export function parseOsmApiMapXml(xmlSource) {
