@@ -70,7 +70,7 @@
         <td class="mono">{typeof value === 'number' ? value.toFixed(4) : value}</td>
         <td class="mono">
           {#if MULTIPLIER_KEYS.includes(key as typeof MULTIPLIER_KEYS[number])}
-            {typeof value === 'number' && value < 1 ? (-(1 - value) * 100).toFixed(1) + '%' : '—'}
+            {typeof value === 'number' && value !== 1 ? ((value - 1) * 100 >= 0 ? '+' : '') + ((value - 1) * 100).toFixed(1) + '%' : '—'}
           {:else}
             —
           {/if}

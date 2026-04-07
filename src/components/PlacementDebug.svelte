@@ -12,7 +12,14 @@
   }
 
   function handleKeydown(e: KeyboardEvent): void {
-    if (e.key === 'Escape') { close(); }
+    if (e.key === 'Escape') {
+      if (selectedPlacement) {
+        e.preventDefault();
+        selectedPlacement = null;
+      } else {
+        close();
+      }
+    }
   }
 
   function scoreColor(score: number, min: number, max: number): string {

@@ -86,8 +86,10 @@ export interface FittedTextLayout {
 
 /**
  * Per-multiplier breakdown of a placement score, returned by `scoreTextFit`.
- * Each field is the individual multiplier value that contributes to the
- * composite score (their product equals the final score).
+ * `averageLineHeight` is the base term; `utilization` is the raw ratio
+ * (raised to `utilizationExponent` in the composite); `textHeight` is
+ * informational (input to `sizeWindowMultiplier`). The remaining fields
+ * are direct multipliers in the composite product.
  */
 export interface PlacementScoreBreakdown {
   utilization: number;
