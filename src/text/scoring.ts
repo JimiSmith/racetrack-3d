@@ -165,7 +165,7 @@ interface ScoringCandidate {
 }
 
 export function scoreTextFit(rect: Rect2D, layout: FittedTextLayout, candidate: ScoringCandidate = {}, clearanceContext: ClearanceContext | null = null): { score: number; breakdown: PlacementScoreBreakdown } {
-  const LINE_BALANCE_DAMPING = [0, 0.75, 0.25] as const;
+  const LINE_BALANCE_DAMPING = [0.75, 0.25, 0] as const;
   const rawLineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
   const damping = LINE_BALANCE_DAMPING[layout.lineCount - 2] ?? 0;
   const lineBalance = rawLineBalance + (1 - rawLineBalance) * damping;
