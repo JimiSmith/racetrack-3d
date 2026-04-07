@@ -158,6 +158,8 @@ export interface ScoringWeights {
   centralityPenaltyFactor: number;
   /** Per-line-count multipliers; index 0 = 1 line, index 3 = 4 lines. */
   lineCountMultipliers: [number, number, number, number];
+  /** Line-balance damping per line count; index 0 = 2 lines, index 2 = 4 lines. */
+  lineBalanceDamping: [number, number, number];
   /** Maximum multiplier at the low end of the preferred height range. */
   sizeWindowLowPeak: number;
   /** Additional range across the preferred height window. */
