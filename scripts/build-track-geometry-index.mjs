@@ -6,7 +6,7 @@ import trackSearchIndex from '../src/generated/track-search-index.json' with { t
 import { buildTrackGeometryFromPayload } from '../src/geometry/track-geometry.js';
 import { normalizeTrackGeometryResult } from '../src/geometry/normalize.js';
 import { extractWays } from '../src/geometry/osm-elements.js';
-import { stitchWaysOrdered, measureWaySetLength } from '../src/geometry/way-stitching.js';
+import { stitchWaysOrdered } from '../src/geometry/way-stitching.js';
 import { closeNodeChainIfNearClosed, dedupeSequentialNodes } from '../src/geometry/chain-cleanup.js';
 import { measurePolylineLength } from '../src/geometry/geo-math.js';
 import {
