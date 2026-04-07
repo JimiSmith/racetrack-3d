@@ -5,9 +5,6 @@
 import type { ScoringWeights, FittedTextLayout, Rect2D, PlacementScoreBreakdown } from '../types/text.js';
 
 export const SCORING_WEIGHTS: ScoringWeights = Object.freeze({
-  /** Exponent applied to area-utilization ratio in scoreTextFit. */
-  utilizationExponent: 0.2,
-
   /** Minimum multiplier when the candidate is fully inside the track outline. */
   outsideMultiplierMin: 0.25,
   /** Additional multiplier range scaled by fractionOutside (0-1). */
@@ -28,6 +25,8 @@ export const SCORING_WEIGHTS: ScoringWeights = Object.freeze({
 
   /** Per-line-count multipliers; index 0 = 1 line, index 3 = 4 lines. */
   lineCountMultipliers: [1, 1, 0.94, 0.91] as [number, number, number, number],
+  /** Line-balance damping per line count; index 0 = 2 lines, index 2 = 4 lines. */
+  lineBalanceDamping: [0.75, 0.25, 0] as [number, number, number],
 
   // --- Size-window curve breakpoints (computeSizeWindowMultiplier) ---
   /** Maximum multiplier at the low end of the preferred height range. */
@@ -168,9 +167,9 @@ interface ScoringCandidate {
 }
 
 export function scoreTextFit(rect: Rect2D, layout: FittedTextLayout, candidate: ScoringCandidate = {}, clearanceContext: ClearanceContext | null = null): { score: number; breakdown: PlacementScoreBreakdown } {
-  const { fittedWidth, fittedHeight } = layout;
-  const utilization = Math.min(1, (fittedWidth * fittedHeight) / Math.max(rect.width * rect.height, Number.EPSILON));
-  const lineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
+  const rawLineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
+  const damping = SCORING_WEIGHTS.lineBalanceDamping[layout.lineCount - 2] ?? 0;
+  const lineBalance = rawLineBalance + (1 - rawLineBalance) * damping;
   const textHeight = layout.averageLineHeight * layout.scale;
   const sizeWindowMultiplier = computeSizeWindowMultiplier(textHeight);
   const outsideMultiplier = SCORING_WEIGHTS.outsideMultiplierMin + SCORING_WEIGHTS.outsideMultiplierRange * clamp(candidate.fractionOutside ?? 1, 0, 1);
@@ -179,9 +178,7 @@ export function scoreTextFit(rect: Rect2D, layout: FittedTextLayout, candidate: 
   const centralityMultiplier = computeCentralityMultiplier(candidate.centreDistance ?? 0);
   const textClearanceMultiplier = computeTextClearanceMultiplier(rect, layout, clearanceContext);
 
-  const score = layout.averageLineHeight
-    * Math.pow(utilization, SCORING_WEIGHTS.utilizationExponent)
-    * lineBalance
+  const score = lineBalance
     * outsideMultiplier
     * lineCountMultiplier
     * sizeWindowMultiplier
@@ -192,9 +189,7 @@ export function scoreTextFit(rect: Rect2D, layout: FittedTextLayout, candidate: 
   return {
     score,
     breakdown: {
-      utilization,
       lineBalance,
-      averageLineHeight: layout.averageLineHeight,
       textHeight,
       outsideMultiplier,
       lineCountMultiplier,

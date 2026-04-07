@@ -23,9 +23,7 @@
   }
 
   const FACTOR_LABELS: Record<string, string> = {
-    utilization: 'Area utilization',
     lineBalance: 'Line balance',
-    averageLineHeight: 'Avg line height',
     textHeight: 'Text height (mm)',
     outsideMultiplier: 'Outside penalty',
     lineCountMultiplier: 'Line count',

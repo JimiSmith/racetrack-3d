@@ -220,6 +220,14 @@ export function __findOptimalLineBreaks(
   return (LB.findOptimalLineBreaksForText as (t: string, n: number, f: unknown) => unknown)(text, lineCount, font ?? null);
 }
 
+export function __debugScoreTextFit(
+  rect: { minX: number; minY: number; maxX: number; maxY: number; width: number; height: number },
+  layout: Record<string, unknown>,
+  candidate: Record<string, unknown> = {},
+): { score: number; breakdown: Record<string, number> } {
+  return (SC.scoreTextFit as (...a: unknown[]) => { score: number; breakdown: Record<string, number> })(rect, layout, candidate);
+}
+
 export function __debugTextFitModifiers(
   heightMm: number,
   lineCount: number,

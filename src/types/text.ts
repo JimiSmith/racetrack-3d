@@ -86,15 +86,11 @@ export interface FittedTextLayout {
 
 /**
  * Per-multiplier breakdown of a placement score, returned by `scoreTextFit`.
- * `averageLineHeight` is the base term; `utilization` is the raw ratio
- * (raised to `utilizationExponent` in the composite); `textHeight` is
- * informational (input to `sizeWindowMultiplier`). The remaining fields
- * are direct multipliers in the composite product.
+ * `textHeight` is informational (input to `sizeWindowMultiplier`).
+ * The remaining fields are direct multipliers in the composite product.
  */
 export interface PlacementScoreBreakdown {
-  utilization: number;
   lineBalance: number;
-  averageLineHeight: number;
   textHeight: number;
   outsideMultiplier: number;
   lineCountMultiplier: number;
@@ -146,8 +142,6 @@ export interface RankedPlacements {
  * Shape mirrors the frozen `SCORING_WEIGHTS` object in `text3d.js`.
  */
 export interface ScoringWeights {
-  /** Exponent applied to area-utilization ratio in `scoreTextFit`. */
-  utilizationExponent: number;
   /** Minimum multiplier when the candidate is fully inside the track outline. */
   outsideMultiplierMin: number;
   /** Additional multiplier range scaled by `fractionOutside` (0–1). */
@@ -164,6 +158,8 @@ export interface ScoringWeights {
   centralityPenaltyFactor: number;
   /** Per-line-count multipliers; index 0 = 1 line, index 3 = 4 lines. */
   lineCountMultipliers: [number, number, number, number];
+  /** Line-balance damping per line count; index 0 = 2 lines, index 2 = 4 lines. */
+  lineBalanceDamping: [number, number, number];
   /** Maximum multiplier at the low end of the preferred height range. */
   sizeWindowLowPeak: number;
   /** Additional range across the preferred height window. */

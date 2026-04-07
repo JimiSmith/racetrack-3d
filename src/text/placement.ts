@@ -17,7 +17,7 @@ import { loadFont } from './font-loader.js';
 import { scoreTextFit, computeSizeWindowMultiplier, computeLineCountMultiplier, computeTextClearanceMultiplier } from './scoring.js';
 import type { ClearanceContext } from './scoring.js';
 
-export const MIN_CELL_MM = 3;
+export const MIN_CELL_MM = 5;
 export const MIN_GRID_CELLS_PER_SIDE = 8;
 export const MAX_CANDIDATES = 16;
 
