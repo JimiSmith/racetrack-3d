@@ -143,17 +143,159 @@ export function rectIntersectsPolygon(rect: Rect2D, polygon: Point2D[] | null | 
   return false;
 }
 
-function rectFullyInsidePolygon(rect: Rect2D, polygon: Point2D[] | null | undefined): boolean {
-  if (!polygon?.length) {
-    return false;
+// ── Scanline rasterization helpers ───────────────────────────────────────────
+//
+// These replace the previous per-cell × per-edge polygon tests with two O(rows × edges)
+// passes: one to mark cells whose centre is inside the polygon (even-odd fill) and one
+// to mark cells whose boundary is crossed by a polygon edge.
+
+/**
+ * Mark cells whose centre is inside `polygon` using scanline even-odd fill.
+ * For each grid row, cast a horizontal ray through the cell centres' Y and
+ * collect X intercepts with the polygon edges, then fill between pairs.
+ */
+function scanlineFillInterior(
+  polygon: Point2D[],
+  rows: number,
+  columns: number,
+  cellWidth: number,
+  cellHeight: number,
+  originX: number,
+  originY: number,
+  out: boolean[][],
+): void {
+  if (polygon.length < 3) {return;}
+
+  for (let row = 0; row < rows; row += 1) {
+    const cy = originY + (row + 0.5) * cellHeight;
+    // Collect X intercepts with the polygon edges at y = cy
+    const intercepts: number[] = [];
+    for (let i = 0, prev = polygon.length - 1; i < polygon.length; prev = i, i += 1) {
+      const a = polygon[i]!;
+      const b = polygon[prev]!;
+      if ((a.y > cy) === (b.y > cy)) {continue;} // edge doesn't straddle cy
+      const dy = b.y - a.y;
+      if (dy === 0) {continue;}
+      intercepts.push((b.x - a.x) * (cy - a.y) / dy + a.x);
+    }
+    if (intercepts.length < 2) {continue;}
+    intercepts.sort((a, b) => a - b);
+
+    // Fill between pairs (even-odd rule)
+    for (let p = 0; p + 1 < intercepts.length; p += 2) {
+      const xEnter = intercepts[p]!;
+      const xExit = intercepts[p + 1]!;
+      // Convert X world coords to column indices (cell centres)
+      const colStart = Math.max(0, Math.ceil((xEnter - originX) / cellWidth - 0.5));
+      const colEnd = Math.min(columns - 1, Math.floor((xExit - originX) / cellWidth - 0.5));
+      for (let col = colStart; col <= colEnd; col += 1) {
+        out[row]![col] = true;
+      }
+    }
+  }
+}
+
+/**
+ * Mark all cells that a polygon edge passes through (boundary cells).
+ * Uses a conservative grid traversal: for each edge, walk the rows it spans
+ * and compute the X range of the edge within that row, marking all covered columns.
+ */
+function scanlineMarkEdgeCells(
+  polygon: Point2D[],
+  rows: number,
+  columns: number,
+  cellWidth: number,
+  cellHeight: number,
+  originX: number,
+  originY: number,
+  out: boolean[][],
+): void {
+  if (polygon.length < 3) {return;}
+
+  for (let i = 0, prev = polygon.length - 1; i < polygon.length; prev = i, i += 1) {
+    const a = polygon[i]!;
+    const b = polygon[prev]!;
+
+    // Row range this edge can touch
+    const edgeMinY = Math.min(a.y, b.y);
+    const edgeMaxY = Math.max(a.y, b.y);
+    const rowStart = Math.max(0, Math.floor((edgeMinY - originY) / cellHeight));
+    const rowEnd = Math.min(rows - 1, Math.floor((edgeMaxY - originY) / cellHeight));
+
+    if (edgeMaxY - edgeMinY < 1e-12) {
+      // Near-horizontal edge: mark all cells in its column span on the single row
+      const r = Math.max(0, Math.min(rows - 1, Math.floor((a.y - originY) / cellHeight)));
+      const cMin = Math.max(0, Math.floor((Math.min(a.x, b.x) - originX) / cellWidth));
+      const cMax = Math.min(columns - 1, Math.floor((Math.max(a.x, b.x) - originX) / cellWidth));
+      for (let c = cMin; c <= cMax; c += 1) {
+        out[r]![c] = true;
+      }
+      continue;
+    }
+
+    // For each row the edge spans, compute the X range of the edge within that row
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    for (let row = rowStart; row <= rowEnd; row += 1) {
+      const rowMinY = originY + row * cellHeight;
+      const rowMaxY = rowMinY + cellHeight;
+      // Clamp the edge's Y range to this row
+      const yLo = Math.max(edgeMinY, rowMinY);
+      const yHi = Math.min(edgeMaxY, rowMaxY);
+      // X values at the clamped Y endpoints
+      const x1 = a.x + dx * (yLo - a.y) / dy;
+      const x2 = a.x + dx * (yHi - a.y) / dy;
+      const xMin = Math.min(x1, x2);
+      const xMax = Math.max(x1, x2);
+      const colStart = Math.max(0, Math.floor((xMin - originX) / cellWidth));
+      const colEnd = Math.min(columns - 1, Math.floor((xMax - originX) / cellWidth));
+      for (let col = colStart; col <= colEnd; col += 1) {
+        out[row]![col] = true;
+      }
+    }
+  }
+}
+
+/**
+ * Rasterize a polygon (outerRing + holes) onto a grid using scanline algorithms.
+ * Returns a boolean[][] where true = cell intersects the polygon (touching boundary or inside).
+ * Cells fully inside a hole are excluded.
+ */
+function scanlineRasterizeOutline(
+  outline: OutlinePoints,
+  rows: number,
+  columns: number,
+  cellWidth: number,
+  cellHeight: number,
+  originX: number,
+  originY: number,
+): boolean[][] {
+  const result: boolean[][] = Array.from({ length: rows }, () => Array.from({ length: columns }, () => false));
+  const outerRing = outline?.outerRing;
+  if (!outerRing?.length || outerRing.length < 3) {return result;}
+
+  // Mark cells inside the outerRing + cells on the outerRing boundary
+  scanlineFillInterior(outerRing, rows, columns, cellWidth, cellHeight, originX, originY, result);
+  scanlineMarkEdgeCells(outerRing, rows, columns, cellWidth, cellHeight, originX, originY, result);
+
+  // Subtract cells that are fully inside a hole (interior minus boundary)
+  const holes = outline?.holes ?? [];
+  for (const hole of holes) {
+    if (hole.length < 3) {continue;}
+    const holeInterior: boolean[][] = Array.from({ length: rows }, () => Array.from({ length: columns }, () => false));
+    const holeBoundary: boolean[][] = Array.from({ length: rows }, () => Array.from({ length: columns }, () => false));
+    scanlineFillInterior(hole, rows, columns, cellWidth, cellHeight, originX, originY, holeInterior);
+    scanlineMarkEdgeCells(hole, rows, columns, cellWidth, cellHeight, originX, originY, holeBoundary);
+    for (let r = 0; r < rows; r += 1) {
+      for (let c = 0; c < columns; c += 1) {
+        if (holeInterior[r]![c] && !holeBoundary[r]![c]) {
+          result[r]![c] = false;
+        }
+      }
+    }
   }
 
-  return [
-    { x: rect.minX, y: rect.minY },
-    { x: rect.maxX, y: rect.minY },
-    { x: rect.maxX, y: rect.maxY },
-    { x: rect.minX, y: rect.maxY },
-  ].every(corner => pointInPolygon(corner, polygon));
+  return result;
 }
 
 /** Internal grid descriptor produced by createPlacementGrid(). */
@@ -302,45 +444,43 @@ export interface PlacementMask extends PlacementGrid {
 export function computePlacementMask(allObstacleOutlines: OutlinePoints[], primaryOutline: OutlinePoints | null | undefined, basePlate: Rect2D): PlacementMask {
   if (__perfCounters) { __perfCounters.computePlacementMask++; }
   const grid = createPlacementGrid(basePlate);
-  const mask: boolean[][] = Array.from({ length: grid.rows }, () => Array.from({ length: grid.columns }, () => false));
-  const outside: boolean[][] = Array.from({ length: grid.rows }, () => Array.from({ length: grid.columns }, () => true));
+  const { rows, columns, cellWidth, cellHeight } = grid;
+  const originX = basePlate.minX;
+  const originY = basePlate.minY;
+
+  // Build the obstacle mask using scanline rasterization per outline, then union.
+  const mask: boolean[][] = Array.from({ length: rows }, () => Array.from({ length: columns }, () => false));
+  for (const outline of allObstacleOutlines) {
+    const rasterized = scanlineRasterizeOutline(outline, rows, columns, cellWidth, cellHeight, originX, originY);
+    for (let r = 0; r < rows; r += 1) {
+      for (let c = 0; c < columns; c += 1) {
+        if (rasterized[r]![c]) {mask[r]![c] = true;}
+      }
+    }
+  }
+
+  // Build the outside mask using scanline interior fill on the primary outerRing.
+  const outside: boolean[][] = Array.from({ length: rows }, () => Array.from({ length: columns }, () => true));
   const hasOuterRing = (primaryOutline?.outerRing?.length ?? 0) >= 3;
-
-  for (let row = 0; row < grid.rows; row += 1) {
-    for (let column = 0; column < grid.columns; column += 1) {
-      const minX = basePlate.minX + column * grid.cellWidth;
-      const minY = basePlate.minY + row * grid.cellHeight;
-      const x = minX + grid.cellWidth / 2;
-      const y = minY + grid.cellHeight / 2;
-      const rect: Rect2D = {
-        minX,
-        minY,
-        maxX: minX + grid.cellWidth,
-        maxY: minY + grid.cellHeight,
-        width: grid.cellWidth,
-        height: grid.cellHeight,
-      };
-
-      mask[row]![column] = allObstacleOutlines.some(outline => {
-        const intersects = rectIntersectsPolygon(rect, outline?.outerRing);
-        const insideHole = intersects && (outline?.holes ?? []).some(
-          hole => hole.length >= 3 && rectFullyInsidePolygon(rect, hole),
-        );
-        return intersects && !insideHole;
-      });
-      outside[row]![column] = !hasOuterRing || !pointInPolygon({ x, y }, primaryOutline!.outerRing);
+  if (hasOuterRing) {
+    const inside: boolean[][] = Array.from({ length: rows }, () => Array.from({ length: columns }, () => false));
+    scanlineFillInterior(primaryOutline!.outerRing, rows, columns, cellWidth, cellHeight, originX, originY, inside);
+    for (let r = 0; r < rows; r += 1) {
+      for (let c = 0; c < columns; c += 1) {
+        if (inside[r]![c]) {outside[r]![c] = false;}
+      }
     }
   }
 
   const dilated = dilateBlockedCells(mask, grid.obstacleMarginCells);
 
-  for (let row = 0; row < grid.rows; row += 1) {
-    for (let column = 0; column < grid.columns; column += 1) {
+  for (let row = 0; row < rows; row += 1) {
+    for (let column = 0; column < columns; column += 1) {
       if (
         row < grid.edgeMarginCells
         || column < grid.edgeMarginCells
-        || row >= grid.rows - grid.edgeMarginCells
-        || column >= grid.columns - grid.edgeMarginCells
+        || row >= rows - grid.edgeMarginCells
+        || column >= columns - grid.edgeMarginCells
       ) {
         dilated[row]![column] = true;
       }
