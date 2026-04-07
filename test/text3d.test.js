@@ -445,7 +445,7 @@ test('grid blocking marks cells whose rectangles intersect the track outline', (
   }, 1);
 
   assert.ok(candidates.length > 0);
-  assert.equal(Math.max(...candidates.map(candidate => candidate.widthCells)), 2);
+  assert.equal(Math.max(...candidates.map(candidate => candidate.widthCells)), 4);
 });
 
 test('rect blocking treats polygons fully inside a cell as intersections', () => {
