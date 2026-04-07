@@ -250,6 +250,12 @@ export async function selectTrack(track: SearchResult): Promise<void> {
     invalidatePlacementCache();
     await rebuildModel();
 
+    if (newLayouts.length === 0) {
+      statusMessage.set('Loading the track data failed.');
+      statusIsError.set(true);
+      return;
+    }
+
     const primaryNodes = getSelectedLayout(newLayouts, newLayoutIndex)?.nodes ?? [];
     await loadElevations(primaryNodes);
   } catch (err) {
