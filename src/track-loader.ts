@@ -10,6 +10,7 @@ import { projectNodes } from './geometry/projection.js';
 import { fetchElevations } from './elevation/terrarium.js';
 import { createModelWorkerClient } from './workers/model-client.js';
 import { PRIMARY_ORIENTATION_AUTO } from './model/orientation.js';
+import { DEFAULT_TEXT_POSITION_RANK } from './text3d.js';
 import { selectedTrack, layouts, layoutIndex, osmVenueNames } from './stores/track.js';
 import {
   currentModel,
@@ -221,6 +222,10 @@ export async function selectTrack(track: SearchResult): Promise<void> {
   layoutIndex.set(0);
   osmVenueNames.set([]);
   labelOverride.set(null);
+  primaryOrientationDeg.set('auto');
+  textPositionRank.set(DEFAULT_TEXT_POSITION_RANK);
+  combinedLayoutMode.set(false);
+  exaggeration.set(1);
 
   previewOverlayState.set({
     title: 'Loading preview',
