@@ -20,7 +20,6 @@ import * as _contoursMod from './text/contours.js';
 import * as _lineBreakingMod from './text/line-breaking.js';
 import * as _scoringMod from './text/scoring.js';
 import * as _meshMod from './text/mesh.js';
-import * as _fontLoaderMod from './text/font-loader.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const P = _placementMod as any; // internal exports not in .d.ts
@@ -32,9 +31,6 @@ const LB = _lineBreakingMod as any; // internal exports not in .d.ts
 const SC = _scoringMod as any; // internal exports not in .d.ts
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const M = _meshMod as any; // internal exports not in .d.ts
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const FL = _fontLoaderMod as any; // internal exports not in .d.ts
-
 // --- Public API re-exports ---
 export {
   TEXT_HEIGHT_MM,
