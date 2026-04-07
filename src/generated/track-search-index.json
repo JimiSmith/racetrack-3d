@@ -9453,7 +9453,7 @@
     "description": null,
     "type": "motorsport racing track",
     "country": "Spain",
-    "city": "Andorra",
+    "city": "Alcarràs",
     "lat": 41.619332,
     "lon": 0.398887,
     "wikidataShortName": null,
@@ -9461,22 +9461,21 @@
       "label": "circuit d alcarras",
       "aliases": [],
       "shortName": "",
-      "city": "andorra",
+      "city": "alcarras",
       "country": "spain"
     },
     "tokens": [
       "circuit",
       "d",
       "alcarras",
-      "andorra",
       "spain"
     ],
     "phrases": [
       "circuit d alcarras",
-      "andorra",
+      "alcarras",
       "spain"
     ],
-    "tokenCount": 5,
+    "tokenCount": 4,
     "aliasCount": 0,
     "labelWordCount": 3
   },
@@ -28994,8 +28993,8 @@
     "aliases": [],
     "description": "Motor racing course in Jersey",
     "type": "street circuit",
-    "country": null,
-    "city": null,
+    "country": "Jersey",
+    "city": "Jersey",
     "lat": 49.2,
     "lon": -2.1,
     "wikidataShortName": null,
@@ -29003,18 +29002,20 @@
       "label": "saint helier circuit",
       "aliases": [],
       "shortName": "",
-      "city": "",
-      "country": ""
+      "city": "jersey",
+      "country": "jersey"
     },
     "tokens": [
       "saint",
       "helier",
-      "circuit"
+      "circuit",
+      "jersey"
     ],
     "phrases": [
-      "saint helier circuit"
+      "saint helier circuit",
+      "jersey"
     ],
-    "tokenCount": 3,
+    "tokenCount": 4,
     "aliasCount": 0,
     "labelWordCount": 3
   },
