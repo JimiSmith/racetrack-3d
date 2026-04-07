@@ -5,9 +5,14 @@ import { fileURLToPath } from 'node:url';
 import trackSearchIndex from '../src/generated/track-search-index.json' with { type: 'json' };
 import { buildTrackGeometryFromPayload } from '../src/geometry/track-geometry.js';
 import { normalizeTrackGeometryResult } from '../src/geometry/normalize.js';
+import { extractWays } from '../src/geometry/osm-elements.js';
+import { stitchWaysOrdered, measureWaySetLength } from '../src/geometry/way-stitching.js';
+import { closeNodeChainIfNearClosed, dedupeSequentialNodes } from '../src/geometry/chain-cleanup.js';
+import { measurePolylineLength } from '../src/geometry/geo-math.js';
 import {
   fetchAdaptiveOsmApiMapPayload,
   fetchOsmApiMapPayload,
+  flattenSuperRelations,
   parseOsmApiMapXml,
   supplementPayloadWithMissingRelationWays,
 } from './lib/osm-api-source.mjs';
@@ -601,6 +606,74 @@ async function fetchOsmApiPayloadWithCache(track, margin, options) {
   };
 }
 
+/**
+ * Build combined layouts from super-relations in a flattened payload.
+ * Super-relations contain sub-relations (e.g. Nordschleife + GP Strecke) plus
+ * connecting ways. The generic geometry pipeline processes each relation
+ * independently and can't produce the combined circuit layout. This function
+ * stitches all super-relation member ways into a single polyline and returns
+ * it as an additional layout.
+ */
+function buildCombinedSuperRelationLayouts(flattenedPayload, existingLayouts) {
+  const elements = flattenedPayload?.elements ?? [];
+  const superRelations = elements.filter(
+    e => e.type === 'relation' && e.tags?._wasSuperRelation,
+  );
+
+  if (superRelations.length === 0) {
+    return [];
+  }
+
+  const wayElementsById = new Map(
+    elements.filter(e => e.type === 'way').map(e => [e.id, e]),
+  );
+
+  const combinedLayouts = [];
+  for (const superRel of superRelations) {
+    const relationElements = [
+      ...superRel.members
+        .filter(m => m.type === 'way' && Array.isArray(m.geometry) && m.geometry.length >= 2)
+        .map(m => ({
+          type: 'way',
+          id: m.ref,
+          tags: wayElementsById.get(m.ref)?.tags ?? {},
+          geometry: m.geometry,
+        })),
+      superRel,
+    ];
+
+    const ways = extractWays(relationElements);
+    if (ways.length < 2) {
+      continue;
+    }
+
+    const stitched = dedupeSequentialNodes(stitchWaysOrdered(ways));
+    const nodes = closeNodeChainIfNearClosed(stitched);
+    const length = measurePolylineLength(nodes);
+
+    // Only add if significantly longer than the longest existing layout
+    // (indicates it genuinely combines multiple sub-circuits).
+    const longestExisting = Math.max(...(existingLayouts ?? []).map(l => l.stats?.lengthMetres ?? 0), 0);
+    if (length < longestExisting * 1.08 || nodes.length < 4) {
+      continue;
+    }
+
+    const name = superRel.tags?.name ?? 'Combined';
+    combinedLayouts.push({
+      id: `combined-${superRel.id}`,
+      name,
+      nodes,
+      stats: {
+        lengthMetres: length,
+        segmentCount: ways.length,
+        variantSectionCount: 0,
+      },
+    });
+  }
+
+  return combinedLayouts;
+}
+
 async function fetchPrimaryGeometryFromOsmApi(track, options) {
   const margins = Array.isArray(track.osmApiMargins) && track.osmApiMargins.length > 0
     ? track.osmApiMargins
@@ -635,13 +708,32 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
     // the node-limit-safe bbox). This runs once on the selected margin's response rather
     // than on every adaptive probe — patching the result we intend to keep, not discards.
     const supplementedPayload = await supplementPayloadWithMissingRelationWays(response.payload, { wikidataId: track.wikidataId });
+    const flattenedPayload = flattenSuperRelations(supplementedPayload);
+
+    // Exclude super-relations from the generic geometry pipeline — they contain all
+    // sub-relation ways and would produce a near-duplicate of the longest sub-circuit,
+    // displacing the sub-circuit's proper name through dedup. Super-relations are
+    // handled separately via buildCombinedSuperRelationLayouts below.
+    const pipelinePayload = {
+      ...flattenedPayload,
+      elements: (flattenedPayload?.elements ?? []).filter(
+        e => !(e.type === 'relation' && e.tags?._wasSuperRelation),
+      ),
+    };
     const supplementedGeometryResult = sanitizeBuildGeometryResult(normalizeTrackGeometryResult(
-      buildTrackGeometryFromPayload(supplementedPayload, track.trackName),
+      buildTrackGeometryFromPayload(pipelinePayload, track.trackName),
       track.trackName,
     ));
-    const geometryResult = (supplementedGeometryResult?.layouts?.length ?? 0) > 0
+    const baseGeometryResult = (supplementedGeometryResult?.layouts?.length ?? 0) > 0
       ? supplementedGeometryResult
       : response.evaluation.geometryResult;
+
+    // Add combined layouts from super-relations (e.g. Nürburgring Gesamtstrecke =
+    // Nordschleife + GP Strecke connected via linking ways).
+    const combinedLayouts = buildCombinedSuperRelationLayouts(flattenedPayload, baseGeometryResult?.layouts);
+    const geometryResult = combinedLayouts.length > 0
+      ? { ...baseGeometryResult, layouts: [...(baseGeometryResult?.layouts ?? []), ...combinedLayouts] }
+      : baseGeometryResult;
 
     return {
       geometryResult,

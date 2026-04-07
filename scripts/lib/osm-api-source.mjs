@@ -233,7 +233,7 @@ function parseOsmXmlElements(xmlSource, options = {}) {
           relations.push({
             id: currentRelation.id,
             tags: currentRelation.tags,
-            members: currentRelation.members.filter(m => m.type === 'way'),
+            members: currentRelation.members.filter(m => m.type === 'way' || m.type === 'relation'),
           });
         }
         currentRelation = null;
@@ -377,11 +377,24 @@ export function parseOsmApiMapXml(xmlSource, options = {}) {
     || (normWikidataId && String(r.tags?.wikidata ?? '').trim().toUpperCase() === normWikidataId),
   );
 
+  // Also include super-relations: relations that contain relevant circuit relations
+  // as members (e.g. Nürburgring parent = Nordschleife + GP Strecke + connecting ways).
+  // Keep them unflattened here — flattenSuperRelations runs after supplement to ensure
+  // all sub-relation members have geometry.
+  const relevantRelationIds = new Set(relevantRelations.map(r => r.id));
+  const superRelations = relations
+    .filter(r => !relevantRelationIds.has(r.id))
+    .filter(r => r.members.some(m => m.type === 'relation' && relevantRelationIds.has(m.ref)));
+
+  const allRelevantRelations = [...relevantRelations, ...superRelations];
+
   const relevantWayIds = new Set([
     ...ways
       .filter(way => String(way.tags?.highway ?? '').trim().toLowerCase() === 'raceway')
       .map(way => way.id),
-    ...relevantRelations.flatMap(relation => relation.members.map(member => member.ref)),
+    ...allRelevantRelations.flatMap(relation =>
+      relation.members.filter(m => m.type === 'way').map(m => m.ref),
+    ),
   ]);
   const relevantWays = ways.filter(way => relevantWayIds.has(way.id));
 
@@ -390,9 +403,136 @@ export function parseOsmApiMapXml(xmlSource, options = {}) {
     generator: 'osm-api-map',
     elements: [
       ...relevantWays.map(way => ({ type: 'way', ...way })),
-      ...relevantRelations.map(relation => ({ type: 'relation', ...relation })),
+      ...allRelevantRelations.map(relation => ({ type: 'relation', ...relation })),
     ],
   };
+}
+
+// Split way members at junction points where connecting ways attach at intermediate
+// nodes of circuit ways. Without this, endpoint-based stitching can't detect that the
+// ways are connected (because the shared node is in the middle of a way, not at its
+// start or end). Splitting creates proper endpoint connectivity.
+function splitMembersAtJunctions(members) {
+  const wayMembers = members.filter(m => m.type === 'way' && Array.isArray(m.geometry) && m.geometry.length >= 2);
+  if (wayMembers.length < 2) {
+    return members;
+  }
+
+  // Collect all endpoint positions (as "lat,lon" keys) across all ways.
+  const endpointKeys = new Set();
+  for (const m of wayMembers) {
+    const g = m.geometry;
+    endpointKeys.add(`${g[0].lat},${g[0].lon}`);
+    endpointKeys.add(`${g[g.length - 1].lat},${g[g.length - 1].lon}`);
+  }
+
+  // For each way, find intermediate nodes that match another way's endpoint or
+  // intermediate node. These are junction points where the way should be split.
+  // Build a set of all node positions that appear in more than one way.
+  const nodeWayCount = new Map();
+  for (const m of wayMembers) {
+    const seen = new Set();
+    for (const node of m.geometry) {
+      const key = `${node.lat},${node.lon}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        nodeWayCount.set(key, (nodeWayCount.get(key) ?? 0) + 1);
+      }
+    }
+  }
+
+  // Junction nodes: appear in multiple ways AND are at an intermediate position in
+  // at least one way.
+  const junctionKeys = new Set();
+  for (const m of wayMembers) {
+    const g = m.geometry;
+    for (let i = 1; i < g.length - 1; i++) {
+      const key = `${g[i].lat},${g[i].lon}`;
+      if (nodeWayCount.get(key) > 1) {
+        junctionKeys.add(key);
+      }
+    }
+  }
+
+  if (junctionKeys.size === 0) {
+    return members;
+  }
+
+  // Split ways at junction points.
+  const result = [];
+  let splitCounter = 0;
+  for (const m of members) {
+    if (m.type !== 'way' || !Array.isArray(m.geometry) || m.geometry.length < 2) {
+      result.push(m);
+      continue;
+    }
+
+    // Find split indices (intermediate nodes that are junction points).
+    const splitIndices = [];
+    for (let i = 1; i < m.geometry.length - 1; i++) {
+      const key = `${m.geometry[i].lat},${m.geometry[i].lon}`;
+      if (junctionKeys.has(key)) {
+        splitIndices.push(i);
+      }
+    }
+
+    if (splitIndices.length === 0) {
+      result.push(m);
+      continue;
+    }
+
+    // Split the way into segments at junction points.
+    const cuts = [0, ...splitIndices, m.geometry.length - 1];
+    for (let i = 0; i < cuts.length - 1; i++) {
+      const segment = m.geometry.slice(cuts[i], cuts[i + 1] + 1);
+      if (segment.length >= 2) {
+        splitCounter++;
+        result.push({
+          ...m,
+          ref: m.ref * 1000 + splitCounter,
+          geometry: segment,
+        });
+      }
+    }
+  }
+
+  return result;
+}
+
+// Flatten super-relations in a payload by replacing sub-relation members with their
+// constituent way members. Run this AFTER supplementPayloadWithMissingRelationWays
+// so that sub-relation members already have geometry patched in.
+export function flattenSuperRelations(payload) {
+  const elements = payload?.elements ?? [];
+  const relationIndex = new Map(
+    elements.filter(e => e.type === 'relation').map(r => [r.id, r]),
+  );
+
+  const hasSuperRelations = elements.some(
+    e => e.type === 'relation' && e.members.some(m => m.type === 'relation'),
+  );
+  if (!hasSuperRelations) {
+    return payload;
+  }
+
+  const updatedElements = elements.map(e => {
+    if (e.type !== 'relation' || !e.members.some(m => m.type === 'relation')) {
+      return e;
+    }
+    const flatMembers = e.members.flatMap(m => {
+      if (m.type === 'relation' && relationIndex.has(m.ref)) {
+        return relationIndex.get(m.ref).members.filter(sm => sm.type === 'way');
+      }
+      return m.type === 'way' ? [m] : [];
+    });
+    return {
+      ...e,
+      members: splitMembersAtJunctions(flatMembers),
+      tags: { ...e.tags, _wasSuperRelation: true },
+    };
+  });
+
+  return { ...payload, elements: updatedElements };
 }
 
 // Parses a combined nodes+ways OSM XML string and returns a Map<wayId, geometry>.
