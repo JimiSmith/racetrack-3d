@@ -40,7 +40,8 @@
     const bp = $placementDebugData?.scaledBasePlate;
     if (!bp) return '0 0 100 100';
     const pad = Math.max(bp.width, bp.height) * 0.05;
-    return `${bp.minX - pad} ${bp.minY - pad} ${bp.width + pad * 2} ${bp.height + pad * 2}`;
+    // Flip Y: negate and swap minY/maxY so SVG Y-down matches the model's Y-up coords.
+    return `${bp.minX - pad} ${-(bp.minY + bp.height) - pad} ${bp.width + pad * 2} ${bp.height + pad * 2}`;
   });
 
   let scoreBounds = $derived.by(() => {
@@ -84,6 +85,8 @@
   <div class="placement-debug-content" onclick={(e) => e.stopPropagation()}>
     {#if $placementDebugData}
       <svg class="placement-debug-svg" viewBox={viewBox} xmlns="http://www.w3.org/2000/svg">
+        <!-- scale(1,-1) flips Y so the model's Y-up coords render correctly in SVG's Y-down system -->
+        <g transform="scale(1,-1)">
         <!-- Base plate -->
         <rect
           x={$placementDebugData.scaledBasePlate.minX} y={$placementDebugData.scaledBasePlate.minY}
@@ -118,6 +121,7 @@
             <text
               x={b.minX + b.width / 2} y={b.minY + b.height / 2}
               text-anchor="middle" dominant-baseline="central"
+              transform="scale(1,-1) translate(0,{-(b.minY + b.height / 2) * 2})"
               fill="white" font-size={fontSize} class="score-label"
             >
               {placement.score.toFixed(2)}
@@ -125,6 +129,7 @@
             {#if rankLabel(i)}
               <text
                 x={b.minX + fontSize * 0.3} y={b.minY + fontSize * 1.2}
+                transform="scale(1,-1) translate(0,{-(b.minY + fontSize * 1.2) * 2})"
                 fill="var(--accent)" font-size={fontSize * 0.9} font-weight="bold"
                 class="rank-badge"
               >
@@ -133,6 +138,7 @@
             {/if}
           </g>
         {/each}
+        </g>
       </svg>
 
       <p class="debug-info-line">
