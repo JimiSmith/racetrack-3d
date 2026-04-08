@@ -3,7 +3,7 @@
   "name": "Circuit de Barcelona-Catalunya",
   "source": {
     "kind": "osm-prebuilt",
-    "generatedAt": "2026-03-31T10:53:16.872Z",
+    "generatedAt": "2026-04-08T03:11:06.646Z",
     "osmQueryVersion": 1,
     "buildSource": "osm-api"
   },
@@ -23,8 +23,8 @@
   },
   "layouts": [
     {
-      "id": "main",
-      "name": "Main",
+      "id": "circuit-de-catalunya-gp-fia",
+      "name": "Circuit de Catalunya GP FIA",
       "nodes": [
         {
           "lat": 41.5746115,

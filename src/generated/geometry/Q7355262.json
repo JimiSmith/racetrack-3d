@@ -3,7 +3,7 @@
   "name": "Rockford Speedway",
   "source": {
     "kind": "osm-prebuilt-failed",
-    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "generatedAt": "2026-04-08T03:11:06.646Z",
     "failureMessage": "Rockford Speedway / Main: length 435.1908060090726m is outside sane circuit bounds"
   }
 }

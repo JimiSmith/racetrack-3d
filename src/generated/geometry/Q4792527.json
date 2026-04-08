@@ -3,7 +3,7 @@
   "name": "Armadale Stadium",
   "source": {
     "kind": "osm-prebuilt-failed",
-    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "generatedAt": "2026-04-08T03:11:06.646Z",
     "failureMessage": "Armadale Stadium / Main: length 278.2291803544906m is outside sane circuit bounds"
   }
 }

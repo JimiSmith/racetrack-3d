@@ -3,7 +3,7 @@
   "name": "Varsselring",
   "source": {
     "kind": "osm-prebuilt-failed",
-    "generatedAt": "2026-04-06T20:10:22.285Z",
-    "failureMessage": "Varsselring / Main: length 313.7803231687404m is outside sane circuit bounds"
+    "generatedAt": "2026-04-08T03:11:06.646Z",
+    "failureMessage": "Varsselring / Varsselring - exclusief: length 288.98494283947235m is outside sane circuit bounds"
   }
 }

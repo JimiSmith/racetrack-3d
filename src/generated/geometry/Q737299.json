@@ -3,7 +3,7 @@
   "name": "Alemannenring",
   "source": {
     "kind": "osm-prebuilt-failed",
-    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "generatedAt": "2026-04-08T03:11:06.646Z",
     "failureMessage": "Alemannenring / Main: length 104.86405580909822m is outside sane circuit bounds"
   }
 }

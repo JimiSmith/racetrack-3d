@@ -3,7 +3,7 @@
   "name": "Eddie Wright Raceway",
   "source": {
     "kind": "osm-prebuilt-failed",
-    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "generatedAt": "2026-04-08T03:11:06.646Z",
     "failureMessage": "Eddie Wright Raceway / Main: length 322.35295967430426m is outside sane circuit bounds"
   }
 }

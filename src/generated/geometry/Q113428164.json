@@ -3,7 +3,7 @@
   "name": "Chicago Street Course",
   "source": {
     "kind": "osm-prebuilt",
-    "generatedAt": "2026-03-31T10:53:16.872Z",
+    "generatedAt": "2026-04-08T03:11:06.646Z",
     "osmQueryVersion": 1,
     "buildSource": "osm-api"
   },
@@ -348,7 +348,7 @@
       ],
       "stats": {
         "lengthMetres": 1765.0935949975058,
-        "segmentCount": 22,
+        "segmentCount": 27,
         "variantSectionCount": 0
       }
     }

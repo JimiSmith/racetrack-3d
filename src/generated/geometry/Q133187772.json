@@ -3,7 +3,7 @@
   "name": "Permyjaya Race Track",
   "source": {
     "kind": "osm-prebuilt-failed",
-    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "generatedAt": "2026-04-08T03:11:06.646Z",
     "failureMessage": "Permyjaya Race Track / Main: length 149.95467736442035m is outside sane circuit bounds"
   }
 }

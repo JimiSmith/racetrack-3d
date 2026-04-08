@@ -2,83 +2,8 @@
   "trackId": "Q6678736",
   "name": "Lorain County Speedway",
   "source": {
-    "kind": "osm-prebuilt",
-    "generatedAt": "2026-03-31T10:53:16.872Z",
-    "osmQueryVersion": 1,
-    "buildSource": "overpass-fallback"
-  },
-  "center": {
-    "lat": 41.3594,
-    "lon": -82.2167
-  },
-  "names": {
-    "searchLabel": "Lorain County Speedway",
-    "shortName": null,
-    "osmVenueNames": []
-  },
-  "layouts": [
-    {
-      "id": "main",
-      "name": "Main",
-      "nodes": [
-        {
-          "lat": 41.4037199,
-          "lon": -82.2610898
-        },
-        {
-          "lat": 41.4045676,
-          "lon": -82.2654439
-        },
-        {
-          "lat": 41.403973,
-          "lon": -82.2668383
-        },
-        {
-          "lat": 41.4033936,
-          "lon": -82.2677043
-        },
-        {
-          "lat": 41.4031253,
-          "lon": -82.2686922
-        },
-        {
-          "lat": 41.4027441,
-          "lon": -82.2686434
-        },
-        {
-          "lat": 41.4023263,
-          "lon": -82.2667204
-        },
-        {
-          "lat": 41.4022165,
-          "lon": -82.2658708
-        },
-        {
-          "lat": 41.4022104,
-          "lon": -82.2643909
-        },
-        {
-          "lat": 41.4023233,
-          "lon": -82.2631632
-        },
-        {
-          "lat": 41.4026678,
-          "lon": -82.2618094
-        },
-        {
-          "lat": 41.4030185,
-          "lon": -82.2607117
-        },
-        {
-          "lat": 41.4037199,
-          "lon": -82.2610898
-        }
-      ],
-      "stats": {
-        "lengthMetres": 1506.0066581400426,
-        "segmentCount": 1,
-        "variantSectionCount": 0
-      }
-    }
-  ]
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-08T03:11:06.646Z",
+    "failureMessage": "OSM API build path failed for Lorain County Speedway (Adaptive OSM API map request failed (margin 0.001875: did not yield geometry; margin 0.00375: did not yield geometry; margin 0.0075: did not yield geometry; margin 0.015: did not yield geometry; margin 0.025: did not yield geometry; margin 0.03: did not yield geometry; margin 0.04: did not yield geometry; margin 0.08: OSM API map request failed (400): You requested too many nodes (limit is 50000). Either request a smaller area, or use planet.osm))"
+  }
 }

@@ -3,7 +3,7 @@
   "name": "Holsted Speedway Center",
   "source": {
     "kind": "osm-prebuilt-failed",
-    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "generatedAt": "2026-04-08T03:11:06.646Z",
     "failureMessage": "Holsted Speedway Center / Main: length 301.2099651077065m is outside sane circuit bounds"
   }
 }

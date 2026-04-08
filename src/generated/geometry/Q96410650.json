@@ -3,7 +3,7 @@
   "name": "Transilvania Motor Ring",
   "source": {
     "kind": "osm-prebuilt",
-    "generatedAt": "2026-04-01T14:20:55.248Z",
+    "generatedAt": "2026-04-08T03:11:06.646Z",
     "osmQueryVersion": 1,
     "buildSource": "osm-api"
   },
@@ -20,8 +20,8 @@
   },
   "layouts": [
     {
-      "id": "main",
-      "name": "Main",
+      "id": "transilvania-motor-ring",
+      "name": "Transilvania Motor Ring",
       "nodes": [
         {
           "lat": 46.4327278,

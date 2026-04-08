@@ -3,7 +3,7 @@
   "name": "Harris Hill Raceway",
   "source": {
     "kind": "osm-prebuilt-failed",
-    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "generatedAt": "2026-04-08T03:11:06.646Z",
     "failureMessage": "Harris Hill Raceway / Layout 1: length 47.73623100855172m is outside sane circuit bounds"
   }
 }

@@ -3,7 +3,7 @@
   "name": "Cedar Lake Speedway",
   "source": {
     "kind": "osm-prebuilt-failed",
-    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "generatedAt": "2026-04-08T03:11:06.646Z",
     "failureMessage": "Cedar Lake Speedway / Main: length 488.3290250485133m is outside sane circuit bounds"
   }
 }

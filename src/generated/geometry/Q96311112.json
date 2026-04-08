@@ -3,7 +3,7 @@
   "name": "Autodrom Jastrząb",
   "source": {
     "kind": "osm-prebuilt-failed",
-    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "generatedAt": "2026-04-08T03:11:06.646Z",
     "failureMessage": "Autodrom Jastrząb / Main: length 221.83882159360272m is outside sane circuit bounds"
   }
 }

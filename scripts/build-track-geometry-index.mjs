@@ -41,7 +41,7 @@ const TRACK_BUILD_OVERRIDES = new Map([
   ['Q928721', {
     key: 'bugatti-circuit',
     osmApiMargins: [0.015, 0.025, 0.04, 0.08],
-    expectedLayoutNames: ['Circuit Bugatti'],
+    expectedLayoutNames: ['Circuit des 24 Heures du Mans', 'Circuit Bugatti'],
   }],
   ['Q171402', {
     key: 'silverstone',

@@ -3,7 +3,7 @@
   "name": "Western Springs Stadium",
   "source": {
     "kind": "osm-prebuilt-failed",
-    "generatedAt": "2026-04-06T20:10:22.285Z",
-    "failureMessage": "Western Springs Stadium / Main: length 499.23399116209407m is outside sane circuit bounds"
+    "generatedAt": "2026-04-08T03:11:06.646Z",
+    "failureMessage": "Western Springs Stadium / Main: length 439.3199117423908m is outside sane circuit bounds"
   }
 }

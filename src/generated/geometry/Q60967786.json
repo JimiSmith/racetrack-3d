@@ -3,7 +3,7 @@
   "name": "Flatenbanan",
   "source": {
     "kind": "osm-prebuilt-failed",
-    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "generatedAt": "2026-04-08T03:11:06.646Z",
     "failureMessage": "Flatenbanan / Main: length 329.5575932052628m is outside sane circuit bounds"
   }
 }

@@ -3,7 +3,7 @@
   "name": "Sauble Speedway",
   "source": {
     "kind": "osm-prebuilt-failed",
-    "generatedAt": "2026-04-06T20:10:22.285Z",
+    "generatedAt": "2026-04-08T03:11:06.646Z",
     "failureMessage": "Sauble Speedway / Main: length 440.2235215801251m is outside sane circuit bounds"
   }
 }

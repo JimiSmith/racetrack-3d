@@ -3,7 +3,7 @@
   "name": "Circuit de Monaco",
   "source": {
     "kind": "osm-prebuilt",
-    "generatedAt": "2026-04-06T02:05:21.815Z",
+    "generatedAt": "2026-04-08T03:11:06.646Z",
     "osmQueryVersion": 1,
     "buildSource": "osm-api"
   },
@@ -23,6 +23,7 @@
       "Boulevard Albert 1er",
       "Boulevard Louis II",
       "Circuit de Monaco",
+      "Monaco ePrix",
       "Place du Casino",
       "Quai Antoine 1er",
       "Quai des États-Unis",
@@ -1405,12 +1406,20 @@
           "lon": 7.4222309
         },
         {
+          "lat": 43.7347863,
+          "lon": 7.4222879
+        },
+        {
           "lat": 43.7346973,
           "lon": 7.4223122
         },
         {
-          "lat": 43.7345465,
-          "lon": 7.4223501
+          "lat": 43.7346008,
+          "lon": 7.4223429
+        },
+        {
+          "lat": 43.7345491,
+          "lon": 7.4223498
         },
         {
           "lat": 43.7343117,
@@ -1678,7 +1687,7 @@
         }
       ],
       "stats": {
-        "lengthMetres": 3322.222181461919,
+        "lengthMetres": 3322.2548963730665,
         "segmentCount": 40,
         "variantSectionCount": 0
       }

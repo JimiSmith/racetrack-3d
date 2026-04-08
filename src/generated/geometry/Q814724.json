@@ -2,77 +2,8 @@
   "trackId": "Q814724",
   "name": "Beijing International Street Circuit",
   "source": {
-    "kind": "osm-prebuilt",
-    "generatedAt": "2026-03-31T10:53:16.872Z",
-    "osmQueryVersion": 1,
-    "buildSource": "overpass-fallback"
-  },
-  "center": {
-    "lat": 40.1737,
-    "lon": 116.6866
-  },
-  "names": {
-    "searchLabel": "Beijing International Street Circuit",
-    "shortName": null,
-    "osmVenueNames": [
-      "锐思汽车运动发展中心"
-    ]
-  },
-  "layouts": [
-    {
-      "id": "main",
-      "name": "Main",
-      "nodes": [
-        {
-          "lat": 40.2517224,
-          "lon": 116.6873768
-        },
-        {
-          "lat": 40.2511639,
-          "lon": 116.6951012
-        },
-        {
-          "lat": 40.2559421,
-          "lon": 116.6954833
-        },
-        {
-          "lat": 40.256091,
-          "lon": 116.6953044
-        },
-        {
-          "lat": 40.2566408,
-          "lon": 116.6906212
-        },
-        {
-          "lat": 40.2566265,
-          "lon": 116.689433
-        },
-        {
-          "lat": 40.2565733,
-          "lon": 116.6893981
-        },
-        {
-          "lat": 40.2565727,
-          "lon": 116.6893088
-        },
-        {
-          "lat": 40.2566301,
-          "lon": 116.6892702
-        },
-        {
-          "lat": 40.2565962,
-          "lon": 116.6874178
-        },
-        {
-          "lat": 40.2517224,
-          "lon": 116.6873768
-        }
-      ],
-      "stats": {
-        "lengthMetres": 2439.4675683470564,
-        "segmentCount": 1,
-        "variantSectionCount": 0
-      }
-    }
-  ]
+    "kind": "osm-prebuilt-failed",
+    "generatedAt": "2026-04-08T03:11:06.646Z",
+    "failureMessage": "OSM API build path failed for Beijing International Street Circuit (Adaptive OSM API map request failed (margin 0.0025: did not yield geometry; margin 0.005: did not yield geometry; margin 0.01: did not yield geometry; margin 0.02: did not yield geometry; margin 0.04: did not yield geometry; margin 0.08: OSM API map request failed (400): You requested too many nodes (limit is 50000). Either request a smaller area, or use planet.osm))"
+  }
 }
