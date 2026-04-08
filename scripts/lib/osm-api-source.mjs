@@ -356,6 +356,7 @@ function isCircuitRoute(relation) {
   const circuit = String(relation.tags?.circuit ?? '').trim().toLowerCase();
   const sport = String(relation.tags?.sport ?? '').trim().toLowerCase();
   if (circuit === 'kart') { return false; }
+  if (type === 'multipolygon' || type === 'boundary') { return false; }
   if (highway === 'raceway' || type === 'circuit' || route === 'raceway') { return true; }
   if (sport === 'motor' && type === 'route') { return true; }
   return false;
@@ -372,10 +373,15 @@ export function parseOsmApiMapXml(xmlSource, options = {}) {
   // this catches circuits tagged unconventionally (e.g. Nordschleife: type=route +
   // route=road with no sport/circuit tags).
   const normWikidataId = options.wikidataId ? String(options.wikidataId).trim().toUpperCase() : null;
-  const relevantRelations = relations.filter(r =>
-    isCircuitRoute(r)
-    || (normWikidataId && String(r.tags?.wikidata ?? '').trim().toUpperCase() === normWikidataId),
-  );
+  const NON_CIRCUIT_RELATION_TYPES = new Set(['multipolygon', 'boundary', 'site', 'building']);
+  const relevantRelations = relations.filter(r => {
+    if (isCircuitRoute(r)) { return true; }
+    if (!normWikidataId) { return false; }
+    if (String(r.tags?.wikidata ?? '').trim().toUpperCase() !== normWikidataId) { return false; }
+    // Exclude facility/land-area relations that happen to share the venue's wikidata ID.
+    const type = String(r.tags?.type ?? '').trim().toLowerCase();
+    return !NON_CIRCUIT_RELATION_TYPES.has(type);
+  });
 
   // Also include super-relations: relations that contain relevant circuit relations
   // as members (e.g. Nürburgring parent = Nordschleife + GP Strecke + connecting ways).
