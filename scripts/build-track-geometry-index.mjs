@@ -167,6 +167,7 @@ const TRACK_BUILD_OVERRIDES = new Map([
     key: 'bahrain',
     osmApiMargins: [0.02, 0.04, 0.08],
     expectedLayoutNames: ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit'],
+    // SYNC: keep in sync with GEOMETRY_HINTS in test/search.test.js
     layoutLengthTargets: {
       'inner': 2550,
       'oval|test': 2500,
@@ -174,6 +175,7 @@ const TRACK_BUILD_OVERRIDES = new Map([
   }],
   ['Q171566', {
     key: 'red-bull-ring',
+    // SYNC: keep in sync with GEOMETRY_HINTS in test/search.test.js
     layoutLengthTargets: {
       's[uü]dschleife|national': 2336,
     },

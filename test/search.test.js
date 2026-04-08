@@ -27,7 +27,8 @@ import {
   expectNoImmediateBacktrack,
 } from '../test-utils/layout-assertions.js';
 
-/** Geometry hints matching TRACK_BUILD_OVERRIDES in build-track-geometry-index.mjs. */
+/** Geometry hints matching TRACK_BUILD_OVERRIDES in build-track-geometry-index.mjs.
+ *  SYNC: keep in sync with layoutLengthTargets in scripts/build-track-geometry-index.mjs */
 const GEOMETRY_HINTS = {
   'Bahrain International Circuit': {
     layoutLengthTargets: { 'inner': 2550, 'oval|test': 2500 },
@@ -889,6 +890,10 @@ test('Red Bull Ring fixture produces multiple layouts via variant substitution',
   assert.ok(result.layouts.length >= 2, `Expected >= 2 layouts, got ${result.layouts.length}`);
   assertLayoutInvariants(result.layouts[0], { maxGapMeters: 120 });
   expectApproxLength(result.layouts[0].nodes, 4.6, 0.5);
+  // Südschleife must use the southern arc (~2.3km), not the northern (~2.3km but wrong side)
+  const sudschleife = result.layouts.find(l => l.name.includes('Südschleife'));
+  assert.ok(sudschleife, 'Expected a Südschleife layout');
+  expectApproxLength(sudschleife.nodes, 2.3, 0.15);
 });
 
 test('Barcelona fixture produces multiple layouts from high-overlap relations', () => {
