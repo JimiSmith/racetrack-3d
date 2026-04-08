@@ -3,7 +3,7 @@
   "name": "Marina Bay Street Circuit",
   "source": {
     "kind": "osm-prebuilt",
-    "generatedAt": "2026-04-08T03:11:06.646Z",
+    "generatedAt": "2026-04-08T12:54:59.093Z",
     "osmQueryVersion": 1,
     "buildSource": "osm-api"
   },
@@ -347,16 +347,16 @@
           "lon": 103.8624761
         },
         {
-          "lat": 1.2947844,
-          "lon": 103.8625486
+          "lat": 1.2947585,
+          "lon": 103.8625153
         },
         {
-          "lat": 1.2948294,
-          "lon": 103.8626109
+          "lat": 1.2948194,
+          "lon": 103.8625906
         },
         {
-          "lat": 1.2948413,
-          "lon": 103.8626515
+          "lat": 1.2948392,
+          "lon": 103.8626592
         },
         {
           "lat": 1.2948393,
@@ -924,7 +924,7 @@
         }
       ],
       "stats": {
-        "lengthMetres": 4972.980470409299,
+        "lengthMetres": 4973.000212987812,
         "segmentCount": 98,
         "variantSectionCount": 0
       }
