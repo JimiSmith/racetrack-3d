@@ -607,71 +607,217 @@ async function fetchOsmApiPayloadWithCache(track, margin, options) {
 }
 
 /**
- * Build combined layouts from super-relations in a flattened payload.
- * Super-relations contain sub-relations (e.g. Nordschleife + GP Strecke) plus
- * connecting ways. The generic geometry pipeline processes each relation
- * independently and can't produce the combined circuit layout. This function
- * stitches all super-relation member ways into a single polyline and returns
- * it as an additional layout.
+ * Build a closed-loop polyline from a relation's way members.
  */
-function buildCombinedSuperRelationLayouts(flattenedPayload, existingLayouts) {
-  const elements = flattenedPayload?.elements ?? [];
-  const superRelations = elements.filter(
-    e => e.type === 'relation' && e.tags?._wasSuperRelation,
-  );
+function buildSubRelationLoop(relation) {
+  const elements = [
+    ...relation.members
+      .filter(m => m.type === 'way' && Array.isArray(m.geometry) && m.geometry.length >= 2)
+      .map(m => ({ type: 'way', id: m.ref, tags: {}, geometry: m.geometry })),
+    { type: 'relation', ...relation },
+  ];
+  const ways = extractWays(elements);
+  if (ways.length === 0) { return []; }
+  return closeNodeChainIfNearClosed(dedupeSequentialNodes(stitchWaysOrdered(ways)));
+}
 
-  if (superRelations.length === 0) {
+/**
+ * Find the index of the node on `loop` closest to `target`.
+ */
+function findClosestLoopIndex(loop, target) {
+  let bestIdx = 0;
+  let bestDist = Infinity;
+  for (let i = 0; i < loop.length; i++) {
+    const d = Math.sqrt((loop[i].lat - target.lat) ** 2 + (loop[i].lon - target.lon) ** 2);
+    if (d < bestDist) { bestDist = d; bestIdx = i; }
+  }
+  return bestIdx;
+}
+
+/**
+ * Extract a segment from a closed loop going forward from `startIdx` to `endIdx`
+ * (wrapping around if needed). Inclusive of both endpoints.
+ */
+function extractLoopSegment(loop, startIdx, endIdx) {
+  // Skip the duplicate closing node for wrap-around calculations.
+  const isClosed = loop.length > 2
+    && loop[0].lat === loop[loop.length - 1].lat
+    && loop[0].lon === loop[loop.length - 1].lon;
+  const n = isClosed ? loop.length - 1 : loop.length;
+  const segment = [];
+  for (let i = startIdx; ; i = (i + 1) % n) {
+    segment.push(loop[i]);
+    if (i === endIdx) { break; }
+    if (segment.length > n) { break; } // safety
+  }
+  return segment;
+}
+
+/**
+ * Build combined layouts from super-relations by splicing individual sub-circuit
+ * loops via connecting ways. Unlike greedy stitching (which fails at junctions
+ * where 3+ ways meet), this approach builds each sub-circuit's polyline
+ * independently, then joins them at the connecting way attachment points.
+ *
+ * Requires exactly 2 sub-relations and at least 1 connecting way.
+ */
+function buildCombinedSuperRelationLayouts(preFlattened, flattenedPayload, existingLayouts) {
+  const flatElements = flattenedPayload?.elements ?? [];
+  const preElements = preFlattened?.elements ?? [];
+
+  // Find super-relations from the pre-flattened payload (still has sub-relation members)
+  const preSuperRelations = preElements.filter(
+    e => e.type === 'relation' && e.members?.some(m => m.type === 'relation'),
+  );
+  if (preSuperRelations.length === 0) {
     return [];
   }
 
-  const wayElementsById = new Map(
-    elements.filter(e => e.type === 'way').map(e => [e.id, e]),
-  );
-
   const combinedLayouts = [];
-  for (const superRel of superRelations) {
-    const relationElements = [
-      ...superRel.members
-        .filter(m => m.type === 'way' && Array.isArray(m.geometry) && m.geometry.length >= 2)
-        .map(m => ({
-          type: 'way',
-          id: m.ref,
-          tags: wayElementsById.get(m.ref)?.tags ?? {},
-          geometry: m.geometry,
-        })),
-      superRel,
-    ];
+  for (const preSuperRel of preSuperRelations) {
+    // Identify sub-relation IDs and connecting way IDs from the pre-flattened structure
+    const subRelationIds = preSuperRel.members.filter(m => m.type === 'relation').map(m => m.ref);
+    const connectingWayIds = new Set(preSuperRel.members.filter(m => m.type === 'way').map(m => m.ref));
 
-    const ways = extractWays(relationElements);
-    if (ways.length < 2) {
-      continue;
+    if (subRelationIds.length !== 2 || connectingWayIds.size === 0) {
+      continue; // only handle 2-sub-relation topology for now
     }
 
-    const stitched = dedupeSequentialNodes(stitchWaysOrdered(ways));
-    const nodes = closeNodeChainIfNearClosed(stitched);
+    // Build each sub-relation's loop from the supplemented (pre-flatten) payload
+    const subRelations = subRelationIds.map(id => preElements.find(e => e.type === 'relation' && e.id === id)).filter(Boolean);
+    if (subRelations.length !== 2) { continue; }
+
+    const loops = subRelations.map(buildSubRelationLoop);
+    if (loops.some(l => l.length < 4)) { continue; }
+
+    // Get connecting way geometries from the pre-flatten super-relation members
+    const connectingWays = [...connectingWayIds]
+      .map(id => {
+        const m = preSuperRel.members.find(m => m.ref === id && m.type === 'way');
+        return { id, geometry: m?.geometry ?? [] };
+      })
+      .filter(cw => cw.geometry.length >= 2);
+
+    if (connectingWays.length < 2) { continue; }
+
+    // Find which two connecting ways bridge BETWEEN the two loops (not parallel paths).
+    // A bridging way has one endpoint near loop A and the other near loop B.
+    const ATTACH_THRESHOLD = 2e-3; // ~200m
+    const bridgeWays = connectingWays.filter(cw => {
+      const start = cw.geometry[0];
+      const end = cw.geometry[cw.geometry.length - 1];
+      const startNearA = findNearestDist(loops[0], start) < ATTACH_THRESHOLD;
+      const startNearB = findNearestDist(loops[1], start) < ATTACH_THRESHOLD;
+      const endNearA = findNearestDist(loops[0], end) < ATTACH_THRESHOLD;
+      const endNearB = findNearestDist(loops[1], end) < ATTACH_THRESHOLD;
+      // One end near A, other near B (or vice versa)
+      return (startNearA && endNearB) || (startNearB && endNearA);
+    });
+
+    if (bridgeWays.length < 2) { continue; }
+
+    // Select two bridges that connect DIFFERENT junction points on each loop.
+    // Parallel bridges (e.g. pit lane + track between the same two junctions)
+    // must not be used together — they'd produce a degenerate 0-length segment.
+    const SAME_POINT_THRESHOLD = 5e-4;
+    let bridge1 = null;
+    let bridge2 = null;
+    bridgeWays.sort((a, b) => measurePolylineLength(b.geometry) - measurePolylineLength(a.geometry));
+    for (let i = 0; i < bridgeWays.length && !bridge2; i++) {
+      for (let j = i + 1; j < bridgeWays.length && !bridge2; j++) {
+        const bi = bridgeWays[i], bj = bridgeWays[j];
+        const biStart = bi.geometry[0], biEnd = bi.geometry[bi.geometry.length - 1];
+        const bjStart = bj.geometry[0], bjEnd = bj.geometry[bj.geometry.length - 1];
+        // Check that they don't connect the same pair of points
+        const sameStartStart = findNearestDist([biStart], bjStart) < SAME_POINT_THRESHOLD;
+        const sameEndEnd = findNearestDist([biEnd], bjEnd) < SAME_POINT_THRESHOLD;
+        const sameStartEnd = findNearestDist([biStart], bjEnd) < SAME_POINT_THRESHOLD;
+        const sameEndStart = findNearestDist([biEnd], bjStart) < SAME_POINT_THRESHOLD;
+        if (!(sameStartStart && sameEndEnd) && !(sameStartEnd && sameEndStart)) {
+          bridge1 = bi;
+          bridge2 = bj;
+        }
+      }
+    }
+    if (!bridge1 || !bridge2) { continue; }
+
+    // Orient each bridge: ensure start is on loop[0] (A) and end is on loop[1] (B).
+    function orientBridge(bridge) {
+      const start = bridge.geometry[0];
+      const end = bridge.geometry[bridge.geometry.length - 1];
+      const startDistA = findNearestDist(loops[0], start);
+      const startDistB = findNearestDist(loops[1], start);
+      if (startDistA <= startDistB) {
+        // start is on A, end is on B — correct orientation
+        return bridge.geometry;
+      }
+      // Reverse so start is on A
+      return [...bridge.geometry].reverse();
+    }
+
+    const bridge1Geo = orientBridge(bridge1);
+    const bridge2Geo = orientBridge(bridge2);
+
+    // Find attachment indices on each loop
+    const a1 = findClosestLoopIndex(loops[0], bridge1Geo[0]);
+    const a2 = findClosestLoopIndex(loops[0], bridge2Geo[0]);
+    const b1 = findClosestLoopIndex(loops[1], bridge1Geo[bridge1Geo.length - 1]);
+    const b2 = findClosestLoopIndex(loops[1], bridge2Geo[bridge2Geo.length - 1]);
+
+    // Build the combined path:
+    // A[a2 → ... → a1] + bridge1 → B[b1 → ... → b2] + bridge2_reversed → back to A[a2]
+    // We take the LONG way around each loop (the main circuit, not the shortcut).
+    const segA = extractLoopSegment(loops[0], a2, a1);
+    const segB = extractLoopSegment(loops[1], b1, b2);
+    const bridge2Reversed = [...bridge2Geo].reverse();
+
+    const combined = [
+      ...segA,
+      ...bridge1Geo.slice(1), // skip first node (same as segA end)
+      ...segB.slice(1),       // skip first node (same as bridge1 end)
+      ...bridge2Reversed.slice(1), // skip first node (same as segB end)
+    ];
+
+    // Close the loop
+    if (combined.length > 2) {
+      combined.push(combined[0]);
+    }
+
+    const nodes = dedupeSequentialNodes(combined);
     const length = measurePolylineLength(nodes);
 
     // Only add if significantly longer than the longest existing layout
-    // (indicates it genuinely combines multiple sub-circuits).
     const longestExisting = Math.max(...(existingLayouts ?? []).map(l => l.stats?.lengthMetres ?? 0), 0);
     if (length < longestExisting * 1.08 || nodes.length < 4) {
       continue;
     }
 
-    const name = superRel.tags?.name ?? 'Combined';
+    // Pick the name from the flattened super-relation (which has the _wasSuperRelation tag)
+    const flatSuperRel = flatElements.find(e => e.type === 'relation' && e.id === preSuperRel.id);
+    const name = flatSuperRel?.tags?.name ?? preSuperRel.tags?.name ?? 'Combined';
+
     combinedLayouts.push({
-      id: `combined-${superRel.id}`,
+      id: `combined-${preSuperRel.id}`,
       name,
       nodes,
       stats: {
         lengthMetres: length,
-        segmentCount: ways.length,
+        segmentCount: segA.length + segB.length + bridge1Geo.length + bridge2Geo.length,
         variantSectionCount: 0,
       },
     });
   }
 
   return combinedLayouts;
+}
+
+function findNearestDist(loop, target) {
+  let best = Infinity;
+  for (const node of loop) {
+    const d = Math.sqrt((node.lat - target.lat) ** 2 + (node.lon - target.lon) ** 2);
+    if (d < best) { best = d; }
+  }
+  return best;
 }
 
 async function fetchPrimaryGeometryFromOsmApi(track, options) {
@@ -730,7 +876,7 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
 
     // Add combined layouts from super-relations (e.g. Nürburgring Gesamtstrecke =
     // Nordschleife + GP Strecke connected via linking ways).
-    const combinedLayouts = buildCombinedSuperRelationLayouts(flattenedPayload, baseGeometryResult?.layouts);
+    const combinedLayouts = buildCombinedSuperRelationLayouts(supplementedPayload, flattenedPayload, baseGeometryResult?.layouts);
     const geometryResult = combinedLayouts.length > 0
       ? { ...baseGeometryResult, layouts: [...(baseGeometryResult?.layouts ?? []), ...combinedLayouts] }
       : baseGeometryResult;
