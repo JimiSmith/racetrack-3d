@@ -132,6 +132,7 @@ export function sampleChainNodes(nodes: LatLonNode[], sampleCount = 24): LatLonN
 interface GeometryCandidate {
   nodes: LatLonNode[];
   length: number;
+  dedupeGroup?: string | undefined;
 }
 
 /**
@@ -143,6 +144,13 @@ function isNearDuplicateLayoutCandidate(candidate: GeometryCandidate, existingCa
   const MAX_NODE_DISTANCE = SNAP_FUZZY * 4;
 
   return existingCandidates.findIndex(existing => {
+    // Layouts sharing a dedupeGroup were intentionally created together (e.g.
+    // backbone + substitution variants). Their short variant sections may run
+    // very close to the backbone (< 100m) but represent genuinely different routes.
+    if (candidate.dedupeGroup && candidate.dedupeGroup === existing.dedupeGroup) {
+      return false;
+    }
+
     if (Math.abs(existing.length - candidate.length) > MAX_LENGTH_DELTA) {
       return false;
     }
@@ -157,7 +165,7 @@ function isNearDuplicateLayoutCandidate(candidate: GeometryCandidate, existingCa
 /**
  * Remove geometrically near-identical layouts, keeping the best-ranked one of each group.
  */
-export function dedupeLayoutsByGeometry<T extends RankableLayout & { nodes?: LatLonNode[]; stats?: { lengthMetres?: number } }>(
+export function dedupeLayoutsByGeometry<T extends RankableLayout & { nodes?: LatLonNode[]; stats?: { lengthMetres?: number }; _dedupeGroup?: string }>(
   layouts: T[],
   trackName: string | null,
 ): T[] {
@@ -169,6 +177,7 @@ export function dedupeLayoutsByGeometry<T extends RankableLayout & { nodes?: Lat
     const candidate: GeometryCandidate = {
       nodes: layout.nodes ?? [],
       length: layout?.stats?.lengthMetres ?? measurePolylineLength(layout.nodes ?? []),
+      dedupeGroup: layout._dedupeGroup,
     };
 
     if (isNearDuplicateLayoutCandidate(candidate, seenCandidates) >= 0) {

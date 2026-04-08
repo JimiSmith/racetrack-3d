@@ -63,6 +63,9 @@ interface PublicLayout {
   nodes: LatLonNode[];
   /** Bounding-box area in square metres; stripped before returning from buildLayoutsFromWays. */
   area?: number;
+  /** Shared by layouts that were created together (e.g. backbone + substitution variants)
+   *  so geometry dedup won't collapse them despite spatial proximity. */
+  _dedupeGroup?: string;
   stats: {
     lengthMetres: number;
     segmentCount: number;
@@ -295,7 +298,7 @@ export function stitchWays(ways: Way[]): LatLonNode[] {
 /**
  * Build an ordered node chain from a set of named ways.
  */
-function buildNamedGroupChain(namedWays: Way[]): LatLonNode[] {
+export function buildNamedGroupChain(namedWays: Way[]): LatLonNode[] {
   return dedupeSequentialNodes(stitchWaysOrdered(namedWays));
 }
 
@@ -339,7 +342,7 @@ function sampleChainNodes(nodes: LatLonNode[], sampleCount = 24): LatLonNode[] {
  * Try to substitute a named variant into the backbone cycle, returning the best
  * resulting layout or null if no valid substitution exists.
  */
-function substituteVariantIntoLayout(
+export function substituteVariantIntoLayout(
   baseNodes: LatLonNode[],
   variantNodes: LatLonNode[],
   variantLength: number,
@@ -824,6 +827,87 @@ export function buildLayoutsFromWays(ways: Way[], trackName: string | null): Pub
 }
 
 /**
+ * Build layouts by substituting named variant ways into a backbone built from referenceWays.
+ * Used when eligible named groups exist but none form standalone closed circuits on their own.
+ * E.g. Red Bull Ring: "MotoGP chicane" and "Long Lap Penalty" are variant segments
+ * that create different layouts when spliced into the main circuit backbone.
+ */
+function buildVariantSubstitutionLayouts(
+  eligibleNameGroups: Map<string, { ways: Way[]; sourceRank: number }>,
+  referenceWays: Way[],
+  trackName: string | null,
+): PublicLayout[] {
+  const MAX_GAP_FRACTION = 0.15;
+  const MAX_VARIANT_LENGTH_FRACTION = 0.5;
+
+  const backbone = buildCandidateFromWays(referenceWays);
+  if (!backbone || backbone.nodes.length < 4) { return []; }
+  if (backbone.endpointGap > backbone.length * MAX_GAP_FRACTION) { return []; }
+
+  const baseNodes = closeNodeChainIfNearClosed(backbone.nodes, backbone.length * MAX_GAP_FRACTION);
+
+  const dedupeGroup = `variant-sub-${Date.now()}`;
+  const mainLayout: PublicLayout = {
+    id: 'layout-1',
+    name: 'Main',
+    _dedupeGroup: dedupeGroup,
+    nodes: baseNodes,
+    stats: {
+      lengthMetres: backbone.length,
+      segmentCount: referenceWays.length,
+      variantSectionCount: 0,
+    },
+  };
+
+  const backboneWayIds = new Set(referenceWays.map(w => w.id));
+  const variantLayouts: PublicLayout[] = [];
+  let layoutIndex = 2;
+
+  for (const [groupName, group] of eligibleNameGroups) {
+    // Skip groups whose ways are already part of the backbone — they're
+    // segments of the main circuit, not alternate variant sections.
+    if (group.ways.every(w => backboneWayIds.has(w.id))) { continue; }
+
+    const variantChain = buildNamedGroupChain(group.ways);
+    if (variantChain.length < 2) { continue; }
+
+    const variantLength = measureWaySetLength(group.ways);
+    if (variantLength > backbone.length * MAX_VARIANT_LENGTH_FRACTION) { continue; }
+
+    const result = substituteVariantIntoLayout(
+      baseNodes,
+      variantChain,
+      variantLength,
+      groupName,
+      backbone.length,
+      trackName,
+    );
+    if (!result) { continue; }
+
+    variantLayouts.push({
+      id: `layout-${layoutIndex++}`,
+      name: groupName,
+      _dedupeGroup: dedupeGroup,
+      nodes: result.candidate.nodes,
+      stats: {
+        lengthMetres: result.candidate.length,
+        segmentCount: result.selectedWays.length,
+        variantSectionCount: 1,
+      },
+    });
+  }
+
+  if (variantLayouts.length === 0) { return []; }
+
+  // Dedup variants against each other (e.g. MotoGP chicane ≈ Long Lap Penalty),
+  // but don't include the backbone in geometry dedup — variant substitution
+  // segments can run very close to the backbone (< 100m) while being
+  // intentionally distinct routes.
+  const dedupedVariants = dedupeLayoutsByGeometry(variantLayouts, trackName);
+  return [mainLayout, ...dedupedVariants];
+}
+
+/**
  * Detect named circuit layouts from ways that carry distinct circuit-level names.
  *
  * E.g. Bahrain: "Grand Prix Circuit", "Inner Circuit", "Endurance Circuit" — each
@@ -901,8 +985,14 @@ export function buildNamedCircuitLayouts(
     });
   }
 
-  if (eligibleNameGroups.size < 2 || standaloneLayouts.length === 0) {
+  if (eligibleNameGroups.size < 2 && standaloneLayouts.length === 0) {
     return [];
+  }
+
+  // When no standalone layouts exist but eligible named groups do, try substituting
+  // each named group as a variant into the backbone built from referenceWays.
+  if (standaloneLayouts.length === 0) {
+    return buildVariantSubstitutionLayouts(eligibleNameGroups, referenceWays, trackName);
   }
 
   const backboneLayout = rankLayoutsForTrack(standaloneLayouts, trackName)[0];

@@ -17,7 +17,7 @@ export const PIT_PATTERN = /pit[\s\-_]*lane|pit[\s\-_]*road|pitlane|pitroad|supp
  * Regex matching way/relation names that carry a recognisable "layout" keyword.
  * Used to identify named circuit variants (e.g. "Grand Prix Circuit", "Inner Circuit").
  */
-export const NAMED_LAYOUT_KEYWORD_PATTERN = /\b(circuit|course|layout|oval|grand[\s_-]*prix|indy|national|endurance|inner|outer|short)\b/i;
+export const NAMED_LAYOUT_KEYWORD_PATTERN = /\b(circuit|course|layout|oval|grand[\s_-]*prix|indy|national|endurance|inner|outer|short|chicane|bypass|long[\s_-]*lap|rallycross|moto[\s_-]*gp|alternate)\b/i;
 
 /**
  * Find the closest nodes in `nodes` to `targetNode` within `maxDistance` metres.

@@ -43,8 +43,8 @@ test('picker state is shown when multiple layouts are available', () => {
   assert.equal(pickerState.hidden, false);
   assert.equal(pickerState.options.length, 2);
   assert.equal(pickerState.options[0].selected, true);
-  assert.match(pickerState.options[0].label, /^Main - /);
-  assert.match(pickerState.options[1].label, /^Alternate - /);
+  assert.match(pickerState.options[0].label, /^Silverstone Grand Prix - /);
+  assert.match(pickerState.options[1].label, /^Silverstone International - /);
 });
 
 test('changing selected layout index yields different nodes', () => {

@@ -7,6 +7,15 @@
 import type { LatLonNode } from '../types/geometry.js';
 import { computeEndpointGap, measureDistanceMetres, dist } from './geo-math.js';
 
+/** Sum of Euclidean distances between consecutive nodes in [start, end]. */
+function localPathLength(nodes: LatLonNode[], start: number, end: number): number {
+  let len = 0;
+  for (let i = start; i < end; i++) {
+    len += dist(nodes[i] as LatLonNode, nodes[i + 1] as LatLonNode);
+  }
+  return len;
+}
+
 // Exact snap: shared OSM node (same coords). Fuzzy snap: slight gap in OSM data (~30m).
 export const SNAP_EXACT = 1e-5;
 export const SNAP_FUZZY = 3e-4; // ~30m — catches gaps in OSM data without pulling in distant outliers
@@ -68,13 +77,27 @@ export function fixChainReversals(nodes: LatLonNode[]): LatLonNode[] {
   if (reversals.length < 2) { return nodes; }
 
   // Fix in pairs: reverse the section between each consecutive pair of reversals.
+  // Only apply if the reversal actually shortens the local path (genuine spike fix).
+  // Variant-substitution layouts can have sharp angles at splice points that look
+  // like reversals but are legitimate geometry — reversing those sections lengthens
+  // the path and destroys the variant's distinct shape.
   const result = [...nodes];
   for (let i = 0; i + 1 < reversals.length; i += 2) {
     // Safe: loop ensures i and i+1 are valid indices into reversals.
     const start = reversals[i] as number;
     const end = reversals[i + 1] as number;
+
+    // Measure local path length before and after reversal
+    const before = localPathLength(result, start, end + 1);
     const section = result.slice(start + 1, end + 1).reverse();
-    result.splice(start + 1, end - start, ...section);
+    const candidate = [...result];
+    candidate.splice(start + 1, end - start, ...section);
+    const after = localPathLength(candidate, start, end + 1);
+
+    // Only apply if the fix shortens or maintains the path
+    if (after <= before) {
+      result.splice(start + 1, end - start, ...section);
+    }
   }
   return result;
 }
