@@ -11,7 +11,7 @@ import { SNAP_FUZZY } from './chain-cleanup.js';
 import { buildCandidateFromWays, getWayCandidateNames } from './way-stitching.js';
 
 /** Regex matching pit lane / pit road names that should be excluded from the racing line. */
-export const PIT_PATTERN = /pit[\s\-_]*lane|pit[\s\-_]*road|pitlane|pitroad|support[\s\-_]*pit|\bpit\s*$/i;
+export const PIT_PATTERN = /pit[\s\-_]*lane|pit[\s\-_]*road|pitlane|pitroad|support[\s\-_]*pit|\bpit\s*$|boxen(?:stra[sß]e|gasse)/i;
 
 /**
  * Regex matching way/relation names that carry a recognisable "layout" keyword.

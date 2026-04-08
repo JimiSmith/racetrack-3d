@@ -750,7 +750,7 @@ test('multi-layout fixtures keep their expected layout counts', () => {
     ['spa.json', 'Circuit de Spa-Francorchamps', ['Main', 'Moto']],
     ['bahrain.json', 'Bahrain International Circuit', ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit']],
     ['mexico-city.json', 'Autódromo Hermanos Rodríguez', ['Mexican Grand Prix', 'Mexico City E-Prix']],
-    ['red-bull-ring.json', 'Red Bull Ring', ['Main', 'Moto GP chicane']],
+    ['red-bull-ring.json', 'Red Bull Ring', ['Main', 'MotoGP Long Lap Penalty', 'Red Bull Ring Südschleife National Circuit', 'Moto GP chicane']],
     ['barcelona.json', 'Circuit de Barcelona-Catalunya', ['Circuit de Barcelona-Catalunya', 'Rallycross']],
   ];
 
