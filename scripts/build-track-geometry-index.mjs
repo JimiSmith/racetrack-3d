@@ -744,7 +744,6 @@ function buildCombinedSuperRelationLayouts(preFlattened, flattenedPayload, exist
     // Orient each bridge: ensure start is on loop[0] (A) and end is on loop[1] (B).
     function orientBridge(bridge) {
       const start = bridge.geometry[0];
-      const end = bridge.geometry[bridge.geometry.length - 1];
       const startDistA = findNearestDist(loops[0], start);
       const startDistB = findNearestDist(loops[1], start);
       if (startDistA <= startDistB) {
