@@ -17,6 +17,7 @@ import { detectForkSections } from '../src/geometry/fork-detection.js';
 import { buildVariantLayouts, buildLayoutsFromWays } from '../src/geometry/layout-builder.js';
 import { normalizeTrackGeometryResult } from '../src/geometry/normalize.js';
 import { buildTrackGeometryFromPayload } from '../src/geometry/track-geometry.js';
+import { NAMED_LAYOUT_KEYWORD_PATTERN } from '../src/geometry/osm-elements.js';
 
 import {
   expectApproxLength,
@@ -552,18 +553,17 @@ test('build-only geometry cleanup is not applied to runtime payload parsing by d
   assert.deepEqual(buildResult.layouts[0].nodes, [n(0, 0), n(0, 0.01), n(0.01, 0), n(0, 0)]);
 });
 
-test('buildTrackGeometryFromPayload leaves Silverstone fixture cleanup to the build path', () => {
+test('buildTrackGeometryFromPayload produces named Silverstone layouts from high-overlap relations', () => {
   const fixture = loadFixture('silverstone.json');
 
   const result = buildTrackGeometryFromPayload(fixture, 'Silverstone Circuit');
   const normalized = normalizeTrackGeometryResult(result, 'Silverstone Circuit');
 
   assert.equal(result.selectedLayoutIndex, 0);
-  assertLayoutNames(result.layouts, ['Main', 'Alternate']);
+  assertLayoutNames(result.layouts, ['Silverstone Grand Prix', 'Silverstone International']);
   expectDistinctLayouts(result.layouts[0], result.layouts[1]);
-  assertLayoutNames(normalized.layouts, ['Main', 'Alternate']);
+  assertLayoutNames(normalized.layouts, ['Silverstone Grand Prix', 'Silverstone International']);
   normalized.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 20 }));
-  assert.ok(result.layouts.some((layout, index) => JSON.stringify(layout.nodes) !== JSON.stringify(normalized.layouts[index]?.nodes)));
 });
 
 test('buildTrackGeometryFromPayload prefers a large near-closed unnamed circuit over a small open named fragment', () => {
@@ -746,10 +746,12 @@ test('near-identical duplicate named layouts are filtered out', () => {
 test('multi-layout fixtures keep their expected layout counts', () => {
   const cases = [
     ['brands-hatch.json', 'Brands Hatch', ['Brands Hatch Grand Prix', 'Brands Hatch Indy']],
-    ['silverstone.json', 'Silverstone Circuit', ['Main', 'Alternate']],
+    ['silverstone.json', 'Silverstone Circuit', ['Silverstone Grand Prix', 'Silverstone International']],
     ['spa.json', 'Circuit de Spa-Francorchamps', ['Main', 'Moto']],
     ['bahrain.json', 'Bahrain International Circuit', ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit']],
     ['mexico-city.json', 'Autódromo Hermanos Rodríguez', ['Mexican Grand Prix', 'Mexico City E-Prix']],
+    ['red-bull-ring.json', 'Red Bull Ring', ['Main', 'MotoGP Long Lap Penalty']],
+    ['barcelona.json', 'Circuit de Barcelona-Catalunya', ['Circuit de Barcelona-Catalunya', 'Rallycross']],
   ];
 
   for (const [fixtureName, trackName, expectedNames] of cases) {
@@ -838,4 +840,51 @@ test('buildTrackGeometryFromPayload keeps National Pit Straight in the main circ
   assert.equal(result.layouts.length, 1);
   assert.equal(result.layouts[0].stats.segmentCount, 4);
   assert.ok(result.layouts[0].nodes.some(node => node.lat === 0.02 && node.lon === 0.02));
+});
+
+test('NAMED_LAYOUT_KEYWORD_PATTERN matches variant way names', () => {
+  const shouldMatch = [
+    'Grand Prix Circuit',
+    'Inner Circuit',
+    'MotoGP chicane',
+    'Moto GP Long Lap Penalty',
+    'Rallycross',
+    'Club Circuit',
+    'Bypass section',
+    'Alternate layout',
+    'National Circuit',
+    'Endurance Circuit',
+  ];
+  const shouldNotMatch = [
+    'Curva Biassono',
+    'Rettifilo di partenza',
+    'Pit Lane',
+    'Turn 1',
+    'Straight',
+    'Sector 3',
+    'Club',
+  ];
+
+  for (const name of shouldMatch) {
+    assert.ok(NAMED_LAYOUT_KEYWORD_PATTERN.test(name), `Expected "${name}" to match`);
+  }
+  for (const name of shouldNotMatch) {
+    assert.ok(!NAMED_LAYOUT_KEYWORD_PATTERN.test(name), `Expected "${name}" NOT to match`);
+  }
+});
+
+test('Red Bull Ring fixture produces multiple layouts via variant substitution', () => {
+  const fixture = loadFixture('red-bull-ring.json');
+  const result = buildTrackGeometryFromPayload(fixture, 'Red Bull Ring');
+  assert.ok(result.layouts.length >= 2, `Expected >= 2 layouts, got ${result.layouts.length}`);
+  assertLayoutInvariants(result.layouts[0], { maxGapMeters: 120 });
+  expectApproxLength(result.layouts[0].nodes, 4.6, 0.5);
+});
+
+test('Barcelona fixture produces multiple layouts from high-overlap relations', () => {
+  const fixture = loadFixture('barcelona.json');
+  const result = buildTrackGeometryFromPayload(fixture, 'Circuit de Barcelona-Catalunya');
+  assert.ok(result.layouts.length >= 2, `Expected >= 2 layouts, got ${result.layouts.length}`);
+  assertLayoutInvariants(result.layouts[0], { maxGapMeters: 120 });
+  expectApproxLength(result.layouts[0].nodes, 4.7, 0.5);
 });

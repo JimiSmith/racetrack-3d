@@ -5,9 +5,9 @@
  * No side effects. No DOM access.
  */
 
-import type { LatLonNode } from '../types/geometry.js';
+import type { LatLonNode, Way } from '../types/geometry.js';
 import { measurePolylineLength } from './geo-math.js';
-import { selectBestComponentWays } from './way-stitching.js';
+import { selectBestComponentWays, buildCandidateFromWays, measureWaySetLength } from './way-stitching.js';
 import {
   extractWays,
   collectOsmVenueNames,
@@ -23,7 +23,10 @@ import {
   buildNamedCircuitLayouts,
   buildLayoutsFromWays,
   stitchWays,
+  substituteVariantIntoLayout,
+  buildNamedGroupChain,
 } from './layout-builder.js';
+import { closeNodeChainIfNearClosed } from './chain-cleanup.js';
 
 /** Internal layout shape (superset of the public Layout type). */
 interface InternalLayout {
@@ -148,6 +151,108 @@ function buildTrackGeometryResult(
           trackName,
         );
         return { layouts: deduped, selectedLayoutIndex: 0, osmVenueNames };
+      }
+    } else {
+      // High overlap (>= 50%): relations share a backbone and differ only in variant
+      // sections (e.g. Barcelona GP FIA vs GP FIM vs World RX — same backbone, different
+      // chicane/rallycross sections). Extract shared ways as backbone, substitute each
+      // relation's unique ways as variants.
+      const distinctNames = new Set(
+        circuitRelations
+          .map(r => ((r['tags'] as Record<string, unknown>)?.['name'] as string | undefined)?.trim())
+          .filter((n): n is string => Boolean(n)),
+      );
+
+      if (distinctNames.size >= 2) {
+        const sharedWayIds = new Set<unknown>();
+        for (const id of allMemberIds) {
+          if (memberSets.every(s => s.has(id))) { sharedWayIds.add(id); }
+        }
+
+        const wayElementsById = new Map<unknown, Record<string, unknown>>(
+          (allElements as Array<Record<string, unknown>>)
+            .filter(e => e['type'] === 'way')
+            .map(e => [e['id'], e]),
+        );
+
+        // Build backbone from shared ways
+        const sharedWayElements = [...sharedWayIds]
+          .map(id => wayElementsById.get(id))
+          .filter((e): e is Record<string, unknown> => e != null);
+        const sharedWays = extractWays(sharedWayElements.map(e => ({ ...e, type: 'way' })));
+        const backbone = buildCandidateFromWays(sharedWays);
+
+        if (backbone && backbone.nodes.length >= 4 && backbone.endpointGap <= backbone.length * 0.15) {
+          const baseNodes = closeNodeChainIfNearClosed(backbone.nodes, backbone.length * 0.15);
+          const highOverlapLayouts: InternalLayout[] = [];
+          let layoutIdx = 1;
+
+          for (const relation of circuitRelations) {
+            const relationName = ((relation['tags'] as Record<string, unknown>)?.['name'] as string | undefined)?.trim();
+            if (!relationName) { continue; }
+
+            const relationMemberIds = new Set(
+              (relation['members'] as Array<{ ref: unknown }>).map(m => m.ref),
+            );
+            const uniqueWayIds = [...relationMemberIds].filter(id => !sharedWayIds.has(id));
+
+            if (uniqueWayIds.length === 0) {
+              // This relation is entirely shared — it IS the backbone/main layout
+              highOverlapLayouts.push({
+                id: `layout-${layoutIdx++}`,
+                name: relationName,
+                nodes: baseNodes,
+                stats: {
+                  lengthMetres: backbone.length,
+                  segmentCount: sharedWays.length,
+                },
+              });
+              continue;
+            }
+
+            const uniqueWayElements = uniqueWayIds
+              .map(id => wayElementsById.get(id))
+              .filter((e): e is Record<string, unknown> => e != null);
+            const uniqueWays: Way[] = extractWays(uniqueWayElements.map(e => ({ ...e, type: 'way' })));
+            if (uniqueWays.length === 0) { continue; }
+
+            const variantChain = buildNamedGroupChain(uniqueWays);
+            if (variantChain.length < 2) { continue; }
+
+            const variantLength = measureWaySetLength(uniqueWays);
+            const result = substituteVariantIntoLayout(
+              baseNodes,
+              variantChain,
+              variantLength,
+              relationName,
+              backbone.length,
+              trackName,
+            );
+
+            if (result) {
+              highOverlapLayouts.push({
+                id: `layout-${layoutIdx++}`,
+                name: relationName,
+                nodes: result.candidate.nodes,
+                stats: {
+                  lengthMetres: result.candidate.length,
+                  segmentCount: result.selectedWays.length,
+                  variantSectionCount: 1,
+                },
+              });
+            }
+          }
+
+          if (highOverlapLayouts.length >= 2) {
+            const deduped = dedupeLayoutsByGeometry(
+              dedupeLayoutsByName(canonicalizeLayoutNames(highOverlapLayouts), trackName),
+              trackName,
+            );
+            if (deduped.length >= 2) {
+              return { layouts: deduped, selectedLayoutIndex: 0, osmVenueNames };
+            }
+          }
+        }
       }
     }
   }
