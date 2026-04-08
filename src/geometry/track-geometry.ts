@@ -26,6 +26,8 @@ import {
   substituteVariantIntoLayout,
   buildNamedGroupChain,
 } from './layout-builder.js';
+import type { GeometryHints } from './layout-builder.js';
+export type { GeometryHints } from './layout-builder.js';
 import { closeNodeChainIfNearClosed } from './chain-cleanup.js';
 
 /** Internal layout shape (superset of the public Layout type). */
@@ -58,6 +60,7 @@ interface TrackGeometryResult {
 function buildTrackGeometryResult(
   elements: unknown[],
   trackName: string | null,
+  hints?: GeometryHints,
 ): TrackGeometryResult | null {
   const allElements = elements ?? [];
   const ways = extractWays(allElements);
@@ -83,7 +86,7 @@ function buildTrackGeometryResult(
   const namedLayoutWays = collectNamedLayoutWays(filteredWays, componentWays);
   const osmVenueNames = collectOsmVenueNames(componentWays);
 
-  const namedLayouts = buildNamedCircuitLayouts(namedLayoutWays, trackName, componentWays);
+  const namedLayouts = buildNamedCircuitLayouts(namedLayoutWays, trackName, componentWays, hints);
   if (namedLayouts.length > 0) {
     return {
       layouts: dedupeLayoutsByGeometry(dedupeLayoutsByName(canonicalizeLayoutNames(namedLayouts), trackName), trackName),
@@ -134,7 +137,7 @@ function buildTrackGeometryResult(
             })),
           relation,
         ];
-        const result = buildTrackGeometryResult(relationElements, trackName);
+        const result = buildTrackGeometryResult(relationElements, trackName, hints);
         if (!result?.layouts?.length) { return []; }
         const relationName = (relation['tags'] as Record<string, unknown>)?.['name'] as string | undefined;
         return result.layouts.map((layout, j) => ({
@@ -228,6 +231,7 @@ function buildTrackGeometryResult(
               relationName,
               backbone.length,
               trackName,
+              hints,
             );
 
             if (result) {
@@ -292,6 +296,7 @@ function buildTrackGeometryResult(
 export function buildTrackGeometryFromPayload(
   payload: { elements?: unknown[] } | null | undefined,
   trackName: string | null,
+  hints?: GeometryHints,
 ): TrackGeometryResult | null {
-  return buildTrackGeometryResult(payload?.elements ?? [], trackName);
+  return buildTrackGeometryResult(payload?.elements ?? [], trackName, hints);
 }

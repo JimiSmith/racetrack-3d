@@ -73,28 +73,32 @@ interface PublicLayout {
   };
 }
 
+/** Optional hints that guide geometry construction (e.g. known layout lengths). */
+export interface GeometryHints {
+  /** Map of normalized layout name pattern → target length in metres.
+   *  Keys are tested as case-insensitive regexes against the normalized layout label. */
+  layoutLengthTargets?: Record<string, number>;
+}
+
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
 
 /**
- * Look up a known target length for a specific track+label combination.
- * Used to guide substitution scoring for venues with well-known circuit dimensions.
+ * Look up a known target length for a layout label from the hints map.
+ * Keys in `layoutLengthTargets` are tested as case-insensitive regex patterns
+ * against the normalized label.
  */
-function getKnownLayoutLengthTarget(trackName: string | null, label: string): number | null {
-  const normalizedTrackName = normalizeCircuitName(trackName ?? '');
+function getKnownLayoutLengthTarget(label: string, hints?: GeometryHints): number | null {
+  const targets = hints?.layoutLengthTargets;
+  if (!targets) { return null; }
+
   const normalizedLabel = normalizeCircuitName(label);
-
-  if (normalizedTrackName === 'bahrain international circuit') {
-    if (normalizedLabel === 'inner circuit') {
-      return 2550;
-    }
-
-    if (normalizedLabel === 'flat oval layout' || normalizedLabel === 'bahrain oval gp' || normalizedLabel === 'test oval') {
-      return 2500;
+  for (const [pattern, length] of Object.entries(targets)) {
+    if (new RegExp(pattern, 'i').test(normalizedLabel)) {
+      return length;
     }
   }
-
   return null;
 }
 
@@ -348,7 +352,8 @@ export function substituteVariantIntoLayout(
   variantLength: number,
   label: string,
   backboneLength: number,
-  trackName: string | null = null,
+  _trackName: string | null = null,
+  hints?: GeometryHints,
 ): { score: number; candidate: NonNullable<ReturnType<typeof buildCandidateFromWays>>; selectedWays: Way[] } | null {
   const MAX_ENDPOINT_MATCH_DISTANCE = SNAP_FUZZY * 8;
   const MIN_LENGTH = 1000;
@@ -409,7 +414,7 @@ export function substituteVariantIntoLayout(
           continue;
         }
 
-        const knownTargetLength = getKnownLayoutLengthTarget(trackName, label);
+        const knownTargetLength = getKnownLayoutLengthTarget(label, hints);
         if (knownTargetLength != null && Math.abs(candidate.length - knownTargetLength) > 250) {
           continue;
         }
@@ -444,6 +449,7 @@ function buildSubstitutionLayouts(
   backboneWays: Way[],
   backboneCandidate: NonNullable<ReturnType<typeof buildCandidateFromWays>>,
   trackName: string | null,
+  hints?: GeometryHints,
 ): PublicLayout[] {
   const backboneGraph = buildWayGraph(backboneWays);
   const cycleMetadata = buildOrderedCycleMetadata(backboneGraph, backboneGraph.edges.map(edge => edge.id));
@@ -482,6 +488,7 @@ function buildSubstitutionLayouts(
       groupName,
       backboneCandidate.length,
       trackName,
+      hints,
     );
 
     if (!bestLayout) {
@@ -836,6 +843,7 @@ function buildVariantSubstitutionLayouts(
   eligibleNameGroups: Map<string, { ways: Way[]; sourceRank: number }>,
   referenceWays: Way[],
   trackName: string | null,
+  hints?: GeometryHints,
 ): PublicLayout[] {
   const MAX_GAP_FRACTION = 0.15;
   const MAX_VARIANT_LENGTH_FRACTION = 0.5;
@@ -889,6 +897,7 @@ function buildVariantSubstitutionLayouts(
       groupName,
       backbone.length,
       trackName,
+      hints,
     );
     if (!result) { continue; }
 
@@ -931,6 +940,7 @@ export function buildNamedCircuitLayouts(
   ways: Way[],
   trackName: string | null,
   referenceWays: Way[] = ways,
+  hints?: GeometryHints,
 ): PublicLayout[] {
   const MIN_LENGTH = 1500; // metres — ignore sub-km stubs
   const MAX_GAP_FRACTION = 0.15; // endpoint gap must be < 15% of total length
@@ -1000,7 +1010,7 @@ export function buildNamedCircuitLayouts(
   // When no standalone layouts exist but eligible named groups do, try substituting
   // each named group as a variant into the backbone built from referenceWays.
   if (standaloneLayouts.length === 0) {
-    return buildVariantSubstitutionLayouts(eligibleNameGroups, referenceWays, trackName);
+    return buildVariantSubstitutionLayouts(eligibleNameGroups, referenceWays, trackName, hints);
   }
 
   const backboneLayout = rankLayoutsForTrack(standaloneLayouts, trackName)[0];
@@ -1011,6 +1021,7 @@ export function buildNamedCircuitLayouts(
           backboneLayout.ways!,
           backboneLayout.candidate!,
           trackName,
+          hints,
         )
       : [];
 
