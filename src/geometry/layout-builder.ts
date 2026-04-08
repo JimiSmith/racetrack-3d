@@ -840,7 +840,15 @@ function buildVariantSubstitutionLayouts(
   const MAX_GAP_FRACTION = 0.15;
   const MAX_VARIANT_LENGTH_FRACTION = 0.5;
 
-  const backbone = buildCandidateFromWays(referenceWays);
+  // Exclude variant ways from the backbone — they should only participate as
+  // substitution candidates, not inflate the main circuit.
+  const variantWayIds = new Set(
+    [...eligibleNameGroups.values()].flatMap(g => g.ways.map(w => w.id)),
+  );
+  const backboneWays = referenceWays.filter(w => !variantWayIds.has(w.id));
+  if (backboneWays.length === 0) { return []; }
+
+  const backbone = buildCandidateFromWays(backboneWays);
   if (!backbone || backbone.nodes.length < 4) { return []; }
   if (backbone.endpointGap > backbone.length * MAX_GAP_FRACTION) { return []; }
 
@@ -854,12 +862,12 @@ function buildVariantSubstitutionLayouts(
     nodes: baseNodes,
     stats: {
       lengthMetres: backbone.length,
-      segmentCount: referenceWays.length,
+      segmentCount: backboneWays.length,
       variantSectionCount: 0,
     },
   };
 
-  const backboneWayIds = new Set(referenceWays.map(w => w.id));
+  const backboneWayIds = new Set(backboneWays.map(w => w.id));
   const variantLayouts: PublicLayout[] = [];
   let layoutIndex = 2;
 

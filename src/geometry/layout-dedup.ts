@@ -17,8 +17,8 @@ const PRIMARY_LAYOUT_PATTERN = /\b(main|grand[\s_-]*prix)\b/i;
 /** Names that suggest a layout is a secondary/variant configuration. */
 const SECONDARY_LAYOUT_PATTERN = /\b(alternate|alternative|club|corkscrew|endurance|formula\s*e|e[\s_-]*prix|flat|inner|joker|kart|moto|national|outer|oval|paddock|rallycross|short|test)\b/i;
 
-/** Names associated with shortcut layouts (affects gap tolerance). */
-export const SHORTCUT_LAYOUT_PATTERN = /\b(inner|oasis|oval|test)\b/i;
+/** Names associated with shortcut layouts (affects gap tolerance and substitution scoring). */
+export const SHORTCUT_LAYOUT_PATTERN = /\b(inner|national|oasis|oval|s[uü]dschleife|test)\b/i;
 
 /** A partial layout type used internally for ranking (not all fields required). */
 interface RankableLayout {
