@@ -63,6 +63,9 @@ interface PublicLayout {
   nodes: LatLonNode[];
   /** Bounding-box area in square metres; stripped before returning from buildLayoutsFromWays. */
   area?: number;
+  /** Shared by layouts that were created together (e.g. backbone + substitution variants)
+   *  so geometry dedup won't collapse them despite spatial proximity. */
+  _dedupeGroup?: string;
   stats: {
     lengthMetres: number;
     segmentCount: number;
@@ -843,9 +846,11 @@ function buildVariantSubstitutionLayouts(
 
   const baseNodes = closeNodeChainIfNearClosed(backbone.nodes, backbone.length * MAX_GAP_FRACTION);
 
+  const dedupeGroup = `variant-sub-${Date.now()}`;
   const mainLayout: PublicLayout = {
     id: 'layout-1',
     name: 'Main',
+    _dedupeGroup: dedupeGroup,
     nodes: baseNodes,
     stats: {
       lengthMetres: backbone.length,
@@ -854,10 +859,15 @@ function buildVariantSubstitutionLayouts(
     },
   };
 
+  const backboneWayIds = new Set(referenceWays.map(w => w.id));
   const variantLayouts: PublicLayout[] = [];
   let layoutIndex = 2;
 
   for (const [groupName, group] of eligibleNameGroups) {
+    // Skip groups whose ways are already part of the backbone — they're
+    // segments of the main circuit, not alternate variant sections.
+    if (group.ways.every(w => backboneWayIds.has(w.id))) { continue; }
+
     const variantChain = buildNamedGroupChain(group.ways);
     if (variantChain.length < 2) { continue; }
 
@@ -877,6 +887,7 @@ function buildVariantSubstitutionLayouts(
     variantLayouts.push({
       id: `layout-${layoutIndex++}`,
       name: groupName,
+      _dedupeGroup: dedupeGroup,
       nodes: result.candidate.nodes,
       stats: {
         lengthMetres: result.candidate.length,
@@ -888,7 +899,12 @@ function buildVariantSubstitutionLayouts(
 
   if (variantLayouts.length === 0) { return []; }
 
-  return dedupeLayoutsByGeometry([mainLayout, ...variantLayouts], trackName);
+  // Dedup variants against each other (e.g. MotoGP chicane ≈ Long Lap Penalty),
+  // but don't include the backbone in geometry dedup — variant substitution
+  // segments can run very close to the backbone (< 100m) while being
+  // intentionally distinct routes.
+  const dedupedVariants = dedupeLayoutsByGeometry(variantLayouts, trackName);
+  return [mainLayout, ...dedupedVariants];
 }
 
 /**

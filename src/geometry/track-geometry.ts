@@ -34,6 +34,7 @@ interface InternalLayout {
   name: string;
   nameSourceRank?: number;
   groupWayNames?: string[];
+  _dedupeGroup?: string;
   nodes: LatLonNode[];
   stats: {
     lengthMetres: number;
