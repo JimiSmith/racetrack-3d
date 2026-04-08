@@ -19,7 +19,7 @@ import type { ClearanceContext } from './scoring.js';
 
 export const MIN_CELL_MM = 2;
 export const MIN_GRID_CELLS_PER_SIDE = 8;
-export const MAX_CANDIDATES = 24;
+export const MAX_CANDIDATES = 48;
 
 const SEGMENT_INTERSECTION_EPSILON = 1e-9;
 const MAX_PREFERRED_HEIGHT_MM = 24 * 25.4 / 72;
