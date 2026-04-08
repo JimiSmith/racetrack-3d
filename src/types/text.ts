@@ -41,8 +41,6 @@ export interface TextPlacementCandidate {
   trackClearance: number;
   /** `trackClearance` normalised to [0, 1]. */
   normalizedTrackClearance: number;
-  /** Normalised distance of this candidate's centre from the base-plate centre (0–1). */
-  centreDistance: number;
   /** Ordinal index within the candidates array. */
   index: number;
   /** Bounding box in mm coordinates. */
@@ -96,7 +94,6 @@ export interface PlacementScoreBreakdown {
   lineCountMultiplier: number;
   sizeWindowMultiplier: number;
   trackClearanceMultiplier: number;
-  centralityMultiplier: number;
   textClearanceMultiplier: number;
 }
 
@@ -154,8 +151,6 @@ export interface ScoringWeights {
   textClearanceMultiplierBase: number;
   /** Additional multiplier range scaled by normalised text clearance. */
   textClearanceMultiplierRange: number;
-  /** Penalty factor for distance from the base-plate centre. */
-  centralityPenaltyFactor: number;
   /** Per-line-count multipliers; index 0 = 1 line, index 3 = 4 lines. */
   lineCountMultipliers: [number, number, number, number];
   /** Line-balance damping per line count; index 0 = 2 lines, index 2 = 4 lines. */

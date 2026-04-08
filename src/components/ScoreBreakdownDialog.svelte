@@ -29,7 +29,6 @@
     lineCountMultiplier: 'Line count',
     sizeWindowMultiplier: 'Size window',
     trackClearanceMultiplier: 'Track clearance',
-    centralityMultiplier: 'Centrality',
     textClearanceMultiplier: 'Text clearance',
   };
 
@@ -38,7 +37,6 @@
     'lineCountMultiplier',
     'sizeWindowMultiplier',
     'trackClearanceMultiplier',
-    'centralityMultiplier',
     'textClearanceMultiplier',
   ] as const;
 </script>

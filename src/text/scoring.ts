@@ -20,9 +20,6 @@ export const SCORING_WEIGHTS: ScoringWeights = Object.freeze({
   /** Additional multiplier range scaled by normalized text clearance. */
   textClearanceMultiplierRange: 0.04,
 
-  /** Penalty factor for distance from the base-plate centre. */
-  centralityPenaltyFactor: 0.04,
-
   /** Per-line-count multipliers; index 0 = 1 line, index 3 = 4 lines. */
   lineCountMultipliers: [1, 1, 0.94, 0.91] as [number, number, number, number],
   /** Line-balance damping per line count; index 0 = 2 lines, index 2 = 4 lines. */
@@ -155,15 +152,10 @@ export function computeTextClearanceMultiplier(rect: Rect2D, layout: FittedTextL
   return SCORING_WEIGHTS.textClearanceMultiplierBase + SCORING_WEIGHTS.textClearanceMultiplierRange * normalizedTextClearance;
 }
 
-function computeCentralityMultiplier(centreDistance: number): number {
-  return 1.0 - SCORING_WEIGHTS.centralityPenaltyFactor * clamp(centreDistance, 0, 1);
-}
-
 /** Partial candidate fields needed for scoring. */
 interface ScoringCandidate {
   fractionOutside?: number;
   normalizedTrackClearance?: number;
-  centreDistance?: number;
 }
 
 export function scoreTextFit(rect: Rect2D, layout: FittedTextLayout, candidate: ScoringCandidate = {}, clearanceContext: ClearanceContext | null = null): { score: number; breakdown: PlacementScoreBreakdown } {
@@ -175,7 +167,6 @@ export function scoreTextFit(rect: Rect2D, layout: FittedTextLayout, candidate: 
   const outsideMultiplier = SCORING_WEIGHTS.outsideMultiplierMin + SCORING_WEIGHTS.outsideMultiplierRange * clamp(candidate.fractionOutside ?? 1, 0, 1);
   const lineCountMultiplier = computeLineCountMultiplier(layout.lineCount);
   const trackClearanceMultiplier = computeTrackClearanceMultiplier(candidate.normalizedTrackClearance ?? 1);
-  const centralityMultiplier = computeCentralityMultiplier(candidate.centreDistance ?? 0);
   const textClearanceMultiplier = computeTextClearanceMultiplier(rect, layout, clearanceContext);
 
   const score = lineBalance
@@ -183,7 +174,6 @@ export function scoreTextFit(rect: Rect2D, layout: FittedTextLayout, candidate: 
     * lineCountMultiplier
     * sizeWindowMultiplier
     * trackClearanceMultiplier
-    * centralityMultiplier
     * textClearanceMultiplier;
 
   return {
@@ -195,7 +185,6 @@ export function scoreTextFit(rect: Rect2D, layout: FittedTextLayout, candidate: 
       lineCountMultiplier,
       sizeWindowMultiplier,
       trackClearanceMultiplier,
-      centralityMultiplier,
       textClearanceMultiplier,
     },
   };

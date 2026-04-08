@@ -431,15 +431,6 @@ function computeCandidateTrackClearance(candidate: CandidateCell, distanceMap: n
   return Number.isFinite(trackClearance) ? trackClearance : 0;
 }
 
-function computeCentreDistance(rect: Rect2D, basePlate: Rect2D): number {
-  const rectCenterX = rect.minX + rect.width / 2;
-  const rectCenterY = rect.minY + rect.height / 2;
-  const baseCenterX = basePlate.minX + basePlate.width / 2;
-  const baseCenterY = basePlate.minY + basePlate.height / 2;
-  const maxDistance = Math.hypot(basePlate.width / 2, basePlate.height / 2) || 1;
-  return Math.min(1, Math.hypot(rectCenterX - baseCenterX, rectCenterY - baseCenterY) / maxDistance);
-}
-
 /** The result of computePlacementMask(). */
 export interface PlacementMask extends PlacementGrid {
   blockedBeforeDilation: boolean[][];
@@ -665,7 +656,6 @@ export function findPlacementCandidates(basePlate: Rect2D, placementMask: Placem
     fractionOutside: candidate.fractionOutside ?? 0,
     trackClearance: candidate.trackClearance ?? 0,
     normalizedTrackClearance: Math.min(1, (candidate.trackClearance ?? 0) / maxTrackClearance),
-    centreDistance: computeCentreDistance(candidate.bounds, basePlate),
   }));
 
   return { candidates, distanceMap: blockedDistanceMap, maxTrackClearance };

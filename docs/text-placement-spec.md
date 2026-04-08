@@ -78,7 +78,6 @@ Each candidate carries:
 
 - `fractionOutside` — fraction of its cells that are outside the circuit outline (pre-dilation mask, 0–1)
 - `trackClearance` — minimum distance (in cells) from any cell in the candidate to the nearest blocked cell (before dilation). Normalised to [0, 1] by dividing by the longest possible distance in the grid.
-- `centreDistance` — distance from the candidate centre to the base plate centre, normalised to [0, 1] by dividing by the maximum possible distance (half-diagonal of base plate).
 
 ---
 
@@ -110,7 +109,6 @@ Every valid (candidate × text fit) pair receives a **composite score**. The sco
 | 2 | Fewer lines preferred | `lineCountMultiplier` | [0.91, 1.0] |
 | 3 | Font size within preferred range | `sizeWindowMultiplier` | [0.0, 1.25] |
 | 4 | Distance from track edge | `trackClearanceMultiplier` | [0.92, 1.0] |
-| 5 | Proximity to base plate centre | `centralityMultiplier` | [0.96, 1.0] |
 
 These are then combined with the existing fit-quality terms:
 
@@ -123,7 +121,6 @@ score = averageLineHeight
       × lineCountMultiplier
       × sizeWindowMultiplier
       × trackClearanceMultiplier
-      × centralityMultiplier
 ```
 
 ### Weight separation requirement
@@ -131,7 +128,7 @@ score = averageLineHeight
 The multiplier ranges must be chosen so that the relative influence of each criterion strictly exceeds the combined influence of all lower-priority criteria. Specifically:
 
 - The `outsideMultiplier` range must be wide enough that a fully-outside placement (`1.0`) beats a fully-inside placement (`0.25`) even when the inside placement wins on all lower criteria.
-- The `lineCountMultiplier` range must ensure single-line beats 4-line even when 4-line wins on size, clearance, and centrality.
+- The `lineCountMultiplier` range must ensure single-line beats 4-line even when 4-line wins on size and clearance.
 - And so on down the list.
 
 The current ranges above satisfy this requirement given the fit-quality terms remain bounded near 1. Implementation should verify this with representative test cases.
@@ -171,15 +168,6 @@ trackClearanceMultiplier = 0.92 + 0.08 × clamp(normalizedClearance, 0, 1)
 
 - Maximum clearance: `1.0`
 - Zero clearance (adjacent to blocked cells): `0.92`
-
-#### centralityMultiplier
-
-```text
-centralityMultiplier = 1.0 - 0.04 × clamp(centreDistance, 0, 1)
-```
-
-- At centre: `1.0`
-- At maximum distance from centre: `0.96`
 
 ---
 
@@ -241,7 +229,6 @@ This ensures outside placements always beat inside ones regardless of area, beca
 | `outsideMultiplier` | `0.25 + 0.75 × fractionOutside` | Dominant outside-circuit preference |
 | `lineCountMultipliers` | `[1.0, 1.0, 0.94, 0.91]` | Line count preference (1- and 2-line equal) |
 | `trackClearanceMultiplier` | `0.92 + 0.08 × normalizedClearance` | Distance-from-track preference |
-| `centralityMultiplier` | `1.0 - 0.04 × centreDistance` | Base plate centre preference |
 
 ---
 
