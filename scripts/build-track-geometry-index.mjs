@@ -167,6 +167,16 @@ const TRACK_BUILD_OVERRIDES = new Map([
     key: 'bahrain',
     osmApiMargins: [0.02, 0.04, 0.08],
     expectedLayoutNames: ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit'],
+    layoutLengthTargets: {
+      'inner': 2550,
+      'oval|test': 2500,
+    },
+  }],
+  ['Q171566', {
+    key: 'red-bull-ring',
+    layoutLengthTargets: {
+      's[uü]dschleife|national': 2336,
+    },
   }],
   ['Q964148', {
     key: 'road-atlanta',
@@ -263,6 +273,14 @@ export const SUPPORTED_TRACKS = trackSearchIndex
     ...track,
     ...(TRACK_BUILD_OVERRIDES.get(track.wikidataId) ?? {}),
   }));
+
+function buildGeometryHints(track) {
+  const hints = {};
+  if (track.layoutLengthTargets) {
+    hints.layoutLengthTargets = track.layoutLengthTargets;
+  }
+  return Object.keys(hints).length > 0 ? hints : undefined;
+}
 
 function normalizeText(value) {
   return String(value ?? '')
@@ -830,7 +848,7 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
       fetchForMargin: margin => fetchOsmApiPayloadWithCache(track, margin, options),
       evaluateResponse: resolvedResponse => {
         const geometryResult = sanitizeBuildGeometryResult(normalizeTrackGeometryResult(
-          buildTrackGeometryFromPayload(resolvedResponse.payload, track.trackName),
+          buildTrackGeometryFromPayload(resolvedResponse.payload, track.trackName, buildGeometryHints(track)),
           track.trackName,
         ));
 
@@ -866,7 +884,7 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
       ),
     };
     const supplementedGeometryResult = sanitizeBuildGeometryResult(normalizeTrackGeometryResult(
-      buildTrackGeometryFromPayload(pipelinePayload, track.trackName),
+      buildTrackGeometryFromPayload(pipelinePayload, track.trackName, buildGeometryHints(track)),
       track.trackName,
     ));
     const baseGeometryResult = (supplementedGeometryResult?.layouts?.length ?? 0) > 0
