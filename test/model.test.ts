@@ -3,6 +3,10 @@ import test from 'node:test';
 
 import { buildBasePlate } from '../src/geometry/outline.js';
 import { BASE_THICKNESS_MM, buildTrackModel, computeScale, exportStl } from '../src/model/index.js';
+import type { Triangle, TrackModel, Vertex } from '../src/types/model.js';
+
+type Bounds = { minX: number; maxX: number; minY: number; maxY: number; minZ: number; maxZ: number };
+type Point2D = { x: number; y: number };
 
 function syntheticOutline() {
   return {
@@ -16,7 +20,7 @@ function syntheticOutline() {
   };
 }
 
-function triangleBounds(triangles) {
+function triangleBounds(triangles: Triangle[]): Bounds {
   return triangles.flat().reduce((bounds, vertex) => ({
     minX: Math.min(bounds.minX, vertex.x),
     maxX: Math.max(bounds.maxX, vertex.x),
@@ -34,14 +38,14 @@ function triangleBounds(triangles) {
   });
 }
 
-function span(bounds) {
+function span(bounds: Bounds) {
   return {
     width: bounds.maxX - bounds.minX,
     height: bounds.maxY - bounds.minY,
   };
 }
 
-function boundsCenter(bounds) {
+function boundsCenter(bounds: Bounds) {
   return {
     x: (bounds.minX + bounds.maxX) / 2,
     y: (bounds.minY + bounds.maxY) / 2,
@@ -113,15 +117,15 @@ function rankedHoleOutline() {
   };
 }
 
-function textTriangles(model) {
+function textTriangles(model: TrackModel) {
   return model.triangles.slice(model.baseTriangleCount + model.trackTriangleCount);
 }
 
-function trackTriangles(model) {
+function trackTriangles(model: TrackModel) {
   return model.triangles.slice(model.baseTriangleCount, model.baseTriangleCount + model.trackTriangleCount);
 }
 
-function rotateTrianglesByOrientation(triangles, orientationDeg) {
+function rotateTrianglesByOrientation(triangles: Triangle[], orientationDeg: number): Triangle[] {
   return triangles.map(triangle => triangle.map(vertex => {
     switch (orientationDeg) {
       case 90:
@@ -133,19 +137,19 @@ function rotateTrianglesByOrientation(triangles, orientationDeg) {
       default:
         return { ...vertex };
     }
-  }));
+  }) as Triangle);
 }
 
-function approxEqual(actual, expected, tolerance = 1e-6) {
+function approxEqual(actual: number, expected: number, tolerance = 1e-6) {
   assert.ok(Math.abs(actual - expected) <= tolerance, `expected ${actual} to be within ${tolerance} of ${expected}`);
 }
 
-function textBounds(model) {
+function textBounds(model: TrackModel) {
   return triangleBounds(textTriangles(model));
 }
 
-function uniqueVertices(triangles, minZ = -Infinity) {
-  const vertices = new Map();
+function uniqueVertices(triangles: Triangle[], minZ = -Infinity) {
+  const vertices = new Map<string, Vertex>();
 
   for (const triangle of triangles) {
     for (const vertex of triangle) {
@@ -163,15 +167,15 @@ function uniqueVertices(triangles, minZ = -Infinity) {
   return [...vertices.values()];
 }
 
-function topTrackVertices(model) {
+function topTrackVertices(model: TrackModel) {
   return uniqueVertices(trackTriangles(model), BASE_THICKNESS_MM + 1);
 }
 
-function topTrackSurfaceTriangles(model) {
+function topTrackSurfaceTriangles(model: TrackModel) {
   return trackTriangles(model).filter(triangle => triangle.every(vertex => vertex.z > BASE_THICKNESS_MM));
 }
 
-function barycentricWeights2d(point, a, b, c) {
+function barycentricWeights2d(point: Point2D, a: Point2D, b: Point2D, c: Point2D) {
   const determinant = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
 
   if (Math.abs(determinant) <= 1e-9) {
@@ -189,7 +193,7 @@ function barycentricWeights2d(point, a, b, c) {
   return { w1, w2, w3 };
 }
 
-function sampleTopSurfaceZ(model, point) {
+function sampleTopSurfaceZ(model: TrackModel, point: Point2D) {
   for (const [a, b, c] of topTrackSurfaceTriangles(model)) {
     const weights = barycentricWeights2d(point, a, b, c);
 
@@ -203,7 +207,7 @@ function sampleTopSurfaceZ(model, point) {
   assert.fail(`expected to find a top-face triangle at ${point.x}, ${point.y}`);
 }
 
-function crossSectionEdgeVertices(vertices, targetX, tolerance = 1e-3) {
+function crossSectionEdgeVertices(vertices: Vertex[], targetX: number, tolerance = 1e-3) {
   const sectionVertices = vertices
     .filter(vertex => Math.abs(vertex.x - targetX) <= tolerance)
     .sort((a, b) => a.y - b.y);
@@ -211,8 +215,8 @@ function crossSectionEdgeVertices(vertices, targetX, tolerance = 1e-3) {
   assert.ok(sectionVertices.length >= 2, `expected at least two vertices near x=${targetX}`);
 
   return {
-    minY: sectionVertices[0],
-    maxY: sectionVertices[sectionVertices.length - 1],
+    minY: sectionVertices[0]!,
+    maxY: sectionVertices[sectionVertices.length - 1]!,
   };
 }
 
@@ -220,6 +224,7 @@ function buildElevatedStraightTrackModel() {
   return buildTrackModel({
     outlinePoints: null,
     basePlate: null,
+    trackName: undefined,
     projectedNodes: [
       { x: 0, y: 0, elevation: 0 },
       { x: 100, y: 0, elevation: 20 },
@@ -227,7 +232,7 @@ function buildElevatedStraightTrackModel() {
   });
 }
 
-function parseBinaryStlBounds(buffer) {
+function parseBinaryStlBounds(buffer: ArrayBuffer) {
   const view = new DataView(buffer);
   const triangleCount = view.getUint32(80, true);
   const bounds = {
@@ -342,9 +347,9 @@ test('buildTrackModel prevents the raised top cap from sagging at the center of 
     { x: -180, y: 180, elevation: 45 },
     { x: -160, y: 80, elevation: 20 },
   ];
-  const model = buildTrackModel({ outlinePoints: null, basePlate: null, projectedNodes, primaryOrientationDeg: 0 });
-  const segmentStart = projectedNodes[8];
-  const segmentEnd = projectedNodes[9];
+  const model = buildTrackModel({ outlinePoints: null, basePlate: null, trackName: undefined, projectedNodes, primaryOrientationDeg: 0 });
+  const segmentStart = projectedNodes[8]!;
+  const segmentEnd = projectedNodes[9]!;
   const segmentDx = segmentEnd.x - segmentStart.x;
   const segmentDy = segmentEnd.y - segmentStart.y;
   const segmentLength = Math.hypot(segmentDx, segmentDy);
@@ -403,7 +408,7 @@ test('buildTrackModel keeps embossed text after the track segment and out of the
 });
 
 test('computeScale fits the base plate inside a 200mm bounding box', () => {
-  const scale = computeScale({ width: 400, height: 150 });
+  const scale = computeScale({ width: 400, height: 150, minX: 0, maxX: 400, minY: 0, maxY: 150 });
 
   assert.equal(scale, 0.5);
   assert.ok(400 * scale <= 200);
@@ -414,10 +419,10 @@ test('buildTrackModel rotates geometry bounds in 90 degree increments', () => {
   const outlinePoints = syntheticOutline();
   const basePlate = buildBasePlate(outlinePoints, 20);
 
-  const model0 = buildTrackModel({ outlinePoints, basePlate, orientationDeg: 0 });
-  const model90 = buildTrackModel({ outlinePoints, basePlate, orientationDeg: 90 });
-  const model180 = buildTrackModel({ outlinePoints, basePlate, orientationDeg: 180 });
-  const model270 = buildTrackModel({ outlinePoints, basePlate, orientationDeg: 270 });
+  const model0 = buildTrackModel({ outlinePoints, basePlate, trackName: undefined, orientationDeg: 0 });
+  const model90 = buildTrackModel({ outlinePoints, basePlate, trackName: undefined, orientationDeg: 90 });
+  const model180 = buildTrackModel({ outlinePoints, basePlate, trackName: undefined, orientationDeg: 180 });
+  const model270 = buildTrackModel({ outlinePoints, basePlate, trackName: undefined, orientationDeg: 270 });
 
   const span0 = span(triangleBounds(model0.triangles));
   const span90 = span(triangleBounds(model90.triangles));

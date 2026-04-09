@@ -8,7 +8,7 @@ import {
   smoothElevationProfile,
 } from '../src/elevation/terrarium.js';
 
-function latLonToTileXY(lat, lon, zoom) {
+function latLonToTileXY(lat: number, lon: number, zoom: number) {
   const n = 2 ** zoom;
   const lonFraction = (lon + 180) / 360;
   const latRadians = (lat * Math.PI) / 180;
@@ -22,7 +22,7 @@ function latLonToTileXY(lat, lon, zoom) {
   };
 }
 
-function tilePixelCoords(lat, lon, zoom, tileSize = 256) {
+function tilePixelCoords(lat: number, lon: number, zoom: number, tileSize = 256) {
   const n = 2 ** zoom;
   const xFraction = ((lon + 180) / 360) * n;
   const latRadians = (lat * Math.PI) / 180;
@@ -32,16 +32,16 @@ function tilePixelCoords(lat, lon, zoom, tileSize = 256) {
   return { px, py };
 }
 
-function terrariumDecode(r, g, b) {
+function terrariumDecode(r: number, g: number, b: number) {
   return (r * 256 + g + b / 256) - 32768;
 }
 
-function maxAdjacentDelta(values) {
+function maxAdjacentDelta(values: number[]) {
   let maxDelta = 0;
 
   for (let index = 0; index < values.length; index += 1) {
     const nextIndex = (index + 1) % values.length;
-    maxDelta = Math.max(maxDelta, Math.abs(values[index] - values[nextIndex]));
+    maxDelta = Math.max(maxDelta, Math.abs(values[index]! - values[nextIndex]!));
   }
 
   return maxDelta;

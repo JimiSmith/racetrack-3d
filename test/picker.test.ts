@@ -10,11 +10,11 @@ import {
 } from '../src/search/layout-picker.js';
 import { expectDistinctLayouts } from '../test-utils/layout-assertions.js';
 
-function loadFixture(name) {
+function loadFixture(name: string): any {
   return JSON.parse(readFileSync(new URL(`./fixtures/${name}`, import.meta.url), 'utf8'));
 }
 
-function n(lat, lon) {
+function n(lat: number, lon: number) {
   return { lat, lon };
 }
 
@@ -37,23 +37,23 @@ test('picker state is hidden when only one layout is available', () => {
 test('picker state is shown when multiple layouts are available', () => {
   const fixture = loadFixture('silverstone.json');
 
-  const result = buildTrackGeometryFromPayload(fixture, 'Silverstone Circuit');
+  const result = buildTrackGeometryFromPayload(fixture, 'Silverstone Circuit')!;
   const pickerState = buildLayoutPickerState(result.layouts, result.selectedLayoutIndex);
 
   assert.equal(pickerState.hidden, false);
   assert.equal(pickerState.options.length, 2);
-  assert.equal(pickerState.options[0].selected, true);
-  assert.match(pickerState.options[0].label, /^Silverstone Grand Prix - /);
-  assert.match(pickerState.options[1].label, /^Silverstone International - /);
+  assert.equal(pickerState.options[0]!.selected, true);
+  assert.match(pickerState.options[0]!.label, /^Silverstone Grand Prix - /);
+  assert.match(pickerState.options[1]!.label, /^Silverstone International - /);
 });
 
 test('changing selected layout index yields different nodes', () => {
   const fixture = loadFixture('silverstone.json');
 
-  const result = buildTrackGeometryFromPayload(fixture, 'Silverstone Circuit');
+  const result = buildTrackGeometryFromPayload(fixture, 'Silverstone Circuit')!;
 
-  const firstLayout = getSelectedLayout(result.layouts, normalizeSelectedLayoutIndex(result.layouts, 0));
-  const secondLayout = getSelectedLayout(result.layouts, normalizeSelectedLayoutIndex(result.layouts, 1));
+  const firstLayout = getSelectedLayout(result.layouts, normalizeSelectedLayoutIndex(result.layouts, 0))!;
+  const secondLayout = getSelectedLayout(result.layouts, normalizeSelectedLayoutIndex(result.layouts, 1))!;
 
   assert.notDeepEqual(firstLayout.nodes, secondLayout.nodes);
   expectDistinctLayouts(firstLayout, secondLayout);
@@ -62,11 +62,11 @@ test('changing selected layout index yields different nodes', () => {
 test('picker data never exposes identical returned layouts', () => {
   const fixture = loadFixture('bahrain.json');
 
-  const result = buildTrackGeometryFromPayload(fixture, 'Bahrain International Circuit');
+  const result = buildTrackGeometryFromPayload(fixture, 'Bahrain International Circuit')!;
 
   for (let index = 0; index < result.layouts.length; index += 1) {
     for (let otherIndex = index + 1; otherIndex < result.layouts.length; otherIndex += 1) {
-      expectDistinctLayouts(result.layouts[index], result.layouts[otherIndex]);
+      expectDistinctLayouts(result.layouts[index]!, result.layouts[otherIndex]!);
     }
   }
 });

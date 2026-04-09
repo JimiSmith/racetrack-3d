@@ -10,18 +10,18 @@ import {
   isOsmApiRateLimitError,
   parseOsmApiMapXml,
   supplementPayloadWithMissingRelationWays,
-} from '../scripts/lib/osm-api-source.mjs';
+} from '../scripts/lib/osm-api-source.js';
 
 test('buildOsmApiMapUrl uses the main OSM map endpoint and bbox order', () => {
   const url = new URL(buildOsmApiMapUrl(52.075, -1.0166666666667, 0.02));
 
   assert.equal(url.origin, 'https://api.openstreetmap.org');
   assert.equal(url.pathname, '/api/0.6/map');
-  const [minLon, minLat, maxLon, maxLat] = url.searchParams.get('bbox').split(',').map(Number);
-  assert.ok(Math.abs(minLon - (-1.0366666666667)) < 1e-12);
-  assert.ok(Math.abs(minLat - 52.055) < 1e-12);
-  assert.ok(Math.abs(maxLon - (-0.9966666666667)) < 1e-12);
-  assert.ok(Math.abs(maxLat - 52.095) < 1e-12);
+  const [minLon, minLat, maxLon, maxLat] = url.searchParams.get('bbox')!.split(',').map(Number);
+  assert.ok(Math.abs(minLon! - (-1.0366666666667)) < 1e-12);
+  assert.ok(Math.abs(minLat! - 52.055) < 1e-12);
+  assert.ok(Math.abs(maxLon! - (-0.9966666666667)) < 1e-12);
+  assert.ok(Math.abs(maxLat! - 52.095) < 1e-12);
 });
 
 test('parseOsmApiMapXml hydrates way geometry and relation member geometry', () => {
@@ -49,8 +49,8 @@ test('parseOsmApiMapXml hydrates way geometry and relation member geometry', () 
   </relation>
 </osm>`);
 
-  const way = payload.elements.find(element => element.type === 'way' && element.id === 10);
-  const relation = payload.elements.find(element => element.type === 'relation' && element.id === 20);
+  const way: any = payload.elements.find((element: any) => element.type === 'way' && element.id === 10);
+  const relation: any = payload.elements.find((element: any) => element.type === 'relation' && element.id === 20);
 
   assert.ok(way);
   assert.equal(way.tags.name, 'Main & Fast');
@@ -94,14 +94,14 @@ test('parseOsmApiMapXml preserves relation members with null geometry when their
   </relation>
 </osm>`);
 
-  const relation = payload.elements.find(e => e.type === 'relation' && e.id === 20);
+  const relation: any = payload.elements.find((e: any) => e.type === 'relation' && e.id === 20);
   assert.ok(relation);
   assert.equal(relation.members.length, 2);
 
-  const presentMember = relation.members.find(m => m.ref === 10);
+  const presentMember = relation.members.find((m: any) => m.ref === 10);
   assert.ok(Array.isArray(presentMember?.geometry), 'present way should have geometry');
 
-  const missingMember = relation.members.find(m => m.ref === 99);
+  const missingMember = relation.members.find((m: any) => m.ref === 99);
   assert.equal(missingMember?.geometry, null, 'out-of-bbox way should have null geometry');
 });
 
@@ -152,8 +152,8 @@ test('supplementPayloadWithMissingRelationWays fetches and fills in out-of-bbox 
   <node id="4" lat="52.3" lon="-1.3" />
 </osm>`;
 
-  const fetchCalls = [];
-  const mockFetch = async url => {
+  const fetchCalls: string[] = [];
+  const mockFetch = async (url: string | URL | Request) => {
     fetchCalls.push(String(url));
     if (String(url).includes('/relation/20')) return new Response(fullRelationXml, { status: 200 });
     if (String(url).includes('/ways?ways=')) return new Response(missingWaysXml, { status: 200 });
@@ -165,20 +165,20 @@ test('supplementPayloadWithMissingRelationWays fetches and fills in out-of-bbox 
 
   // Should have made exactly 3 requests: relation, ways, nodes
   assert.equal(fetchCalls.length, 3);
-  assert.ok(fetchCalls[0].includes('/relation/20'));
-  assert.ok(fetchCalls[1].includes('/ways?ways=99'));
-  assert.ok(fetchCalls[2].includes('/nodes?nodes='));
+  assert.ok(fetchCalls[0]!.includes('/relation/20'));
+  assert.ok(fetchCalls[1]!.includes('/ways?ways=99'));
+  assert.ok(fetchCalls[2]!.includes('/nodes?nodes='));
 
   // The relation should now have both members with geometry
-  const relation = result.elements.find(e => e.type === 'relation' && e.id === 20);
-  assert.equal(relation.members.length, 2);
-  assert.ok(Array.isArray(relation.members.find(m => m.ref === 10)?.geometry));
-  assert.ok(Array.isArray(relation.members.find(m => m.ref === 99)?.geometry));
+  const relation = result.elements.find((e: any) => e.type === 'relation' && e.id === 20);
+  assert.equal(relation!.members!.length, 2);
+  assert.ok(Array.isArray(relation!.members!.find((m: any) => m.ref === 10)?.geometry));
+  assert.ok(Array.isArray(relation!.members!.find((m: any) => m.ref === 99)?.geometry));
 
   // Way 99 should be added as a bare element
-  const way99 = result.elements.find(e => e.type === 'way' && e.id === 99);
+  const way99 = result.elements.find((e: any) => e.type === 'way' && e.id === 99);
   assert.ok(way99);
-  assert.deepEqual(way99.geometry, [{ lat: 52.2, lon: -1.2 }, { lat: 52.3, lon: -1.3 }]);
+  assert.deepEqual(way99!.geometry, [{ lat: 52.2, lon: -1.2 }, { lat: 52.3, lon: -1.3 }]);
 });
 
 test('supplementPayloadWithMissingRelationWays returns original payload if no relevant relations', async () => {
@@ -231,10 +231,10 @@ test('parseOsmApiMapXml selects all circuit route relations regardless of wikida
 </osm>`;
 
   const payload = parseOsmApiMapXml(xml);
-  const relations = payload.elements.filter(e => e.type === 'relation');
+  const relations = payload.elements.filter((e: any) => e.type === 'relation');
   assert.equal(relations.length, 2);
-  assert.ok(relations.some(r => r.id === 20));
-  assert.ok(relations.some(r => r.id === 21));
+  assert.ok(relations.some((r: any) => r.id === 20));
+  assert.ok(relations.some((r: any) => r.id === 21));
 });
 
 test('parseOsmApiMapXml excludes facility multipolygons even when they carry a wikidata tag', () => {
@@ -259,9 +259,9 @@ test('parseOsmApiMapXml excludes facility multipolygons even when they carry a w
   </relation>
 </osm>`);
 
-  const relations = payload.elements.filter(e => e.type === 'relation');
+  const relations = payload.elements.filter((e: any) => e.type === 'relation');
   assert.equal(relations.length, 1);
-  assert.equal(relations[0].id, 21);
+  assert.equal(relations[0]!.id, 21);
 });
 
 test('parseOsmApiMapXml uses highway/type filter regardless of wikidataId argument', () => {
@@ -284,10 +284,10 @@ test('parseOsmApiMapXml uses highway/type filter regardless of wikidataId argume
   </relation>
 </osm>`);
 
-  const relations = payload.elements.filter(e => e.type === 'relation');
+  const relations = payload.elements.filter((e: any) => e.type === 'relation');
   assert.equal(relations.length, 2);
-  assert.ok(relations.some(r => r.id === 20));
-  assert.ok(relations.some(r => r.id === 21));
+  assert.ok(relations.some((r: any) => r.id === 20));
+  assert.ok(relations.some((r: any) => r.id === 21));
 });
 
 test('parseOsmApiMapXml selects relations tagged route=raceway', () => {
@@ -303,9 +303,9 @@ test('parseOsmApiMapXml selects relations tagged route=raceway', () => {
   </relation>
 </osm>`);
 
-  const relations = payload.elements.filter(e => e.type === 'relation');
+  const relations = payload.elements.filter((e: any) => e.type === 'relation');
   assert.equal(relations.length, 1);
-  assert.equal(relations[0].id, 20);
+  assert.equal(relations[0]!.id, 20);
 });
 
 test('parseOsmApiMapXml excludes relations without standard circuit tags', () => {
@@ -328,9 +328,9 @@ test('parseOsmApiMapXml excludes relations without standard circuit tags', () =>
   </relation>
 </osm>`);
 
-  const relations = payload.elements.filter(e => e.type === 'relation');
+  const relations = payload.elements.filter((e: any) => e.type === 'relation');
   assert.equal(relations.length, 1);
-  assert.equal(relations[0].id, 21);
+  assert.equal(relations[0]!.id, 21);
 });
 
 test('supplementPayloadWithMissingRelationWays uses wikidata-first selection when wikidataId is provided', async () => {
@@ -361,13 +361,13 @@ test('supplementPayloadWithMissingRelationWays uses wikidata-first selection whe
     ],
   };
 
-  const fetchedUrls = [];
+  const fetchedUrls: string[] = [];
   const result = await supplementPayloadWithMissingRelationWays(syntheticPayload, {
     wikidataId: 'Q999',
-    fetch: async (url) => {
+    fetch: (async (url: string) => {
       fetchedUrls.push(url);
       return { ok: true, text: async () => '<osm><relation id="20"></relation></osm>' };
-    },
+    }) as unknown as typeof globalThis.fetch,
   });
 
   // Should have fetched only relation 20 (the wikidata match), not relation 21
@@ -404,7 +404,7 @@ test('supplementPayloadWithMissingRelationWays appends missing ways via wikidata
 
   const result = await supplementPayloadWithMissingRelationWays(syntheticPayload, {
     wikidataId: 'Q999',
-    fetch: async (url) => {
+    fetch: (async (url: string) => {
       if (url.includes('/relation/20')) {
         return {
           ok: true,
@@ -439,13 +439,13 @@ test('supplementPayloadWithMissingRelationWays appends missing ways via wikidata
         };
       }
       throw new Error(`Unexpected fetch: ${url}`);
-    },
+    }) as unknown as typeof globalThis.fetch,
   });
 
   assert.notEqual(result, syntheticPayload, 'payload should be augmented');
-  const way99 = result.elements.find(e => e.type === 'way' && e.id === 99);
+  const way99 = result.elements.find((e: any) => e.type === 'way' && e.id === 99);
   assert.ok(way99, 'way 99 should be appended to the payload');
-  assert.deepEqual(way99.geometry, [{ lat: 52.2, lon: -1.2 }, { lat: 52.3, lon: -1.3 }]);
+  assert.deepEqual(way99!.geometry, [{ lat: 52.2, lon: -1.2 }, { lat: 52.3, lon: -1.3 }]);
 });
 
 test('buildAdaptiveOsmApiMargins grows from a smaller starting bbox up to the requested cap', () => {
@@ -466,11 +466,11 @@ test('isOsmApiRateLimitError matches OSM quota and throttling failures', () => {
 
 test('fetchOsmApiMapPayload retries rate-limited responses, respects retry-after, and paces requests', async () => {
   const originalFetch = globalThis.fetch;
-  const fetchCalls = [];
-  const sleeps = [];
+  const fetchCalls: string[] = [];
+  const sleeps: number[] = [];
   let now = 1000;
 
-  globalThis.fetch = async url => {
+  globalThis.fetch = async (url: string | URL | Request) => {
     fetchCalls.push(String(url));
     if (fetchCalls.length === 1) {
       return new Response('You have downloaded too much data. Please wait 7 seconds and try again.', {
@@ -502,7 +502,7 @@ test('fetchOsmApiMapPayload retries rate-limited responses, respects retry-after
     const result = await fetchOsmApiMapPayload(52.075, -1.0166666666667, {
       paceMs: 1500,
       maxRateLimitRetries: 2,
-      sleep: async delayMs => {
+      sleep: async (delayMs: number) => {
         sleeps.push(delayMs);
         now += delayMs;
       },
@@ -525,10 +525,10 @@ test('fetchOsmApiMapPayload retries rate-limited responses, respects retry-after
 });
 
 test('fetchAdaptiveOsmApiMapPayload returns the last usable response when a larger bbox hits the node limit', async () => {
-  const attemptedMargins = [];
+  const attemptedMargins: number[] = [];
   const response = await fetchAdaptiveOsmApiMapPayload(-34.930466, 138.620609, {
     margins: [0.02, 0.04, 0.08],
-    fetchForMargin: async margin => {
+    fetchForMargin: (async (margin: number) => {
       attemptedMargins.push(margin);
       if (margin >= 0.02) {
         throw new Error('OSM API map request failed (400): You requested too many nodes (limit is 50000). Either request a smaller area, or use planet.osm');
@@ -539,29 +539,29 @@ test('fetchAdaptiveOsmApiMapPayload returns the last usable response when a larg
         xml: `<osm margin="${margin}" />`,
         payload: { margin },
       };
-    },
-    evaluateResponse: resolvedResponse => ({
+    }) as any,
+    evaluateResponse: ((resolvedResponse: any) => ({
       usable: resolvedResponse.payload.margin >= 0.01,
       geometryResult: { margin: resolvedResponse.payload.margin },
-    }),
+    })) as any,
   });
 
   assert.deepEqual(attemptedMargins, [0.0025, 0.005, 0.01, 0.02]);
   assert.equal(response.metadata.margin, 0.01);
   assert.equal(response.metadata.stopReason, 'node-limit');
   assert.deepEqual(response.metadata.attempts, [0.0025, 0.005, 0.01, 0.02, 0.04, 0.08]);
-  assert.deepEqual(response.evaluation.geometryResult, { margin: 0.01 });
+  assert.deepEqual((response.evaluation as any).geometryResult, { margin: 0.01 });
 });
 
 test('fetchAdaptiveOsmApiMapPayload throws when no bbox yields usable geometry', async () => {
   await assert.rejects(
     () => fetchAdaptiveOsmApiMapPayload(52, -1, {
       margins: [0.02],
-      fetchForMargin: async margin => ({
+      fetchForMargin: (async (margin: number) => ({
         url: `https://example.test/${margin}`,
         xml: '<osm />',
         payload: { margin },
-      }),
+      })) as any,
       evaluateResponse: () => ({
         usable: false,
         reason: 'did not yield geometry',

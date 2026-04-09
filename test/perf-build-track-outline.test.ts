@@ -73,8 +73,8 @@ test('perf: buildTrackOutline calls during auto-orientation (outline-based)', (t
     basePlate,
     trackName: 'IMOLA',
   });
-  const modelCounters = __getModelPerfCounters();
-  const textCounters = __getPerfCounters();
+  const modelCounters = __getModelPerfCounters()!;
+  const textCounters = __getPerfCounters()!;
 
   assert.ok(model.triangles.length > 0);
 
@@ -103,8 +103,8 @@ test('perf: buildTrackOutline calls during auto-orientation (projectedNodes)', (
     projectedNodes: nodes,
     trackName: 'INDIANAPOLIS',
   });
-  const modelCounters = __getModelPerfCounters();
-  const textCounters = __getPerfCounters();
+  const modelCounters = __getModelPerfCounters()!;
+  const textCounters = __getPerfCounters()!;
 
   assert.ok(model.triangles.length > 0);
 
@@ -137,8 +137,8 @@ test('perf: buildTrackOutline calls with explicit orientation (no auto)', (t) =>
     trackName: 'INDIANAPOLIS',
     primaryOrientationDeg: 90,
   });
-  const modelCounters = __getModelPerfCounters();
-  const textCounters = __getPerfCounters();
+  const modelCounters = __getModelPerfCounters()!;
+  const textCounters = __getPerfCounters()!;
 
   assert.ok(model.triangles.length > 0);
 
@@ -164,7 +164,7 @@ test('perf: computeRankedTextPlacements calls during auto-orientation (no cache 
     projectedNodes: nodes,
     trackName: 'INDIANAPOLIS',
   });
-  const textCounters = __getPerfCounters();
+  const textCounters = __getPerfCounters()!;
 
   assert.ok(model.textTriangleCount > 0);
 
@@ -195,7 +195,7 @@ test('perf: computeRankedTextPlacements calls during auto-orientation (with cach
     trackName: 'INDIANAPOLIS',
     placementCacheToken: token,
   });
-  const textCounters = __getPerfCounters();
+  const textCounters = __getPerfCounters()!;
 
   assert.ok(model.textTriangleCount > 0);
 
@@ -229,7 +229,7 @@ test('perf: wall-clock cost of buildTrackOutline (Turf buffer)', async () => {
   }
 
   timings.sort((a, b) => a - b);
-  const median = timings[Math.floor(timings.length / 2)];
+  const median = timings[Math.floor(timings.length / 2)]!;
 
   console.log('--- Issue 2: wall-clock cost of buildTrackOutline ---');
   console.log(`  Median over ${iterations} runs: ${median.toFixed(1)} ms`);
@@ -280,8 +280,8 @@ test('perf: wall-clock cost of full buildTrackModel with auto-orientation', () =
 
   autoTimings.sort((a, b) => a - b);
   explicitTimings.sort((a, b) => a - b);
-  const autoMedian = autoTimings[Math.floor(autoTimings.length / 2)];
-  const explicitMedian = explicitTimings[Math.floor(explicitTimings.length / 2)];
+  const autoMedian = autoTimings[Math.floor(autoTimings.length / 2)]!;
+  const explicitMedian = explicitTimings[Math.floor(explicitTimings.length / 2)]!;
 
   console.log('--- Issue 2: wall-clock buildTrackModel auto vs explicit ---');
   console.log(`  Auto-orientation median:    ${autoMedian.toFixed(1)} ms (tests 4 orientations)`);
@@ -308,8 +308,8 @@ test('perf: empty track name with auto-orientation does not crash', (t) => {
     projectedNodes: nodes,
     trackName: '',
   });
-  const modelCounters = __getModelPerfCounters();
-  const textCounters = __getPerfCounters();
+  const modelCounters = __getModelPerfCounters()!;
+  const textCounters = __getPerfCounters()!;
 
   assert.ok(model.triangles.length > 0, 'model should have triangles even without a name');
   assert.equal(model.textTriangleCount, 0, 'no text triangles for empty name');
@@ -321,7 +321,7 @@ test('perf: empty track name with auto-orientation does not crash', (t) => {
 test('perf: combined mode with secondary layouts counts outline calls correctly', (t) => {
   const primary = ovalCircuitNodes(32);
   // Secondary is a smaller oval offset to the side
-  const secondary = ovalCircuitNodes(32).map(n => ({ ...n, x: n.x + 700 }));
+  const secondary = ovalCircuitNodes(32).map((n: { x: number; y: number; elevation: number }) => ({ ...n, x: n.x + 700 }));
 
   __resetModelPerfCounters();
   __resetPerfCounters();
@@ -333,8 +333,8 @@ test('perf: combined mode with secondary layouts counts outline calls correctly'
     secondaryProjectedNodes: [secondary],
     trackName: 'COMBINED TEST',
   });
-  const modelCounters = __getModelPerfCounters();
-  const textCounters = __getPerfCounters();
+  const modelCounters = __getModelPerfCounters()!;
+  const textCounters = __getPerfCounters()!;
 
   assert.ok(model.triangles.length > 0);
   assert.ok(model.secondaryTrackTriangleCount > 0, 'should have secondary track triangles');

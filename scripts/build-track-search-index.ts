@@ -6,7 +6,7 @@ import { buildTrackSearchEntry } from '../src/search/normalize.js';
 
 const WIKIDATA_API = 'https://www.wikidata.org/w/api.php';
 const WIKIDATA_SPARQL = 'https://query.wikidata.org/sparql';
-const TRACK_INSTANCE_IDS = {
+const TRACK_INSTANCE_IDS: Record<string, string> = {
   Q2338524: 'motorsport racing track',
   Q926439: 'street circuit',
   Q66436502: 'race track layout',
@@ -26,12 +26,13 @@ const projectRoot = path.resolve(__dirname, '..');
 const outputDir = path.join(projectRoot, 'src', 'generated');
 const outputPath = path.join(outputDir, 'track-search-index.json');
 
-function extractWikidataId(value) {
-  return String(value ?? '').split('/').pop() || null;
+function extractWikidataId(value: unknown): string | null {
+  return String(value ?? '').split('/').pop()! || null;
 }
 
-async function fetchJson(url, options = {}, { retries = 4, baseDelayMs = 1000 } = {}) {
-  const { headers: optionHeaders, ...restOptions } = options;
+async function fetchJson(url: string, options?: RequestInit, retryOptions?: { retries?: number; baseDelayMs?: number }): Promise<any> {
+  const { retries = 4, baseDelayMs = 1000 } = retryOptions ?? {};
+  const { headers: optionHeaders, ...restOptions } = options ?? {};
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     const response = await fetch(url, {
@@ -58,9 +59,9 @@ async function fetchJson(url, options = {}, { retries = 4, baseDelayMs = 1000 } 
   }
 }
 
-async function fetchTrackRows() {
+async function fetchTrackRows(): Promise<any[]> {
   const pageSize = 500;
-  const rows = [];
+  const rows: any[] = [];
 
   for (let offset = 0; ; offset += pageSize) {
     const sparql = `
@@ -94,8 +95,8 @@ OFFSET ${offset}
   }
 }
 
-function mergeTrackRows(rows) {
-  const merged = new Map();
+function mergeTrackRows(rows: any[]) {
+  const merged = new Map<string, any>();
 
   for (const row of rows) {
     const wikidataId = extractWikidataId(row.item?.value);
@@ -105,7 +106,7 @@ function mergeTrackRows(rows) {
 
     const existing = merged.get(wikidataId) ?? {
       wikidataId,
-      type: TRACK_INSTANCE_IDS[extractWikidataId(row.type?.value)] ?? null,
+      type: TRACK_INSTANCE_IDS[extractWikidataId(row.type?.value)!] ?? null,
       lat: Number.parseFloat(row.lat?.value),
       lon: Number.parseFloat(row.lon?.value),
       countryId: null,
@@ -118,8 +119,8 @@ function mergeTrackRows(rows) {
   return [...merged.values()];
 }
 
-async function fetchEntityDetails(ids) {
-  const entities = new Map();
+async function fetchEntityDetails(ids: string[]) {
+  const entities = new Map<string, any>();
 
   for (let index = 0; index < ids.length; index += ENTITY_BATCH_SIZE) {
     const batch = ids.slice(index, index + ENTITY_BATCH_SIZE);
@@ -129,15 +130,15 @@ async function fetchEntityDetails(ids) {
     for (const id of batch) {
       const entity = payload.entities?.[id] ?? {};
       const shortName = entity.claims?.P1813
-        ?.find(claim => claim?.mainsnak?.datavalue?.value?.text)
+        ?.find((claim: any) => claim?.mainsnak?.datavalue?.value?.text)
         ?.mainsnak?.datavalue?.value?.text ?? null;
-      const getEntityClaimIds = property => (entity.claims?.[property] ?? [])
-        .map(claim => claim?.mainsnak?.datavalue?.value?.id)
+      const getEntityClaimIds = (property: string): string[] => (entity.claims?.[property] ?? [])
+        .map((claim: any) => claim?.mainsnak?.datavalue?.value?.id)
         .filter(Boolean);
 
       entities.set(id, {
         label: entity.labels?.en?.value ?? null,
-        aliases: (entity.aliases?.en ?? []).map(alias => alias.value).filter(Boolean),
+        aliases: (entity.aliases?.en ?? []).map((alias: any) => alias.value).filter(Boolean),
         description: entity.descriptions?.en?.value ?? null,
         wikidataShortName: shortName,
         countryId: getEntityClaimIds('P17')[0] ?? null,
@@ -154,12 +155,12 @@ async function fetchEntityDetails(ids) {
   return entities;
 }
 
-function assembleIndex(baseRows, entityDetails) {
+function assembleIndex(baseRows: any[], entityDetails: Map<string, any>) {
   return baseRows
     .map(row => {
       const details = entityDetails.get(row.wikidataId) ?? {};
       const country = details.countryId ? entityDetails.get(details.countryId)?.label ?? null : null;
-      const city = (details.cityIds ?? []).map(id => entityDetails.get(id)?.label ?? null).find(Boolean) ?? null;
+      const city = (details.cityIds ?? []).map((id: string) => entityDetails.get(id)?.label ?? null).find(Boolean) ?? null;
       const extraAliases = SEARCH_INDEX_ALIASES.get(row.wikidataId) ?? [];
       return buildTrackSearchEntry({
         wikidataId: row.wikidataId,
@@ -175,14 +176,14 @@ function assembleIndex(baseRows, entityDetails) {
       });
     })
     .filter(Boolean)
-    .sort((a, b) => a.label.localeCompare(b.label) || a.wikidataId.localeCompare(b.wikidataId));
+    .sort((a, b) => a!.label.localeCompare(b!.label) || a!.wikidataId.localeCompare(b!.wikidataId));
 }
 
 async function main() {
   const rows = await fetchTrackRows();
   const mergedRows = mergeTrackRows(rows);
   const entityDetails = await fetchEntityDetails(mergedRows.map(row => row.wikidataId));
-  const relatedIds = new Set();
+  const relatedIds = new Set<string>();
   for (const row of mergedRows) {
     const details = entityDetails.get(row.wikidataId);
     if (details?.countryId) {

@@ -49,47 +49,46 @@ const DOM_GLOBALS = [
 export default [
   js.configs.recommended,
   {
-    files: ["src/**/*.js"],
+    files: ["scripts/**/*.ts", "scripts/lib/**/*.ts"],
     plugins: {
-      "import-x": importX,
+      "@typescript-eslint": tsPlugin,
     },
     languageOptions: {
-      ecmaVersion: "latest",
-      sourceType: "module",
-      globals: { ...globals.browser },
-    },
-    rules: {
-      ...sharedRules,
-      // No circular dependencies
-      "import-x/no-cycle": "error",
-      // Import ordering: external → internal absolute → relative (warn — existing code has violations)
-      "import-x/order": [
-        "warn",
-        {
-          "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
-          "newlines-between": "never",
-        },
-      ],
-    },
-  },
-  {
-    files: ["scripts/**/*.{js,mjs}", "scripts/lib/**/*.{js,mjs}"],
-    languageOptions: {
-      ecmaVersion: "latest",
-      sourceType: "module",
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
       globals: { ...globals.node, ...globals.browser },
     },
-    rules: sharedRules,
+    rules: {
+      ...tsPlugin.configs.recommended.rules,
+      ...sharedRules,
+      "no-undef": "off",
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", destructuredArrayIgnorePattern: "^_" }],
+      "@typescript-eslint/no-explicit-any": "warn",
+    },
   },
   {
-    files: ["test/**/*.js", "test-utils/**/*.js"],
+    files: ["test/**/*.ts", "test-utils/**/*.ts"],
+    plugins: {
+      "@typescript-eslint": tsPlugin,
+    },
     languageOptions: {
-      ecmaVersion: "latest",
-      sourceType: "module",
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
       globals: { ...globals.node },
     },
     rules: {
-      "no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+      ...tsPlugin.configs.recommended.rules,
+      "no-undef": "off",
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-explicit-any": "warn",
       "eqeqeq": ["error", "always", { null: "ignore" }],
       "no-var": "error",
       "prefer-const": "error",
@@ -176,6 +175,6 @@ export default [
     },
   },
   {
-    ignores: ["node_modules/**", "dist/**", "public/**"],
+    ignores: ["node_modules/**", "dist/**", "public/**", "src/**/*.js"],
   },
 ];

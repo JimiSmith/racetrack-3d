@@ -1,3 +1,91 @@
+interface LatLon {
+  lat: number;
+  lon: number;
+}
+
+interface OsmWay {
+  id: number;
+  tags: Record<string, string>;
+  geometry: LatLon[];
+}
+
+interface OsmRelationMember {
+  type: string;
+  ref: number;
+  role: string;
+  geometry?: LatLon[] | null;
+}
+
+interface OsmRelation {
+  id: number;
+  tags: Record<string, string>;
+  members: OsmRelationMember[];
+}
+
+interface OsmPayloadElement {
+  type: string;
+  id: number;
+  tags: Record<string, string>;
+  geometry?: LatLon[];
+  members?: OsmRelationMember[];
+}
+
+interface OsmPayload {
+  version?: number;
+  generator?: string;
+  elements: OsmPayloadElement[];
+}
+
+interface PacingState {
+  nextRequestAt: number;
+}
+
+interface OsmApiOptions {
+  paceMs?: number;
+  sleep?: (ms: number) => Promise<void>;
+  now?: () => number;
+  pacingState?: PacingState;
+  fetch?: typeof globalThis.fetch;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+  margin?: number;
+  margins?: number | number[];
+  maxRateLimitRetries?: number;
+  rateLimitRetryDelaysMs?: number[];
+  wikidataId?: string;
+  startDivisor?: number;
+  growthFactor?: number;
+  minMargin?: number;
+  maxAttempts?: number;
+  fetchForMargin?: (margin: number, context: { attemptIndex: number; margins: number[] }) => Promise<OsmApiFetchResult>;
+  evaluateResponse?: (response: OsmApiFetchResult, context: {
+    margin: number;
+    attemptIndex: number;
+    margins: number[];
+    previousUsableResponse: OsmApiFetchResult | null;
+    previousUsableEvaluation: AdaptiveEvaluation | null;
+  }) => Promise<AdaptiveEvaluation | null> | AdaptiveEvaluation | null;
+}
+
+interface AdaptiveEvaluation {
+  usable: boolean;
+  reason?: string;
+}
+
+interface OsmApiFetchResult {
+  url: string;
+  xml: string;
+  payload: OsmPayload;
+  metadata: Record<string, unknown>;
+  evaluation?: AdaptiveEvaluation | null;
+}
+
+interface OsmApiRateLimitError extends Error {
+  status: number;
+  retryAfterMs: number | null;
+  rateLimited: boolean;
+}
+
 const OSM_API_BASE_URL = 'https://api.openstreetmap.org/api/0.6/map';
 const OSM_API_TIMEOUT_MS = 20000;
 const DEFAULT_BBOX_MARGIN = 0.02;
@@ -7,7 +95,7 @@ const OSM_API_RETRY_AFTER_PATTERN = /(?:please\s+)?wait\s+(\d+)\s*(second|second
 const OSM_API_RATE_LIMIT_STATUS_CODES = new Set([429, 509]);
 const DEFAULT_OSM_API_REQUEST_PACE_MS = 1200;
 const DEFAULT_OSM_API_RATE_LIMIT_RETRY_DELAYS_MS = [5000, 15000];
-const sharedOsmApiPacingState = {
+const sharedOsmApiPacingState: PacingState = {
   nextRequestAt: 0,
 };
 const DEFAULT_ADAPTIVE_START_DIVISOR = 8;
@@ -15,15 +103,15 @@ const DEFAULT_ADAPTIVE_GROWTH_FACTOR = 2;
 const DEFAULT_ADAPTIVE_MIN_MARGIN = 0.001;
 const DEFAULT_ADAPTIVE_MAX_ATTEMPTS = 8;
 
-function sleep(ms) {
+function sleep(ms: number): Promise<void> {
   return new Promise(resolve => { setTimeout(resolve, ms); });
 }
 
-function getNow(options = {}) {
+function getNow(options: Pick<OsmApiOptions, 'now'> = {}): number {
   return typeof options.now === 'function' ? options.now() : Date.now();
 }
 
-function parseRetryAfterHeader(retryAfterValue, now) {
+function parseRetryAfterHeader(retryAfterValue: string | null, now: number): number | null {
   if (!retryAfterValue) {
     return null;
   }
@@ -41,18 +129,18 @@ function parseRetryAfterHeader(retryAfterValue, now) {
   return null;
 }
 
-function parseRetryDelayFromText(details) {
+function parseRetryDelayFromText(details: string): number | null {
   const match = String(details ?? '').match(OSM_API_RETRY_AFTER_PATTERN);
   if (!match) {
     return null;
   }
 
-  const amount = Number(match[1]);
+  const amount = Number(match[1]!);
   if (!Number.isFinite(amount) || amount < 0) {
     return null;
   }
 
-  const unit = match[2].toLowerCase();
+  const unit = match[2]!.toLowerCase();
   if (unit.startsWith('hour')) {
     return amount * 60 * 60 * 1000;
   }
@@ -64,23 +152,23 @@ function parseRetryDelayFromText(details) {
   return amount * 1000;
 }
 
-function resolveRateLimitRetryDelayMs(response, details, attemptIndex, options = {}) {
+function resolveRateLimitRetryDelayMs(response: Response, details: string, attemptIndex: number, options: Pick<OsmApiOptions, 'now' | 'rateLimitRetryDelaysMs'> = {}): number {
   const now = getNow(options);
   const retryAfterMs = parseRetryAfterHeader(response.headers.get('retry-after'), now)
     ?? parseRetryDelayFromText(details);
   if (Number.isFinite(retryAfterMs)) {
-    return retryAfterMs;
+    return retryAfterMs as number;
   }
 
   const fallbackDelays = Array.isArray(options.rateLimitRetryDelaysMs) && options.rateLimitRetryDelaysMs.length > 0
     ? options.rateLimitRetryDelaysMs
     : DEFAULT_OSM_API_RATE_LIMIT_RETRY_DELAYS_MS;
-  return fallbackDelays[Math.min(attemptIndex, fallbackDelays.length - 1)];
+  return fallbackDelays[Math.min(attemptIndex, fallbackDelays.length - 1)]!;
 }
 
-async function waitForOsmApiRequestSlot(options = {}) {
-  const paceMs = Number.isFinite(options.paceMs) && options.paceMs >= 0
-    ? options.paceMs
+async function waitForOsmApiRequestSlot(options: OsmApiOptions = {}): Promise<number> {
+  const paceMs: number = Number.isFinite(options.paceMs) && options.paceMs! >= 0
+    ? options.paceMs!
     : DEFAULT_OSM_API_REQUEST_PACE_MS;
   if (paceMs === 0) {
     return 0;
@@ -89,7 +177,7 @@ async function waitForOsmApiRequestSlot(options = {}) {
   const pacingState = options.pacingState ?? sharedOsmApiPacingState;
   const now = getNow(options);
   const waitMs = Math.max(0, (pacingState.nextRequestAt ?? 0) - now);
-  pacingState.nextRequestAt = Math.max(pacingState.nextRequestAt ?? 0, now) + paceMs;
+  pacingState.nextRequestAt = Math.max(pacingState.nextRequestAt ?? 0, now) + paceMs!;
 
   if (waitMs > 0) {
     await (options.sleep ?? sleep)(waitMs);
@@ -98,10 +186,10 @@ async function waitForOsmApiRequestSlot(options = {}) {
   return waitMs;
 }
 
-function createOsmApiRateLimitError(status, details, options = {}) {
-  const retryAfterMs = Number.isFinite(options.retryAfterMs) ? options.retryAfterMs : null;
+function createOsmApiRateLimitError(status: number, details: string, options: { retryAfterMs?: number } = {}): OsmApiRateLimitError {
+  const retryAfterMs = Number.isFinite(options.retryAfterMs) ? options.retryAfterMs! : null;
   const retryAfterText = retryAfterMs != null ? `; retry after ${Math.ceil(retryAfterMs / 1000)}s` : '';
-  const error = new Error(`OSM API map request rate-limited (${status}): ${(details || 'rate limited by upstream').trim()}${retryAfterText}`);
+  const error = new Error(`OSM API map request rate-limited (${status}): ${(details || 'rate limited by upstream').trim()}${retryAfterText}`) as OsmApiRateLimitError;
   error.name = 'OsmApiRateLimitError';
   error.status = status;
   error.retryAfterMs = retryAfterMs;
@@ -109,11 +197,11 @@ function createOsmApiRateLimitError(status, details, options = {}) {
   return error;
 }
 
-function roundMargin(value) {
+function roundMargin(value: number): number {
   return Number(value.toFixed(6));
 }
 
-function normalizeMarginList(margins) {
+function normalizeMarginList(margins: number | number[]): number[] {
   return [...new Set((Array.isArray(margins) ? margins : [margins])
     .map(Number)
     .filter(margin => Number.isFinite(margin) && margin > 0)
@@ -121,12 +209,12 @@ function normalizeMarginList(margins) {
     .sort((a, b) => a - b);
 }
 
-export function isOsmApiNodeLimitError(error) {
+export function isOsmApiNodeLimitError(error: unknown): boolean {
   return OSM_API_NODE_LIMIT_PATTERN.test(String(error instanceof Error ? error.message : error));
 }
 
-export function isOsmApiRateLimitError(error) {
-  if (error && typeof error === 'object' && error.rateLimited === true) {
+export function isOsmApiRateLimitError(error: unknown): boolean {
+  if (error && typeof error === 'object' && (error as OsmApiRateLimitError).rateLimited === true) {
     return true;
   }
 
@@ -136,26 +224,26 @@ export function isOsmApiRateLimitError(error) {
   return OSM_API_RATE_LIMIT_STATUS_CODES.has(status) || OSM_API_RATE_LIMIT_PATTERN.test(message);
 }
 
-export function buildAdaptiveOsmApiMargins(margins, options = {}) {
+export function buildAdaptiveOsmApiMargins(margins: number | number[], options: OsmApiOptions = {}): number[] {
   const requestedMargins = normalizeMarginList(margins);
   if (requestedMargins.length === 0) {
     throw new Error('Adaptive OSM API margins require at least one positive bbox margin');
   }
 
-  const startDivisor = Number.isFinite(options.startDivisor) && options.startDivisor > 1
-    ? options.startDivisor
+  const startDivisor: number = Number.isFinite(options.startDivisor) && options.startDivisor! > 1
+    ? options.startDivisor!
     : DEFAULT_ADAPTIVE_START_DIVISOR;
-  const growthFactor = Number.isFinite(options.growthFactor) && options.growthFactor > 1
-    ? options.growthFactor
+  const growthFactor: number = Number.isFinite(options.growthFactor) && options.growthFactor! > 1
+    ? options.growthFactor!
     : DEFAULT_ADAPTIVE_GROWTH_FACTOR;
-  const minMargin = Number.isFinite(options.minMargin) && options.minMargin > 0
-    ? options.minMargin
+  const minMargin: number = Number.isFinite(options.minMargin) && options.minMargin! > 0
+    ? options.minMargin!
     : DEFAULT_ADAPTIVE_MIN_MARGIN;
-  const maxAttempts = Number.isInteger(options.maxAttempts) && options.maxAttempts > 0
-    ? options.maxAttempts
+  const maxAttempts: number = Number.isInteger(options.maxAttempts) && options.maxAttempts! > 0
+    ? options.maxAttempts!
     : DEFAULT_ADAPTIVE_MAX_ATTEMPTS;
-  const smallestRequestedMargin = requestedMargins[0];
-  const largestRequestedMargin = requestedMargins[requestedMargins.length - 1];
+  const smallestRequestedMargin = requestedMargins[0]!;
+  const largestRequestedMargin = requestedMargins[requestedMargins.length - 1]!;
   const expandedMargins = new Set(requestedMargins);
   let adaptiveMargin = roundMargin(Math.max(minMargin, smallestRequestedMargin / startDivisor));
 
@@ -174,7 +262,7 @@ export function buildAdaptiveOsmApiMargins(margins, options = {}) {
     .slice(0, maxAttempts);
 }
 
-function decodeXmlEntities(value) {
+function decodeXmlEntities(value: string | undefined | null): string {
   return String(value ?? '')
     .replace(/&quot;/g, '"')
     .replace(/&apos;/g, "'")
@@ -183,11 +271,11 @@ function decodeXmlEntities(value) {
     .replace(/&amp;/g, '&');
 }
 
-function parseAttributes(tagSource) {
-  const attributes = {};
+function parseAttributes(tagSource: string): Record<string, string> {
+  const attributes: Record<string, string> = {};
 
   for (const match of tagSource.matchAll(/([A-Za-z_:][-A-Za-z0-9_:.]*)="([^"]*)"/g)) {
-    attributes[match[1]] = decodeXmlEntities(match[2]);
+    attributes[match[1]!] = decodeXmlEntities(match[2]);
   }
 
   return attributes;
@@ -200,14 +288,14 @@ function parseAttributes(tagSource) {
 //   relations – [{ id, tags, members }]   members hydrated from complete way index;
 //               geometry: null for ways that fell outside the bbox
 //               (only populated when includeRelations !== false)
-function parseOsmXmlElements(xmlSource, options = {}) {
+function parseOsmXmlElements(xmlSource: string | null | undefined, options: { includeRelations?: boolean } = {}): { ways: OsmWay[]; relations: OsmRelation[] } {
   const includeRelations = options.includeRelations !== false;
   const xml = String(xmlSource ?? '');
-  const nodeIndex = new Map();
-  const ways = [];
-  const relations = [];
-  let currentWay = null;
-  let currentRelation = null;
+  const nodeIndex = new Map<number, LatLon>();
+  const ways: OsmWay[] = [];
+  const relations: OsmRelation[] = [];
+  let currentWay: { id: number; tags: Record<string, string>; nodeRefs: number[] } | null = null;
+  let currentRelation: { id: number; tags: Record<string, string>; members: OsmRelationMember[] } | null = null;
 
   for (const match of xml.matchAll(/<[^>]+>/g)) {
     const tagSource = match[0];
@@ -222,7 +310,7 @@ function parseOsmXmlElements(xmlSource, options = {}) {
         if (currentWay && Number.isFinite(currentWay.id)) {
           const geometry = currentWay.nodeRefs
             .map(ref => nodeIndex.get(ref))
-            .filter(node => Number.isFinite(node?.lat) && Number.isFinite(node?.lon));
+            .filter((node): node is LatLon => Number.isFinite(node?.lat) && Number.isFinite(node?.lon));
           if (geometry.length >= 2) {
             ways.push({ id: currentWay.id, tags: currentWay.tags, geometry });
           }
@@ -288,7 +376,7 @@ function parseOsmXmlElements(xmlSource, options = {}) {
 
     if (tagName === 'member' && currentRelation) {
       const ref = Number(attributes.ref);
-      currentRelation.members.push({ type: attributes.type, ref, role: attributes.role ?? '' });
+      currentRelation.members.push({ type: attributes.type ?? '', ref, role: attributes.role ?? '' });
       continue;
     }
 
@@ -312,7 +400,7 @@ function parseOsmXmlElements(xmlSource, options = {}) {
 
   // Hydrate relation member geometries from the complete way index. A second pass is
   // needed because ways may appear after their referencing relation in the XML stream.
-  const wayIndex = new Map(ways.map(way => [way.id, way]));
+  const wayIndex = new Map<number, OsmWay>(ways.map(way => [way.id, way]));
   const hydratedRelations = relations.map(relation => ({
     ...relation,
     members: relation.members.map(member => ({
@@ -326,7 +414,7 @@ function parseOsmXmlElements(xmlSource, options = {}) {
   return { ways, relations: hydratedRelations };
 }
 
-export function buildOsmApiMapUrl(lat, lon, margin = DEFAULT_BBOX_MARGIN) {
+export function buildOsmApiMapUrl(lat: number, lon: number, margin: number = DEFAULT_BBOX_MARGIN): string {
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
     throw new Error('Track coordinates must be finite to query the OSM API');
   }
@@ -349,7 +437,7 @@ export function buildOsmApiMapUrl(lat, lon, margin = DEFAULT_BBOX_MARGIN) {
 //
 // Street circuits (e.g. Long Beach) are often tagged route=road + sport=motor
 // rather than route=raceway, because the roads are only temporarily used as a circuit.
-function isCircuitRoute(relation) {
+function isCircuitRoute(relation: { tags?: Record<string, string> }): boolean {
   const highway = String(relation.tags?.highway ?? '').trim().toLowerCase();
   const type = String(relation.tags?.type ?? '').trim().toLowerCase();
   const route = String(relation.tags?.route ?? '').trim().toLowerCase();
@@ -362,7 +450,7 @@ function isCircuitRoute(relation) {
   return false;
 }
 
-export function parseOsmApiMapXml(xmlSource, options = {}) {
+export function parseOsmApiMapXml(xmlSource: string, options: Pick<OsmApiOptions, 'wikidataId'> = {}): OsmPayload {
   const { ways, relations } = parseOsmXmlElements(xmlSource, { includeRelations: true });
 
   // Select all circuit route relations. Using isCircuitRoute prevents facility multipolygons
@@ -372,9 +460,9 @@ export function parseOsmApiMapXml(xmlSource, options = {}) {
   // When a wikidataId is provided, also include relations whose wikidata tag matches —
   // this catches circuits tagged unconventionally (e.g. Nordschleife: type=route +
   // route=road with no sport/circuit tags).
-  const normWikidataId = options.wikidataId ? String(options.wikidataId).trim().toUpperCase() : null;
+  const normWikidataId: string | null = options.wikidataId ? String(options.wikidataId).trim().toUpperCase() : null;
   const NON_CIRCUIT_RELATION_TYPES = new Set(['multipolygon', 'boundary', 'site', 'building']);
-  const relevantRelations = relations.filter(r => {
+  const relevantRelations = relations.filter((r: OsmRelation) => {
     if (isCircuitRoute(r)) { return true; }
     if (!normWikidataId) { return false; }
     if (String(r.tags?.wikidata ?? '').trim().toUpperCase() !== normWikidataId) { return false; }
@@ -418,7 +506,7 @@ export function parseOsmApiMapXml(xmlSource, options = {}) {
 // nodes of circuit ways. Without this, endpoint-based stitching can't detect that the
 // ways are connected (because the shared node is in the middle of a way, not at its
 // start or end). Splitting creates proper endpoint connectivity.
-function splitMembersAtJunctions(members) {
+function splitMembersAtJunctions(members: OsmRelationMember[]): OsmRelationMember[] {
   const wayMembers = members.filter(m => m.type === 'way' && Array.isArray(m.geometry) && m.geometry.length >= 2);
   if (wayMembers.length < 2) {
     return members;
@@ -427,18 +515,18 @@ function splitMembersAtJunctions(members) {
   // Collect all endpoint positions (as "lat,lon" keys) across all ways.
   const endpointKeys = new Set();
   for (const m of wayMembers) {
-    const g = m.geometry;
-    endpointKeys.add(`${g[0].lat},${g[0].lon}`);
-    endpointKeys.add(`${g[g.length - 1].lat},${g[g.length - 1].lon}`);
+    const g = m.geometry!;
+    endpointKeys.add(`${g[0]!.lat},${g[0]!.lon}`);
+    endpointKeys.add(`${g[g.length - 1]!.lat},${g[g.length - 1]!.lon}`);
   }
 
   // For each way, find intermediate nodes that match another way's endpoint or
   // intermediate node. These are junction points where the way should be split.
   // Build a set of all node positions that appear in more than one way.
-  const nodeWayCount = new Map();
+  const nodeWayCount = new Map<string, number>();
   for (const m of wayMembers) {
     const seen = new Set();
-    for (const node of m.geometry) {
+    for (const node of m.geometry!) {
       const key = `${node.lat},${node.lon}`;
       if (!seen.has(key)) {
         seen.add(key);
@@ -449,12 +537,12 @@ function splitMembersAtJunctions(members) {
 
   // Junction nodes: appear in multiple ways AND are at an intermediate position in
   // at least one way.
-  const junctionKeys = new Set();
+  const junctionKeys = new Set<string>();
   for (const m of wayMembers) {
-    const g = m.geometry;
+    const g = m.geometry!;
     for (let i = 1; i < g.length - 1; i++) {
-      const key = `${g[i].lat},${g[i].lon}`;
-      if (nodeWayCount.get(key) > 1) {
+      const key = `${g[i]!.lat},${g[i]!.lon}`;
+      if ((nodeWayCount.get(key) ?? 0) > 1) {
         junctionKeys.add(key);
       }
     }
@@ -465,7 +553,7 @@ function splitMembersAtJunctions(members) {
   }
 
   // Split ways at junction points.
-  const result = [];
+  const result: OsmRelationMember[] = [];
   let splitCounter = 0;
   for (const m of members) {
     if (m.type !== 'way' || !Array.isArray(m.geometry) || m.geometry.length < 2) {
@@ -474,9 +562,9 @@ function splitMembersAtJunctions(members) {
     }
 
     // Find split indices (intermediate nodes that are junction points).
-    const splitIndices = [];
+    const splitIndices: number[] = [];
     for (let i = 1; i < m.geometry.length - 1; i++) {
-      const key = `${m.geometry[i].lat},${m.geometry[i].lon}`;
+      const key = `${m.geometry![i]!.lat},${m.geometry![i]!.lon}`;
       if (junctionKeys.has(key)) {
         splitIndices.push(i);
       }
@@ -488,9 +576,9 @@ function splitMembersAtJunctions(members) {
     }
 
     // Split the way into segments at junction points.
-    const cuts = [0, ...splitIndices, m.geometry.length - 1];
+    const cuts = [0, ...splitIndices, m.geometry!.length - 1];
     for (let i = 0; i < cuts.length - 1; i++) {
-      const segment = m.geometry.slice(cuts[i], cuts[i + 1] + 1);
+      const segment = m.geometry!.slice(cuts[i], cuts[i + 1]! + 1);
       if (segment.length >= 2) {
         splitCounter++;
         result.push({
@@ -508,42 +596,42 @@ function splitMembersAtJunctions(members) {
 // Flatten super-relations in a payload by replacing sub-relation members with their
 // constituent way members. Run this AFTER supplementPayloadWithMissingRelationWays
 // so that sub-relation members already have geometry patched in.
-export function flattenSuperRelations(payload) {
+export function flattenSuperRelations(payload: OsmPayload): OsmPayload {
   const elements = payload?.elements ?? [];
-  const relationIndex = new Map(
+  const relationIndex = new Map<number, OsmPayloadElement>(
     elements.filter(e => e.type === 'relation').map(r => [r.id, r]),
   );
 
   const hasSuperRelations = elements.some(
-    e => e.type === 'relation' && e.members.some(m => m.type === 'relation'),
+    e => e.type === 'relation' && e.members?.some(m => m.type === 'relation'),
   );
   if (!hasSuperRelations) {
     return payload;
   }
 
   const updatedElements = elements.map(e => {
-    if (e.type !== 'relation' || !e.members.some(m => m.type === 'relation')) {
+    if (e.type !== 'relation' || !e.members?.some(m => m.type === 'relation')) {
       return e;
     }
-    const flatMembers = e.members.flatMap(m => {
+    const flatMembers = e.members!.flatMap(m => {
       if (m.type === 'relation' && relationIndex.has(m.ref)) {
-        return relationIndex.get(m.ref).members.filter(sm => sm.type === 'way');
+        return (relationIndex.get(m.ref)!.members ?? []).filter(sm => sm.type === 'way');
       }
       return m.type === 'way' ? [m] : [];
     });
     return {
       ...e,
       members: splitMembersAtJunctions(flatMembers),
-      tags: { ...e.tags, _wasSuperRelation: true },
+      tags: { ...e.tags, _wasSuperRelation: true } as unknown as Record<string, string>,
     };
   });
 
-  return { ...payload, elements: updatedElements };
+  return { ...payload, elements: updatedElements as OsmPayloadElement[] };
 }
 
 // Parses a combined nodes+ways OSM XML string and returns a Map<wayId, geometry>.
 // Used to resolve geometries for ways that were outside the original bbox query.
-function parseOsmXmlWayGeometries(xmlSource) {
+function parseOsmXmlWayGeometries(xmlSource: string): Map<number, LatLon[]> {
   const { ways } = parseOsmXmlElements(xmlSource, { includeRelations: false });
   return new Map(ways.map(way => [way.id, way.geometry]));
 }
@@ -551,10 +639,10 @@ function parseOsmXmlWayGeometries(xmlSource) {
 // Parses all way member refs from a single relation XML element.
 // The bbox response only includes members that fall within the bbox, so we
 // separately fetch the full relation to discover out-of-bbox member IDs.
-function parseRelationMemberWayIds(xmlSource) {
-  const ids = [];
+function parseRelationMemberWayIds(xmlSource: string | null | undefined): number[] {
+  const ids: number[] = [];
   for (const m of String(xmlSource ?? '').matchAll(/<member\s[^>]*type="way"[^>]*ref="(\d+)"[^>]*/g)) {
-    const id = Number(m[1]);
+    const id = Number(m[1]!);
     if (Number.isFinite(id)) {ids.push(id);}
   }
   return ids;
@@ -575,8 +663,8 @@ function parseRelationMemberWayIds(xmlSource) {
 //   5. Merge the resolved geometries into the payload.
 //
 // Falls back to the original payload on any network error.
-export async function supplementPayloadWithMissingRelationWays(payload, options = {}) {
-  const normId = options.wikidataId ? String(options.wikidataId).trim().toUpperCase() : null;
+export async function supplementPayloadWithMissingRelationWays(payload: OsmPayload, options: OsmApiOptions = {}): Promise<OsmPayload> {
+  const normId: string | null = options.wikidataId ? String(options.wikidataId).trim().toUpperCase() : null;
   const elements = payload?.elements ?? [];
 
   const wikidataMatches = normId
@@ -602,8 +690,8 @@ export async function supplementPayloadWithMissingRelationWays(payload, options 
   try {
     // Step 1: fetch the full relation objects to get all member way IDs (not just
     // those that fell within the bbox)
-    const missingWayIds = new Set();
-    const fullMembersByRelId = new Map();
+    const missingWayIds = new Set<number>();
+    const fullMembersByRelId = new Map<number, number[]>();
 
     for (const rel of relevantRelations) {
       const relResponse = await fetchFn(
@@ -637,9 +725,9 @@ export async function supplementPayloadWithMissingRelationWays(payload, options 
     const waysXml = await waysResponse.text();
 
     // Step 3: collect all node IDs referenced by the fetched ways
-    const ndRefs = new Set();
+    const ndRefs = new Set<string>();
     for (const m of waysXml.matchAll(/<nd\s+ref="(\d+)"/g)) {
-      ndRefs.add(m[1]);
+      ndRefs.add(m[1]!);
     }
     if (ndRefs.size === 0) {
       return payload;
@@ -673,15 +761,15 @@ export async function supplementPayloadWithMissingRelationWays(payload, options 
       }
       // Build a complete member list: patch existing members whose geometry was null
       // (fell outside the bbox) and append any entirely new members.
-      const existingMemberRefs = new Set(e.members.map(m => m.ref));
-      const patchedMembers = e.members.map(m =>
+      const existingMemberRefs = new Set((e.members ?? []).map(m => m.ref));
+      const patchedMembers = (e.members ?? []).map(m =>
         m.geometry == null && newGeometries.has(m.ref)
-          ? { ...m, geometry: newGeometries.get(m.ref) }
+          ? { ...m, geometry: newGeometries.get(m.ref)! }
           : m,
       );
       const addedMembers = fullMemberIds
         .filter(id => !existingMemberRefs.has(id) && newGeometries.has(id))
-        .map(id => ({ type: 'way', ref: id, role: '', geometry: newGeometries.get(id) }));
+        .map(id => ({ type: 'way' as const, ref: id, role: '', geometry: newGeometries.get(id)! }));
       return {
         ...e,
         members: [...patchedMembers, ...addedMembers],
@@ -703,11 +791,11 @@ export async function supplementPayloadWithMissingRelationWays(payload, options 
   }
 }
 
-export async function fetchOsmApiMapPayload(lat, lon, options = {}) {
+export async function fetchOsmApiMapPayload(lat: number, lon: number, options: OsmApiOptions = {}): Promise<OsmApiFetchResult> {
   const margin = options.margin ?? DEFAULT_BBOX_MARGIN;
   const url = buildOsmApiMapUrl(lat, lon, margin);
-  const maxRateLimitRetries = Number.isInteger(options.maxRateLimitRetries) && options.maxRateLimitRetries >= 0
-    ? options.maxRateLimitRetries
+  const maxRateLimitRetries: number = Number.isInteger(options.maxRateLimitRetries) && options.maxRateLimitRetries! >= 0
+    ? options.maxRateLimitRetries!
     : DEFAULT_OSM_API_RATE_LIMIT_RETRY_DELAYS_MS.length;
   let retryCount = 0;
   let totalRetryDelayMs = 0;
@@ -731,7 +819,7 @@ export async function fetchOsmApiMapPayload(lat, lon, options = {}) {
       const details = (await response.text()).trim();
 
       if (!isOsmApiNodeLimitError(details) && (OSM_API_RATE_LIMIT_STATUS_CODES.has(response.status) || OSM_API_RATE_LIMIT_PATTERN.test(details))) {
-        const retryAfterMs = resolveRateLimitRetryDelayMs(response, details, retryCount, options);
+        const retryAfterMs: number = resolveRateLimitRetryDelayMs(response, details, retryCount, options);
         if (retryCount < maxRateLimitRetries) {
           totalRetryDelayMs += retryAfterMs;
           retryCount += 1;
@@ -749,7 +837,7 @@ export async function fetchOsmApiMapPayload(lat, lon, options = {}) {
     return {
       url,
       xml,
-      payload: parseOsmApiMapXml(xml, { wikidataId: options.wikidataId }),
+      payload: parseOsmApiMapXml(xml, options.wikidataId ? { wikidataId: options.wikidataId } : {}),
       metadata: {
         requestAttempts: retryCount + 1,
         retryCount,
@@ -760,16 +848,16 @@ export async function fetchOsmApiMapPayload(lat, lon, options = {}) {
   }
 }
 
-export async function fetchAdaptiveOsmApiMapPayload(lat, lon, options = {}) {
+export async function fetchAdaptiveOsmApiMapPayload(lat: number, lon: number, options: OsmApiOptions = {}): Promise<OsmApiFetchResult> {
   const margins = buildAdaptiveOsmApiMargins(options.margins ?? options.margin ?? DEFAULT_BBOX_MARGIN, options);
   const fetchForMargin = options.fetchForMargin
-    ?? (margin => fetchOsmApiMapPayload(lat, lon, { ...options, margin }));
+    ?? ((margin: number) => fetchOsmApiMapPayload(lat, lon, { ...options, margin }));
   const evaluateResponse = options.evaluateResponse
     ?? (() => ({ usable: true }));
-  const errors = [];
-  let lastUsableResponse = null;
-  let lastUsableEvaluation = null;
-  let lastUsableMargin = null;
+  const errors: string[] = [];
+  let lastUsableResponse: OsmApiFetchResult | null = null;
+  let lastUsableEvaluation: AdaptiveEvaluation | null = null;
+  let lastUsableMargin: number | null = null;
 
   for (const [attemptIndex, margin] of margins.entries()) {
     try {
@@ -777,7 +865,7 @@ export async function fetchAdaptiveOsmApiMapPayload(lat, lon, options = {}) {
         attemptIndex,
         margins,
       });
-      const evaluation = await evaluateResponse(response, {
+      const evaluation: AdaptiveEvaluation | null = await evaluateResponse(response, {
         margin,
         attemptIndex,
         margins,

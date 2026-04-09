@@ -51,12 +51,15 @@ function rankedHoleOutline() {
   };
 }
 
-function extractModelXml(archive) {
-  return strFromU8(archive['3D/3dmodel.model']);
+function extractModelXml(archive: Record<string, Uint8Array>) {
+  return strFromU8(archive['3D/3dmodel.model']!);
 }
 
-function triangleBounds(triangles) {
-  return triangles.flat().reduce((bounds, vertex) => ({
+type Vertex = { x: number; y: number; z: number };
+type Bounds3D = { minX: number; maxX: number; minY: number; maxY: number; minZ: number; maxZ: number };
+
+function triangleBounds(triangles: Vertex[][]) {
+  return triangles.flat().reduce<Bounds3D>((bounds, vertex) => ({
     minX: Math.min(bounds.minX, vertex.x),
     maxX: Math.max(bounds.maxX, vertex.x),
     minY: Math.min(bounds.minY, vertex.y),
@@ -73,8 +76,8 @@ function triangleBounds(triangles) {
   });
 }
 
-function vertexBoundsFromXml(xml) {
-  return [...xml.matchAll(/<vertex x="([^"]+)" y="([^"]+)" z="([^"]+)"\/>/g)].reduce((bounds, [, x, y, z]) => ({
+function vertexBoundsFromXml(xml: string) {
+  return [...xml.matchAll(/<vertex x="([^"]+)" y="([^"]+)" z="([^"]+)"\/>/g)].reduce<Bounds3D>((bounds, [, x, y, z]) => ({
     minX: Math.min(bounds.minX, Number(x)),
     maxX: Math.max(bounds.maxX, Number(x)),
     minY: Math.min(bounds.minY, Number(y)),
@@ -91,7 +94,7 @@ function vertexBoundsFromXml(xml) {
   });
 }
 
-function approxEqual(actual, expected, tolerance = 1e-4) {
+function approxEqual(actual: number, expected: number, tolerance = 1e-4) {
   assert.ok(Math.abs(actual - expected) <= tolerance, `expected ${actual} to be within ${tolerance} of ${expected}`);
 }
 
@@ -164,7 +167,7 @@ test('export3mf colors embossed text triangles red', async () => {
   const vertices = [...xml.matchAll(/<vertex x="([^"]+)" y="([^"]+)" z="([^"]+)"\/>/g)].map(([, x, y, z]) => `${x},${y},${z}`);
 
   const hasRedTextTriangle = redTriangles.some(([, v1, v2, v3]) => {
-    const keys = [Number(v1), Number(v2), Number(v3)].map(index => vertices[index]);
+    const keys = [Number(v1), Number(v2), Number(v3)].map(index => vertices[index]!);
     return keys.every(key => textVertexSet.has(key));
   });
 
