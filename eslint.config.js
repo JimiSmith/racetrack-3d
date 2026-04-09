@@ -49,7 +49,7 @@ const DOM_GLOBALS = [
 export default [
   js.configs.recommended,
   {
-    files: ["scripts/**/*.ts", "scripts/lib/**/*.ts"],
+    files: ["scripts/**/*.ts"],
     plugins: {
       "@typescript-eslint": tsPlugin,
     },

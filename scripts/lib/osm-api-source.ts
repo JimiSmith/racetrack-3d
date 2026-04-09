@@ -622,7 +622,7 @@ export function flattenSuperRelations(payload: OsmPayload): OsmPayload {
     return {
       ...e,
       members: splitMembersAtJunctions(flatMembers),
-      tags: { ...e.tags, _wasSuperRelation: true } as unknown as Record<string, string>,
+      tags: { ...e.tags, _wasSuperRelation: 'true' },
     };
   });
 

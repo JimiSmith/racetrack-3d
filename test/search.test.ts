@@ -636,7 +636,8 @@ test('buildTrackGeometryFromPayload prefers a large near-closed unnamed circuit 
 
 test('buildTrackGeometryFromPayload prefers the named Shanghai circuit over a denser stray component', () => {
   const fixture = loadFixture('shanghai.json');
-  const result = buildTrackGeometryFromPayload(fixture, 'Shanghai International Circuit')!;
+  const result = buildTrackGeometryFromPayload(fixture, 'Shanghai International Circuit');
+  assert.ok(result);
   assert.equal(result.selectedLayoutIndex, 0);
   assertLayoutNames(result.layouts, ['Main']);
   assert.deepEqual(result.osmVenueNames, ['Shanghai International Circuit']);
@@ -647,7 +648,8 @@ test('buildTrackGeometryFromPayload prefers the named Shanghai circuit over a de
 
 test('buildTrackGeometryFromPayload returns named Bahrain layouts from frozen fixture data', () => {
   const fixture = loadFixture('bahrain.json');
-  const result = buildTrackGeometryFromPayload(fixture, 'Bahrain International Circuit', GEOMETRY_HINTS['Bahrain International Circuit'])!;
+  const result = buildTrackGeometryFromPayload(fixture, 'Bahrain International Circuit', GEOMETRY_HINTS['Bahrain International Circuit']);
+  assert.ok(result);
   assert.equal(result.selectedLayoutIndex, 0);
   assertLayoutNames(result.layouts, ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit']);
   result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 1 }));
@@ -660,7 +662,8 @@ test('buildTrackGeometryFromPayload returns named Bahrain layouts from frozen fi
 
 test('buildTrackGeometryFromPayload resolves Brands Hatch to the grand prix and indy layouts', () => {
   const fixture = loadFixture('brands-hatch.json');
-  const result = buildTrackGeometryFromPayload(fixture, 'Brands Hatch')!;
+  const result = buildTrackGeometryFromPayload(fixture, 'Brands Hatch');
+  assert.ok(result);
   assert.equal(result.selectedLayoutIndex, 0);
   assertLayoutNames(result.layouts, ['Brands Hatch Grand Prix', 'Brands Hatch Indy']);
   result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 20 }));
@@ -671,7 +674,8 @@ test('buildTrackGeometryFromPayload resolves Brands Hatch to the grand prix and 
 
 test('buildTrackGeometryFromPayload restores Mexico City grand prix geometry from frozen fixture data', () => {
   const fixture = loadFixture('mexico-city.json');
-  const result = buildTrackGeometryFromPayload(fixture, 'Autódromo Hermanos Rodríguez')!;
+  const result = buildTrackGeometryFromPayload(fixture, 'Autódromo Hermanos Rodríguez');
+  assert.ok(result);
   assert.equal(result.selectedLayoutIndex, 0);
   assertLayoutNames(result.layouts, ['Mexican Grand Prix', 'Mexico City E-Prix']);
   assertLayoutInvariants(result.layouts[0]!, { maxGapMeters: 120 });
@@ -682,7 +686,8 @@ test('buildTrackGeometryFromPayload restores Mexico City grand prix geometry fro
 
 test('buildTrackGeometryFromPayload avoids Monaco mini-loops and keeps the full street circuit', () => {
   const fixture = loadFixture('monaco.json');
-  const result = buildTrackGeometryFromPayload(fixture, 'Circuit de Monaco')!;
+  const result = buildTrackGeometryFromPayload(fixture, 'Circuit de Monaco');
+  assert.ok(result);
   assert.equal(result.selectedLayoutIndex, 0);
   assert.equal(result.layouts[0]!.name, 'Main');
   assertLayoutInvariants(result.layouts[0]!, { maxGapMeters: 400 });
@@ -691,7 +696,8 @@ test('buildTrackGeometryFromPayload avoids Monaco mini-loops and keeps the full 
 
 test('buildTrackGeometryFromPayload keeps the current Monza road course from frozen fixture data', () => {
   const fixture = loadFixture('monza.json');
-  const result = buildTrackGeometryFromPayload(fixture, 'Autodromo Nazionale Monza')!;
+  const result = buildTrackGeometryFromPayload(fixture, 'Autodromo Nazionale Monza');
+  assert.ok(result);
   assert.equal(result.selectedLayoutIndex, 0);
   assertLayoutInvariants(result.layouts[0]!, { maxGapMeters: 120 });
   expectApproxLength(result.layouts[0]!.nodes, 5.8, 0.3);
@@ -699,7 +705,8 @@ test('buildTrackGeometryFromPayload keeps the current Monza road course from fro
 
 test('buildTrackGeometryFromPayload keeps the current Zandvoort grand prix circuit from frozen fixture data', () => {
   const fixture = loadFixture('zandvoort.json');
-  const result = buildTrackGeometryFromPayload(fixture, 'Circuit Zandvoort')!;
+  const result = buildTrackGeometryFromPayload(fixture, 'Circuit Zandvoort');
+  assert.ok(result);
   assert.equal(result.selectedLayoutIndex, 0);
   assertLayoutInvariants(result.layouts[0]!, { maxGapMeters: 120 });
   expectApproxLength(result.layouts[0]!.nodes, 4.3, 0.3);
@@ -707,8 +714,10 @@ test('buildTrackGeometryFromPayload keeps the current Zandvoort grand prix circu
 });
 
 test('named-circuit detection distinguishes Bahrain standalone layouts from Spa branch alternates', () => {
-  const bahrainResult = buildTrackGeometryFromPayload(loadFixture('bahrain.json'), 'Bahrain International Circuit', GEOMETRY_HINTS['Bahrain International Circuit'])!;
-  const spaResult = buildTrackGeometryFromPayload(loadFixture('spa.json'), 'Circuit de Spa-Francorchamps')!;
+  const bahrainResult = buildTrackGeometryFromPayload(loadFixture('bahrain.json'), 'Bahrain International Circuit', GEOMETRY_HINTS['Bahrain International Circuit']);
+  assert.ok(bahrainResult);
+  const spaResult = buildTrackGeometryFromPayload(loadFixture('spa.json'), 'Circuit de Spa-Francorchamps');
+  assert.ok(spaResult);
   assertLayoutNames(bahrainResult.layouts, ['Grand Prix Circuit', 'Endurance Circuit', 'Paddock Layout', 'Outer Circuit', 'Inner Circuit']);
   assertLayoutNames(spaResult.layouts, ['Main', 'Moto']);
   assert.equal(bahrainResult.layouts.find(layout => layout.name === 'Grand Prix Circuit')?.stats.variantSectionCount, 0);
@@ -721,7 +730,8 @@ test('named-circuit detection distinguishes Bahrain standalone layouts from Spa 
 });
 
 test('Bahrain named layouts keep distinct approximate circuit lengths', () => {
-  const result = buildTrackGeometryFromPayload(loadFixture('bahrain.json'), 'Bahrain International Circuit', GEOMETRY_HINTS['Bahrain International Circuit'])!;
+  const result = buildTrackGeometryFromPayload(loadFixture('bahrain.json'), 'Bahrain International Circuit', GEOMETRY_HINTS['Bahrain International Circuit']);
+  assert.ok(result);
   const byName = new Map(result.layouts.map(layout => [layout.name, layout]));
   expectApproxLength(byName.get('Grand Prix Circuit')!.nodes, 5.4, 0.2);
   expectApproxLength(byName.get('Endurance Circuit')!.nodes, 6.3, 0.2);
@@ -741,7 +751,8 @@ test('Spa branch-only alternates are not promoted to standalone named circuits',
   const payload = {
     elements: ways.map((way: Way) => ({ type: 'way', id: way.id, tags: way.tags, geometry: way.nodes })),
   };
-  const result = buildTrackGeometryFromPayload(payload, 'Circuit de Spa-Francorchamps')!;
+  const result = buildTrackGeometryFromPayload(payload, 'Circuit de Spa-Francorchamps');
+  assert.ok(result);
   assertLayoutNames(result.layouts, ['Circuit de Spa-Francorchamps', 'Moto layout']);
   result.layouts.forEach(layout => assertLayoutInvariants(layout, { maxGapMeters: 20 }));
   assert.equal(result.layouts.some(layout => layout.name === 'Rallycross circuit'), false);
@@ -752,7 +763,8 @@ test('near-identical duplicate named layouts are filtered out', () => {
   const payload = {
     elements: ways.map((way: Way) => ({ type: 'way', id: way.id, tags: way.tags, geometry: way.nodes })),
   };
-  const result = buildTrackGeometryFromPayload(payload, 'Bahrain International Circuit', GEOMETRY_HINTS['Bahrain International Circuit'])!;
+  const result = buildTrackGeometryFromPayload(payload, 'Bahrain International Circuit', GEOMETRY_HINTS['Bahrain International Circuit']);
+  assert.ok(result);
   assert.equal(result.layouts.length, 4);
   assert.equal(result.layouts.filter(layout => layout.name === 'Grand Prix Circuit').length, 1);
   assert.equal(result.layouts.filter(layout => layout.name === 'Grand Prix Circuit Alternate').length, 0);
@@ -770,7 +782,8 @@ test('multi-layout fixtures keep their expected layout counts', () => {
   ];
 
   for (const [fixtureName, trackName, expectedNames] of cases) {
-    const result = buildTrackGeometryFromPayload(loadFixture(fixtureName as string), trackName as string, GEOMETRY_HINTS[trackName as string])!;
+    const result = buildTrackGeometryFromPayload(loadFixture(fixtureName as string), trackName as string, GEOMETRY_HINTS[trackName as string]);
+    assert.ok(result);
     assertLayoutNames(result.layouts, expectedNames as string[]);
   }
 });
@@ -811,7 +824,8 @@ test('buildTrackGeometryFromPayload excludes pit lane ways from the main circuit
     ],
   };
 
-  const result = buildTrackGeometryFromPayload(payload, 'Example Circuit')!;
+  const result = buildTrackGeometryFromPayload(payload, 'Example Circuit');
+  assert.ok(result);
 
   assert.equal(result.layouts.length, 1);
   assert.equal(result.layouts[0]!.stats.segmentCount, 4);
@@ -850,7 +864,8 @@ test('buildTrackGeometryFromPayload keeps National Pit Straight in the main circ
     ],
   };
 
-  const result = buildTrackGeometryFromPayload(payload, 'Example Circuit')!;
+  const result = buildTrackGeometryFromPayload(payload, 'Example Circuit');
+  assert.ok(result);
 
   assert.equal(result.layouts.length, 1);
   assert.equal(result.layouts[0]!.stats.segmentCount, 4);
@@ -890,7 +905,8 @@ test('NAMED_LAYOUT_KEYWORD_PATTERN matches variant way names', () => {
 
 test('Red Bull Ring fixture produces multiple layouts via variant substitution', () => {
   const fixture = loadFixture('red-bull-ring.json');
-  const result = buildTrackGeometryFromPayload(fixture, 'Red Bull Ring', GEOMETRY_HINTS['Red Bull Ring'])!;
+  const result = buildTrackGeometryFromPayload(fixture, 'Red Bull Ring', GEOMETRY_HINTS['Red Bull Ring']);
+  assert.ok(result);
   assert.ok(result.layouts.length >= 2, `Expected >= 2 layouts, got ${result.layouts.length}`);
   assertLayoutInvariants(result.layouts[0]!, { maxGapMeters: 120 });
   expectApproxLength(result.layouts[0]!.nodes, 4.6, 0.5);
@@ -902,7 +918,8 @@ test('Red Bull Ring fixture produces multiple layouts via variant substitution',
 
 test('Barcelona fixture produces multiple layouts from high-overlap relations', () => {
   const fixture = loadFixture('barcelona.json');
-  const result = buildTrackGeometryFromPayload(fixture, 'Circuit de Barcelona-Catalunya')!;
+  const result = buildTrackGeometryFromPayload(fixture, 'Circuit de Barcelona-Catalunya');
+  assert.ok(result);
   assert.ok(result.layouts.length >= 2, `Expected >= 2 layouts, got ${result.layouts.length}`);
   assertLayoutInvariants(result.layouts[0]!, { maxGapMeters: 120 });
   expectApproxLength(result.layouts[0]!.nodes, 4.7, 0.5);

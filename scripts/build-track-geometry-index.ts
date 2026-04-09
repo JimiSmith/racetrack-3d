@@ -568,7 +568,7 @@ function buildTrackQueryCandidates(track: TrackSearchEntry & TrackBuildOverride)
 
 export function parseArgs(argv: string[]): ParsedOptions {
   const options: ParsedOptions = {
-    track: null as string | null,
+    track: null,
     limit: Number.POSITIVE_INFINITY,
     validateOnly: false,
     strict: false,

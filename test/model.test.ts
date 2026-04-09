@@ -408,7 +408,7 @@ test('buildTrackModel keeps embossed text after the track segment and out of the
 });
 
 test('computeScale fits the base plate inside a 200mm bounding box', () => {
-  const scale = computeScale({ width: 400, height: 150, minX: 0, maxX: 400, minY: 0, maxY: 150 });
+  const scale = computeScale({ width: 400, height: 150 });
 
   assert.equal(scale, 0.5);
   assert.ok(400 * scale <= 200);
