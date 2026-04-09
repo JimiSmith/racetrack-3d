@@ -9,6 +9,7 @@ import { extractWays } from '../src/geometry/osm-elements.js';
 import { stitchWaysOrdered } from '../src/geometry/way-stitching.js';
 import { closeNodeChainIfNearClosed, dedupeSequentialNodes } from '../src/geometry/chain-cleanup.js';
 import { measurePolylineLength } from '../src/geometry/geo-math.js';
+import type { LatLonNode as LatLon } from '../src/types/geometry.js';
 import {
   fetchAdaptiveOsmApiMapPayload,
   fetchOsmApiMapPayload,
@@ -16,11 +17,6 @@ import {
   parseOsmApiMapXml,
   supplementPayloadWithMissingRelationWays,
 } from './lib/osm-api-source.js';
-
-interface LatLon {
-  lat: number;
-  lon: number;
-}
 
 interface TrackSearchEntry {
   wikidataId: string;

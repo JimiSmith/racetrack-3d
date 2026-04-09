@@ -1,7 +1,4 @@
-interface LatLon {
-  lat: number;
-  lon: number;
-}
+import type { LatLonNode as LatLon } from '../../src/types/geometry.js';
 
 interface OsmWay {
   id: number;
