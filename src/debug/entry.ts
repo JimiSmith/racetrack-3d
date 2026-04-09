@@ -46,6 +46,8 @@ const UNTAGGED = '__untagged__';
 
 // Tags always shown in filter panel (build-step relevant)
 const PRIORITY_TAG_KEYS = ['highway', 'rel:type', 'rel:route', 'sport'];
+// Tags that start expanded in the filter panel
+const DEFAULT_EXPANDED_KEYS = new Set(['highway', 'rel:type']);
 // Tags excluded from auto-discovery (noisy/uninteresting)
 const EXCLUDED_TAG_KEYS = new Set([
   'source', 'created_by', 'note', 'fixme', 'attribution', 'import',
@@ -193,6 +195,7 @@ async function selectTrack(track: SearchResult): Promise<void> {
 
     drawOsmWays(ways);
     rebuildTagCensus();
+    initCollapsedGroups();
     renderFilterPanel();
     updateFilteredStatus();
   } catch (err) {
@@ -253,6 +256,7 @@ function clearMap(): void {
   wayRelationMap.clear();
   tagCensus = new Map();
   activeFilters.clear();
+  collapsedGroups.clear();
   filterGroups.innerHTML = '';
   renderWayList();
 }
@@ -526,22 +530,21 @@ function updateFilteredStatus(shownCount?: number, totalCount?: number): void {
 
 // --- Filter panel rendering ---
 
+function initCollapsedGroups(): void {
+  const keys = getFilterableTagKeys();
+  for (const key of keys) {
+    if (!DEFAULT_EXPANDED_KEYS.has(key)) {
+      collapsedGroups.add(key);
+    }
+  }
+}
+
 function renderFilterPanel(): void {
   const keys = getFilterableTagKeys();
   if (keys.length === 0) {
     filterGroups.innerHTML = '';
     return;
   }
-
-  // Initialize collapsed state: only highway and rel:type start expanded
-  for (const key of keys) {
-    if (!PRIORITY_TAG_KEYS.slice(0, 2).includes(key) && !collapsedGroups.has(key)) {
-      collapsedGroups.add(key);
-    }
-  }
-  // Make sure highway and rel:type are NOT collapsed (remove if present)
-  collapsedGroups.delete('highway');
-  collapsedGroups.delete('rel:type');
 
   const html = keys.map(key => {
     const values = tagCensus.get(key)!;
