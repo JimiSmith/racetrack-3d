@@ -3,7 +3,9 @@ import test from 'node:test';
 
 import { buildPreviewGeometry } from '../src/preview/model-mesh.js';
 
-function readVector(attribute, index) {
+type Vec3 = { x: number; y: number; z: number };
+
+function readVector(attribute: { getX(index: number): number; getY(index: number): number; getZ(index: number): number }, index: number): Vec3 {
   return {
     x: attribute.getX(index),
     y: attribute.getY(index),
@@ -11,18 +13,18 @@ function readVector(attribute, index) {
   };
 }
 
-function approxEqual(actual, expected, tolerance = 1e-6) {
+function approxEqual(actual: number, expected: number, tolerance = 1e-6) {
   assert.ok(Math.abs(actual - expected) <= tolerance, `expected ${actual} to be within ${tolerance} of ${expected}`);
 }
 
-function approxVector(actual, expected, tolerance = 1e-6) {
+function approxVector(actual: Vec3, expected: Vec3, tolerance = 1e-6) {
   approxEqual(actual.x, expected.x, tolerance);
   approxEqual(actual.y, expected.y, tolerance);
   approxEqual(actual.z, expected.z, tolerance);
 }
 
 test('buildPreviewGeometry smooths shared track faces while preserving sharp side edges', () => {
-  const triangles = [
+  const triangles: [Vec3, Vec3, Vec3][] = [
     [
       { x: 0, y: 0, z: 0 },
       { x: 1, y: 0, z: 0 },

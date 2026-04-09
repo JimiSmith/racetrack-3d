@@ -9,7 +9,7 @@ export const BASE_CORNER_SEGMENTS_PER_CORNER = 8;
 export const TARGET_MAX_SIZE_MM = 200; // fit model within this bounding box dimension
 
 // Compute a scale factor so the outline fits within TARGET_MAX_SIZE_MM
-export function computeScale(basePlate: BasePlate): number {
+export function computeScale(basePlate: Pick<BasePlate, 'width' | 'height'>): number {
   const longestSide = Math.max(basePlate.width, basePlate.height); // metres
   if (longestSide <= 0) { return 1; }
   return TARGET_MAX_SIZE_MM / longestSide;

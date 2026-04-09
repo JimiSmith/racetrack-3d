@@ -16,7 +16,11 @@ import {
   computeRankedTextPlacements,
 } from '../src/text3d.js';
 
-function rectangleCommands(x, y, width, height) {
+type Point = { x: number; y: number };
+type Vertex3D = { x: number; y: number; z: number };
+type Bounds = { minX: number; maxX: number; minY: number; maxY: number };
+
+function rectangleCommands(x: number, y: number, width: number, height: number) {
   return [
     { type: 'M', x, y },
     { type: 'L', x: x + width, y },
@@ -29,10 +33,10 @@ function rectangleCommands(x, y, width, height) {
 function createMockFont() {
   return {
     unitsPerEm: 1000,
-    charToGlyph(char) {
+    charToGlyph(char: string) {
       return { advanceWidth: char === ' ' ? 400 : 1200 };
     },
-    getPath(text, startX, startY, fontSize) {
+    getPath(text: string, startX: number, startY: number, fontSize: number) {
       const commands = [];
       let cursor = startX;
 
@@ -70,14 +74,14 @@ function createCanvasCoordinateLFont() {
   };
 }
 
-function triangleArea2d(a, b, c) {
+function triangleArea2d(a: Point, b: Point, c: Point) {
   return Math.abs(
     (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) / 2,
   );
 }
 
-function triangleBounds(triangles) {
-  return triangles.flat().reduce((bounds, vertex) => ({
+function triangleBounds(triangles: Point[][]) {
+  return triangles.flat().reduce((bounds: Bounds, vertex: Point) => ({
     minX: Math.min(bounds.minX, vertex.x),
     maxX: Math.max(bounds.maxX, vertex.x),
     minY: Math.min(bounds.minY, vertex.y),
@@ -90,32 +94,32 @@ function triangleBounds(triangles) {
   });
 }
 
-function boundsCenter(bounds) {
+function boundsCenter(bounds: Bounds) {
   return {
     x: (bounds.minX + bounds.maxX) / 2,
     y: (bounds.minY + bounds.maxY) / 2,
   };
 }
 
-function assertRenderedLineOrder(layout) {
+function assertRenderedLineOrder(layout: { lines: string[]; lineBounds: Bounds[] }) {
   assert.ok(layout);
   assert.equal(layout.lines.length, layout.lineBounds.length);
 
   const centers = layout.lineBounds.map(boundsCenter);
   for (let index = 1; index < centers.length; index += 1) {
     assert.ok(
-      centers[index - 1].y > centers[index].y,
-      `expected line ${index - 1} above line ${index}, got ${centers[index - 1].y} and ${centers[index].y}`,
+      centers[index - 1]!.y > centers[index]!.y,
+      `expected line ${index - 1} above line ${index}, got ${centers[index - 1]!.y} and ${centers[index]!.y}`,
     );
   }
 }
 
-function collapseWhitespace(text) {
+function collapseWhitespace(text: string) {
   return String(text).trim().split(/\s+/u).filter(Boolean).join(' ');
 }
 
-function rotateTrianglesByOrientation(triangles, orientationDeg) {
-  return triangles.map(triangle => triangle.map(vertex => {
+function rotateTrianglesByOrientation(triangles: Vertex3D[][], orientationDeg: number) {
+  return triangles.map((triangle: Vertex3D[]) => triangle.map((vertex: Vertex3D) => {
     switch (orientationDeg) {
       case 90:
         return { ...vertex, x: -vertex.y, y: vertex.x };
@@ -129,13 +133,16 @@ function rotateTrianglesByOrientation(triangles, orientationDeg) {
   }));
 }
 
-function sumTopFaceAreaByHalf(triangles) {
-  const topZ = Math.max(...triangles.flatMap(triangle => triangle.map(vertex => vertex.z)));
-  const topFaceTriangles = triangles.filter(triangle => triangle.every(vertex => vertex.z === topZ));
-  const ys = topFaceTriangles.flatMap(triangle => triangle.map(vertex => vertex.y));
+function sumTopFaceAreaByHalf(triangles: Vertex3D[][]) {
+  const topZ = Math.max(...triangles.flatMap((triangle: Vertex3D[]) => triangle.map((vertex: Vertex3D) => vertex.z)));
+  const topFaceTriangles = triangles.filter((triangle: Vertex3D[]) => triangle.every((vertex: Vertex3D) => vertex.z === topZ));
+  const ys = topFaceTriangles.flatMap((triangle: Vertex3D[]) => triangle.map((vertex: Vertex3D) => vertex.y));
   const midY = (Math.min(...ys) + Math.max(...ys)) / 2;
 
-  return topFaceTriangles.reduce((areas, [a, b, c]) => {
+  return topFaceTriangles.reduce((areas: { lower: number; upper: number }, tri: Vertex3D[]) => {
+    const a = tri[0]!;
+    const b = tri[1]!;
+    const c = tri[2]!;
     const centroidY = (a.y + b.y + c.y) / 3;
     const area = triangleArea2d(a, b, c);
 
@@ -183,7 +190,7 @@ function smallHoleOutline() {
   };
 }
 
-function centeredHoleOutline({ width = 2000, height = 2000, holeMinX, holeMaxX, holeMinY, holeMaxY }) {
+function centeredHoleOutline({ width = 2000, height = 2000, holeMinX, holeMaxX, holeMinY, holeMaxY }: { width?: number; height?: number; holeMinX: number; holeMaxX: number; holeMinY: number; holeMaxY: number }) {
   return {
     outerRing: [
       { x: 0, y: 0 },
@@ -393,7 +400,7 @@ test('ranked placements sort by score, then candidate index', () => {
     { id: 'lower-score', score: 9, candidateIndex: 2 },
     { id: 'best-score-lowest-candidate', score: 10, candidateIndex: 0 },
     { id: 'best-score-higher-candidate', score: 10, candidateIndex: 1 },
-  ].sort(__debugCompareRankedTextPlacements);
+  ].sort((a, b) => __debugCompareRankedTextPlacements(a as any, b as any));
 
   assert.deepEqual(placements.map(({ id }) => id), [
     'best-score-lowest-candidate',
@@ -433,6 +440,7 @@ test('grid blocking marks cells whose rectangles intersect the track outline', (
       { x: 12.2, y: 24 },
       { x: 11.8, y: 24 },
     ],
+    holes: [] as Point[][],
   };
 
   const candidates = __debugPlacementCandidates(outline, {
@@ -525,7 +533,7 @@ test('multiline line stacking preserves top-to-bottom order without rotation', (
   assert.ok(layout);
   assert.ok(layout.lines.length > 1, `expected multiline, got: ${JSON.stringify(layout.lines)}`);
   assert.equal(collapseWhitespace(layout.text), 'Autodromo Nazionale di Monza');
-  assertRenderedLineOrder(layout);
+  assertRenderedLineOrder(layout as any);
 });
 
 test('placement rank does not alter word order', () => {
@@ -546,12 +554,12 @@ test('placement rank does not alter word order', () => {
   });
 
   for (const [layout, expectedText] of [
-    [firstRank, rankText],
-    [secondRank, rankText],
+    [firstRank, rankText] as const,
+    [secondRank, rankText] as const,
   ]) {
     assert.ok(layout);
-    assert.equal(collapseWhitespace(layout.text), expectedText);
-    assert.equal(layout.text, layout.lines.join('\n'));
+    assert.equal(collapseWhitespace(layout!.text), expectedText);
+    assert.equal(layout!.text, layout!.lines.join('\n'));
   }
 });
 
@@ -704,8 +712,8 @@ test('fully outside candidates outrank larger fully inside candidates', () => {
   assert.ok(largestInsideCandidate);
   assert.ok(outsideCandidate.area < largestInsideCandidate.area);
   assert.ok(placement);
-  assert.ok(placement.candidateFractionOutside > 0.9);
-  assert.ok(placement.candidateArea < largestInsideCandidate.area);
+  assert.ok(placement.candidateFractionOutside! > 0.9);
+  assert.ok(placement.candidateArea! < largestInsideCandidate.area);
 });
 
 test('scored placements expose textClearanceMultiplier in the expected range', () => {
@@ -713,11 +721,11 @@ test('scored placements expose textClearanceMultiplier in the expected range', (
   const basePlate = { minX: -200, maxX: 4200, minY: -200, maxY: 2700, width: 4400, height: 2900 };
 
   const result = computeRankedTextPlacements('Circuit Name', outline, basePlate, 1, {
-    font: createMockFont(),
+    font: createMockFont() as any,
   });
 
   assert.ok(result);
-  const allPlacements = result.allScoredPlacements;
+  const allPlacements = result.allScoredPlacements!;
   assert.ok(allPlacements.length > 0, 'expected at least one placement');
 
   for (const placement of allPlacements) {
@@ -745,17 +753,17 @@ test('text clearance multiplier is higher when text has more breathing room from
   const basePlate = { minX: 0, maxX: 2200, minY: 0, maxY: 2200, width: 2200, height: 2200 };
 
   const shortResult = computeRankedTextPlacements('GO', outline, basePlate, 1, {
-    font: createMockFont(),
+    font: createMockFont() as any,
   });
   const longResult = computeRankedTextPlacements('A Very Long Circuit Name', outline, basePlate, 1, {
-    font: createMockFont(),
+    font: createMockFont() as any,
   });
 
   assert.ok(shortResult);
   assert.ok(longResult);
 
-  const shortBest = shortResult.allScoredPlacements[0];
-  const longBest = longResult.allScoredPlacements[0];
+  const shortBest = shortResult.allScoredPlacements![0];
+  const longBest = longResult.allScoredPlacements![0];
 
   assert.ok(shortBest, 'expected a placement for short text');
   assert.ok(longBest, 'expected a placement for long text');
@@ -765,7 +773,7 @@ test('text clearance multiplier is higher when text has more breathing room from
 
   // Short text fills less of the rectangle, so it has more margin → higher text clearance
   assert.ok(
-    shortTcm >= longTcm,
+    shortTcm! >= longTcm!,
     `short text clearance ${shortTcm} should be >= long text clearance ${longTcm}`,
   );
 });
@@ -783,15 +791,15 @@ test('text clearance multiplier is above the floor when text is far from the tra
   const basePlate = { minX: -200, maxX: 6200, minY: -200, maxY: 6200, width: 6400, height: 6400 };
 
   const result = computeRankedTextPlacements('Hi', outline, basePlate, 1, {
-    font: createMockFont(),
+    font: createMockFont() as any,
   });
 
   assert.ok(result);
-  const best = result.allScoredPlacements[0];
+  const best = result.allScoredPlacements![0];
   assert.ok(best, 'expected a placement');
   const tcm = best.scoreBreakdown?.textClearanceMultiplier;
   assert.ok(
-    tcm > 0.96,
+    tcm! > 0.96,
     `text far from track should have clearance above the 0.96 floor, got ${tcm}`,
   );
 });
@@ -815,7 +823,7 @@ test('placement score includes text clearance contribution and remains finite', 
 test('DP line breaks return correct number of lines', () => {
   const font = createMockFont();
   for (let k = 1; k <= 4; k += 1) {
-    const lines = __findOptimalLineBreaks('Las Vegas Strip Circuit', k, font);
+    const lines = __findOptimalLineBreaks('Las Vegas Strip Circuit', k, font) as string[];
     assert.equal(lines.length, k, `expected ${k} lines, got ${lines.length}`);
   }
 });
@@ -823,7 +831,7 @@ test('DP line breaks return correct number of lines', () => {
 test('DP line breaks preserve all words in order', () => {
   const font = createMockFont();
   for (let k = 1; k <= 3; k += 1) {
-    const lines = __findOptimalLineBreaks('Las Vegas Strip Circuit', k, font);
+    const lines = __findOptimalLineBreaks('Las Vegas Strip Circuit', k, font) as string[];
     const reassembled = lines.join(' ');
     assert.equal(reassembled, 'Las Vegas Strip Circuit');
   }
@@ -831,14 +839,13 @@ test('DP line breaks preserve all words in order', () => {
 
 test('DP line breaks avoid orphaning short words', () => {
   const font = createMockFont();
-  const lines = __findOptimalLineBreaks('Autodromo Internazionale del Mugello', 3, font);
+  const lines = __findOptimalLineBreaks('Autodromo Internazionale del Mugello', 3, font) as string[];
   assert.equal(lines.length, 3);
-  // "del" (3 chars) should not be isolated on its own line
   for (const line of lines) {
     const words = line.split(' ');
     if (words.length === 1) {
       assert.ok(
-        words[0].length > 3,
+        words[0]!.length > 3,
         `Short word "${words[0]}" isolated on its own line: ${JSON.stringify(lines)}`,
       );
     }
@@ -847,13 +854,13 @@ test('DP line breaks avoid orphaning short words', () => {
 
 test('DP handles single word input', () => {
   const font = createMockFont();
-  const lines = __findOptimalLineBreaks('Monza', 1, font);
+  const lines = __findOptimalLineBreaks('Monza', 1, font) as string[];
   assert.deepEqual(lines, ['Monza']);
 });
 
 test('DP handles word count equal to line count', () => {
   const font = createMockFont();
-  const lines = __findOptimalLineBreaks('A B C', 3, font);
+  const lines = __findOptimalLineBreaks('A B C', 3, font) as string[];
   assert.equal(lines.length, 3);
   assert.equal(lines.join(' '), 'A B C');
 });
@@ -863,7 +870,7 @@ test('DP handles 10+ word names efficiently', () => {
   const longName = 'Autodromo Internazionale del Mugello Formula One Grand Prix Racing Circuit';
   const start = performance.now();
   for (let k = 1; k <= 4; k += 1) {
-    const lines = __findOptimalLineBreaks(longName, k, font);
+    const lines = __findOptimalLineBreaks(longName, k, font) as string[];
     assert.equal(lines.length, k);
     assert.equal(lines.join(' '), longName);
   }
@@ -874,27 +881,27 @@ test('DP handles 10+ word names efficiently', () => {
 test('DP produces balanced lines for even-width words', () => {
   const font = createMockFont();
   // 4 words of similar length into 2 lines should split evenly (2+2)
-  const lines = __findOptimalLineBreaks('AAAA BBBB CCCC DDDD', 2, font);
+  const lines = __findOptimalLineBreaks('AAAA BBBB CCCC DDDD', 2, font) as string[];
   assert.equal(lines.length, 2);
-  const wordsPerLine = lines.map(l => l.split(' ').length);
+  const wordsPerLine = lines.map((l: string) => l.split(' ').length);
   assert.deepEqual(wordsPerLine, [2, 2]);
 });
 
 test('DP splits one word per line when lineCount equals word count', () => {
   const font = createMockFont();
-  const lines = __findOptimalLineBreaks('A B', 2, font);
+  const lines = __findOptimalLineBreaks('A B', 2, font) as string[];
   assert.deepEqual(lines, ['A', 'B']);
 });
 
 test('DP returns empty array for empty input', () => {
   const font = createMockFont();
-  const lines = __findOptimalLineBreaks('', 2, font);
+  const lines = __findOptimalLineBreaks('', 2, font) as string[];
   assert.deepEqual(lines, []);
 });
 
 test('DP clamps to one word per line when lineCount exceeds word count', () => {
   const font = createMockFont();
-  const lines = __findOptimalLineBreaks('A B', 5, font);
+  const lines = __findOptimalLineBreaks('A B', 5, font) as string[];
   assert.deepEqual(lines, ['A', 'B']);
 });
 
@@ -904,14 +911,14 @@ test('orphan penalty prevents isolating a single short word on the last line', (
   // (cost 5.76) over ["A", "B C", "DDD E"] (cost 8.32) because the first split
   // is closer to the target width. The orphan penalty must override this since
   // "E" alone on the last line is an orphan (width / target = 0.29 < 0.65).
-  const lines = __findOptimalLineBreaks('A B C DDD E', 3, font);
+  const lines = __findOptimalLineBreaks('A B C DDD E', 3, font) as string[];
   assert.deepEqual(lines, ['A', 'B C', 'DDD E']);
 });
 
 test('orphan penalty does not penalise long single words on a line', () => {
   const font = createMockFont();
   // A long word alone on a line is not an orphan — its width exceeds the threshold.
-  const lines = __findOptimalLineBreaks('Spa-Francorchamps Grand Prix', 2, font);
+  const lines = __findOptimalLineBreaks('Spa-Francorchamps Grand Prix', 2, font) as string[];
   assert.equal(lines.length, 2);
   assert.equal(lines.join(' '), 'Spa-Francorchamps Grand Prix');
 });
@@ -923,16 +930,16 @@ test('DP produces valid splits when all words render to zero width', () => {
     charToGlyph() { return { advanceWidth: 0 }; },
     getPath() { return { commands: [] }; },
   };
-  const lines = __findOptimalLineBreaks('A B C', 2, emptyFont);
+  const lines = __findOptimalLineBreaks('A B C', 2, emptyFont) as string[];
   assert.equal(lines.length, 2);
   assert.equal(lines.join(' '), 'A B C');
 });
 
 test('DP measures space width via fallback when charToGlyph is unavailable', () => {
-  const font = createMockFont();
+  const font = createMockFont() as any;
   delete font.charToGlyph;
   delete font.unitsPerEm;
-  const lines = __findOptimalLineBreaks('Las Vegas Strip Circuit', 2, font);
+  const lines = __findOptimalLineBreaks('Las Vegas Strip Circuit', 2, font) as string[];
   assert.equal(lines.length, 2);
   assert.equal(lines.join(' '), 'Las Vegas Strip Circuit');
 });
@@ -964,23 +971,23 @@ test('line-balance damping: 2-line gets most damping, decreasing for more lines'
   // 3-line damping=0.25: balance = 0.3 + 0.7*0.25 = 0.475
   // 4-line damping=0:    balance = 0.3
   assert.ok(
-    score2.breakdown.lineBalance > score3.breakdown.lineBalance,
+    score2.breakdown.lineBalance! > score3.breakdown.lineBalance!,
     `2-line balance (${score2.breakdown.lineBalance}) should exceed 3-line (${score3.breakdown.lineBalance})`,
   );
   assert.ok(
-    score3.breakdown.lineBalance > score4.breakdown.lineBalance,
+    score3.breakdown.lineBalance! > score4.breakdown.lineBalance!,
     `3-line balance (${score3.breakdown.lineBalance}) should exceed 4-line (${score4.breakdown.lineBalance})`,
   );
   assert.ok(
-    Math.abs(score2.breakdown.lineBalance - 0.825) < 0.001,
+    Math.abs(score2.breakdown.lineBalance! - 0.825) < 0.001,
     `2-line balance should be ~0.825, got ${score2.breakdown.lineBalance}`,
   );
   assert.ok(
-    Math.abs(score3.breakdown.lineBalance - 0.475) < 0.001,
+    Math.abs(score3.breakdown.lineBalance! - 0.475) < 0.001,
     `3-line balance should be ~0.475, got ${score3.breakdown.lineBalance}`,
   );
   assert.ok(
-    Math.abs(score4.breakdown.lineBalance - 0.3) < 0.001,
+    Math.abs(score4.breakdown.lineBalance! - 0.3) < 0.001,
     `4-line balance should be ~0.3, got ${score4.breakdown.lineBalance}`,
   );
 });

@@ -57,11 +57,14 @@ declare module 'three' {
   export class Group extends Object3D {}
   export class BufferGeometry {
     setAttribute(name: string, attribute: BufferAttribute): this;
+    getAttribute(name: string): BufferAttribute;
     setIndex(index: number[]): this;
+    index: null | { count: number };
     dispose(): void;
   }
   export class BufferAttribute {
     constructor(array: Float32Array, itemSize: number);
+    count: number;
     getX(index: number): number;
     getY(index: number): number;
     getZ(index: number): number;

@@ -4,11 +4,11 @@ import test from 'node:test';
 import { buildBasePlate, buildTrackOutline } from '../src/geometry/outline.js';
 import { projectNodes } from '../src/geometry/projection.js';
 
-function approxEqual(actual, expected, tolerance = 1e-6) {
+function approxEqual(actual: number, expected: number, tolerance = 1e-6) {
   assert.ok(Math.abs(actual - expected) <= tolerance, `expected ${actual} to be within ${tolerance} of ${expected}`);
 }
 
-function bbox(points) {
+function bbox(points: { x: number; y: number }[]) {
   return points.reduce((bounds, point) => ({
     minX: Math.min(bounds.minX, point.x),
     maxX: Math.max(bounds.maxX, point.x),
@@ -22,14 +22,14 @@ function bbox(points) {
   });
 }
 
-function area(bounds) {
+function area(bounds: { minX: number; maxX: number; minY: number; maxY: number }) {
   return (bounds.maxX - bounds.minX) * (bounds.maxY - bounds.minY);
 }
 
-function expectNoDuplicateSequentialPoints(points) {
+function expectNoDuplicateSequentialPoints(points: { x: number; y: number }[]) {
   for (let index = 1; index < points.length; index += 1) {
-    const previous = points[index - 1];
-    const current = points[index];
+    const previous = points[index - 1]!;
+    const current = points[index]!;
     assert.ok(previous.x !== current.x || previous.y !== current.y, `duplicate sequential points at ${index - 1}/${index}`);
   }
 }
@@ -43,10 +43,10 @@ test('projectNodes converts lat/lon nodes into metre-space x/y values', () => {
   const projected = projectNodes(nodes);
   const cosLat = Math.cos((10.0005 * Math.PI) / 180);
 
-  approxEqual(projected[0].x, -0.001 * cosLat * 111320, 1e-9);
-  approxEqual(projected[1].x, 0.001 * cosLat * 111320, 1e-9);
-  approxEqual(projected[0].y, -0.0005 * 111320, 1e-9);
-  approxEqual(projected[1].y, 0.0005 * 111320, 1e-9);
+  approxEqual(projected[0]!.x, -0.001 * cosLat * 111320, 1e-9);
+  approxEqual(projected[1]!.x, 0.001 * cosLat * 111320, 1e-9);
+  approxEqual(projected[0]!.y, -0.0005 * 111320, 1e-9);
+  approxEqual(projected[1]!.y, 0.0005 * 111320, 1e-9);
 });
 
 test('buildTrackOutline returns outerRing and holes for straight and loop inputs', () => {

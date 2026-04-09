@@ -11,7 +11,7 @@ import {
   resolveSupportedTracks,
   sanitizeBuildGeometryResult,
   sliceWayNodes,
-} from '../scripts/build-track-geometry-index.mjs';
+} from '../scripts/build-track-geometry-index.js';
 
 test('geometry index build defaults parse correctly', () => {
   const options = parseArgs([]);
@@ -42,11 +42,11 @@ test('geometry index build resolves the full supported search index', () => {
 
   const resolved = resolveSupportedTracks('spa');
   assert.equal(resolved.length, 1);
-  assert.equal(resolved[0].key, 'spa');
+  assert.equal(resolved[0]!.key, 'spa');
 
   const byAlias = resolveSupportedTracks('Melbourne Grand Prix Circuit');
   assert.equal(byAlias.length, 1);
-  assert.equal(byAlias[0].wikidataId, 'Q171288');
+  assert.equal(byAlias[0]!.wikidataId, 'Q171288');
 
   const allResolved = resolveSupportedTracks(null);
   assert.equal(allResolved.length, SUPPORTED_TRACKS.length);
@@ -57,11 +57,11 @@ test('geometry index build reports a useful error for unknown tracks', () => {
 });
 
 test('geometry index build exit policy only fails on policy-worthy outcomes by default', () => {
-  assert.equal(determineExitCode({ builtSuccessfully: [{ name: 'Track' }], reusedExisting: [], failed: [], flaggedForManualReview: [], targetedTrackFailed: false }, { strict: false }), 0);
-  assert.equal(determineExitCode({ builtSuccessfully: [], reusedExisting: [{ name: 'Track' }], failed: [], flaggedForManualReview: [], targetedTrackFailed: false }, { strict: false }), 0);
-  assert.equal(determineExitCode({ builtSuccessfully: [], reusedExisting: [], skipped: [{ name: 'Track' }], failed: [], flaggedForManualReview: [], targetedTrackFailed: false }, { strict: false }), 0);
-  assert.equal(determineExitCode({ builtSuccessfully: [], reusedExisting: [], failed: [{ name: 'Track' }], flaggedForManualReview: [], targetedTrackFailed: false }, { strict: false }), 1);
-  assert.equal(determineExitCode({ builtSuccessfully: [{ name: 'Track' }], reusedExisting: [], failed: [], flaggedForManualReview: [{ name: 'Track' }], targetedTrackFailed: false }, { strict: true }), 1);
+  assert.equal(determineExitCode({ builtSuccessfully: [{ name: 'Track' }], reusedExisting: [], failed: [], flaggedForManualReview: [], targetedTrackFailed: false } as any, { strict: false } as any), 0);
+  assert.equal(determineExitCode({ builtSuccessfully: [], reusedExisting: [{ name: 'Track' }], failed: [], flaggedForManualReview: [], targetedTrackFailed: false } as any, { strict: false } as any), 0);
+  assert.equal(determineExitCode({ builtSuccessfully: [], reusedExisting: [], skipped: [{ name: 'Track' }], failed: [], flaggedForManualReview: [], targetedTrackFailed: false } as any, { strict: false } as any), 0);
+  assert.equal(determineExitCode({ builtSuccessfully: [], reusedExisting: [], failed: [{ name: 'Track' }], flaggedForManualReview: [], targetedTrackFailed: false } as any, { strict: false } as any), 1);
+  assert.equal(determineExitCode({ builtSuccessfully: [{ name: 'Track' }], reusedExisting: [], failed: [], flaggedForManualReview: [{ name: 'Track' }], targetedTrackFailed: false } as any, { strict: true } as any), 1);
 });
 
 test('geometry index build uses deterministic per-track stale thresholds with jitter', () => {
@@ -128,15 +128,15 @@ test('geometry index build limits stale processing without counting fresh tracks
     },
   };
 
-  const result = await partitionTracksByStaleness(tracks, {
+  const result = await partitionTracksByStaleness(tracks as any, {
     now,
     limit: 2,
-    loadExistingTrackEntry: async wikidataId => existingArtifact[wikidataId] ?? null,
+    loadExistingTrackEntry: async (wikidataId: string) => existingArtifact[wikidataId as keyof typeof existingArtifact] ?? null,
   });
 
-  assert.deepEqual(result.freshTracks.map(track => track.wikidataId), ['Q1']);
-  assert.deepEqual(result.staleTracks.map(track => track.wikidataId), ['Q2', 'Q3']);
-  assert.deepEqual(result.deferredTracks.map(track => track.wikidataId), ['Q4']);
+  assert.deepEqual(result.freshTracks.map((track: any) => track.wikidataId), ['Q1']);
+  assert.deepEqual(result.staleTracks.map((track: any) => track.wikidataId), ['Q2', 'Q3']);
+  assert.deepEqual(result.deferredTracks.map((track: any) => track.wikidataId), ['Q4']);
 });
 
 test('geometry index build accepts --force with a single track target', () => {
@@ -165,15 +165,15 @@ test('geometry index build force flag bypasses staleness check', async () => {
   };
 
   // Without --force: fresh track goes to freshTracks
-  const withoutForce = await partitionTracksByStaleness(tracks, {
+  const withoutForce = await partitionTracksByStaleness(tracks as any, {
     now,
-    loadExistingTrackEntry: async wikidataId => existingArtifact[wikidataId] ?? null,
+    loadExistingTrackEntry: async (wikidataId: string) => existingArtifact[wikidataId as keyof typeof existingArtifact] ?? null,
   });
-  assert.deepEqual(withoutForce.freshTracks.map(t => t.wikidataId), ['Q1']);
-  assert.deepEqual(withoutForce.staleTracks.map(t => t.wikidataId), []);
+  assert.deepEqual(withoutForce.freshTracks.map((t: any) => t.wikidataId), ['Q1']);
+  assert.deepEqual(withoutForce.staleTracks.map((t: any) => t.wikidataId), []);
 
   // With --force: same track goes to staleTracks regardless
-  const withForce = { freshTracks: [], staleTracks: tracks, deferredTracks: [] };
+  const withForce = { freshTracks: [] as typeof tracks, staleTracks: tracks, deferredTracks: [] as typeof tracks };
   assert.deepEqual(withForce.freshTracks.map(t => t.wikidataId), []);
   assert.deepEqual(withForce.staleTracks.map(t => t.wikidataId), ['Q1']);
 });

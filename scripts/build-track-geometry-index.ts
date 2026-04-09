@@ -9,13 +9,137 @@ import { extractWays } from '../src/geometry/osm-elements.js';
 import { stitchWaysOrdered } from '../src/geometry/way-stitching.js';
 import { closeNodeChainIfNearClosed, dedupeSequentialNodes } from '../src/geometry/chain-cleanup.js';
 import { measurePolylineLength } from '../src/geometry/geo-math.js';
+import type { LatLonNode as LatLon } from '../src/types/geometry.js';
 import {
   fetchAdaptiveOsmApiMapPayload,
   fetchOsmApiMapPayload,
   flattenSuperRelations,
   parseOsmApiMapXml,
   supplementPayloadWithMissingRelationWays,
-} from './lib/osm-api-source.mjs';
+} from './lib/osm-api-source.js';
+
+interface TrackSearchEntry {
+  wikidataId: string;
+  key?: string;
+  label: string;
+  trackName?: string;
+  wikidataShortName?: string;
+  lat: number;
+  lon: number;
+  type?: string;
+  aliases?: string[];
+  [k: string]: unknown;
+}
+
+interface WaySliceEntry {
+  wayId: number;
+  fromNode?: LatLon | null;
+  toNode?: LatLon | null;
+}
+
+type ManualWayEntry = number | WaySliceEntry;
+
+interface ManualLayoutDef {
+  name: string;
+  wayIds: ManualWayEntry[];
+}
+
+interface TrackBuildOverride {
+  key?: string;
+  osmApiMargins?: number[];
+  expectedLayoutNames?: string[];
+  manualLayoutWays?: ManualLayoutDef[];
+  layoutLengthTargets?: Record<string, number>;
+}
+
+type ResolvedTrack = TrackSearchEntry & TrackBuildOverride & {
+  trackName: string;
+  key: string;
+  osmApiMargins: number[];
+  expectedLayoutNames: string[];
+};
+
+interface LayoutStats {
+  lengthMetres: number;
+  segmentCount: number;
+  variantSectionCount: number;
+}
+
+interface Layout {
+  id?: string;
+  name: string;
+  nodes: LatLon[];
+  stats: LayoutStats;
+}
+
+interface GeometryResult {
+  layouts: Layout[];
+  selectedLayoutIndex?: number;
+  osmVenueNames?: string[];
+}
+
+interface BuildMetadata {
+  sourceUsed: string;
+  margin?: number | null | undefined;
+  cacheHit?: boolean | undefined;
+  stopReason?: string | undefined;
+  attempts?: number | undefined;
+  requestAttempts?: number | undefined;
+  retryCount?: number | undefined;
+  pacingDelayMs?: number | undefined;
+  retryDelayMs?: number | undefined;
+}
+
+interface BuildResult {
+  geometryResult: GeometryResult;
+  metadata: BuildMetadata;
+}
+
+interface ParsedOptions {
+  track: string | null;
+  limit: number;
+  validateOnly: boolean;
+  strict: boolean;
+  force: boolean;
+  cacheDir: string;
+  cacheTtlHours: number;
+  noCache: boolean;
+}
+
+interface ReportItem {
+  wikidataId?: string;
+  name: string;
+  message?: string;
+  layoutCount?: number;
+  sourceUsed?: string;
+  reason?: string;
+}
+
+interface BuildReport {
+  builtSuccessfully: ReportItem[];
+  reusedExisting: ReportItem[];
+  skipped: ReportItem[];
+  flaggedForManualReview: ReportItem[];
+  failed: ReportItem[];
+  targetedTrackFailed: boolean;
+}
+
+interface TrackGeometryEntry {
+  trackId: string;
+  source: {
+    kind?: string;
+    generatedAt: string;
+    failureMessage?: string;
+    [k: string]: unknown;
+  };
+  [k: string]: unknown;
+}
+
+interface PartitionOptions {
+  now?: number;
+  limit?: number;
+  loadExistingTrackEntry?: (wikidataId: string) => Promise<TrackGeometryEntry | null>;
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -32,7 +156,7 @@ const GEOMETRY_STALE_JITTER_MS = 3 * 24 * 60 * 60 * 1000;
 const GEOMETRY_FAILURE_STALE_AFTER_MS = 3 * 24 * 60 * 60 * 1000;
 const GEOMETRY_FAILURE_STALE_JITTER_MS = 1 * 24 * 60 * 60 * 1000;
 
-const TRACK_BUILD_OVERRIDES = new Map([
+const TRACK_BUILD_OVERRIDES: Map<string, TrackBuildOverride> = new Map([
   ['Q174090', {
     key: 'circuit-de-la-sarthe',
     osmApiMargins: [0.015, 0.025, 0.04, 0.08],
@@ -269,28 +393,28 @@ const TRACK_BUILD_OVERRIDES = new Map([
   }],
 ]);
 
-export const SUPPORTED_TRACKS = trackSearchIndex
+export const SUPPORTED_TRACKS = (trackSearchIndex as TrackSearchEntry[])
   .filter(track => Number.isFinite(track.lat) && Number.isFinite(track.lon) && track.wikidataId)
   .map(track => ({
     ...track,
     ...(TRACK_BUILD_OVERRIDES.get(track.wikidataId) ?? {}),
   }));
 
-function buildGeometryHints(track) {
-  const hints = {};
+function buildGeometryHints(track: TrackSearchEntry & TrackBuildOverride): Record<string, unknown> | undefined {
+  const hints: Record<string, unknown> = {};
   if (track.layoutLengthTargets) {
     hints.layoutLengthTargets = track.layoutLengthTargets;
   }
   return Object.keys(hints).length > 0 ? hints : undefined;
 }
 
-function normalizeText(value) {
+function normalizeText(value: unknown): string {
   return String(value ?? '')
     .trim()
     .toLowerCase();
 }
 
-function slugify(value) {
+function slugify(value: unknown): string {
   return String(value ?? '')
     .normalize('NFKD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -300,17 +424,17 @@ function slugify(value) {
     || 'layout';
 }
 
-function parseNumber(value, fallback) {
+function parseNumber(value: unknown, fallback: number): number {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function measurePolylineLengthLocal(nodes) {
+function measurePolylineLengthLocal(nodes: LatLon[]): number {
   let length = 0;
 
   for (let i = 1; i < nodes.length; i += 1) {
-    const prev = nodes[i - 1];
-    const next = nodes[i];
+    const prev = nodes[i - 1]!;
+    const next = nodes[i]!;
     const avgLat = ((prev.lat + next.lat) / 2) * Math.PI / 180;
     const dx = (next.lon - prev.lon) * Math.cos(avgLat) * 111320;
     const dy = (next.lat - prev.lat) * 111320;
@@ -322,13 +446,13 @@ function measurePolylineLengthLocal(nodes) {
 
 const MANUAL_WAY_SNAP_TOLERANCE = 1e-5;
 
-function findNearestNodeIndex(nodes, target, wayId, contextLabel) {
+function findNearestNodeIndex(nodes: LatLon[], target: LatLon, wayId: number, contextLabel: string): number {
   let bestIdx = -1;
   let bestDist = Infinity;
 
   for (let i = 0; i < nodes.length; i += 1) {
-    const dLat = nodes[i].lat - target.lat;
-    const dLon = nodes[i].lon - target.lon;
+    const dLat = nodes[i]!.lat - target.lat;
+    const dLon = nodes[i]!.lon - target.lon;
     const dist = Math.sqrt(dLat * dLat + dLon * dLon);
     if (dist < bestDist) {
       bestDist = dist;
@@ -346,7 +470,7 @@ function findNearestNodeIndex(nodes, target, wayId, contextLabel) {
   return bestIdx;
 }
 
-export function sliceWayNodes(nodes, fromNode, toNode, wayId, contextLabel) {
+export function sliceWayNodes(nodes: LatLon[], fromNode: LatLon | null | undefined, toNode: LatLon | null | undefined, wayId: number, contextLabel: string): LatLon[] {
   let startIdx = 0;
   let endIdx = nodes.length - 1;
 
@@ -367,18 +491,18 @@ export function sliceWayNodes(nodes, fromNode, toNode, wayId, contextLabel) {
   return nodes.slice(startIdx, endIdx + 1);
 }
 
-function chainManualWays(ways, contextLabel) {
+function chainManualWays(ways: { id: number; nodes: LatLon[] }[], contextLabel: string): LatLon[] {
   if (ways.length === 0) {
     throw new Error(`${contextLabel}: no ways provided to chain`);
   }
 
-  let nodes = [...ways[0].nodes];
+  let nodes = [...ways[0]!.nodes];
 
   for (let i = 1; i < ways.length; i += 1) {
-    const way = ways[i];
-    const chainEnd = nodes[nodes.length - 1];
-    const wayStart = way.nodes[0];
-    const wayEnd = way.nodes[way.nodes.length - 1];
+    const way = ways[i]!;
+    const chainEnd = nodes[nodes.length - 1]!;
+    const wayStart = way.nodes[0]!;
+    const wayEnd = way.nodes[way.nodes.length - 1]!;
 
     const dFLat = chainEnd.lat - wayStart.lat;
     const dFLon = chainEnd.lon - wayStart.lon;
@@ -403,7 +527,7 @@ function chainManualWays(ways, contextLabel) {
   return nodes;
 }
 
-function buildDefaultOsmApiMargins(track) {
+function buildDefaultOsmApiMargins(track: TrackSearchEntry): number[] {
   const type = normalizeText(track.type);
   if (type.includes('street')) {
     return [0.02, 0.04, 0.08];
@@ -412,8 +536,8 @@ function buildDefaultOsmApiMargins(track) {
   return DEFAULT_OSM_API_MARGINS;
 }
 
-function formatDelayMs(delayMs) {
-  if (!Number.isFinite(delayMs) || delayMs <= 0) {
+function formatDelayMs(delayMs: number | undefined | null): string | null {
+  if (delayMs == null || !Number.isFinite(delayMs) || delayMs <= 0) {
     return null;
   }
 
@@ -425,7 +549,7 @@ function formatDelayMs(delayMs) {
   return Number.isInteger(seconds) ? `${seconds}s` : `${seconds.toFixed(1)}s`;
 }
 
-function buildTrackQueryCandidates(track) {
+function buildTrackQueryCandidates(track: TrackSearchEntry & TrackBuildOverride): string[] {
   return [
     track.key,
     track.wikidataId,
@@ -438,8 +562,8 @@ function buildTrackQueryCandidates(track) {
     .map(normalizeText);
 }
 
-export function parseArgs(argv) {
-  const options = {
+export function parseArgs(argv: string[]): ParsedOptions {
+  const options: ParsedOptions = {
     track: null,
     limit: Number.POSITIVE_INFINITY,
     validateOnly: false,
@@ -528,7 +652,7 @@ Options:
   return options;
 }
 
-export function resolveSupportedTracks(requestedTrack, searchIndex = SUPPORTED_TRACKS) {
+export function resolveSupportedTracks(requestedTrack: string | null, searchIndex: (TrackSearchEntry & TrackBuildOverride)[] = SUPPORTED_TRACKS): ResolvedTrack[] {
   const supportedTracks = searchIndex
     .filter(track => Number.isFinite(track.lat) && Number.isFinite(track.lon) && track.wikidataId)
     .map(track => ({
@@ -553,7 +677,7 @@ export function resolveSupportedTracks(requestedTrack, searchIndex = SUPPORTED_T
   return [matchingTrack];
 }
 
-async function readJsonFile(filePath, fallbackValue) {
+async function readJsonFile(filePath: string, fallbackValue: any): Promise<any> {
   try {
     const source = await readFile(filePath, 'utf8');
     return JSON.parse(source);
@@ -566,12 +690,12 @@ async function readJsonFile(filePath, fallbackValue) {
   }
 }
 
-export async function loadExistingTrackEntry(wikidataId) {
+export async function loadExistingTrackEntry(wikidataId: string): Promise<TrackGeometryEntry | null> {
   const filePath = path.join(geometryOutputDir, `${wikidataId}.json`);
   return readJsonFile(filePath, null);
 }
 
-async function readCachedOsmPayload(track, margin, options) {
+async function readCachedOsmPayload(track: ResolvedTrack, margin: number, options: ParsedOptions): Promise<any> {
   if (options.noCache || !options.cacheDir) {
     return null;
   }
@@ -595,7 +719,7 @@ async function readCachedOsmPayload(track, margin, options) {
   };
 }
 
-async function writeCachedOsmPayload(track, margin, response, options) {
+async function writeCachedOsmPayload(track: ResolvedTrack, margin: number, response: any, options: ParsedOptions): Promise<void> {
   if (options.noCache || !options.cacheDir || !response?.xml) {
     return;
   }
@@ -611,7 +735,7 @@ async function writeCachedOsmPayload(track, margin, response, options) {
   }, null, 2)}\n`);
 }
 
-async function fetchOsmApiPayloadWithCache(track, margin, options) {
+async function fetchOsmApiPayloadWithCache(track: ResolvedTrack, margin: number, options: ParsedOptions): Promise<any> {
   const cachedResponse = await readCachedOsmPayload(track, margin, options);
   const response = cachedResponse ?? await fetchOsmApiMapPayload(track.lat, track.lon, { margin, wikidataId: track.wikidataId });
   if (!cachedResponse) {
@@ -629,11 +753,11 @@ async function fetchOsmApiPayloadWithCache(track, margin, options) {
 /**
  * Build a closed-loop polyline from a relation's way members.
  */
-function buildSubRelationLoop(relation) {
+function buildSubRelationLoop(relation: any): LatLon[] {
   const elements = [
     ...relation.members
-      .filter(m => m.type === 'way' && Array.isArray(m.geometry) && m.geometry.length >= 2)
-      .map(m => ({ type: 'way', id: m.ref, tags: {}, geometry: m.geometry })),
+      .filter((m: any) => m.type === 'way' && Array.isArray(m.geometry) && m.geometry.length >= 2)
+      .map((m: any) => ({ type: 'way', id: m.ref, tags: {}, geometry: m.geometry })),
     { type: 'relation', ...relation },
   ];
   const ways = extractWays(elements);
@@ -644,11 +768,11 @@ function buildSubRelationLoop(relation) {
 /**
  * Find the index of the node on `loop` closest to `target`.
  */
-function findClosestLoopIndex(loop, target) {
+function findClosestLoopIndex(loop: LatLon[], target: LatLon): number {
   let bestIdx = 0;
   let bestDist = Infinity;
   for (let i = 0; i < loop.length; i++) {
-    const d = Math.sqrt((loop[i].lat - target.lat) ** 2 + (loop[i].lon - target.lon) ** 2);
+    const d = Math.sqrt((loop[i]!.lat - target.lat) ** 2 + (loop[i]!.lon - target.lon) ** 2);
     if (d < bestDist) { bestDist = d; bestIdx = i; }
   }
   return bestIdx;
@@ -658,15 +782,15 @@ function findClosestLoopIndex(loop, target) {
  * Extract a segment from a closed loop going forward from `startIdx` to `endIdx`
  * (wrapping around if needed). Inclusive of both endpoints.
  */
-function extractLoopSegment(loop, startIdx, endIdx) {
+function extractLoopSegment(loop: LatLon[], startIdx: number, endIdx: number): LatLon[] {
   // Skip the duplicate closing node for wrap-around calculations.
   const isClosed = loop.length > 2
-    && loop[0].lat === loop[loop.length - 1].lat
-    && loop[0].lon === loop[loop.length - 1].lon;
+    && loop[0]!.lat === loop[loop.length - 1]!.lat
+    && loop[0]!.lon === loop[loop.length - 1]!.lon;
   const n = isClosed ? loop.length - 1 : loop.length;
   const segment = [];
   for (let i = startIdx; ; i = (i + 1) % n) {
-    segment.push(loop[i]);
+    segment.push(loop[i]!);
     if (i === endIdx) { break; }
     if (segment.length > n) { break; } // safety
   }
@@ -681,13 +805,13 @@ function extractLoopSegment(loop, startIdx, endIdx) {
  *
  * Requires exactly 2 sub-relations and at least 1 connecting way.
  */
-function buildCombinedSuperRelationLayouts(preFlattened, flattenedPayload, existingLayouts) {
+function buildCombinedSuperRelationLayouts(preFlattened: any, flattenedPayload: any, existingLayouts: Layout[] | undefined): Layout[] {
   const flatElements = flattenedPayload?.elements ?? [];
   const preElements = preFlattened?.elements ?? [];
 
   // Find super-relations from the pre-flattened payload (still has sub-relation members)
   const preSuperRelations = preElements.filter(
-    e => e.type === 'relation' && e.members?.some(m => m.type === 'relation'),
+    (e: any) => e.type === 'relation' && e.members?.some((m: any) => m.type === 'relation'),
   );
   if (preSuperRelations.length === 0) {
     return [];
@@ -696,25 +820,25 @@ function buildCombinedSuperRelationLayouts(preFlattened, flattenedPayload, exist
   const combinedLayouts = [];
   for (const preSuperRel of preSuperRelations) {
     // Identify sub-relation IDs and connecting way IDs from the pre-flattened structure
-    const subRelationIds = preSuperRel.members.filter(m => m.type === 'relation').map(m => m.ref);
-    const connectingWayIds = new Set(preSuperRel.members.filter(m => m.type === 'way').map(m => m.ref));
+    const subRelationIds = preSuperRel.members.filter((m: any) => m.type === 'relation').map((m: any) => m.ref);
+    const connectingWayIds = new Set(preSuperRel.members.filter((m: any) => m.type === 'way').map((m: any) => m.ref));
 
     if (subRelationIds.length !== 2 || connectingWayIds.size === 0) {
       continue; // only handle 2-sub-relation topology for now
     }
 
     // Build each sub-relation's loop from the supplemented (pre-flatten) payload
-    const subRelations = subRelationIds.map(id => preElements.find(e => e.type === 'relation' && e.id === id)).filter(Boolean);
+    const subRelations = subRelationIds.map((id: any) => preElements.find((e: any) => e.type === 'relation' && e.id === id)).filter(Boolean);
     if (subRelations.length !== 2) { continue; }
 
-    const loops = subRelations.map(buildSubRelationLoop);
-    if (loops.some(l => l.length < 4)) { continue; }
+    const loops: LatLon[][] = subRelations.map(buildSubRelationLoop);
+    if (loops.some((l: LatLon[]) => l.length < 4)) { continue; }
 
     // Get connecting way geometries from the pre-flatten super-relation members
     const connectingWays = [...connectingWayIds]
-      .map(id => {
-        const m = preSuperRel.members.find(m => m.ref === id && m.type === 'way');
-        return { id, geometry: m?.geometry ?? [] };
+      .map((id: any) => {
+        const m = preSuperRel.members.find((m: any) => m.ref === id && m.type === 'way');
+        return { id, geometry: (m?.geometry ?? []) as LatLon[] };
       })
       .filter(cw => cw.geometry.length >= 2);
 
@@ -724,12 +848,12 @@ function buildCombinedSuperRelationLayouts(preFlattened, flattenedPayload, exist
     // A bridging way has one endpoint near loop A and the other near loop B.
     const ATTACH_THRESHOLD = 2e-3; // ~200m
     const bridgeWays = connectingWays.filter(cw => {
-      const start = cw.geometry[0];
-      const end = cw.geometry[cw.geometry.length - 1];
-      const startNearA = findNearestDist(loops[0], start) < ATTACH_THRESHOLD;
-      const startNearB = findNearestDist(loops[1], start) < ATTACH_THRESHOLD;
-      const endNearA = findNearestDist(loops[0], end) < ATTACH_THRESHOLD;
-      const endNearB = findNearestDist(loops[1], end) < ATTACH_THRESHOLD;
+      const start = cw.geometry[0]!;
+      const end = cw.geometry[cw.geometry.length - 1]!;
+      const startNearA = findNearestDist(loops[0]!, start) < ATTACH_THRESHOLD;
+      const startNearB = findNearestDist(loops[1]!, start) < ATTACH_THRESHOLD;
+      const endNearA = findNearestDist(loops[0]!, end) < ATTACH_THRESHOLD;
+      const endNearB = findNearestDist(loops[1]!, end) < ATTACH_THRESHOLD;
       // One end near A, other near B (or vice versa)
       return (startNearA && endNearB) || (startNearB && endNearA);
     });
@@ -740,14 +864,14 @@ function buildCombinedSuperRelationLayouts(preFlattened, flattenedPayload, exist
     // Parallel bridges (e.g. pit lane + track between the same two junctions)
     // must not be used together — they'd produce a degenerate 0-length segment.
     const SAME_POINT_THRESHOLD = 5e-4;
-    let bridge1 = null;
-    let bridge2 = null;
+    let bridge1: typeof connectingWays[number] | null = null;
+    let bridge2: typeof connectingWays[number] | null = null;
     bridgeWays.sort((a, b) => measurePolylineLength(b.geometry) - measurePolylineLength(a.geometry));
     for (let i = 0; i < bridgeWays.length && !bridge2; i++) {
       for (let j = i + 1; j < bridgeWays.length && !bridge2; j++) {
-        const bi = bridgeWays[i], bj = bridgeWays[j];
-        const biStart = bi.geometry[0], biEnd = bi.geometry[bi.geometry.length - 1];
-        const bjStart = bj.geometry[0], bjEnd = bj.geometry[bj.geometry.length - 1];
+        const bi = bridgeWays[i]!, bj = bridgeWays[j]!;
+        const biStart = bi.geometry[0]!, biEnd = bi.geometry[bi.geometry.length - 1]!;
+        const bjStart = bj.geometry[0]!, bjEnd = bj.geometry[bj.geometry.length - 1]!;
         // Check that they don't connect the same pair of points
         const sameStartStart = findNearestDist([biStart], bjStart) < SAME_POINT_THRESHOLD;
         const sameEndEnd = findNearestDist([biEnd], bjEnd) < SAME_POINT_THRESHOLD;
@@ -762,10 +886,10 @@ function buildCombinedSuperRelationLayouts(preFlattened, flattenedPayload, exist
     if (!bridge1 || !bridge2) { continue; }
 
     // Orient each bridge: ensure start is on loop[0] (A) and end is on loop[1] (B).
-    function orientBridge(bridge) {
-      const start = bridge.geometry[0];
-      const startDistA = findNearestDist(loops[0], start);
-      const startDistB = findNearestDist(loops[1], start);
+    function orientBridge(bridge: typeof connectingWays[number]): LatLon[] {
+      const start = bridge.geometry[0]!;
+      const startDistA = findNearestDist(loops[0]!, start);
+      const startDistB = findNearestDist(loops[1]!, start);
       if (startDistA <= startDistB) {
         // start is on A, end is on B — correct orientation
         return bridge.geometry;
@@ -778,16 +902,16 @@ function buildCombinedSuperRelationLayouts(preFlattened, flattenedPayload, exist
     const bridge2Geo = orientBridge(bridge2);
 
     // Find attachment indices on each loop
-    const a1 = findClosestLoopIndex(loops[0], bridge1Geo[0]);
-    const a2 = findClosestLoopIndex(loops[0], bridge2Geo[0]);
-    const b1 = findClosestLoopIndex(loops[1], bridge1Geo[bridge1Geo.length - 1]);
-    const b2 = findClosestLoopIndex(loops[1], bridge2Geo[bridge2Geo.length - 1]);
+    const a1 = findClosestLoopIndex(loops[0]!, bridge1Geo[0]!);
+    const a2 = findClosestLoopIndex(loops[0]!, bridge2Geo[0]!);
+    const b1 = findClosestLoopIndex(loops[1]!, bridge1Geo[bridge1Geo.length - 1]!);
+    const b2 = findClosestLoopIndex(loops[1]!, bridge2Geo[bridge2Geo.length - 1]!);
 
     // Build the combined path:
     // A[a2 → ... → a1] + bridge1 → B[b1 → ... → b2] + bridge2_reversed → back to A[a2]
     // We take the LONG way around each loop (the main circuit, not the shortcut).
-    const segA = extractLoopSegment(loops[0], a2, a1);
-    const segB = extractLoopSegment(loops[1], b1, b2);
+    const segA = extractLoopSegment(loops[0]!, a2, a1);
+    const segB = extractLoopSegment(loops[1]!, b1, b2);
     const bridge2Reversed = [...bridge2Geo].reverse();
 
     const combined = [
@@ -799,20 +923,20 @@ function buildCombinedSuperRelationLayouts(preFlattened, flattenedPayload, exist
 
     // Close the loop
     if (combined.length > 2) {
-      combined.push(combined[0]);
+      combined.push(combined[0]!);
     }
 
     const nodes = dedupeSequentialNodes(combined);
     const length = measurePolylineLength(nodes);
 
     // Only add if significantly longer than the longest existing layout
-    const longestExisting = Math.max(...(existingLayouts ?? []).map(l => l.stats?.lengthMetres ?? 0), 0);
+    const longestExisting = Math.max(...(existingLayouts ?? []).map((l: Layout) => l.stats?.lengthMetres ?? 0), 0);
     if (length < longestExisting * 1.08 || nodes.length < 4) {
       continue;
     }
 
     // Pick the name from the flattened super-relation (which has the _wasSuperRelation tag)
-    const flatSuperRel = flatElements.find(e => e.type === 'relation' && e.id === preSuperRel.id);
+    const flatSuperRel = flatElements.find((e: any) => e.type === 'relation' && e.id === preSuperRel.id);
     const name = flatSuperRel?.tags?.name ?? preSuperRel.tags?.name ?? 'Combined';
 
     combinedLayouts.push({
@@ -830,7 +954,7 @@ function buildCombinedSuperRelationLayouts(preFlattened, flattenedPayload, exist
   return combinedLayouts;
 }
 
-function findNearestDist(loop, target) {
+function findNearestDist(loop: LatLon[], target: LatLon): number {
   let best = Infinity;
   for (const node of loop) {
     const d = Math.sqrt((node.lat - target.lat) ** 2 + (node.lon - target.lon) ** 2);
@@ -839,7 +963,7 @@ function findNearestDist(loop, target) {
   return best;
 }
 
-async function fetchPrimaryGeometryFromOsmApi(track, options) {
+async function fetchPrimaryGeometryFromOsmApi(track: ResolvedTrack, options: ParsedOptions): Promise<BuildResult> {
   const margins = Array.isArray(track.osmApiMargins) && track.osmApiMargins.length > 0
     ? track.osmApiMargins
     : buildDefaultOsmApiMargins(track);
@@ -847,10 +971,10 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
   try {
     const response = await fetchAdaptiveOsmApiMapPayload(track.lat, track.lon, {
       margins,
-      fetchForMargin: margin => fetchOsmApiPayloadWithCache(track, margin, options),
-      evaluateResponse: resolvedResponse => {
+      fetchForMargin: (margin: number) => fetchOsmApiPayloadWithCache(track, margin, options),
+      evaluateResponse: (resolvedResponse: any) => {
         const geometryResult = sanitizeBuildGeometryResult(normalizeTrackGeometryResult(
-          buildTrackGeometryFromPayload(resolvedResponse.payload, track.trackName, buildGeometryHints(track)),
+          buildTrackGeometryFromPayload(resolvedResponse.payload, track.trackName, buildGeometryHints(track)) as any,
           track.trackName,
         ));
 
@@ -882,16 +1006,16 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
     const pipelinePayload = {
       ...flattenedPayload,
       elements: (flattenedPayload?.elements ?? []).filter(
-        e => !(e.type === 'relation' && e.tags?._wasSuperRelation),
+        (e: any) => !(e.type === 'relation' && e.tags?._wasSuperRelation),
       ),
     };
     const supplementedGeometryResult = sanitizeBuildGeometryResult(normalizeTrackGeometryResult(
-      buildTrackGeometryFromPayload(pipelinePayload, track.trackName, buildGeometryHints(track)),
+      buildTrackGeometryFromPayload(pipelinePayload, track.trackName, buildGeometryHints(track)) as any,
       track.trackName,
     ));
     const baseGeometryResult = (supplementedGeometryResult?.layouts?.length ?? 0) > 0
       ? supplementedGeometryResult
-      : response.evaluation.geometryResult;
+      : (response.evaluation as any)?.geometryResult;
 
     // Add combined layouts from super-relations (e.g. Nürburgring Gesamtstrecke =
     // Nordschleife + GP Strecke connected via linking ways).
@@ -900,18 +1024,19 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
       ? { ...baseGeometryResult, layouts: [...(baseGeometryResult?.layouts ?? []), ...combinedLayouts] }
       : baseGeometryResult;
 
+    const meta = response.metadata as any;
     return {
       geometryResult,
       metadata: {
         sourceUsed: 'osm-api',
-        margin: response.metadata.margin,
-        cacheHit: Boolean(response.metadata.cacheHit),
-        stopReason: response.metadata.stopReason,
-        attempts: response.metadata.attempts,
-        requestAttempts: response.metadata.requestAttempts,
-        retryCount: response.metadata.retryCount,
-        pacingDelayMs: response.metadata.pacingDelayMs,
-        retryDelayMs: response.metadata.retryDelayMs,
+        margin: meta.margin as number,
+        cacheHit: Boolean(meta.cacheHit),
+        stopReason: meta.stopReason as string | undefined,
+        attempts: meta.attempts as number | undefined,
+        requestAttempts: meta.requestAttempts as number | undefined,
+        retryCount: meta.retryCount as number | undefined,
+        pacingDelayMs: meta.pacingDelayMs as number | undefined,
+        retryDelayMs: meta.retryDelayMs as number | undefined,
       },
     };
   } catch (error) {
@@ -920,23 +1045,23 @@ async function fetchPrimaryGeometryFromOsmApi(track, options) {
 }
 
 
-async function buildGeometryFromManualWayIds(track, options) {
-  const { manualLayoutWays } = track;
+async function buildGeometryFromManualWayIds(track: ResolvedTrack, options: ParsedOptions): Promise<BuildResult> {
+  const manualLayoutWays = track.manualLayoutWays!;
   const requiredWayIds = [...new Set(
-    manualLayoutWays.flatMap(layout =>
-      layout.wayIds.map(entry => (typeof entry === 'number' ? entry : entry.wayId))
+    manualLayoutWays.flatMap((layout: ManualLayoutDef) =>
+      layout.wayIds.map((entry: ManualWayEntry) => (typeof entry === 'number' ? entry : entry.wayId))
     )
   )];
   const margins = Array.isArray(track.osmApiMargins) && track.osmApiMargins.length > 0
     ? track.osmApiMargins
     : buildDefaultOsmApiMargins(track);
 
-  let resolvedResponse = null;
-  let resolvedMargin = null;
-  let lastError = null;
+  let resolvedResponse: any = null;
+  let resolvedMargin: number | null = null;
+  let lastError: unknown = null;
 
   for (const margin of margins) {
-    let response;
+    let response: any;
 
     try {
       response = await fetchOsmApiPayloadWithCache(track, margin, options);
@@ -947,10 +1072,10 @@ async function buildGeometryFromManualWayIds(track, options) {
 
     const foundIds = new Set(
       (response.payload?.elements ?? [])
-        .filter(e => e.type === 'way' && Number.isFinite(e.id))
-        .map(e => e.id),
+        .filter((e: any) => e.type === 'way' && Number.isFinite(e.id))
+        .map((e: any) => e.id),
     );
-    const missingIds = requiredWayIds.filter(id => !foundIds.has(id));
+    const missingIds = requiredWayIds.filter((id: number) => !foundIds.has(id));
 
     if (missingIds.length === 0) {
       resolvedResponse = response;
@@ -966,22 +1091,22 @@ async function buildGeometryFromManualWayIds(track, options) {
     throw new Error(`${track.trackName}: could not find all manual way IDs in OSM API data (${message})`);
   }
 
-  const wayIndex = new Map(
+  const wayIndex = new Map<number, any>(
     (resolvedResponse.payload.elements ?? [])
-      .filter(e => e.type === 'way' && Number.isFinite(e.id))
-      .map(e => [e.id, e]),
+      .filter((e: any) => e.type === 'way' && Number.isFinite(e.id))
+      .map((e: any) => [e.id, e]),
   );
 
-  const layouts = manualLayoutWays.map(layoutDef => {
+  const layouts = manualLayoutWays.map((layoutDef: ManualLayoutDef) => {
     const contextLabel = `${track.trackName} / ${layoutDef.name}`;
-    const ways = layoutDef.wayIds.map(entry => {
+    const ways = layoutDef.wayIds.map((entry: ManualWayEntry) => {
       const id = typeof entry === 'number' ? entry : entry.wayId;
       const element = wayIndex.get(id);
       if (!element || !Array.isArray(element.geometry) || element.geometry.length < 2) {
         throw new Error(`${track.trackName}: way ID ${id} not found or has no geometry`);
       }
 
-      let nodes = element.geometry.map(({ lat, lon }) => ({ lat, lon }));
+      let nodes: LatLon[] = element.geometry.map(({ lat, lon }: LatLon) => ({ lat, lon }));
       if (typeof entry === 'object') {
         nodes = sliceWayNodes(nodes, entry.fromNode ?? null, entry.toNode ?? null, id, contextLabel);
       }
@@ -1001,15 +1126,15 @@ async function buildGeometryFromManualWayIds(track, options) {
   });
 
   const usedWayIds = new Set(
-    manualLayoutWays.flatMap(l =>
-      l.wayIds.map(entry => (typeof entry === 'number' ? entry : entry.wayId))
+    manualLayoutWays.flatMap((l: ManualLayoutDef) =>
+      l.wayIds.map((entry: ManualWayEntry) => (typeof entry === 'number' ? entry : entry.wayId))
     )
   );
-  const osmVenueNames = [...new Set(
+  const osmVenueNames = [...new Set<string>(
     (resolvedResponse.payload.elements ?? [])
-      .filter(e => e.type === 'way' && usedWayIds.has(e.id) && e.tags?.name)
-      .map(e => e.tags.name),
-  )].sort((a, b) => a.localeCompare(b));
+      .filter((e: any) => e.type === 'way' && usedWayIds.has(e.id) && e.tags?.name)
+      .map((e: any) => e.tags.name as string),
+  )].sort((a: string, b: string) => a.localeCompare(b));
 
   return {
     geometryResult: {
@@ -1025,13 +1150,13 @@ async function buildGeometryFromManualWayIds(track, options) {
   };
 }
 
-function validateNode(node, trackName, layoutName, nodeIndex) {
+function validateNode(node: any, trackName: string, layoutName: string, nodeIndex: number): void {
   if (!node || !Number.isFinite(node.lat) || !Number.isFinite(node.lon)) {
     throw new Error(`${trackName} / ${layoutName}: node ${nodeIndex} has invalid coordinates`);
   }
 }
 
-function validateLayout(layout, trackName) {
+function validateLayout(layout: any, trackName: string): void {
   if (!layout?.name?.trim()) {
     throw new Error(`${trackName}: layout is missing a name`);
   }
@@ -1044,7 +1169,7 @@ function validateLayout(layout, trackName) {
     throw new Error(`${trackName} / ${layout.name}: expected at least ${MIN_LAYOUT_NODE_COUNT} nodes, received ${layout.nodes.length}`);
   }
 
-  layout.nodes.forEach((node, index) => validateNode(node, trackName, layout.name, index));
+  layout.nodes.forEach((node: any, index: number) => validateNode(node, trackName, layout.name, index));
 
   const lengthMetres = layout?.stats?.lengthMetres;
   if (!Number.isFinite(lengthMetres) || lengthMetres <= 0) {
@@ -1064,9 +1189,9 @@ function validateLayout(layout, trackName) {
   }
 }
 
-function validateGeometryResultForTrack(track, geometryResult) {
+function validateGeometryResultForTrack(track: ResolvedTrack, geometryResult: any): void {
   const actualLayoutNames = Array.isArray(geometryResult?.layouts)
-    ? geometryResult.layouts.map(layout => layout.name)
+    ? geometryResult.layouts.map((layout: any) => layout.name)
     : [];
 
   if (actualLayoutNames.length === 0) {
@@ -1076,7 +1201,7 @@ function validateGeometryResultForTrack(track, geometryResult) {
   const expectedLayoutNames = track.expectedLayoutNames ?? [];
   if (expectedLayoutNames.length > 0) {
     const matchesExpectedLayouts = expectedLayoutNames.length === actualLayoutNames.length
-      && expectedLayoutNames.every((layoutName, index) => actualLayoutNames[index] === layoutName);
+      && expectedLayoutNames.every((layoutName: string, index: number) => actualLayoutNames[index] === layoutName);
 
     if (!matchesExpectedLayouts) {
       throw new Error(`${track.trackName}: expected layouts ${expectedLayoutNames.join(', ')} but received ${actualLayoutNames.join(', ')}`);
@@ -1084,7 +1209,7 @@ function validateGeometryResultForTrack(track, geometryResult) {
   }
 }
 
-function applyStableLayoutNames(track, geometryResult) {
+function applyStableLayoutNames(track: ResolvedTrack, geometryResult: any): any {
   if (!geometryResult || !Array.isArray(geometryResult.layouts)) {
     return geometryResult;
   }
@@ -1094,26 +1219,26 @@ function applyStableLayoutNames(track, geometryResult) {
     return geometryResult;
   }
 
-  const alreadyMatches = geometryResult.layouts.every((layout, index) => layout.name === expectedLayoutNames[index]);
+  const alreadyMatches = geometryResult.layouts.every((layout: any, index: number) => layout.name === expectedLayoutNames[index]);
   if (alreadyMatches) {
     return geometryResult;
   }
 
   return {
     ...geometryResult,
-    layouts: geometryResult.layouts.map((layout, index) => ({
+    layouts: geometryResult.layouts.map((layout: any, index: number) => ({
       ...layout,
-      name: expectedLayoutNames[index],
+      name: expectedLayoutNames[index]!,
     })),
   };
 }
 
-export function sanitizeBuildGeometryResult(geometryResult) {
+export function sanitizeBuildGeometryResult(geometryResult: any): any {
   if (!geometryResult || !Array.isArray(geometryResult.layouts)) {
     return geometryResult;
   }
 
-  const layouts = geometryResult.layouts.filter(layout => Array.isArray(layout?.nodes) && layout.nodes.length >= 2);
+  const layouts = geometryResult.layouts.filter((layout: any) => Array.isArray(layout?.nodes) && layout.nodes.length >= 2);
   if (layouts.length === geometryResult.layouts.length) {
     return geometryResult;
   }
@@ -1125,7 +1250,7 @@ export function sanitizeBuildGeometryResult(geometryResult) {
   };
 }
 
-function finalizeGeometryResult(track, rawResult) {
+function finalizeGeometryResult(track: ResolvedTrack, rawResult: any): any {
   const sanitized = sanitizeBuildGeometryResult(rawResult);
   const renamed = applyStableLayoutNames(track, sanitized);
   validateGeometryResultForTrack(track, renamed);
@@ -1135,8 +1260,8 @@ function finalizeGeometryResult(track, rawResult) {
   return renamed;
 }
 
-function buildStableLayoutIds(layouts) {
-  const counts = new Map();
+function buildStableLayoutIds(layouts: Layout[]): (Layout & { id: string })[] {
+  const counts = new Map<string, number>();
 
   return layouts.map(layout => {
     const baseId = slugify(layout.name);
@@ -1149,8 +1274,8 @@ function buildStableLayoutIds(layouts) {
   });
 }
 
-function buildTrackArtifact(track, geometryResult, generatedAt, sourceUsed) {
-  const layouts = buildStableLayoutIds(geometryResult.layouts).map(layout => ({
+function buildTrackArtifact(track: ResolvedTrack, geometryResult: any, generatedAt: string, sourceUsed: string): any {
+  const layouts = buildStableLayoutIds(geometryResult.layouts as Layout[]).map(layout => ({
     id: layout.id,
     name: layout.name,
     nodes: layout.nodes.map(node => ({ lat: node.lat, lon: node.lon })),
@@ -1183,7 +1308,7 @@ function buildTrackArtifact(track, geometryResult, generatedAt, sourceUsed) {
   };
 }
 
-function buildFailureArtifact(track, generatedAt, message) {
+function buildFailureArtifact(track: ResolvedTrack, generatedAt: string, message: string): any {
   return {
     trackId: track.wikidataId,
     name: track.trackName,
@@ -1195,7 +1320,7 @@ function buildFailureArtifact(track, generatedAt, message) {
   };
 }
 
-function computeStableHash(value) {
+function computeStableHash(value: unknown): number {
   let hash = 0;
 
   for (const char of String(value ?? '')) {
@@ -1205,23 +1330,23 @@ function computeStableHash(value) {
   return hash;
 }
 
-export function computeTrackStaleThresholdMs(trackId) {
+export function computeTrackStaleThresholdMs(trackId: string): number {
   const hash = computeStableHash(trackId);
   const normalized = hash / 0xffffffff;
   const jitterMs = Math.round((normalized * 2 * GEOMETRY_STALE_JITTER_MS) - GEOMETRY_STALE_JITTER_MS);
   return GEOMETRY_STALE_AFTER_MS + jitterMs;
 }
 
-export function computeTrackFailureStaleThresholdMs(trackId) {
+export function computeTrackFailureStaleThresholdMs(trackId: string): number {
   const hash = computeStableHash(trackId);
   const normalized = hash / 0xffffffff;
   const jitterMs = Math.round((normalized * 2 * GEOMETRY_FAILURE_STALE_JITTER_MS) - GEOMETRY_FAILURE_STALE_JITTER_MS);
   return GEOMETRY_FAILURE_STALE_AFTER_MS + jitterMs;
 }
 
-export function isTrackGeometryEntryFresh(entry, now = Date.now()) {
+export function isTrackGeometryEntryFresh(entry: TrackGeometryEntry | null, now: number = Date.now()): boolean {
   const generatedAt = entry?.source?.generatedAt;
-  const generatedAtMs = Date.parse(generatedAt);
+  const generatedAtMs = Date.parse(generatedAt as string);
   const trackId = entry?.trackId;
 
   if (!trackId || !Number.isFinite(generatedAtMs)) {
@@ -1240,13 +1365,13 @@ export function isTrackGeometryEntryFresh(entry, now = Date.now()) {
   return ageMs < computeTrackStaleThresholdMs(trackId);
 }
 
-export async function partitionTracksByStaleness(tracks, options = {}) {
+export async function partitionTracksByStaleness<T extends { wikidataId: string }>(tracks: T[], options: PartitionOptions = {}): Promise<{ freshTracks: T[]; staleTracks: T[]; deferredTracks: T[] }> {
   const now = options.now ?? Date.now();
   const limit = options.limit ?? Number.POSITIVE_INFINITY;
   const loadExistingTrackEntryFn = options.loadExistingTrackEntry ?? loadExistingTrackEntry;
-  const freshTracks = [];
-  const staleTracks = [];
-  const deferredTracks = [];
+  const freshTracks: T[] = [];
+  const staleTracks: T[] = [];
+  const deferredTracks: T[] = [];
 
   for (const track of tracks) {
     const existingEntry = await loadExistingTrackEntryFn(track.wikidataId);
@@ -1270,37 +1395,37 @@ export async function partitionTracksByStaleness(tracks, options = {}) {
   };
 }
 
-export function determineExitCode(report, options) {
+export function determineExitCode(report: Partial<BuildReport> & Pick<BuildReport, 'failed' | 'targetedTrackFailed'>, options: Pick<ParsedOptions, 'strict'>): number {
   const skippedCount = report.skipped?.length ?? 0;
 
   if (report.targetedTrackFailed) {
     return 1;
   }
 
-  if (options.strict && (report.failed.length > 0 || report.reusedExisting.length > 0 || report.flaggedForManualReview.length > 0)) {
+  if (options.strict && ((report.failed?.length ?? 0) > 0 || (report.reusedExisting?.length ?? 0) > 0 || (report.flaggedForManualReview?.length ?? 0) > 0)) {
     return 1;
   }
 
-  if (report.builtSuccessfully.length === 0 && report.reusedExisting.length === 0 && skippedCount === 0) {
+  if ((report.builtSuccessfully?.length ?? 0) === 0 && (report.reusedExisting?.length ?? 0) === 0 && skippedCount === 0) {
     return 1;
   }
 
   return 0;
 }
 
-async function writeArtifactToFile(artifact, filePath) {
+async function writeArtifactToFile(artifact: any, filePath: string): Promise<void> {
   await mkdir(path.dirname(filePath), { recursive: true });
   await writeFile(filePath, `${JSON.stringify(artifact, null, 2)}\n`, 'utf8');
 }
 
-export async function main(argv = process.argv.slice(2)) {
+export async function main(argv: string[] = process.argv.slice(2)): Promise<void> {
   const options = parseArgs(argv);
   const tracks = resolveSupportedTracks(options.track);
   const { freshTracks, staleTracks, deferredTracks } = options.force
     ? { freshTracks: [], staleTracks: tracks, deferredTracks: [] }
     : await partitionTracksByStaleness(tracks, options);
   const generatedAt = new Date().toISOString();
-  const report = {
+  const report: BuildReport = {
     builtSuccessfully: [],
     reusedExisting: [],
     skipped: [],
@@ -1351,14 +1476,14 @@ export async function main(argv = process.argv.slice(2)) {
         sourceDetails = primaryResult.metadata.cacheHit
           ? `osm-api cache margin=${primaryResult.metadata.margin}`
           : `osm-api live margin=${primaryResult.metadata.margin}`;
-        if (primaryResult.metadata.retryCount > 0) {
+        if ((primaryResult.metadata.retryCount ?? 0) > 0) {
           const retryDelay = formatDelayMs(primaryResult.metadata.retryDelayMs);
-          sourceDetails += ` retries=${primaryResult.metadata.retryCount}`;
+          sourceDetails += ` retries=${primaryResult.metadata.retryCount!}`;
           if (retryDelay) {
             sourceDetails += ` backoff=${retryDelay}`;
           }
         }
-        if (primaryResult.metadata.pacingDelayMs > 0 && !primaryResult.metadata.cacheHit) {
+        if ((primaryResult.metadata.pacingDelayMs ?? 0) > 0 && !primaryResult.metadata.cacheHit) {
           const pacingDelay = formatDelayMs(primaryResult.metadata.pacingDelayMs);
           if (pacingDelay) {
             sourceDetails += ` paced=${pacingDelay}`;

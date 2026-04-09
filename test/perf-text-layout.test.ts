@@ -60,7 +60,7 @@ test('perf: line breaks and contours are computed once regardless of candidate c
   __resetPerfCounters();
   t.after(() => __disablePerfCounters());
   const result = computeRankedTextPlacements('SILVERSTONE GRAND PRIX CIRCUIT', outline, basePlate, scale);
-  const counters = __getPerfCounters();
+  const counters = __getPerfCounters()!;
 
   assert.ok(result, 'expected placements to be produced');
 
@@ -91,7 +91,7 @@ test('perf: line breaks pre-computed once with many candidates (oval circuit)', 
   __resetPerfCounters();
   t.after(() => __disablePerfCounters());
   const result = computeRankedTextPlacements('CIRCUIT DE MONACO', outline, basePlate, scale);
-  const counters = __getPerfCounters();
+  const counters = __getPerfCounters()!;
 
   assert.ok(result, 'expected placements to be produced');
 
@@ -126,7 +126,7 @@ test('perf: line breaks pre-computed once with long multi-word name', (t) => {
   const result = computeRankedTextPlacements(
     'AUTODROMO JOSE CARLOS PACE INTERLAGOS', outline, basePlate, scale,
   );
-  const counters = __getPerfCounters();
+  const counters = __getPerfCounters()!;
 
   assert.ok(result, 'expected placements to be produced');
 
@@ -171,7 +171,7 @@ test('perf: wall-clock time for computeRankedTextPlacements', () => {
   }
 
   timings.sort((a, b) => a - b);
-  const median = timings[Math.floor(timings.length / 2)];
+  const median = timings[Math.floor(timings.length / 2)]!;
 
   console.log('--- Issue 1: wall-clock timing for computeRankedTextPlacements ---');
   console.log(`  Median over ${iterations} runs: ${median.toFixed(1)} ms`);

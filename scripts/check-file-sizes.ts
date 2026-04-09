@@ -12,8 +12,8 @@ const LINE_LIMIT = 300;
 const SRC_DIR = new URL('../src', import.meta.url).pathname;
 
 /** Recursively collect all .ts and .svelte files under a directory. */
-function collectFiles(dir) {
-  const results = [];
+function collectFiles(dir: string): string[] {
+  const results: string[] = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const fullPath = join(dir, entry.name);
     if (entry.isDirectory()) {
@@ -28,13 +28,13 @@ function collectFiles(dir) {
   return results;
 }
 
-function countLines(filePath) {
+function countLines(filePath: string): number {
   const content = readFileSync(filePath, 'utf-8');
   return content.split('\n').length;
 }
 
 const files = collectFiles(SRC_DIR);
-const violations = [];
+const violations: { file: string; lines: number }[] = [];
 
 for (const file of files) {
   const lines = countLines(file);

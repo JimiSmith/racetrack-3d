@@ -1,28 +1,30 @@
 import assert from 'node:assert/strict';
 
-const toRadians = value => (value * Math.PI) / 180;
+type LatLonNode = { lat: number; lon: number };
 
-function measureDistanceMetres(a, b) {
+const toRadians = (value: number) => (value * Math.PI) / 180;
+
+function measureDistanceMetres(a: LatLonNode, b: LatLonNode) {
   const avgLat = toRadians((a.lat + b.lat) / 2);
   const dx = (b.lon - a.lon) * Math.cos(avgLat) * 111320;
   const dy = (b.lat - a.lat) * 111320;
   return Math.hypot(dx, dy);
 }
 
-function measurePolylineLength(nodes) {
+function measurePolylineLength(nodes: LatLonNode[]) {
   let length = 0;
 
   for (let index = 1; index < nodes.length; index += 1) {
-    length += measureDistanceMetres(nodes[index - 1], nodes[index]);
+    length += measureDistanceMetres(nodes[index - 1]!, nodes[index]!);
   }
 
   return length;
 }
 
-function baseChain(nodes) {
+function baseChain(nodes: LatLonNode[]) {
   if (nodes.length > 1) {
-    const first = nodes[0];
-    const last = nodes[nodes.length - 1];
+    const first = nodes[0]!;
+    const last = nodes[nodes.length - 1]!;
     if (first.lat === last.lat && first.lon === last.lon) {
       return nodes.slice(0, -1);
     }
@@ -31,7 +33,7 @@ function baseChain(nodes) {
   return nodes;
 }
 
-function sampleChain(nodes, sampleCount = 24) {
+function sampleChain(nodes: LatLonNode[], sampleCount = 24) {
   const chain = baseChain(nodes);
   if (chain.length <= sampleCount) {
     return chain;
@@ -39,11 +41,11 @@ function sampleChain(nodes, sampleCount = 24) {
 
   return Array.from({ length: sampleCount }, (_, index) => {
     const sampleIndex = Math.floor((index * chain.length) / sampleCount);
-    return chain[sampleIndex];
+    return chain[sampleIndex]!;
   });
 }
 
-function areNearIdenticalChains(a, b, maxNodeDistanceMeters = 35, maxLengthDeltaMeters = 250) {
+function areNearIdenticalChains(a: LatLonNode[], b: LatLonNode[], maxNodeDistanceMeters = 35, maxLengthDeltaMeters = 250) {
   const lengthA = measurePolylineLength(a);
   const lengthB = measurePolylineLength(b);
 
@@ -53,17 +55,17 @@ function areNearIdenticalChains(a, b, maxNodeDistanceMeters = 35, maxLengthDelta
 
   const samplesA = sampleChain(a);
   const samplesB = sampleChain(b);
-  const hasCloseMatch = (node, otherSamples) => otherSamples.some(other => measureDistanceMetres(node, other) <= maxNodeDistanceMeters);
+  const hasCloseMatch = (node: LatLonNode, otherSamples: LatLonNode[]) => otherSamples.some(other => measureDistanceMetres(node, other) <= maxNodeDistanceMeters);
 
   return samplesA.every(node => hasCloseMatch(node, samplesB))
     && samplesB.every(node => hasCloseMatch(node, samplesA));
 }
 
-export function expectNoImmediateBacktrack(nodes) {
+export function expectNoImmediateBacktrack(nodes: LatLonNode[]) {
   for (let index = 1; index < nodes.length - 1; index += 1) {
-    const prev = nodes[index - 1];
-    const current = nodes[index];
-    const next = nodes[index + 1];
+    const prev = nodes[index - 1]!;
+    const current = nodes[index]!;
+    const next = nodes[index + 1]!;
     const lenA = measureDistanceMetres(prev, current);
     const lenB = measureDistanceMetres(current, next);
 
@@ -85,17 +87,17 @@ export function expectNoImmediateBacktrack(nodes) {
   }
 }
 
-export function expectClosedish(nodes, maxGapMeters) {
+export function expectClosedish(nodes: LatLonNode[], maxGapMeters: number) {
   assert.ok(nodes.length >= 2, 'layout should have at least two nodes');
-  const gap = measureDistanceMetres(nodes[0], nodes[nodes.length - 1]);
+  const gap = measureDistanceMetres(nodes[0]!, nodes[nodes.length - 1]!);
   assert.ok(gap <= maxGapMeters, `endpoint gap ${gap.toFixed(1)}m exceeds ${maxGapMeters}m`);
 }
 
-export function expectDistinctLayouts(a, b) {
-  assert.ok(!areNearIdenticalChains(a.nodes ?? a, b.nodes ?? b), 'layouts should not be identical');
+export function expectDistinctLayouts(a: LatLonNode[] | { nodes: LatLonNode[] }, b: LatLonNode[] | { nodes: LatLonNode[] }) {
+  assert.ok(!areNearIdenticalChains('nodes' in a ? a.nodes : a, 'nodes' in b ? b.nodes : b), 'layouts should not be identical');
 }
 
-export function expectApproxLength(nodes, expectedKm, toleranceKm) {
+export function expectApproxLength(nodes: LatLonNode[], expectedKm: number, toleranceKm: number) {
   const lengthKm = measurePolylineLength(nodes) / 1000;
   assert.ok(
     Math.abs(lengthKm - expectedKm) <= toleranceKm,
@@ -103,10 +105,10 @@ export function expectApproxLength(nodes, expectedKm, toleranceKm) {
   );
 }
 
-export function expectNoDuplicateSequentialNodes(nodes) {
+export function expectNoDuplicateSequentialNodes(nodes: LatLonNode[]) {
   for (let index = 1; index < nodes.length; index += 1) {
-    const prev = nodes[index - 1];
-    const current = nodes[index];
+    const prev = nodes[index - 1]!;
+    const current = nodes[index]!;
     assert.ok(
       !(prev.lat === current.lat && prev.lon === current.lon),
       `duplicate sequential nodes at index ${index - 1} and ${index}`,

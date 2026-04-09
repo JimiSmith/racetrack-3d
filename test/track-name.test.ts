@@ -90,13 +90,13 @@ test('result is deterministic and independent of placement', () => {
     ...baseInput,
     availablePlacementArea: 10,
     textFitScore: 0.1,
-  });
+  } as Parameters<typeof selectPrintedTrackName>[0]);
   const second = selectPrintedTrackName({
     ...baseInput,
     availablePlacementArea: 1000,
     textFitScore: 999,
     multilineFitQuality: 'great',
-  });
+  } as Parameters<typeof selectPrintedTrackName>[0]);
 
   assert.deepEqual(second, first);
   assert.equal(first.printedName, 'Bahrain Grand Prix Circuit');

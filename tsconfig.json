@@ -8,8 +8,9 @@
     "exactOptionalPropertyTypes": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
+    "outDir": "dist",
     "skipLibCheck": true,
-    "types": ["vite/client"]
+    "types": ["vite/client", "node"]
   },
-  "include": ["src/**/*.ts", "src/**/*.svelte"]
+  "include": ["src/**/*.ts", "src/**/*.svelte", "test/**/*.ts", "test-utils/**/*.ts", "scripts/**/*.ts"]
 }
