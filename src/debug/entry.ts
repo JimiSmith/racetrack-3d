@@ -9,11 +9,23 @@ import { parseOsmXmlElements, buildOsmApiMapUrl, type ParsedOsmWay } from '../ge
 // Leaflet is loaded via CDN in debug.html — use ambient global
 const L = (window as any).L as any;
 
+// --- Helpers ---
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // --- State ---
 
 let map: any;
 let osmWayLayers: any[] = [];
 let layoutLayers: any[] = [];
+let activeAbortController: AbortController | null = null;
 const selectedWayIds = new Set<number>();
 const wayDataById = new Map<number, ParsedOsmWay>();
 const wayLayerById = new Map<number, any>();
@@ -70,7 +82,7 @@ function renderSearchResults(results: SearchResult[]): void {
   searchResults.innerHTML = results
     .map(
       (r, i) =>
-        `<li data-index="${i}">${r.displayName}</li>`,
+        `<li data-index="${i}">${escapeHtml(r.displayName)}</li>`,
     )
     .join('');
 
@@ -97,13 +109,18 @@ document.addEventListener('click', (e) => {
 // --- Track selection ---
 
 async function selectTrack(track: SearchResult): Promise<void> {
+  activeAbortController?.abort();
+  const controller = new AbortController();
+  activeAbortController = controller;
+
   clearMap();
   setStatus('Loading geometry...');
 
   const geo = await getTrackGeometry(track.wikidataId);
+  if (controller.signal.aborted) {return;}
   if (!geo) {
     setStatus('No prebuilt geometry found.');
-    trackInfo.innerHTML = `<p class="empty-state">No geometry for ${track.label}</p>`;
+    trackInfo.innerHTML = `<p class="empty-state">No geometry for ${escapeHtml(track.label)}</p>`;
     return;
   }
 
@@ -114,8 +131,8 @@ async function selectTrack(track: SearchResult): Promise<void> {
   }
 
   trackInfo.innerHTML = `
-    <div class="track-name">${track.label}</div>
-    <div>${track.description ?? ''}</div>
+    <div class="track-name">${escapeHtml(track.label)}</div>
+    <div>${escapeHtml(track.description ?? '')}</div>
     <div style="margin-top:6px;color:var(--text-soft);font-size:0.82rem">
       ${geo.layouts.length} layout${geo.layouts.length !== 1 ? 's' : ''} &middot;
       ${center.lat.toFixed(4)}, ${center.lon.toFixed(4)}
@@ -130,19 +147,21 @@ async function selectTrack(track: SearchResult): Promise<void> {
   // Fetch OSM ways via the same API the build script uses
   setStatus('Fetching OSM data...');
   try {
-    const ways = await fetchOsmApiWays(center.lat, center.lon);
+    const ways = await fetchOsmApiWays(center.lat, center.lon, 0.02, controller.signal);
+    if (controller.signal.aborted) {return;}
     setStatus(`${ways.length} ways loaded.`);
     drawOsmWays(ways);
   } catch (err) {
+    if (controller.signal.aborted) {return;}
     setStatus(`OSM API error: ${(err as Error).message}`);
   }
 }
 
 // --- OSM API (same endpoint as build script) ---
 
-async function fetchOsmApiWays(lat: number, lon: number, margin = 0.02): Promise<ParsedOsmWay[]> {
+async function fetchOsmApiWays(lat: number, lon: number, margin = 0.02, signal?: AbortSignal): Promise<ParsedOsmWay[]> {
   const url = buildOsmApiMapUrl(lat, lon, margin);
-  const response = await fetch(url);
+  const response = await fetch(url, signal ? { signal } : {});
 
   if (!response.ok) {
     throw new Error(`OSM API returned ${response.status}: ${await response.text().catch(() => '')}`);
@@ -174,7 +193,7 @@ function drawLayouts(layouts: Layout[]): void {
       weight: 4,
       opacity: 0.85,
     }).addTo(map);
-    polyline.bindTooltip(layout.name || 'Layout', { sticky: true });
+    polyline.bindTooltip(escapeHtml(layout.name || 'Layout'), { sticky: true });
     layoutLayers.push(polyline);
   }
 }
@@ -191,9 +210,9 @@ function drawOsmWays(ways: ParsedOsmWay[]): void {
 
     const name = way.tags['name'] || way.tags['ref'] || `way/${way.id}`;
     polyline.bindTooltip(
-      `<strong>${name}</strong><br/>` +
+      `<strong>${escapeHtml(name)}</strong><br/>` +
       `ID: ${way.id}<br/>` +
-      `${way.tags['highway'] ? `highway=${way.tags['highway']}` : ''}`,
+      `${way.tags['highway'] ? `highway=${escapeHtml(way.tags['highway'])}` : ''}`,
       { sticky: true },
     );
 
@@ -234,7 +253,7 @@ function renderWayList(): void {
     const way = wayDataById.get(id);
     const name = way?.tags['name'] || way?.tags['ref'] || '';
     return `<div class="way-item" data-id="${id}">
-      <span>${id}${name ? `<span class="way-name">${name}</span>` : ''}</span>
+      <span>${id}${name ? `<span class="way-name">${escapeHtml(name)}</span>` : ''}</span>
       <button class="remove-btn" data-id="${id}" title="Deselect">&times;</button>
     </div>`;
   });
