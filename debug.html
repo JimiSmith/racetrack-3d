@@ -241,6 +241,98 @@
         min-height: 1.2em;
       }
 
+      #filter-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      #filter-groups {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .filter-group {
+        border-bottom: 1px solid var(--border);
+        padding: 6px 0;
+      }
+
+      .filter-group:last-child {
+        border-bottom: none;
+      }
+
+      .filter-group-header {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        padding: 2px 0;
+        user-select: none;
+      }
+
+      .filter-chevron {
+        font-size: 0.65rem;
+        width: 12px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+
+      .filter-key-name {
+        flex: 1;
+        font-weight: 600;
+      }
+
+      .filter-group-header .filter-count {
+        color: var(--text-soft);
+        font-size: 0.75rem;
+      }
+
+      .filter-toggle-all {
+        background: none;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        color: var(--text-soft);
+        cursor: pointer;
+        font-size: 0.7rem;
+        padding: 1px 6px;
+        line-height: 1.4;
+      }
+
+      .filter-toggle-all:hover {
+        color: var(--text);
+        border-color: var(--border-strong);
+      }
+
+      .filter-group-body {
+        padding: 4px 0 2px 18px;
+      }
+
+      .filter-group.collapsed .filter-group-body {
+        display: none;
+      }
+
+      .filter-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        padding: 1px 0;
+        cursor: pointer;
+      }
+
+      .filter-checkbox input[type="checkbox"] {
+        accent-color: var(--accent);
+        margin: 0;
+      }
+
+      .filter-count {
+        color: var(--text-soft);
+        font-size: 0.75rem;
+      }
+
       .legend {
         display: flex;
         flex-wrap: wrap;
@@ -286,8 +378,15 @@
 
         <div id="status-bar"></div>
 
+        <div id="filter-panel">
+          <h2>Tag Filters</h2>
+          <div id="filter-groups"></div>
+        </div>
+
         <div class="legend">
           <div class="legend-item"><span class="legend-swatch" style="background:#888"></span> OSM way</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#ffaa00"></span> highway=raceway</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#44ddaa"></span> Relation member</div>
           <div class="legend-item"><span class="legend-swatch" style="background:#ff234f"></span> Track layout</div>
           <div class="legend-item"><span class="legend-swatch" style="background:#00ccff"></span> Selected way</div>
         </div>
