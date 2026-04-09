@@ -144,10 +144,10 @@ async function selectTrack(track: SearchResult): Promise<void> {
   // Draw layouts
   drawLayouts(geo.layouts);
 
-  // Fetch OSM ways via the same API the build script uses
+  // Fetch OSM ways via the same API the build script uses, with adaptive margin shrinking
   setStatus('Fetching OSM data...');
   try {
-    const ways = await fetchOsmApiWays(center.lat, center.lon, 0.02, controller.signal);
+    const ways = await fetchOsmApiWaysAdaptive(center.lat, center.lon, controller.signal);
     if (controller.signal.aborted) {return;}
     setStatus(`${ways.length} ways loaded.`);
     drawOsmWays(ways);
@@ -159,17 +159,42 @@ async function selectTrack(track: SearchResult): Promise<void> {
 
 // --- OSM API (same endpoint as build script) ---
 
-async function fetchOsmApiWays(lat: number, lon: number, margin = 0.02, signal?: AbortSignal): Promise<ParsedOsmWay[]> {
+const NODE_LIMIT_PATTERN = /too many nodes/i;
+const DEFAULT_MARGIN = 0.02;
+const MIN_MARGIN = 0.001;
+const MAX_ATTEMPTS = 6;
+
+async function fetchOsmApiWays(lat: number, lon: number, margin: number, signal?: AbortSignal): Promise<ParsedOsmWay[]> {
   const url = buildOsmApiMapUrl(lat, lon, margin);
   const response = await fetch(url, signal ? { signal } : {});
 
   if (!response.ok) {
-    throw new Error(`OSM API returned ${response.status}: ${await response.text().catch(() => '')}`);
+    const body = await response.text().catch(() => '');
+    const err = new Error(`OSM API returned ${response.status}: ${body}`);
+    (err as any).nodeLimitExceeded = NODE_LIMIT_PATTERN.test(body);
+    throw err;
   }
 
   const xml = await response.text();
   const { ways } = parseOsmXmlElements(xml, { includeRelations: false });
   return ways;
+}
+
+async function fetchOsmApiWaysAdaptive(lat: number, lon: number, signal?: AbortSignal): Promise<ParsedOsmWay[]> {
+  let margin = DEFAULT_MARGIN;
+
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    try {
+      return await fetchOsmApiWays(lat, lon, margin, signal);
+    } catch (err) {
+      if (signal?.aborted) {throw err;}
+      if (!(err as any).nodeLimitExceeded || margin <= MIN_MARGIN) {throw err;}
+      margin = Math.max(MIN_MARGIN, margin / 2);
+      setStatus(`Too many nodes, retrying with smaller area (margin ${margin.toFixed(4)})...`);
+    }
+  }
+
+  throw new Error('Could not fetch OSM data: area too dense even at minimum margin');
 }
 
 // --- Drawing ---
