@@ -2575,6 +2575,91 @@
     "labelWordCount": 4
   },
   {
+    "wikidataId": "Q134290220",
+    "label": "Autódromo Ciudad de Dolores",
+    "aliases": [
+      "Autódromo Municipal Miguel Ángel Atauri",
+      "Autodromo Ciudad de Dolores",
+      "Autodromo Municipal Miguel Angel Atauri"
+    ],
+    "description": "motorsport racetrack in Dolores, Argentina",
+    "type": "motorsport racing track",
+    "country": "Argentina",
+    "city": "Dolores",
+    "lat": -36.326388888889,
+    "lon": -57.697222222222,
+    "wikidataShortName": null,
+    "normalized": {
+      "label": "autodromo ciudad de dolores",
+      "aliases": [
+        "autodromo municipal miguel angel atauri",
+        "autodromo ciudad de dolores"
+      ],
+      "shortName": "",
+      "city": "dolores",
+      "country": "argentina"
+    },
+    "tokens": [
+      "autodromo",
+      "ciudad",
+      "de",
+      "dolores",
+      "municipal",
+      "miguel",
+      "angel",
+      "atauri",
+      "argentina"
+    ],
+    "phrases": [
+      "autodromo ciudad de dolores",
+      "autodromo municipal miguel angel atauri",
+      "dolores",
+      "argentina"
+    ],
+    "tokenCount": 9,
+    "aliasCount": 3,
+    "labelWordCount": 4
+  },
+  {
+    "wikidataId": "Q20022006",
+    "label": "Autódromo Ciudad de La Rioja",
+    "aliases": [
+      "Autodromo Ciudad de La Rioja"
+    ],
+    "description": "motorsport racetrack in La Rioja, Argentina",
+    "type": "motorsport racing track",
+    "country": "Argentina",
+    "city": "La Rioja",
+    "lat": -29.405277777778,
+    "lon": -66.880833333333,
+    "wikidataShortName": null,
+    "normalized": {
+      "label": "autodromo ciudad de la rioja",
+      "aliases": [
+        "autodromo ciudad de la rioja"
+      ],
+      "shortName": "",
+      "city": "la rioja",
+      "country": "argentina"
+    },
+    "tokens": [
+      "autodromo",
+      "ciudad",
+      "de",
+      "la",
+      "rioja",
+      "argentina"
+    ],
+    "phrases": [
+      "autodromo ciudad de la rioja",
+      "la rioja",
+      "argentina"
+    ],
+    "tokenCount": 6,
+    "aliasCount": 1,
+    "labelWordCount": 5
+  },
+  {
     "wikidataId": "Q4827216",
     "label": "Autódromo Ciudad de Mar del Plata",
     "aliases": [
@@ -4288,6 +4373,49 @@
     "tokenCount": 7,
     "aliasCount": 3,
     "labelWordCount": 4
+  },
+  {
+    "wikidataId": "Q123473150",
+    "label": "Autódromo Internacional Potenza",
+    "aliases": [
+      "Autódromo Potenza",
+      "Autodromo Internacional Potenza",
+      "Autodromo Potenza"
+    ],
+    "description": "motorsport venue in Lima Duarte, Brazil",
+    "type": "motorsport racing track",
+    "country": "Brazil",
+    "city": "Minas Gerais",
+    "lat": -21.789722222222,
+    "lon": -43.663055555556,
+    "wikidataShortName": null,
+    "normalized": {
+      "label": "autodromo internacional potenza",
+      "aliases": [
+        "autodromo potenza",
+        "autodromo internacional potenza"
+      ],
+      "shortName": "",
+      "city": "minas gerais",
+      "country": "brazil"
+    },
+    "tokens": [
+      "autodromo",
+      "internacional",
+      "potenza",
+      "minas",
+      "gerais",
+      "brazil"
+    ],
+    "phrases": [
+      "autodromo internacional potenza",
+      "autodromo potenza",
+      "minas gerais",
+      "brazil"
+    ],
+    "tokenCount": 6,
+    "aliasCount": 3,
+    "labelWordCount": 3
   },
   {
     "wikidataId": "Q136148154",
@@ -11783,6 +11911,45 @@
     "tokenCount": 4,
     "aliasCount": 1,
     "labelWordCount": 2
+  },
+  {
+    "wikidataId": "Q5121627",
+    "label": "Circuito Rosendo Hernández",
+    "aliases": [
+      "Circuito Rosendo Hernandez"
+    ],
+    "description": "permanent race circuit in San Luis Province, Argentina",
+    "type": "motorsport racing track",
+    "country": "Argentina",
+    "city": "San Luis",
+    "lat": -33.33444444,
+    "lon": -66.39416667,
+    "wikidataShortName": null,
+    "normalized": {
+      "label": "circuito rosendo hernandez",
+      "aliases": [
+        "circuito rosendo hernandez"
+      ],
+      "shortName": "",
+      "city": "san luis",
+      "country": "argentina"
+    },
+    "tokens": [
+      "circuito",
+      "rosendo",
+      "hernandez",
+      "san",
+      "luis",
+      "argentina"
+    ],
+    "phrases": [
+      "circuito rosendo hernandez",
+      "san luis",
+      "argentina"
+    ],
+    "tokenCount": 6,
+    "aliasCount": 1,
+    "labelWordCount": 3
   },
   {
     "wikidataId": "Q57204547",
