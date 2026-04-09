@@ -50,4 +50,12 @@ function trackGeometryAssetsPlugin() {
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/racetrack-3d/' : '/',
   plugins: [svelte(), trackGeometryAssetsPlugin()],
+  build: {
+    rollupOptions: {
+      input: {
+        main: 'index.html',
+        debug: 'debug.html',
+      },
+    },
+  },
 }));
