@@ -31,7 +31,7 @@
 
       .layout {
         display: grid;
-        grid-template-columns: 340px 1fr;
+        grid-template-columns: 340px 1fr 280px;
         grid-template-rows: auto 1fr;
         height: 100vh;
       }
@@ -159,6 +159,25 @@
         font-weight: 700;
         color: var(--text);
         margin-bottom: 4px;
+      }
+
+      .right-panel {
+        overflow-y: auto;
+        padding: 16px;
+        border-left: 1px solid var(--border);
+        background: var(--surface);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .right-panel h2 {
+        margin: 0;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-muted);
       }
 
       #way-list {
@@ -391,14 +410,17 @@
           <div class="legend-item"><span class="legend-swatch" style="background:#00ccff"></span> Selected way</div>
         </div>
 
+      </div>
+
+      <div id="map"></div>
+
+      <div class="right-panel">
         <h2>Selected Ways</h2>
         <div id="way-list">
           <p class="empty-state">Click ways on the map to select them.</p>
         </div>
         <button id="copy-btn" disabled>Copy Way IDs</button>
       </div>
-
-      <div id="map"></div>
     </div>
 
     <script type="module" src="/src/debug/entry.ts"></script>
