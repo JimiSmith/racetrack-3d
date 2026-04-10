@@ -802,7 +802,7 @@ export function createScaledBounds(bounds: BasePlate, scale: number): Rect2D {
   };
 }
 
-function dedupeRankedPlacements(
+export function dedupeRankedPlacements(
   placements: RankedTextPlacement[],
   scaledBasePlate: Rect2D,
 ): RankedTextPlacement[] {

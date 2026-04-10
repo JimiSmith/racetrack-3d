@@ -307,6 +307,13 @@ export function __debugRectIntersectsPolygon(
   return (P.rectIntersectsPolygon as (r: unknown, p: unknown) => boolean)(rect, polygon);
 }
 
+export function __debugDedupeRankedPlacements(
+  placements: RankedTextPlacement[],
+  scaledBasePlate: { minX: number; minY: number; maxX: number; maxY: number; width: number; height: number },
+): RankedTextPlacement[] {
+  return (P.dedupeRankedPlacements as (p: unknown, b: unknown) => RankedTextPlacement[])(placements, scaledBasePlate);
+}
+
 // ─── Legacy buildTextMesh (for tests — uses triangulateShape directly) ────────
 
 export function buildTextMesh(

@@ -967,9 +967,10 @@ test('line-balance damping: 2-line gets most damping, decreasing for more lines'
   const score3 = __debugScoreTextFit(rect, { ...baseLayout, lineCount: 3 });
   const score4 = __debugScoreTextFit(rect, { ...baseLayout, lineCount: 4 });
 
-  // 2-line damping=0.75: balance = 0.3 + 0.7*0.75 = 0.825
-  // 3-line damping=0.25: balance = 0.3 + 0.7*0.25 = 0.475
-  // 4-line damping=0:    balance = 0.3
+  // lineBalanceWindow=0.30 → threshold=0.70; windowedBalance = 0.3/0.70 = 3/7 ≈ 0.4286
+  // 2-line damping=0.75: balance = 3/7 + (4/7)*0.75 = 6/7 ≈ 0.8571
+  // 3-line damping=0.25: balance = 3/7 + (4/7)*0.25 = 4/7 ≈ 0.5714
+  // 4-line damping=0:    balance = 3/7 ≈ 0.4286
   assert.ok(
     score2.breakdown.lineBalance! > score3.breakdown.lineBalance!,
     `2-line balance (${score2.breakdown.lineBalance}) should exceed 3-line (${score3.breakdown.lineBalance})`,
@@ -979,16 +980,16 @@ test('line-balance damping: 2-line gets most damping, decreasing for more lines'
     `3-line balance (${score3.breakdown.lineBalance}) should exceed 4-line (${score4.breakdown.lineBalance})`,
   );
   assert.ok(
-    Math.abs(score2.breakdown.lineBalance! - 0.825) < 0.001,
-    `2-line balance should be ~0.825, got ${score2.breakdown.lineBalance}`,
+    Math.abs(score2.breakdown.lineBalance! - 6 / 7) < 0.001,
+    `2-line balance should be ~${(6 / 7).toFixed(4)}, got ${score2.breakdown.lineBalance}`,
   );
   assert.ok(
-    Math.abs(score3.breakdown.lineBalance! - 0.475) < 0.001,
-    `3-line balance should be ~0.475, got ${score3.breakdown.lineBalance}`,
+    Math.abs(score3.breakdown.lineBalance! - 4 / 7) < 0.001,
+    `3-line balance should be ~${(4 / 7).toFixed(4)}, got ${score3.breakdown.lineBalance}`,
   );
   assert.ok(
-    Math.abs(score4.breakdown.lineBalance! - 0.3) < 0.001,
-    `4-line balance should be ~0.3, got ${score4.breakdown.lineBalance}`,
+    Math.abs(score4.breakdown.lineBalance! - 3 / 7) < 0.001,
+    `4-line balance should be ~${(3 / 7).toFixed(4)}, got ${score4.breakdown.lineBalance}`,
   );
 });
 
