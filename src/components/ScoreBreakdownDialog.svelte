@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { RankedTextPlacement } from '../types/text.js';
+  import type { RankedTextPlacement, SimilarityBreakdown } from '../types/text.js';
 
   interface Props {
     placement: RankedTextPlacement | null;
@@ -39,6 +39,13 @@
     'trackClearanceMultiplier',
     'textClearanceMultiplier',
   ] as const;
+
+  const SIM_LABELS: Record<keyof Omit<SimilarityBreakdown, 'tooSimilarToCandidateIndex'>, string> = {
+    lineCountSim: 'Line count',
+    centerSim: 'Center position',
+    scaleSim: 'Font scale',
+    total: 'Combined',
+  };
 </script>
 
 {#if placement}
@@ -53,6 +60,25 @@
     <p>Fitted: {placement.layout.fittedWidth.toFixed(1)} &times; {placement.layout.fittedHeight.toFixed(1)} mm</p>
     <p>Candidate: {placement.candidate.bounds.width.toFixed(1)} &times; {placement.candidate.bounds.height.toFixed(1)} mm</p>
   </div>
+
+  {#if placement.similarityInfo}
+  <div class="breakdown-context">
+    <p>Removed — too similar to #{placement.similarityInfo.tooSimilarToCandidateIndex}</p>
+  </div>
+  <table class="breakdown-table">
+    <thead>
+      <tr><th>Similarity factor</th><th>Score</th></tr>
+    </thead>
+    <tbody>
+      {#each Object.entries(SIM_LABELS) as [key, label]}
+      <tr class={key === 'total' ? 'sim-total' : ''}>
+        <td>{label}</td>
+        <td class="mono">{placement.similarityInfo[key as keyof typeof SIM_LABELS].toFixed(4)}</td>
+      </tr>
+      {/each}
+    </tbody>
+  </table>
+  {/if}
 
   {#if placement.scoreBreakdown}
   <table class="breakdown-table">

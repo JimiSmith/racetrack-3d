@@ -809,7 +809,7 @@ function dedupeRankedPlacements(
   if (placements.length <= 1) return placements;
 
   const diagSq = scaledBasePlate.width ** 2 + scaledBasePlate.height ** 2;
-  const maxDist = diagSq > 0 ? Math.sqrt(diagSq) : 1;
+  const maxDist = (diagSq > 0 ? Math.sqrt(diagSq) : 1) / 2;
 
   const result: RankedTextPlacement[] = [placements[0]!];
 
@@ -822,9 +822,9 @@ function dedupeRankedPlacements(
     const cy = currCyOf(curr);
 
     let tooSimilar = false;
-    const lookback = Math.min(3, i);
+    const lookback = Math.min(3, result.length);
     for (let k = 1; k <= lookback; k++) {
-      const prev = placements[i - k]!;
+      const prev = result[result.length - k]!;
 
       const lineCountSim = prev.layout.lineCount === curr.layout.lineCount ? 1 : 0;
 
@@ -835,7 +835,9 @@ function dedupeRankedPlacements(
       const scaleB = curr.layout.scale;
       const scaleSim = scaleA > 0 && scaleB > 0 ? Math.min(scaleA, scaleB) / Math.max(scaleA, scaleB) : 1;
 
-      if ((lineCountSim + centerSim + scaleSim) / 3 > POST_SCORE_DEDUP_THRESHOLD) {
+      const total = (lineCountSim + centerSim + scaleSim) / 3;
+      if (total > POST_SCORE_DEDUP_THRESHOLD) {
+        curr.similarityInfo = { tooSimilarToCandidateIndex: prev.candidateIndex, lineCountSim, centerSim, scaleSim, total };
         tooSimilar = true;
         break;
       }

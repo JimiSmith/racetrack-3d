@@ -890,6 +890,12 @@ dialog.score-breakdown::backdrop {
   border-top: 1px solid var(--border);
 }
 
+.breakdown-table tr.sim-total td {
+  font-weight: 700;
+  border-top: 1px solid var(--border);
+  border-bottom: none;
+}
+
 /* Footer */
 .site-footer {
   text-align: center;

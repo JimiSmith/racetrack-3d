@@ -97,6 +97,16 @@ export interface PlacementScoreBreakdown {
   textClearanceMultiplier: number;
 }
 
+/** Similarity breakdown recorded when a placement is removed by post-score deduplication. */
+export interface SimilarityBreakdown {
+  /** candidateIndex of the higher-scoring placement this was too similar to. */
+  tooSimilarToCandidateIndex: number;
+  lineCountSim: number;
+  centerSim: number;
+  scaleSim: number;
+  total: number;
+}
+
 /**
  * A single ranked text placement: a candidate region paired with its
  * best-fitting layout and a composite score.
@@ -107,6 +117,8 @@ export interface RankedTextPlacement {
   layout: FittedTextLayout;
   score: number;
   scoreBreakdown?: PlacementScoreBreakdown;
+  /** Set when this placement was removed by post-score deduplication. */
+  similarityInfo?: SimilarityBreakdown;
 }
 
 /**
