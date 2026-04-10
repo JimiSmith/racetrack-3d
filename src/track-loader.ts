@@ -139,6 +139,7 @@ export async function rebuildModel(elevationData: number[] | null = get(elevatio
       model.allScoredPlacements?.length
         ? {
             allScoredPlacements: model.allScoredPlacements,
+            dedupedPlacements: model.dedupedPlacements ?? [],
             candidates: model.placementCandidates!,
             scaledBasePlate: model.scaledBasePlate!,
           }

@@ -271,6 +271,9 @@ export function buildTrackModel({
   if (rankedPlacements?.allScoredPlacements) {
     result.allScoredPlacements = rankedPlacements.allScoredPlacements;
   }
+  if (rankedPlacements?.dedupedPlacements) {
+    result.dedupedPlacements = rankedPlacements.dedupedPlacements;
+  }
   if (rankedPlacements?.candidates) {
     result.placementCandidates = rankedPlacements.candidates;
   }

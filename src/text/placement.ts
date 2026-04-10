@@ -22,6 +22,7 @@ export const MIN_GRID_CELLS_PER_SIDE = 8;
 export const MAX_CANDIDATES = 150;
 
 const SEGMENT_INTERSECTION_EPSILON = 1e-9;
+const POST_SCORE_DEDUP_THRESHOLD = 0.85;
 const MAX_PREFERRED_HEIGHT_MM = 24 * 25.4 / 72;
 const MIN_TEXT_HEIGHT_MM = 2;
 
@@ -801,6 +802,53 @@ export function createScaledBounds(bounds: BasePlate, scale: number): Rect2D {
   };
 }
 
+function dedupeRankedPlacements(
+  placements: RankedTextPlacement[],
+  scaledBasePlate: Rect2D,
+): RankedTextPlacement[] {
+  if (placements.length <= 1) return placements;
+
+  const diagSq = scaledBasePlate.width ** 2 + scaledBasePlate.height ** 2;
+  const maxDist = diagSq > 0 ? Math.sqrt(diagSq) : 1;
+
+  const result: RankedTextPlacement[] = [placements[0]!];
+
+  const currCxOf = (p: RankedTextPlacement) => (p.candidate.bounds.minX + p.candidate.bounds.maxX) / 2;
+  const currCyOf = (p: RankedTextPlacement) => (p.candidate.bounds.minY + p.candidate.bounds.maxY) / 2;
+
+  for (let i = 1; i < placements.length; i++) {
+    const curr = placements[i]!;
+    const cx = currCxOf(curr);
+    const cy = currCyOf(curr);
+
+    let tooSimilar = false;
+    const lookback = Math.min(3, i);
+    for (let k = 1; k <= lookback; k++) {
+      const prev = placements[i - k]!;
+
+      const lineCountSim = prev.layout.lineCount === curr.layout.lineCount ? 1 : 0;
+
+      const dist = Math.sqrt((cx - currCxOf(prev)) ** 2 + (cy - currCyOf(prev)) ** 2);
+      const centerSim = Math.max(0, 1 - dist / maxDist);
+
+      const scaleA = prev.layout.scale;
+      const scaleB = curr.layout.scale;
+      const scaleSim = scaleA > 0 && scaleB > 0 ? Math.min(scaleA, scaleB) / Math.max(scaleA, scaleB) : 1;
+
+      if ((lineCountSim + centerSim + scaleSim) / 3 > POST_SCORE_DEDUP_THRESHOLD) {
+        tooSimilar = true;
+        break;
+      }
+    }
+
+    if (!tooSimilar) {
+      result.push(curr);
+    }
+  }
+
+  return result;
+}
+
 /** Options for computeRankedTextPlacements(). */
 interface ComputeRankedOptions {
   font?: import('opentype.js').Font | null;
@@ -857,7 +905,9 @@ export function computeRankedTextPlacements(
     return null;
   }
 
-  return { placements: placements.slice(0, 3), allScoredPlacements: placements, clearanceContext, candidates, scaledBasePlate };
+  const dedupedPlacements = dedupeRankedPlacements(placements, scaledBasePlate);
+
+  return { placements: dedupedPlacements.slice(0, 3), allScoredPlacements: placements, dedupedPlacements, clearanceContext, candidates, scaledBasePlate };
 }
 
 export { computeSizeWindowMultiplier, computeLineCountMultiplier, computeTextClearanceMultiplier, polygonBounds };

@@ -45,6 +45,7 @@ export interface ModelBuildResponse {
     outlinePoints: OutlinePoints;
     projectedNodes: ProjectedNode[] | null;
     allScoredPlacements?: RankedTextPlacement[];
+    dedupedPlacements?: RankedTextPlacement[];
     placementCandidates?: TextPlacementCandidate[];
     scaledBasePlate?: Rect2D;
   };
@@ -155,6 +156,12 @@ function processLatest(): void {
         projectedNodes: model.projectedNodes,
         ...(model.allScoredPlacements ? {
           allScoredPlacements: model.allScoredPlacements.map(p => ({
+            ...p,
+            layout: { ...p.layout, contours: [] },
+          })),
+        } : {}),
+        ...(model.dedupedPlacements ? {
+          dedupedPlacements: model.dedupedPlacements.map(p => ({
             ...p,
             layout: { ...p.layout, contours: [] },
           })),

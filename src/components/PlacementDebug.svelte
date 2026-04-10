@@ -29,10 +29,10 @@
     return `rgb(${r}, ${g}, 60)`;
   }
 
-  function rankLabel(index: number): string | null {
-    if (index === 0) return '1st';
-    if (index === 1) return '2nd';
-    if (index === 2) return '3rd';
+  function rankLabel(dedupRank: number): string | null {
+    if (dedupRank === 0) return '1st';
+    if (dedupRank === 1) return '2nd';
+    if (dedupRank === 2) return '3rd';
     return null;
   }
 
@@ -43,6 +43,15 @@
     // Flip Y: negate and swap minY/maxY so SVG Y-down matches the model's Y-up coords.
     return `${bp.minX - pad} ${-(bp.minY + bp.height) - pad} ${bp.width + pad * 2} ${bp.height + pad * 2}`;
   });
+
+  let dedupRankMap = $derived.by(() => {
+    const deduped = $placementDebugData?.dedupedPlacements ?? [];
+    const map = new Map<number, number>();
+    deduped.forEach((p, i) => map.set(p.candidateIndex, i));
+    return map;
+  });
+
+  let scoreThreshold = $derived(($placementDebugData?.dedupedPlacements?.[5]?.score) ?? 0);
 
   let scoreBounds = $derived.by(() => {
     const placements = $placementDebugData?.allScoredPlacements ?? [];
@@ -104,36 +113,39 @@
         {/if}
 
         <!-- Candidate rectangles -->
-        {#each $placementDebugData.allScoredPlacements as placement, i}
+        {#each $placementDebugData.allScoredPlacements.filter(p => p.score >= scoreThreshold) as placement}
           {@const b = placement.candidate.bounds}
-          {@const color = scoreColor(placement.score, scoreBounds.min, scoreBounds.max)}
+          {@const dedupRank = dedupRankMap.get(placement.candidateIndex) ?? -1}
+          {@const survived = dedupRank >= 0}
+          {@const color = survived ? scoreColor(placement.score, scoreBounds.min, scoreBounds.max) : 'rgb(80,80,80)'}
+          {@const isDashed = !survived || dedupRank >= 3}
           <!-- svelte-ignore a11y_click_events_have_key_events -->
           <!-- svelte-ignore a11y_no_static_element_interactions -->
           <g class="candidate-group" onclick={(e) => { e.stopPropagation(); selectedPlacement = placement; }}>
             <rect
               x={b.minX} y={b.minY}
               width={b.width} height={b.height}
-              fill={color} fill-opacity="0.2"
+              fill={color} fill-opacity={survived ? 0.2 : 0.08}
               stroke={color} stroke-width={fontSize * 0.1}
-              stroke-dasharray={i >= 3 ? `${fontSize * 0.3} ${fontSize * 0.2}` : 'none'}
+              stroke-dasharray={isDashed ? `${fontSize * 0.3} ${fontSize * 0.2}` : 'none'}
               class="candidate-rect"
             />
             <text
               x={b.minX + b.width / 2} y={b.minY + b.height / 2}
               text-anchor="middle" dominant-baseline="central"
               transform="scale(1,-1) translate(0,{-(b.minY + b.height / 2) * 2})"
-              fill="white" font-size={fontSize} class="score-label"
+              fill={survived ? 'white' : 'rgb(100,100,100)'} font-size={fontSize} class="score-label"
             >
               {placement.score.toFixed(2)}
             </text>
-            {#if rankLabel(i)}
+            {#if rankLabel(dedupRank)}
               <text
                 x={b.minX + fontSize * 0.3} y={b.minY + fontSize * 1.2}
                 transform="scale(1,-1) translate(0,{-(b.minY + fontSize * 1.2) * 2})"
                 fill="var(--accent)" font-size={fontSize * 0.9} font-weight="bold"
                 class="rank-badge"
               >
-                {rankLabel(i)}
+                {rankLabel(dedupRank)}
               </text>
             {/if}
           </g>
@@ -142,7 +154,7 @@
       </svg>
 
       <p class="debug-info-line">
-        {$placementDebugData.allScoredPlacements.length} candidates scored
+        {$placementDebugData.allScoredPlacements.filter(p => p.score >= scoreThreshold).length} of {$placementDebugData.allScoredPlacements.length} candidates shown
         — click any rectangle for breakdown
       </p>
     {:else}

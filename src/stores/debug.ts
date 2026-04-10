@@ -3,6 +3,7 @@ import type { RankedTextPlacement, TextPlacementCandidate, Rect2D } from '../typ
 
 export interface PlacementDebugData {
   allScoredPlacements: RankedTextPlacement[];
+  dedupedPlacements: RankedTextPlacement[];
   candidates: TextPlacementCandidate[];
   scaledBasePlate: Rect2D;
 }

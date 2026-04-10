@@ -118,6 +118,8 @@ export interface RankedPlacements {
   placements: RankedTextPlacement[];
   /** All scored placements (for debug inspection). */
   allScoredPlacements?: RankedTextPlacement[];
+  /** Placements that survived post-score deduplication (for debug inspection). */
+  dedupedPlacements?: RankedTextPlacement[];
   /** Clearance context used for text-vs-text spacing. */
   clearanceContext: {
     distanceMap: number[][];

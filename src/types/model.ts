@@ -74,6 +74,8 @@ export interface TrackModel {
   projectedNodes: ProjectedNode[] | null;
   /** All scored placements with breakdown data (debug only). */
   allScoredPlacements?: RankedTextPlacement[];
+  /** Placements that survived post-score deduplication (debug only). */
+  dedupedPlacements?: RankedTextPlacement[];
   /** Placement candidates evaluated during scoring (debug only). */
   placementCandidates?: TextPlacementCandidate[];
   /** Scaled base plate used for placement scoring (debug only). */

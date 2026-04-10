@@ -92,6 +92,9 @@ export function createModelWorkerClient(): {
       if (metadata.allScoredPlacements) {
         model.allScoredPlacements = metadata.allScoredPlacements;
       }
+      if (metadata.dedupedPlacements) {
+        model.dedupedPlacements = metadata.dedupedPlacements;
+      }
       if (metadata.placementCandidates) {
         model.placementCandidates = metadata.placementCandidates;
       }
