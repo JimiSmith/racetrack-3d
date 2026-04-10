@@ -24,6 +24,8 @@ export const SCORING_WEIGHTS: ScoringWeights = Object.freeze({
   lineCountMultipliers: [1, 1, 0.94, 0.91] as [number, number, number, number],
   /** Line-balance damping per line count; index 0 = 2 lines, index 2 = 4 lines. */
   lineBalanceDamping: [0.75, 0.25, 0] as [number, number, number],
+  /** Lines within this fraction of the longest line width incur no balance penalty. */
+  lineBalanceWindow: 0.30,
 
   // --- Size-window curve breakpoints (computeSizeWindowMultiplier) ---
   /** Maximum multiplier at the low end of the preferred height range. */
@@ -160,8 +162,10 @@ interface ScoringCandidate {
 
 export function scoreTextFit(rect: Rect2D, layout: FittedTextLayout, candidate: ScoringCandidate = {}, clearanceContext: ClearanceContext | null = null): { score: number; breakdown: PlacementScoreBreakdown } {
   const rawLineBalance = layout.maxLineWidth > 0 ? layout.minLineWidth / layout.maxLineWidth : 1;
+  const balanceThreshold = 1 - SCORING_WEIGHTS.lineBalanceWindow;
+  const windowedBalance = rawLineBalance >= balanceThreshold ? 1 : rawLineBalance / balanceThreshold;
   const damping = SCORING_WEIGHTS.lineBalanceDamping[layout.lineCount - 2] ?? 0;
-  const lineBalance = rawLineBalance + (1 - rawLineBalance) * damping;
+  const lineBalance = windowedBalance + (1 - windowedBalance) * damping;
   const textHeight = layout.averageLineHeight * layout.scale;
   const sizeWindowMultiplier = computeSizeWindowMultiplier(textHeight);
   const outsideMultiplier = SCORING_WEIGHTS.outsideMultiplierMin + SCORING_WEIGHTS.outsideMultiplierRange * clamp(candidate.fractionOutside ?? 1, 0, 1);

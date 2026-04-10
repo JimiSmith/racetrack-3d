@@ -155,6 +155,8 @@ export interface ScoringWeights {
   lineCountMultipliers: [number, number, number, number];
   /** Line-balance damping per line count; index 0 = 2 lines, index 2 = 4 lines. */
   lineBalanceDamping: [number, number, number];
+  /** Lines within this fraction of the longest line width incur no balance penalty (e.g. 0.30 = 30% window). */
+  lineBalanceWindow: number;
   /** Maximum multiplier at the low end of the preferred height range. */
   sizeWindowLowPeak: number;
   /** Additional range across the preferred height window. */
