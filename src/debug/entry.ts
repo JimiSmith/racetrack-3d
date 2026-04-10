@@ -48,6 +48,11 @@ const UNTAGGED = '__untagged__';
 const PRIORITY_TAG_KEYS = ['highway', 'rel:type', 'rel:route', 'sport'];
 // Tags that start expanded in the filter panel
 const DEFAULT_EXPANDED_KEYS = new Set(['highway', 'rel:type']);
+// Default filter applied on load: only these values are visible; all others (including untagged) are hidden
+const DEFAULT_FILTER_ONLY: Record<string, string[]> = {
+  highway: ['raceway'],
+  sport:   ['motor'],
+};
 // Tags excluded from auto-discovery (noisy/uninteresting)
 const EXCLUDED_TAG_KEYS = new Set([
   'source', 'created_by', 'note', 'fixme', 'attribution', 'import',
@@ -195,9 +200,10 @@ async function selectTrack(track: SearchResult): Promise<void> {
 
     drawOsmWays(ways);
     rebuildTagCensus();
+    applyDefaultFilters();
     initCollapsedGroups();
     renderFilterPanel();
-    updateFilteredStatus();
+    applyFilters();
   } catch (err) {
     if (controller.signal.aborted) {return;}
     setStatus(`OSM API error: ${(err as Error).message}`);
@@ -458,6 +464,20 @@ function rebuildTagCensus(): void {
         }
         valueCounts.set(UNTAGGED, (valueCounts.get(UNTAGGED) ?? 0) + 1);
       }
+    }
+  }
+}
+
+function applyDefaultFilters(): void {
+  for (const [key, allowedValues] of Object.entries(DEFAULT_FILTER_ONLY)) {
+    const values = tagCensus.get(key);
+    if (!values) { continue; }
+    const unchecked = new Set<string>();
+    for (const [v] of values) {
+      if (!allowedValues.includes(v)) { unchecked.add(v); }
+    }
+    if (unchecked.size > 0) {
+      activeFilters.set(key, unchecked);
     }
   }
 }
