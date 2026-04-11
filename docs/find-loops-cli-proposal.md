@@ -71,13 +71,13 @@ Build a map from every node coordinate (across all ways) to the ways that pass t
 nodeIndex: Map<CoordKey, Array<{ wayId: number, nodeIndex: number }>>
 ```
 
-Where `CoordKey` is `(lat, lon)` rounded to 7 decimal places (OSM node precision). This captures every connection — endpoint-to-endpoint, endpoint-to-interior, and interior-to-interior.
+Where `CoordKey` is `(lat, lon)` rounded to 6 decimal places (~0.11m resolution). This coarse key is used for fast lookup only — any two nodes that hash to the same key are then confirmed with `coordsMatch` at full OSM precision (1e-7° tolerance), the same function used by the stitcher. This avoids boundary-case misses that a rounding-only approach would have. The index captures every connection — endpoint-to-endpoint, endpoint-to-interior, and interior-to-interior.
 
 **Example (Spa, 41 ways):** 514 unique node coordinates indexed.
 
 ### Step 2 — Junction identification
 
-A junction coordinate is any coordinate present in 2 or more distinct ways:
+A junction coordinate is any coordinate present in 2 or more distinct ways (confirmed via `coordsMatch`, not just key equality):
 
 ```
 junctionCoords: Set<CoordKey> = { coord | nodeIndex[coord] spans ≥ 2 way IDs }
@@ -117,7 +117,7 @@ A way with no interior junctions produces a single segment spanning `[0, nodeCou
 
 ### Step 4 — Adjacency graph
 
-Vertices are junction coordinates. Edges are segments. Two segments are adjacent if they share a junction coordinate endpoint.
+Vertices are junction coordinates. Edges are segments. The graph is **undirected** — each segment can be traversed in either direction, matching the stitcher's existing auto-reversal behaviour. Two segments are adjacent if they share a junction coordinate endpoint.
 
 ```
 adj: Map<CoordKey, Array<{ toCoord: CoordKey, segmentId: number }>>
@@ -130,17 +130,19 @@ Depth-first search from every junction vertex, collecting all simple cycles (no 
 - **Length window:** Discard cycles with total length < 200m or > 30,000m.
 - **Depth cap:** Abort traversal at a configurable maximum depth (default: 50 segments). This prevents combinatorial explosion on dense graphs.
 
-Deduplication: two cycles are identical if they contain the same set of segment IDs (regardless of traversal direction or start vertex).
+Deduplication: two cycles are identical if they contain the same set of segment IDs (regardless of traversal direction or start vertex). Because the graph is undirected, each cycle is discovered multiple times (both directions × every start vertex); set-based dedup eliminates all duplicates.
+
+The algorithm logs the loop count and elapsed time for each track, providing a signal if any track's graph structure causes unexpectedly slow enumeration.
 
 **Example (Spa):** 26 unique closed loops found, ranging from 636m to 7,465m.
 
 ### Step 6 — Collapse and emit
 
-For each loop, collapse the segment list back into way-level entries:
+For each loop, collapse the segment list back into way-level `LayoutWayEntry`-compatible entries:
 
-1. **Full-way usage:** If a loop uses every segment of a split way, merge them back into a single entry with no `fromNode`/`toNode`. The way is used in its entirety.
+1. **Full way:** If a loop uses every segment of a split way, merge them back into a single entry with no `fromNode`/`toNode`.
 
-2. **Partial-way usage:** If a loop uses only some segments of a split way, emit one entry per contiguous run of segments, with `fromNode` and/or `toNode` set to the junction coordinate where the slice occurs.
+2. **Partial way:** If a loop uses only some segments of a split way, emit one entry per contiguous run of segments, with `fromNode` and/or `toNode` set to the junction coordinate where the slice occurs.
 
 3. **Ordering:** Emit ways in traversal order (the stitching sequence). The stitcher handles direction resolution, so the traversal order is sufficient.
 
@@ -173,12 +175,12 @@ For each loop, collapse the segment list back into way-level entries:
         "Les Combes", "Malmedy", "Raidillon", "Speaker's Corner"
       ],
       "ways": [
-        { "wayId": 175178443, "usage": "full" },
-        { "wayId": 175178448, "usage": "full" },
-        { "wayId": 126807110, "usage": "full" },
-        { "wayId": 126835639, "usage": "full" },
-        { "wayId": 126835637, "usage": "full" },
-        // ... remaining full ways ...
+        { "wayId": 175178443 },
+        { "wayId": 175178448 },
+        { "wayId": 126807110 },
+        { "wayId": 126835639 },
+        { "wayId": 126835637 },
+        // ... remaining ways ...
       ]
     },
     {
@@ -201,17 +203,15 @@ For each loop, collapse the segment list back into way-level entries:
       "wayCount": 7,
       "namedSections": ["Eau Rouge", "Raidillon", "Rallycross circuit"],
       "ways": [
-        { "wayId": 126835637, "usage": "partial",
-          "toNode": { "lat": 50.4411262, "lon": 5.9719918 },
-          "name": "Raidillon" },
-        { "wayId": 689853533, "usage": "full", "name": "Rallycross circuit" },
-        { "wayId": 1467574854, "usage": "full", "name": "Rallycross circuit" },
-        { "wayId": 689853534, "usage": "full", "name": "Rallycross circuit" },
-        { "wayId": 1467574855, "usage": "full", "name": "Rallycross circuit" },
-        { "wayId": 126807110, "usage": "partial",
-          "fromNode": { "lat": 50.4429533, "lon": 5.9698663 },
-          "name": "(unnamed)" },
-        { "wayId": 126835639, "usage": "full", "name": "Eau Rouge" }
+        { "wayId": 126835637,
+          "toNode": { "lat": 50.4411262, "lon": 5.9719918 } },
+        { "wayId": 689853533 },
+        { "wayId": 1467574854 },
+        { "wayId": 689853534 },
+        { "wayId": 1467574855 },
+        { "wayId": 126807110,
+          "fromNode": { "lat": 50.4429533, "lon": 5.9698663 } },
+        { "wayId": 126835639 }
       ]
     }
     // ... 23 more loops ...
@@ -227,13 +227,15 @@ For each loop, collapse the segment list back into way-level entries:
 
 ### Per-way entry schema
 
+Per-way entries match the existing `LayoutWayEntry` type exactly, so an LLM agent (or human) can copy a loop's `ways` array directly into a layout file without transformation.
+
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `wayId` | `number` | yes | OSM way ID. |
-| `usage` | `"full" \| "partial"` | yes | Whether the loop uses the entire way or a slice. |
-| `name` | `string` | yes | Way's `name` tag from OSM, or `"(unnamed)"`. |
-| `fromNode` | `{ lat, lon }` | when partial | Slice start coordinate. Omitted if the slice starts at the way's first node. |
-| `toNode` | `{ lat, lon }` | when partial | Slice end coordinate. Omitted if the slice ends at the way's last node. |
+| `fromNode` | `{ lat, lon }` | no | Slice start coordinate. Present only when the loop uses a sub-range of the way starting after the way's first node. |
+| `toNode` | `{ lat, lon }` | no | Slice end coordinate. Present only when the loop uses a sub-range of the way ending before the way's last node. |
+
+Way names are not included per-entry — they are available at the loop level via `namedSections` (sorted alphabetically) and can be cross-referenced with the ways file if needed.
 
 ---
 
@@ -280,11 +282,9 @@ The number of loops found depends on the graph structure:
 
 For complex tracks, additional pruning strategies:
 
-1. **Loop grouping:** Loops that share >90% of their way set are near-duplicates (e.g. same circuit but routing through the pit lane instead of the main straight). Group them and present one representative per group, with the variants noted.
+1. **Dead-end filtering:** Ways whose endpoints connect to only one other way (degree-1 vertices in the segment graph) cannot be part of any cycle. Prune them before DFS. At Spa, this would remove the "Rallycross start" way immediately.
 
-2. **Dead-end filtering:** Ways whose endpoints connect to only one other way (degree-1 vertices in the segment graph) cannot be part of any cycle. Prune them before DFS. At Spa, this would remove the "Rallycross start" way immediately.
-
-3. **Depth cap:** The `--max-depth` flag prevents unbounded traversal. For most tracks, the longest real layout uses fewer than 35 ways, so a default of 50 provides headroom without explosion.
+2. **Depth cap:** The `--max-depth` flag prevents unbounded traversal. For most tracks, the longest real layout uses fewer than 35 ways, so a default of 50 provides headroom without explosion.
 
 ---
 
@@ -295,7 +295,7 @@ The `find-loops` output is designed to be consumed by an LLM agent that automate
 1. **Read** the loops file for a track.
 2. **Classify** each loop: real racing layout, pit lane route, artefact, or duplicate variant.
 3. **Name** real layouts using the track name and named sections (e.g. "Grand Prix", "National", "Rallycross").
-4. **Select** one representative loop per real layout. For loops where a partial way is used, the `fromNode`/`toNode` coordinates are already computed — copy them directly.
+4. **Select** one representative loop per real layout. Copy the loop's `ways` array directly into the layout file — the entries are already in `LayoutWayEntry` format, with `fromNode`/`toNode` pre-computed where needed.
 5. **Write** the layout file in the format specified by the [v2 proposal](geometry-pipeline-v2-proposal.md#step-3-input--layout-file).
 6. **Populate** `excludedWays` from the `unusedWays` list plus any ways that only appear in rejected loops.
 7. **Validate** by running `create-track-geometry --track {trackId} --force` and fixing any errors.
