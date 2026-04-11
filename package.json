@@ -9,6 +9,7 @@
     "build:geometry-index:ci": "node --import tsx/esm scripts/build-track-geometry-index.ts --cache-dir .cache/track-geometry/osm-api",
     "validate:geometry-index": "node --import tsx/esm scripts/build-track-geometry-index.ts --validate-only",
     "build:track-search-index": "node --import tsx/esm scripts/build-track-search-index.ts",
+    "geometry:import": "node --import tsx/esm utils/geometry-import/main.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/ scripts/ test/ test-utils/",
     "test": "node --import tsx/esm --test",
