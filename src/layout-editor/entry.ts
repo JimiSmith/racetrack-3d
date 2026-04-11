@@ -22,10 +22,16 @@ interface LayoutFile {
 
 // --- Editor layout state ---
 
+interface EditorWayEntry {
+  wayId: number;
+  fromNode?: LatLon;
+  toNode?: LatLon;
+}
+
 interface EditorLayout {
   id: string;
   name: string;
-  wayIds: number[];
+  ways: EditorWayEntry[];
   collapsed: boolean;
 }
 
@@ -40,10 +46,40 @@ function generateId(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
+const COORD_TOLERANCE = 1e-7;
+
+function coordsMatch(a: LatLon, b: LatLon): boolean {
+  return Math.abs(a.lat - b.lat) < COORD_TOLERANCE && Math.abs(a.lon - b.lon) < COORD_TOLERANCE;
+}
+
+/** Get the effective nodes for a way entry, applying fromNode/toNode slicing. */
+function getEffectiveNodes(entry: EditorWayEntry): LatLon[] {
+  const way = wayDataById.get(entry.wayId);
+  if (!way) return [];
+  let nodes = way.nodes;
+  if (entry.fromNode) {
+    const idx = nodes.findIndex(n => coordsMatch(n, entry.fromNode!));
+    if (idx > 0) nodes = nodes.slice(idx);
+  }
+  if (entry.toNode) {
+    const idx = nodes.findIndex(n => coordsMatch(n, entry.toNode!));
+    if (idx >= 0) nodes = nodes.slice(0, idx + 1);
+  }
+  return nodes;
+}
+
+/** Find the index of a node in a way's node list. Returns -1 if not found. */
+function findNodeIndex(wayId: number, node: LatLon): number {
+  const way = wayDataById.get(wayId);
+  if (!way) return -1;
+  return way.nodes.findIndex(n => coordsMatch(n, node));
+}
+
 // --- State ---
 
 let map: any;
 let wayLayers: any[] = [];
+let trimMarkers: any[] = [];
 
 let currentTrackId: string | null = null;
 let currentTrackName: string | null = null;
@@ -54,6 +90,9 @@ const wayLayerById = new Map<number, any>();
 const editorLayouts: EditorLayout[] = [];
 let activeSelectLayoutId: string | null = null;
 let existingExcludedWays: ExcludedWayEntry[] = [];
+
+// Trim mode state
+let trimTarget: { layoutId: string; wayIdx: number; field: 'fromNode' | 'toNode' } | null = null;
 
 const WAY_COLOR_RACEWAY = '#ffaa00';
 const WAY_COLOR_DEFAULT = '#888';
@@ -177,7 +216,12 @@ async function selectTrack(track: SearchResult): Promise<void> {
         editorLayouts.push({
           id: generateId(),
           name,
-          wayIds: def.ways.map(w => w.wayId),
+          ways: def.ways.map(w => {
+            const entry: EditorWayEntry = { wayId: w.wayId };
+            if (w.fromNode) entry.fromNode = w.fromNode;
+            if (w.toNode) entry.toNode = w.toNode;
+            return entry;
+          }),
           collapsed: true,
         });
       }
@@ -198,11 +242,13 @@ async function selectTrack(track: SearchResult): Promise<void> {
 
 function clearAll(): void {
   for (const layer of wayLayers) map.removeLayer(layer);
+  clearTrimMarkers();
   wayLayers = [];
   wayDataById.clear();
   wayLayerById.clear();
   editorLayouts.length = 0;
   activeSelectLayoutId = null;
+  trimTarget = null;
   existingExcludedWays = [];
   currentTrackId = null;
   currentTrackName = null;
@@ -239,6 +285,64 @@ function drawWays(ways: WaysFileWay[]): void {
   }
 }
 
+// --- Auto-trim logic ---
+
+/**
+ * After adding a new way to a layout, detect if trim points (fromNode/toNode)
+ * are needed to connect it to the previous way.
+ *
+ * Checks whether the previous way's effective last node matches any node in the
+ * new way (or vice versa). If an internal node match is found, sets the
+ * appropriate toNode on the previous way or fromNode on the new way.
+ */
+function autoTrim(layout: EditorLayout): void {
+  if (layout.ways.length < 2) return;
+
+  const prevEntry = layout.ways[layout.ways.length - 2]!;
+  const newEntry = layout.ways[layout.ways.length - 1]!;
+
+  const prevWay = wayDataById.get(prevEntry.wayId);
+  const newWay = wayDataById.get(newEntry.wayId);
+  if (!prevWay || !newWay) return;
+
+  const prevNodes = getEffectiveNodes(prevEntry);
+  if (prevNodes.length === 0) return;
+
+  const prevLast = prevNodes[prevNodes.length - 1]!;
+  const prevFirst = prevNodes[0]!;
+  const newFirst = newWay.nodes[0]!;
+  const newLast = newWay.nodes[newWay.nodes.length - 1]!;
+
+  // Check if endpoints already connect (any orientation)
+  if (coordsMatch(prevLast, newFirst) || coordsMatch(prevLast, newLast) ||
+      coordsMatch(prevFirst, newFirst) || coordsMatch(prevFirst, newLast)) {
+    return; // Clean connection, no trimming needed
+  }
+
+  // Try to find a shared node:
+  // 1. Does any node in the previous way match any node in the new way?
+  for (let pi = prevWay.nodes.length - 1; pi >= 0; pi--) {
+    const pn = prevWay.nodes[pi]!;
+    for (let ni = 0; ni < newWay.nodes.length; ni++) {
+      const nn = newWay.nodes[ni]!;
+      if (coordsMatch(pn, nn)) {
+        // Found a shared node. Set toNode on previous way if it's an internal node.
+        const prevEffectiveStart = prevEntry.fromNode
+          ? prevWay.nodes.findIndex(n => coordsMatch(n, prevEntry.fromNode!))
+          : 0;
+        if (pi > prevEffectiveStart && pi < prevWay.nodes.length - 1) {
+          prevEntry.toNode = { lat: pn.lat, lon: pn.lon };
+        }
+        // Set fromNode on new way if it's an internal node.
+        if (ni > 0 && ni < newWay.nodes.length - 1) {
+          newEntry.fromNode = { lat: nn.lat, lon: nn.lon };
+        }
+        return;
+      }
+    }
+  }
+}
+
 // --- Way click handler ---
 
 function handleWayClick(wayId: number): void {
@@ -247,11 +351,12 @@ function handleWayClick(wayId: number): void {
   const layout = editorLayouts.find(l => l.id === activeSelectLayoutId);
   if (!layout) return;
 
-  const idx = layout.wayIds.indexOf(wayId);
-  if (idx >= 0) {
-    layout.wayIds.splice(idx, 1);
+  const existingIdx = layout.ways.findIndex(w => w.wayId === wayId);
+  if (existingIdx >= 0) {
+    layout.ways.splice(existingIdx, 1);
   } else {
-    layout.wayIds.push(wayId);
+    layout.ways.push({ wayId });
+    autoTrim(layout);
   }
 
   updateWayStyles();
@@ -264,7 +369,7 @@ function handleWayClick(wayId: number): void {
 function getWayIdsInAnyLayout(): Set<number> {
   const ids = new Set<number>();
   for (const layout of editorLayouts) {
-    for (const id of layout.wayIds) ids.add(id);
+    for (const entry of layout.ways) ids.add(entry.wayId);
   }
   return ids;
 }
@@ -272,7 +377,7 @@ function getWayIdsInAnyLayout(): Set<number> {
 function getActiveLayoutWayIds(): Set<number> {
   if (!activeSelectLayoutId) return new Set();
   const layout = editorLayouts.find(l => l.id === activeSelectLayoutId);
-  return layout ? new Set(layout.wayIds) : new Set();
+  return layout ? new Set(layout.ways.map(w => w.wayId)) : new Set();
 }
 
 function updateWayStyles(): void {
@@ -296,6 +401,67 @@ function updateWayStyles(): void {
   }
 }
 
+// --- Trim mode (manual) ---
+
+function enterTrimMode(layoutId: string, wayIdx: number, field: 'fromNode' | 'toNode'): void {
+  clearTrimMarkers();
+  const layout = editorLayouts.find(l => l.id === layoutId);
+  if (!layout) return;
+  const entry = layout.ways[wayIdx];
+  if (!entry) return;
+  const way = wayDataById.get(entry.wayId);
+  if (!way) return;
+
+  trimTarget = { layoutId, wayIdx, field };
+  setStatus(`Click a node on way ${entry.wayId} to set ${field === 'fromNode' ? 'start' : 'end'} point. Press Escape to cancel.`);
+
+  for (let i = 0; i < way.nodes.length; i++) {
+    const node = way.nodes[i]!;
+    const marker = L.circleMarker([node.lat, node.lon], {
+      radius: 5,
+      color: '#fff',
+      fillColor: '#ff234f',
+      fillOpacity: 0.8,
+      weight: 2,
+    }).addTo(map);
+    marker.bindTooltip(`Node ${i}<br/>${node.lat.toFixed(7)}, ${node.lon.toFixed(7)}`, { sticky: true });
+    marker.on('click', () => {
+      applyTrimSelection(node);
+    });
+    trimMarkers.push(marker);
+  }
+}
+
+function applyTrimSelection(node: LatLon): void {
+  if (!trimTarget) return;
+  const layout = editorLayouts.find(l => l.id === trimTarget!.layoutId);
+  if (!layout) return;
+  const entry = layout.ways[trimTarget.wayIdx];
+  if (!entry) return;
+
+  entry[trimTarget.field] = { lat: node.lat, lon: node.lon };
+  exitTrimMode();
+  renderLayoutsPanel();
+}
+
+function exitTrimMode(): void {
+  clearTrimMarkers();
+  trimTarget = null;
+  setStatus('');
+}
+
+function clearTrimMarkers(): void {
+  for (const marker of trimMarkers) map.removeLayer(marker);
+  trimMarkers = [];
+}
+
+// Escape key exits trim mode
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && trimTarget) {
+    exitTrimMode();
+  }
+});
+
 // --- Layout panel rendering ---
 
 function renderLayoutsPanel(): void {
@@ -306,17 +472,32 @@ function renderLayoutsPanel(): void {
 
   const html = editorLayouts.map((layout) => {
     const isActive = activeSelectLayoutId === layout.id;
-    const wayItems = layout.wayIds.map((wayId, i) => {
-      const way = wayDataById.get(wayId);
+    const wayItems = layout.ways.map((entry, i) => {
+      const way = wayDataById.get(entry.wayId);
       const name = way?.tags.name || way?.tags.ref || '';
-      return `<div class="way-item" data-layout-id="${layout.id}" data-way-id="${wayId}">
+      const hasTrim = entry.fromNode || entry.toNode;
+      const fromIdx = entry.fromNode ? findNodeIndex(entry.wayId, entry.fromNode) : -1;
+      const toIdx = entry.toNode ? findNodeIndex(entry.wayId, entry.toNode) : -1;
+
+      let trimBadges = '';
+      if (entry.fromNode) {
+        trimBadges += `<span class="trim-badge" data-layout-id="${layout.id}" data-idx="${i}" data-field="fromNode" title="Start at node ${fromIdx}. Click to clear.">from:${fromIdx}</span>`;
+      }
+      if (entry.toNode) {
+        trimBadges += `<span class="trim-badge" data-layout-id="${layout.id}" data-idx="${i}" data-field="toNode" title="End at node ${toIdx}. Click to clear.">to:${toIdx}</span>`;
+      }
+
+      return `<div class="way-item${hasTrim ? ' trimmed' : ''}" data-layout-id="${layout.id}" data-way-id="${entry.wayId}">
         <span class="way-index">${i + 1}.</span>
-        <span class="way-id">${wayId}</span>
+        <span class="way-id">${entry.wayId}</span>
         ${name ? `<span class="way-name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>` : ''}
+        ${trimBadges}
         <span class="way-item-controls">
+          <button class="trim-start-btn" data-layout-id="${layout.id}" data-idx="${i}" title="Set start node">\u2702A</button>
+          <button class="trim-end-btn" data-layout-id="${layout.id}" data-idx="${i}" title="Set end node">\u2702B</button>
           <button class="move-up-btn" data-layout-id="${layout.id}" data-idx="${i}" title="Move up"${i === 0 ? ' disabled' : ''}>\u25b2</button>
-          <button class="move-down-btn" data-layout-id="${layout.id}" data-idx="${i}" title="Move down"${i === layout.wayIds.length - 1 ? ' disabled' : ''}>\u25bc</button>
-          <button class="remove-btn" data-layout-id="${layout.id}" data-way-id="${wayId}" title="Remove">\u00d7</button>
+          <button class="move-down-btn" data-layout-id="${layout.id}" data-idx="${i}" title="Move down"${i === layout.ways.length - 1 ? ' disabled' : ''}>\u25bc</button>
+          <button class="remove-btn" data-layout-id="${layout.id}" data-way-id="${entry.wayId}" title="Remove">\u00d7</button>
         </span>
       </div>`;
     }).join('');
@@ -325,7 +506,7 @@ function renderLayoutsPanel(): void {
       <div class="layout-card-header" data-layout-id="${layout.id}">
         <span class="layout-chevron">${layout.collapsed ? '\u25b6' : '\u25bc'}</span>
         <span class="layout-card-name">${escapeHtml(layout.name || 'Untitled')}</span>
-        <span class="layout-card-count">(${layout.wayIds.length})</span>
+        <span class="layout-card-count">(${layout.ways.length})</span>
         <button class="layout-card-delete" data-layout-id="${layout.id}" title="Delete layout">\u00d7</button>
       </div>
       <div class="layout-card-body">
@@ -379,13 +560,11 @@ function wireLayoutEvents(): void {
       const layout = editorLayouts.find(l => l.id === layoutId);
       if (layout) {
         layout.name = input.value;
-        // Update the header name text without full re-render
         const card = input.closest('.layout-card');
         const nameSpan = card?.querySelector('.layout-card-name');
         if (nameSpan) nameSpan.textContent = layout.name || 'Untitled';
       }
     });
-    // Prevent header collapse toggle when clicking input
     input.addEventListener('click', (e) => e.stopPropagation());
   }
 
@@ -397,10 +576,10 @@ function wireLayoutEvents(): void {
         activeSelectLayoutId = null;
       } else {
         activeSelectLayoutId = layoutId;
-        // Auto-expand the layout
         const layout = editorLayouts.find(l => l.id === layoutId);
         if (layout) layout.collapsed = false;
       }
+      exitTrimMode();
       updateWayStyles();
       renderLayoutsPanel();
     });
@@ -414,7 +593,7 @@ function wireLayoutEvents(): void {
       const layout = editorLayouts.find(l => l.id === el.dataset.layoutId);
       const idx = Number(el.dataset.idx);
       if (layout && idx > 0) {
-        [layout.wayIds[idx - 1], layout.wayIds[idx]] = [layout.wayIds[idx]!, layout.wayIds[idx - 1]!];
+        [layout.ways[idx - 1], layout.ways[idx]] = [layout.ways[idx]!, layout.ways[idx - 1]!];
         renderLayoutsPanel();
       }
     });
@@ -427,8 +606,8 @@ function wireLayoutEvents(): void {
       const el = btn as HTMLElement;
       const layout = editorLayouts.find(l => l.id === el.dataset.layoutId);
       const idx = Number(el.dataset.idx);
-      if (layout && idx < layout.wayIds.length - 1) {
-        [layout.wayIds[idx], layout.wayIds[idx + 1]] = [layout.wayIds[idx + 1]!, layout.wayIds[idx]!];
+      if (layout && idx < layout.ways.length - 1) {
+        [layout.ways[idx], layout.ways[idx + 1]] = [layout.ways[idx + 1]!, layout.ways[idx]!];
         renderLayoutsPanel();
       }
     });
@@ -442,11 +621,44 @@ function wireLayoutEvents(): void {
       const layout = editorLayouts.find(l => l.id === el.dataset.layoutId);
       const wayId = Number(el.dataset.wayId);
       if (layout) {
-        const idx = layout.wayIds.indexOf(wayId);
-        if (idx >= 0) layout.wayIds.splice(idx, 1);
+        const idx = layout.ways.findIndex(w => w.wayId === wayId);
+        if (idx >= 0) layout.ways.splice(idx, 1);
         updateWayStyles();
         renderLayoutsPanel();
         updateSaveBtn();
+      }
+    });
+  }
+
+  // Trim start buttons
+  for (const btn of layoutsContainer.querySelectorAll('.trim-start-btn')) {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const el = btn as HTMLElement;
+      enterTrimMode(el.dataset.layoutId!, Number(el.dataset.idx), 'fromNode');
+    });
+  }
+
+  // Trim end buttons
+  for (const btn of layoutsContainer.querySelectorAll('.trim-end-btn')) {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const el = btn as HTMLElement;
+      enterTrimMode(el.dataset.layoutId!, Number(el.dataset.idx), 'toNode');
+    });
+  }
+
+  // Trim badges (click to clear)
+  for (const badge of layoutsContainer.querySelectorAll('.trim-badge')) {
+    badge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const el = badge as HTMLElement;
+      const layout = editorLayouts.find(l => l.id === el.dataset.layoutId);
+      const idx = Number(el.dataset.idx);
+      const field = el.dataset.field as 'fromNode' | 'toNode';
+      if (layout && layout.ways[idx]) {
+        delete layout.ways[idx]![field];
+        renderLayoutsPanel();
       }
     });
   }
@@ -458,16 +670,16 @@ createLayoutBtn.addEventListener('click', () => {
   const layout: EditorLayout = {
     id: generateId(),
     name: '',
-    wayIds: [],
+    ways: [],
     collapsed: false,
   };
   editorLayouts.push(layout);
   activeSelectLayoutId = layout.id;
+  exitTrimMode();
   updateWayStyles();
   renderLayoutsPanel();
   updateSaveBtn();
 
-  // Focus the name input of the new layout
   const input = layoutsContainer.querySelector(`.layout-name-input[data-layout-id="${layout.id}"]`) as HTMLInputElement | null;
   input?.focus();
 });
@@ -479,7 +691,12 @@ function buildExportJson(): LayoutFile {
   for (const layout of editorLayouts) {
     const name = layout.name.trim() || 'Untitled';
     layouts[name] = {
-      ways: layout.wayIds.map(wayId => ({ wayId })),
+      ways: layout.ways.map(entry => {
+        const out: LayoutFileWayEntry = { wayId: entry.wayId };
+        if (entry.fromNode) out.fromNode = entry.fromNode;
+        if (entry.toNode) out.toNode = entry.toNode;
+        return out;
+      }),
     };
   }
   const result: LayoutFile = {

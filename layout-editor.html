@@ -416,6 +416,43 @@
         color: var(--accent);
       }
 
+      .way-item.trimmed .way-id {
+        color: var(--cyan);
+      }
+
+      .trim-badge {
+        display: inline-block;
+        padding: 1px 5px;
+        border-radius: 4px;
+        background: rgba(0, 204, 255, 0.15);
+        color: var(--cyan);
+        font-size: 0.68rem;
+        font-family: monospace;
+        cursor: pointer;
+        margin-left: 2px;
+      }
+
+      .trim-badge:hover {
+        background: rgba(255, 35, 79, 0.2);
+        color: var(--accent);
+      }
+
+      .trim-start-btn,
+      .trim-end-btn {
+        background: none;
+        border: none;
+        color: var(--text-soft);
+        cursor: pointer;
+        font-size: 0.72rem;
+        padding: 0 2px;
+        line-height: 1;
+      }
+
+      .trim-start-btn:hover,
+      .trim-end-btn:hover {
+        color: var(--cyan);
+      }
+
       #save-btn {
         width: 100%;
         padding: 8px 14px;
