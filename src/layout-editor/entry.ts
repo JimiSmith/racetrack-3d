@@ -288,58 +288,69 @@ function drawWays(ways: WaysFileWay[]): void {
 // --- Auto-trim logic ---
 
 /**
- * After adding a new way to a layout, detect if trim points (fromNode/toNode)
- * are needed to connect it to the previous way.
- *
- * Checks whether the previous way's effective last node matches any node in the
- * new way (or vice versa). If an internal node match is found, sets the
- * appropriate toNode on the previous way or fromNode on the new way.
+ * Try to auto-trim between two adjacent way entries. If their endpoints don't
+ * connect, search for a shared internal node and set toNode/fromNode accordingly.
  */
-function autoTrim(layout: EditorLayout): void {
-  if (layout.ways.length < 2) return;
+function autoTrimPair(entryA: EditorWayEntry, entryB: EditorWayEntry): void {
+  const wayA = wayDataById.get(entryA.wayId);
+  const wayB = wayDataById.get(entryB.wayId);
+  if (!wayA || !wayB) return;
 
-  const prevEntry = layout.ways[layout.ways.length - 2]!;
-  const newEntry = layout.ways[layout.ways.length - 1]!;
+  const nodesA = getEffectiveNodes(entryA);
+  if (nodesA.length === 0) return;
 
-  const prevWay = wayDataById.get(prevEntry.wayId);
-  const newWay = wayDataById.get(newEntry.wayId);
-  if (!prevWay || !newWay) return;
-
-  const prevNodes = getEffectiveNodes(prevEntry);
-  if (prevNodes.length === 0) return;
-
-  const prevLast = prevNodes[prevNodes.length - 1]!;
-  const prevFirst = prevNodes[0]!;
-  const newFirst = newWay.nodes[0]!;
-  const newLast = newWay.nodes[newWay.nodes.length - 1]!;
+  const aLast = nodesA[nodesA.length - 1]!;
+  const aFirst = nodesA[0]!;
+  const bFirst = wayB.nodes[0]!;
+  const bLast = wayB.nodes[wayB.nodes.length - 1]!;
 
   // Check if endpoints already connect (any orientation)
-  if (coordsMatch(prevLast, newFirst) || coordsMatch(prevLast, newLast) ||
-      coordsMatch(prevFirst, newFirst) || coordsMatch(prevFirst, newLast)) {
+  if (coordsMatch(aLast, bFirst) || coordsMatch(aLast, bLast) ||
+      coordsMatch(aFirst, bFirst) || coordsMatch(aFirst, bLast)) {
     return; // Clean connection, no trimming needed
   }
 
-  // Try to find a shared node:
-  // 1. Does any node in the previous way match any node in the new way?
-  for (let pi = prevWay.nodes.length - 1; pi >= 0; pi--) {
-    const pn = prevWay.nodes[pi]!;
-    for (let ni = 0; ni < newWay.nodes.length; ni++) {
-      const nn = newWay.nodes[ni]!;
-      if (coordsMatch(pn, nn)) {
-        // Found a shared node. Set toNode on previous way if it's an internal node.
-        const prevEffectiveStart = prevEntry.fromNode
-          ? prevWay.nodes.findIndex(n => coordsMatch(n, prevEntry.fromNode!))
+  // Try to find a shared internal node between the two ways
+  for (let ai = wayA.nodes.length - 1; ai >= 0; ai--) {
+    const an = wayA.nodes[ai]!;
+    for (let bi = 0; bi < wayB.nodes.length; bi++) {
+      const bn = wayB.nodes[bi]!;
+      if (coordsMatch(an, bn)) {
+        // Found a shared node. Set toNode on way A if it's an internal node.
+        const aEffectiveStart = entryA.fromNode
+          ? wayA.nodes.findIndex(n => coordsMatch(n, entryA.fromNode!))
           : 0;
-        if (pi > prevEffectiveStart && pi < prevWay.nodes.length - 1) {
-          prevEntry.toNode = { lat: pn.lat, lon: pn.lon };
+        if (ai > aEffectiveStart && ai < wayA.nodes.length - 1) {
+          entryA.toNode = { lat: an.lat, lon: an.lon };
         }
-        // Set fromNode on new way if it's an internal node.
-        if (ni > 0 && ni < newWay.nodes.length - 1) {
-          newEntry.fromNode = { lat: nn.lat, lon: nn.lon };
+        // Set fromNode on way B if it's an internal node.
+        if (bi > 0 && bi < wayB.nodes.length - 1) {
+          entryB.fromNode = { lat: bn.lat, lon: bn.lon };
         }
         return;
       }
     }
+  }
+}
+
+/**
+ * After adding a new way to a layout, detect if trim points (fromNode/toNode)
+ * are needed. Checks the new way against the previous way, and also against the
+ * first way in the layout (for loop closure).
+ */
+function autoTrim(layout: EditorLayout): void {
+  if (layout.ways.length < 2) return;
+
+  const newEntry = layout.ways[layout.ways.length - 1]!;
+  const prevEntry = layout.ways[layout.ways.length - 2]!;
+
+  // Trim between previous way and new way
+  autoTrimPair(prevEntry, newEntry);
+
+  // Trim between new way (last) and first way (loop closure)
+  if (layout.ways.length >= 3) {
+    const firstEntry = layout.ways[0]!;
+    autoTrimPair(newEntry, firstEntry);
   }
 }
 
