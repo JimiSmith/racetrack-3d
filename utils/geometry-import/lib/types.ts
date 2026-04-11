@@ -77,3 +77,68 @@ export interface TrackLayoutFile {
   layouts: Record<string, LayoutDefinition>;
   excludedWays?: ExcludedWayEntry[];
 }
+
+// ---------------------------------------------------------------------------
+// Step 2.5 — find-loops types
+// ---------------------------------------------------------------------------
+
+/** CLI options for the find-loops command. */
+export interface FindLoopsOptions {
+  tracks: string[] | null; // null = all ways files
+  maxDepth: number;
+  minLength: number;
+  maxLength: number;
+  maxLoops: number;
+  force: boolean;
+  dryRun: boolean;
+}
+
+/** A segment created by splitting a way at junction nodes. */
+export interface WaySegment {
+  segmentId: number;
+  wayId: number;
+  fromIdx: number;
+  toIdx: number;
+  fromCoord: LatLon;
+  toCoord: LatLon;
+  lengthMetres: number;
+  name: string;
+}
+
+/** A single loop candidate found by the loop-finder algorithm. */
+export interface FoundLoop {
+  loopId: number;
+  lengthMetres: number;
+  wayCount: number;
+  namedSections: string[];
+  ways: LayoutWayEntry[];
+}
+
+/** An entry in the unusedWays list. */
+export interface UnusedWayEntry {
+  wayId: number;
+  name: string;
+}
+
+/** The complete output file for one track (find-loops output). */
+export interface TrackLoopsFile {
+  trackId: string;
+  generatedAt: string;
+  waysFileHash: string;
+  stats: {
+    totalWays: number;
+    junctionCoords: number;
+    segments: number;
+    loopsFound: number;
+  };
+  loops: FoundLoop[];
+  unusedWays: UnusedWayEntry[];
+}
+
+/** Result returned by the findLoops algorithm. */
+export interface FindLoopsResult {
+  junctionCount: number;
+  segmentCount: number;
+  loops: FoundLoop[];
+  unusedWays: UnusedWayEntry[];
+}

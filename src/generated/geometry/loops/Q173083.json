@@ -1,0 +1,1702 @@
+{
+  "trackId": "Q173083",
+  "generatedAt": "2026-04-11T22:47:05.240Z",
+  "waysFileHash": "sha256:73a975a6492f3bb09265f15638fec6d78483b4607ab5c441bbc7f8d796a00006",
+  "stats": {
+    "totalWays": 28,
+    "junctionCoords": 31,
+    "segments": 35,
+    "loopsFound": 21
+  },
+  "loops": [
+    {
+      "loopId": 1,
+      "lengthMetres": 315,
+      "wayCount": 4,
+      "namedSections": [
+        "CM.com Circuit Zandvoort",
+        "Rob Slotemakerbocht"
+      ],
+      "ways": [
+        {
+          "wayId": 23285868,
+          "toNode": {
+            "lat": 52.3883623,
+            "lon": 4.5479959
+          }
+        },
+        {
+          "wayId": 1311522218,
+          "fromNode": {
+            "lat": 52.3884142,
+            "lon": 4.5476688
+          },
+          "toNode": {
+            "lat": 52.3889639,
+            "lon": 4.5496346
+          }
+        },
+        {
+          "wayId": 23285808,
+          "fromNode": {
+            "lat": 52.3883681,
+            "lon": 4.5483956
+          }
+        },
+        {
+          "wayId": 24627114
+        }
+      ]
+    },
+    {
+      "loopId": 2,
+      "lengthMetres": 443,
+      "wayCount": 4,
+      "namedSections": [
+        "CM.com Circuit Zandvoort",
+        "Rob Slotemakerbocht"
+      ],
+      "ways": [
+        {
+          "wayId": 23285868
+        },
+        {
+          "wayId": 1311522218,
+          "fromNode": {
+            "lat": 52.3884142,
+            "lon": 4.5476688
+          },
+          "toNode": {
+            "lat": 52.3889639,
+            "lon": 4.5496346
+          }
+        },
+        {
+          "wayId": 23285808
+        },
+        {
+          "wayId": 1311765615,
+          "fromNode": {
+            "lat": 52.3880594,
+            "lon": 4.5487076
+          },
+          "toNode": {
+            "lat": 52.3880148,
+            "lon": 4.5477581
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 3,
+      "lengthMetres": 1405,
+      "wayCount": 11,
+      "namedSections": [
+        "CM.com Circuit Zandvoort",
+        "CM.com bocht",
+        "Mastersbocht",
+        "Rob Slotemakerbocht",
+        "Scheivlak"
+      ],
+      "ways": [
+        {
+          "wayId": 1311566940
+        },
+        {
+          "wayId": 1313671992
+        },
+        {
+          "wayId": 1311566939
+        },
+        {
+          "wayId": 1313671991
+        },
+        {
+          "wayId": 1311566937
+        },
+        {
+          "wayId": 1311566938
+        },
+        {
+          "wayId": 1311522218,
+          "fromNode": {
+            "lat": 52.3889639,
+            "lon": 4.5496346
+          }
+        },
+        {
+          "wayId": 23285808
+        },
+        {
+          "wayId": 1311765615,
+          "toNode": {
+            "lat": 52.3880594,
+            "lon": 4.5487076
+          }
+        },
+        {
+          "wayId": 24626850
+        },
+        {
+          "wayId": 1311710253
+        }
+      ]
+    },
+    {
+      "loopId": 4,
+      "lengthMetres": 1502,
+      "wayCount": 13,
+      "namedSections": [
+        "CM.com Circuit Zandvoort",
+        "CM.com bocht",
+        "Mastersbocht",
+        "Rob Slotemakerbocht",
+        "Scheivlak"
+      ],
+      "ways": [
+        {
+          "wayId": 1311566940
+        },
+        {
+          "wayId": 1313671992
+        },
+        {
+          "wayId": 1311566939
+        },
+        {
+          "wayId": 1313671991
+        },
+        {
+          "wayId": 1311566937
+        },
+        {
+          "wayId": 1311566938
+        },
+        {
+          "wayId": 1311522218,
+          "fromNode": {
+            "lat": 52.3884142,
+            "lon": 4.5476688
+          }
+        },
+        {
+          "wayId": 23285868,
+          "toNode": {
+            "lat": 52.3883623,
+            "lon": 4.5479959
+          }
+        },
+        {
+          "wayId": 24627114
+        },
+        {
+          "wayId": 23285808,
+          "toNode": {
+            "lat": 52.3883681,
+            "lon": 4.5483956
+          }
+        },
+        {
+          "wayId": 1311765615,
+          "toNode": {
+            "lat": 52.3880594,
+            "lon": 4.5487076
+          }
+        },
+        {
+          "wayId": 24626850
+        },
+        {
+          "wayId": 1311710253
+        }
+      ]
+    },
+    {
+      "loopId": 5,
+      "lengthMetres": 1505,
+      "wayCount": 13,
+      "namedSections": [
+        "CM.com Circuit Zandvoort",
+        "CM.com bocht",
+        "Mastersbocht",
+        "Rob Slotemakerbocht",
+        "Scheivlak"
+      ],
+      "ways": [
+        {
+          "wayId": 1311566940
+        },
+        {
+          "wayId": 1313671992
+        },
+        {
+          "wayId": 1311566939
+        },
+        {
+          "wayId": 1313671991
+        },
+        {
+          "wayId": 1311566937
+        },
+        {
+          "wayId": 1311566938
+        },
+        {
+          "wayId": 1311522218,
+          "fromNode": {
+            "lat": 52.3889639,
+            "lon": 4.5496346
+          }
+        },
+        {
+          "wayId": 23285808,
+          "fromNode": {
+            "lat": 52.3883681,
+            "lon": 4.5483956
+          }
+        },
+        {
+          "wayId": 24627114
+        },
+        {
+          "wayId": 23285868,
+          "fromNode": {
+            "lat": 52.3883623,
+            "lon": 4.5479959
+          }
+        },
+        {
+          "wayId": 1311765615,
+          "toNode": {
+            "lat": 52.3880148,
+            "lon": 4.5477581
+          }
+        },
+        {
+          "wayId": 24626850
+        },
+        {
+          "wayId": 1311710253
+        }
+      ]
+    },
+    {
+      "loopId": 6,
+      "lengthMetres": 1536,
+      "wayCount": 11,
+      "namedSections": [
+        "CM.com Circuit Zandvoort",
+        "CM.com bocht",
+        "Mastersbocht",
+        "Rob Slotemakerbocht",
+        "Scheivlak"
+      ],
+      "ways": [
+        {
+          "wayId": 1311566940
+        },
+        {
+          "wayId": 1313671992
+        },
+        {
+          "wayId": 1311566939
+        },
+        {
+          "wayId": 1313671991
+        },
+        {
+          "wayId": 1311566937
+        },
+        {
+          "wayId": 1311566938
+        },
+        {
+          "wayId": 1311522218,
+          "fromNode": {
+            "lat": 52.3884142,
+            "lon": 4.5476688
+          }
+        },
+        {
+          "wayId": 23285868
+        },
+        {
+          "wayId": 1311765615,
+          "toNode": {
+            "lat": 52.3880148,
+            "lon": 4.5477581
+          }
+        },
+        {
+          "wayId": 24626850
+        },
+        {
+          "wayId": 1311710253
+        }
+      ]
+    },
+    {
+      "loopId": 7,
+      "lengthMetres": 1550,
+      "wayCount": 4,
+      "namedSections": [
+        "Pitstraat",
+        "Tarzanbocht"
+      ],
+      "ways": [
+        {
+          "wayId": 38144527
+        },
+        {
+          "wayId": 1313671989
+        },
+        {
+          "wayId": 1311522212
+        },
+        {
+          "wayId": 1311522211,
+          "fromNode": {
+            "lat": 52.3869713,
+            "lon": 4.5395152
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 8,
+      "lengthMetres": 2835,
+      "wayCount": 16,
+      "namedSections": [
+        "Arie Luyendykbocht",
+        "CM.com Circuit Zandvoort",
+        "Gerlachbocht",
+        "Hans Ernst chicane",
+        "Hugenholtzbocht",
+        "Hunserug",
+        "Pitstraat",
+        "Rob Slotemakerbocht"
+      ],
+      "ways": [
+        {
+          "wayId": 1311822341
+        },
+        {
+          "wayId": 1311822340
+        },
+        {
+          "wayId": 1311822339
+        },
+        {
+          "wayId": 1311802779
+        },
+        {
+          "wayId": 1311765615,
+          "fromNode": {
+            "lat": 52.3880148,
+            "lon": 4.5477581
+          }
+        },
+        {
+          "wayId": 23285868
+        },
+        {
+          "wayId": 1311522218,
+          "toNode": {
+            "lat": 52.3884142,
+            "lon": 4.5476688
+          }
+        },
+        {
+          "wayId": 1311522217
+        },
+        {
+          "wayId": 1311522216
+        },
+        {
+          "wayId": 1311522215
+        },
+        {
+          "wayId": 1311522214
+        },
+        {
+          "wayId": 1313671990
+        },
+        {
+          "wayId": 1311522213
+        },
+        {
+          "wayId": 38144527
+        },
+        {
+          "wayId": 1311522211,
+          "toNode": {
+            "lat": 52.3869713,
+            "lon": 4.5395152
+          }
+        },
+        {
+          "wayId": 1311879069
+        }
+      ]
+    },
+    {
+      "loopId": 9,
+      "lengthMetres": 2869,
+      "wayCount": 17,
+      "namedSections": [
+        "Arie Luyendykbocht",
+        "CM.com Circuit Zandvoort",
+        "Gerlachbocht",
+        "Hans Ernst chicane",
+        "Hugenholtzbocht",
+        "Hunserug",
+        "Rob Slotemakerbocht",
+        "Tarzanbocht"
+      ],
+      "ways": [
+        {
+          "wayId": 1311822341
+        },
+        {
+          "wayId": 1311822340
+        },
+        {
+          "wayId": 1311822339
+        },
+        {
+          "wayId": 1311802779
+        },
+        {
+          "wayId": 1311765615,
+          "fromNode": {
+            "lat": 52.3880148,
+            "lon": 4.5477581
+          }
+        },
+        {
+          "wayId": 23285868
+        },
+        {
+          "wayId": 1311522218,
+          "toNode": {
+            "lat": 52.3884142,
+            "lon": 4.5476688
+          }
+        },
+        {
+          "wayId": 1311522217
+        },
+        {
+          "wayId": 1311522216
+        },
+        {
+          "wayId": 1311522215
+        },
+        {
+          "wayId": 1311522214
+        },
+        {
+          "wayId": 1313671990
+        },
+        {
+          "wayId": 1311522213
+        },
+        {
+          "wayId": 1313671989
+        },
+        {
+          "wayId": 1311522212
+        },
+        {
+          "wayId": 1311522211
+        },
+        {
+          "wayId": 1311879069
+        }
+      ]
+    },
+    {
+      "loopId": 10,
+      "lengthMetres": 2930,
+      "wayCount": 18,
+      "namedSections": [
+        "Arie Luyendykbocht",
+        "CM.com Circuit Zandvoort",
+        "Gerlachbocht",
+        "Hans Ernst chicane",
+        "Hugenholtzbocht",
+        "Hunserug",
+        "Pitstraat",
+        "Rob Slotemakerbocht"
+      ],
+      "ways": [
+        {
+          "wayId": 1311822341
+        },
+        {
+          "wayId": 1311822340
+        },
+        {
+          "wayId": 1311822339
+        },
+        {
+          "wayId": 1311802779
+        },
+        {
+          "wayId": 1311765615,
+          "fromNode": {
+            "lat": 52.3880594,
+            "lon": 4.5487076
+          }
+        },
+        {
+          "wayId": 23285808,
+          "toNode": {
+            "lat": 52.3883681,
+            "lon": 4.5483956
+          }
+        },
+        {
+          "wayId": 24627114
+        },
+        {
+          "wayId": 23285868,
+          "toNode": {
+            "lat": 52.3883623,
+            "lon": 4.5479959
+          }
+        },
+        {
+          "wayId": 1311522218,
+          "toNode": {
+            "lat": 52.3884142,
+            "lon": 4.5476688
+          }
+        },
+        {
+          "wayId": 1311522217
+        },
+        {
+          "wayId": 1311522216
+        },
+        {
+          "wayId": 1311522215
+        },
+        {
+          "wayId": 1311522214
+        },
+        {
+          "wayId": 1313671990
+        },
+        {
+          "wayId": 1311522213
+        },
+        {
+          "wayId": 38144527
+        },
+        {
+          "wayId": 1311522211,
+          "toNode": {
+            "lat": 52.3869713,
+            "lon": 4.5395152
+          }
+        },
+        {
+          "wayId": 1311879069
+        }
+      ]
+    },
+    {
+      "loopId": 11,
+      "lengthMetres": 2964,
+      "wayCount": 19,
+      "namedSections": [
+        "Arie Luyendykbocht",
+        "CM.com Circuit Zandvoort",
+        "Gerlachbocht",
+        "Hans Ernst chicane",
+        "Hugenholtzbocht",
+        "Hunserug",
+        "Rob Slotemakerbocht",
+        "Tarzanbocht"
+      ],
+      "ways": [
+        {
+          "wayId": 1311822341
+        },
+        {
+          "wayId": 1311822340
+        },
+        {
+          "wayId": 1311822339
+        },
+        {
+          "wayId": 1311802779
+        },
+        {
+          "wayId": 1311765615,
+          "fromNode": {
+            "lat": 52.3880594,
+            "lon": 4.5487076
+          }
+        },
+        {
+          "wayId": 23285808,
+          "toNode": {
+            "lat": 52.3883681,
+            "lon": 4.5483956
+          }
+        },
+        {
+          "wayId": 24627114
+        },
+        {
+          "wayId": 23285868,
+          "toNode": {
+            "lat": 52.3883623,
+            "lon": 4.5479959
+          }
+        },
+        {
+          "wayId": 1311522218,
+          "toNode": {
+            "lat": 52.3884142,
+            "lon": 4.5476688
+          }
+        },
+        {
+          "wayId": 1311522217
+        },
+        {
+          "wayId": 1311522216
+        },
+        {
+          "wayId": 1311522215
+        },
+        {
+          "wayId": 1311522214
+        },
+        {
+          "wayId": 1313671990
+        },
+        {
+          "wayId": 1311522213
+        },
+        {
+          "wayId": 1313671989
+        },
+        {
+          "wayId": 1311522212
+        },
+        {
+          "wayId": 1311522211
+        },
+        {
+          "wayId": 1311879069
+        }
+      ]
+    },
+    {
+      "loopId": 12,
+      "lengthMetres": 3101,
+      "wayCount": 18,
+      "namedSections": [
+        "Arie Luyendykbocht",
+        "CM.com Circuit Zandvoort",
+        "Gerlachbocht",
+        "Hans Ernst chicane",
+        "Hugenholtzbocht",
+        "Hunserug",
+        "Pitstraat",
+        "Rob Slotemakerbocht"
+      ],
+      "ways": [
+        {
+          "wayId": 1311822341
+        },
+        {
+          "wayId": 1311822340
+        },
+        {
+          "wayId": 1311822339
+        },
+        {
+          "wayId": 1311802779
+        },
+        {
+          "wayId": 1311765615,
+          "fromNode": {
+            "lat": 52.3880148,
+            "lon": 4.5477581
+          }
+        },
+        {
+          "wayId": 23285868,
+          "fromNode": {
+            "lat": 52.3883623,
+            "lon": 4.5479959
+          }
+        },
+        {
+          "wayId": 24627114
+        },
+        {
+          "wayId": 23285808,
+          "fromNode": {
+            "lat": 52.3883681,
+            "lon": 4.5483956
+          }
+        },
+        {
+          "wayId": 1311522218,
+          "toNode": {
+            "lat": 52.3889639,
+            "lon": 4.5496346
+          }
+        },
+        {
+          "wayId": 1311522217
+        },
+        {
+          "wayId": 1311522216
+        },
+        {
+          "wayId": 1311522215
+        },
+        {
+          "wayId": 1311522214
+        },
+        {
+          "wayId": 1313671990
+        },
+        {
+          "wayId": 1311522213
+        },
+        {
+          "wayId": 38144527
+        },
+        {
+          "wayId": 1311522211,
+          "toNode": {
+            "lat": 52.3869713,
+            "lon": 4.5395152
+          }
+        },
+        {
+          "wayId": 1311879069
+        }
+      ]
+    },
+    {
+      "loopId": 13,
+      "lengthMetres": 3131,
+      "wayCount": 16,
+      "namedSections": [
+        "Arie Luyendykbocht",
+        "CM.com Circuit Zandvoort",
+        "Gerlachbocht",
+        "Hans Ernst chicane",
+        "Hugenholtzbocht",
+        "Hunserug",
+        "Pitstraat",
+        "Rob Slotemakerbocht"
+      ],
+      "ways": [
+        {
+          "wayId": 1311822341
+        },
+        {
+          "wayId": 1311822340
+        },
+        {
+          "wayId": 1311822339
+        },
+        {
+          "wayId": 1311802779
+        },
+        {
+          "wayId": 1311765615,
+          "fromNode": {
+            "lat": 52.3880594,
+            "lon": 4.5487076
+          }
+        },
+        {
+          "wayId": 23285808
+        },
+        {
+          "wayId": 1311522218,
+          "toNode": {
+            "lat": 52.3889639,
+            "lon": 4.5496346
+          }
+        },
+        {
+          "wayId": 1311522217
+        },
+        {
+          "wayId": 1311522216
+        },
+        {
+          "wayId": 1311522215
+        },
+        {
+          "wayId": 1311522214
+        },
+        {
+          "wayId": 1313671990
+        },
+        {
+          "wayId": 1311522213
+        },
+        {
+          "wayId": 38144527
+        },
+        {
+          "wayId": 1311522211,
+          "toNode": {
+            "lat": 52.3869713,
+            "lon": 4.5395152
+          }
+        },
+        {
+          "wayId": 1311879069
+        }
+      ]
+    },
+    {
+      "loopId": 14,
+      "lengthMetres": 3134,
+      "wayCount": 19,
+      "namedSections": [
+        "Arie Luyendykbocht",
+        "CM.com Circuit Zandvoort",
+        "Gerlachbocht",
+        "Hans Ernst chicane",
+        "Hugenholtzbocht",
+        "Hunserug",
+        "Rob Slotemakerbocht",
+        "Tarzanbocht"
+      ],
+      "ways": [
+        {
+          "wayId": 1311822341
+        },
+        {
+          "wayId": 1311822340
+        },
+        {
+          "wayId": 1311822339
+        },
+        {
+          "wayId": 1311802779
+        },
+        {
+          "wayId": 1311765615,
+          "fromNode": {
+            "lat": 52.3880148,
+            "lon": 4.5477581
+          }
+        },
+        {
+          "wayId": 23285868,
+          "fromNode": {
+            "lat": 52.3883623,
+            "lon": 4.5479959
+          }
+        },
+        {
+          "wayId": 24627114
+        },
+        {
+          "wayId": 23285808,
+          "fromNode": {
+            "lat": 52.3883681,
+            "lon": 4.5483956
+          }
+        },
+        {
+          "wayId": 1311522218,
+          "toNode": {
+            "lat": 52.3889639,
+            "lon": 4.5496346
+          }
+        },
+        {
+          "wayId": 1311522217
+        },
+        {
+          "wayId": 1311522216
+        },
+        {
+          "wayId": 1311522215
+        },
+        {
+          "wayId": 1311522214
+        },
+        {
+          "wayId": 1313671990
+        },
+        {
+          "wayId": 1311522213
+        },
+        {
+          "wayId": 1313671989
+        },
+        {
+          "wayId": 1311522212
+        },
+        {
+          "wayId": 1311522211
+        },
+        {
+          "wayId": 1311879069
+        }
+      ]
+    },
+    {
+      "loopId": 15,
+      "lengthMetres": 3164,
+      "wayCount": 17,
+      "namedSections": [
+        "Arie Luyendykbocht",
+        "CM.com Circuit Zandvoort",
+        "Gerlachbocht",
+        "Hans Ernst chicane",
+        "Hugenholtzbocht",
+        "Hunserug",
+        "Rob Slotemakerbocht",
+        "Tarzanbocht"
+      ],
+      "ways": [
+        {
+          "wayId": 1311822341
+        },
+        {
+          "wayId": 1311822340
+        },
+        {
+          "wayId": 1311822339
+        },
+        {
+          "wayId": 1311802779
+        },
+        {
+          "wayId": 1311765615,
+          "fromNode": {
+            "lat": 52.3880594,
+            "lon": 4.5487076
+          }
+        },
+        {
+          "wayId": 23285808
+        },
+        {
+          "wayId": 1311522218,
+          "toNode": {
+            "lat": 52.3889639,
+            "lon": 4.5496346
+          }
+        },
+        {
+          "wayId": 1311522217
+        },
+        {
+          "wayId": 1311522216
+        },
+        {
+          "wayId": 1311522215
+        },
+        {
+          "wayId": 1311522214
+        },
+        {
+          "wayId": 1313671990
+        },
+        {
+          "wayId": 1311522213
+        },
+        {
+          "wayId": 1313671989
+        },
+        {
+          "wayId": 1311522212
+        },
+        {
+          "wayId": 1311522211
+        },
+        {
+          "wayId": 1311879069
+        }
+      ]
+    },
+    {
+      "loopId": 16,
+      "lengthMetres": 4225,
+      "wayCount": 23,
+      "namedSections": [
+        "Arie Luyendykbocht",
+        "CM.com Circuit Zandvoort",
+        "CM.com bocht",
+        "Gerlachbocht",
+        "Hans Ernst chicane",
+        "Hugenholtzbocht",
+        "Hunserug",
+        "Mastersbocht",
+        "Pitstraat",
+        "Rob Slotemakerbocht",
+        "Scheivlak"
+      ],
+      "ways": [
+        {
+          "wayId": 1311822341
+        },
+        {
+          "wayId": 1311822340
+        },
+        {
+          "wayId": 1311822339
+        },
+        {
+          "wayId": 1311802779
+        },
+        {
+          "wayId": 1311765615
+        },
+        {
+          "wayId": 24626850
+        },
+        {
+          "wayId": 1311710253
+        },
+        {
+          "wayId": 1311566940
+        },
+        {
+          "wayId": 1313671992
+        },
+        {
+          "wayId": 1311566939
+        },
+        {
+          "wayId": 1313671991
+        },
+        {
+          "wayId": 1311566937
+        },
+        {
+          "wayId": 1311566938
+        },
+        {
+          "wayId": 1311522218
+        },
+        {
+          "wayId": 1311522217
+        },
+        {
+          "wayId": 1311522216
+        },
+        {
+          "wayId": 1311522215
+        },
+        {
+          "wayId": 1311522214
+        },
+        {
+          "wayId": 1313671990
+        },
+        {
+          "wayId": 1311522213
+        },
+        {
+          "wayId": 38144527
+        },
+        {
+          "wayId": 1311522211,
+          "toNode": {
+            "lat": 52.3869713,
+            "lon": 4.5395152
+          }
+        },
+        {
+          "wayId": 1311879069
+        }
+      ]
+    },
+    {
+      "loopId": 17,
+      "lengthMetres": 4243,
+      "wayCount": 27,
+      "namedSections": [
+        "Arie Luyendykbocht",
+        "CM.com Circuit Zandvoort",
+        "CM.com bocht",
+        "Gerlachbocht",
+        "Hans Ernst chicane",
+        "Hugenholtzbocht",
+        "Hunserug",
+        "Mastersbocht",
+        "Pitstraat",
+        "Rob Slotemakerbocht",
+        "Scheivlak"
+      ],
+      "ways": [
+        {
+          "wayId": 1311822341
+        },
+        {
+          "wayId": 1311822340
+        },
+        {
+          "wayId": 1311822339
+        },
+        {
+          "wayId": 1311802779
+        },
+        {
+          "wayId": 1311765615
+        },
+        {
+          "wayId": 24626850
+        },
+        {
+          "wayId": 1311710253
+        },
+        {
+          "wayId": 1311566940
+        },
+        {
+          "wayId": 1313671992
+        },
+        {
+          "wayId": 1311566939
+        },
+        {
+          "wayId": 1313671991
+        },
+        {
+          "wayId": 1311566937
+        },
+        {
+          "wayId": 1311566938
+        },
+        {
+          "wayId": 1311522218,
+          "fromNode": {
+            "lat": 52.3889639,
+            "lon": 4.5496346
+          }
+        },
+        {
+          "wayId": 23285808,
+          "fromNode": {
+            "lat": 52.3883681,
+            "lon": 4.5483956
+          }
+        },
+        {
+          "wayId": 24627114
+        },
+        {
+          "wayId": 23285868,
+          "toNode": {
+            "lat": 52.3883623,
+            "lon": 4.5479959
+          }
+        },
+        {
+          "wayId": 1311522218,
+          "toNode": {
+            "lat": 52.3884142,
+            "lon": 4.5476688
+          }
+        },
+        {
+          "wayId": 1311522217
+        },
+        {
+          "wayId": 1311522216
+        },
+        {
+          "wayId": 1311522215
+        },
+        {
+          "wayId": 1311522214
+        },
+        {
+          "wayId": 1313671990
+        },
+        {
+          "wayId": 1311522213
+        },
+        {
+          "wayId": 38144527
+        },
+        {
+          "wayId": 1311522211,
+          "toNode": {
+            "lat": 52.3869713,
+            "lon": 4.5395152
+          }
+        },
+        {
+          "wayId": 1311879069
+        }
+      ]
+    },
+    {
+      "loopId": 18,
+      "lengthMetres": 4258,
+      "wayCount": 24,
+      "namedSections": [
+        "Arie Luyendykbocht",
+        "CM.com Circuit Zandvoort",
+        "CM.com bocht",
+        "Gerlachbocht",
+        "Hans Ernst chicane",
+        "Hugenholtzbocht",
+        "Hunserug",
+        "Mastersbocht",
+        "Rob Slotemakerbocht",
+        "Scheivlak",
+        "Tarzanbocht"
+      ],
+      "ways": [
+        {
+          "wayId": 1311822341
+        },
+        {
+          "wayId": 1311822340
+        },
+        {
+          "wayId": 1311822339
+        },
+        {
+          "wayId": 1311802779
+        },
+        {
+          "wayId": 1311765615
+        },
+        {
+          "wayId": 24626850
+        },
+        {
+          "wayId": 1311710253
+        },
+        {
+          "wayId": 1311566940
+        },
+        {
+          "wayId": 1313671992
+        },
+        {
+          "wayId": 1311566939
+        },
+        {
+          "wayId": 1313671991
+        },
+        {
+          "wayId": 1311566937
+        },
+        {
+          "wayId": 1311566938
+        },
+        {
+          "wayId": 1311522218
+        },
+        {
+          "wayId": 1311522217
+        },
+        {
+          "wayId": 1311522216
+        },
+        {
+          "wayId": 1311522215
+        },
+        {
+          "wayId": 1311522214
+        },
+        {
+          "wayId": 1313671990
+        },
+        {
+          "wayId": 1311522213
+        },
+        {
+          "wayId": 1313671989
+        },
+        {
+          "wayId": 1311522212
+        },
+        {
+          "wayId": 1311522211
+        },
+        {
+          "wayId": 1311879069
+        }
+      ]
+    },
+    {
+      "loopId": 19,
+      "lengthMetres": 4276,
+      "wayCount": 28,
+      "namedSections": [
+        "Arie Luyendykbocht",
+        "CM.com Circuit Zandvoort",
+        "CM.com bocht",
+        "Gerlachbocht",
+        "Hans Ernst chicane",
+        "Hugenholtzbocht",
+        "Hunserug",
+        "Mastersbocht",
+        "Rob Slotemakerbocht",
+        "Scheivlak",
+        "Tarzanbocht"
+      ],
+      "ways": [
+        {
+          "wayId": 1311822341
+        },
+        {
+          "wayId": 1311822340
+        },
+        {
+          "wayId": 1311822339
+        },
+        {
+          "wayId": 1311802779
+        },
+        {
+          "wayId": 1311765615
+        },
+        {
+          "wayId": 24626850
+        },
+        {
+          "wayId": 1311710253
+        },
+        {
+          "wayId": 1311566940
+        },
+        {
+          "wayId": 1313671992
+        },
+        {
+          "wayId": 1311566939
+        },
+        {
+          "wayId": 1313671991
+        },
+        {
+          "wayId": 1311566937
+        },
+        {
+          "wayId": 1311566938
+        },
+        {
+          "wayId": 1311522218,
+          "fromNode": {
+            "lat": 52.3889639,
+            "lon": 4.5496346
+          }
+        },
+        {
+          "wayId": 23285808,
+          "fromNode": {
+            "lat": 52.3883681,
+            "lon": 4.5483956
+          }
+        },
+        {
+          "wayId": 24627114
+        },
+        {
+          "wayId": 23285868,
+          "toNode": {
+            "lat": 52.3883623,
+            "lon": 4.5479959
+          }
+        },
+        {
+          "wayId": 1311522218,
+          "toNode": {
+            "lat": 52.3884142,
+            "lon": 4.5476688
+          }
+        },
+        {
+          "wayId": 1311522217
+        },
+        {
+          "wayId": 1311522216
+        },
+        {
+          "wayId": 1311522215
+        },
+        {
+          "wayId": 1311522214
+        },
+        {
+          "wayId": 1313671990
+        },
+        {
+          "wayId": 1311522213
+        },
+        {
+          "wayId": 1313671989
+        },
+        {
+          "wayId": 1311522212
+        },
+        {
+          "wayId": 1311522211
+        },
+        {
+          "wayId": 1311879069
+        }
+      ]
+    },
+    {
+      "loopId": 20,
+      "lengthMetres": 4288,
+      "wayCount": 27,
+      "namedSections": [
+        "Arie Luyendykbocht",
+        "CM.com Circuit Zandvoort",
+        "CM.com bocht",
+        "Gerlachbocht",
+        "Hans Ernst chicane",
+        "Hugenholtzbocht",
+        "Hunserug",
+        "Mastersbocht",
+        "Pitstraat",
+        "Rob Slotemakerbocht",
+        "Scheivlak"
+      ],
+      "ways": [
+        {
+          "wayId": 1311822341
+        },
+        {
+          "wayId": 1311822340
+        },
+        {
+          "wayId": 1311822339
+        },
+        {
+          "wayId": 1311802779
+        },
+        {
+          "wayId": 1311765615,
+          "fromNode": {
+            "lat": 52.3880148,
+            "lon": 4.5477581
+          }
+        },
+        {
+          "wayId": 23285868,
+          "fromNode": {
+            "lat": 52.3883623,
+            "lon": 4.5479959
+          }
+        },
+        {
+          "wayId": 24627114
+        },
+        {
+          "wayId": 23285808,
+          "toNode": {
+            "lat": 52.3883681,
+            "lon": 4.5483956
+          }
+        },
+        {
+          "wayId": 1311765615,
+          "toNode": {
+            "lat": 52.3880594,
+            "lon": 4.5487076
+          }
+        },
+        {
+          "wayId": 24626850
+        },
+        {
+          "wayId": 1311710253
+        },
+        {
+          "wayId": 1311566940
+        },
+        {
+          "wayId": 1313671992
+        },
+        {
+          "wayId": 1311566939
+        },
+        {
+          "wayId": 1313671991
+        },
+        {
+          "wayId": 1311566937
+        },
+        {
+          "wayId": 1311566938
+        },
+        {
+          "wayId": 1311522218
+        },
+        {
+          "wayId": 1311522217
+        },
+        {
+          "wayId": 1311522216
+        },
+        {
+          "wayId": 1311522215
+        },
+        {
+          "wayId": 1311522214
+        },
+        {
+          "wayId": 1313671990
+        },
+        {
+          "wayId": 1311522213
+        },
+        {
+          "wayId": 38144527
+        },
+        {
+          "wayId": 1311522211,
+          "toNode": {
+            "lat": 52.3869713,
+            "lon": 4.5395152
+          }
+        },
+        {
+          "wayId": 1311879069
+        }
+      ]
+    },
+    {
+      "loopId": 21,
+      "lengthMetres": 4321,
+      "wayCount": 28,
+      "namedSections": [
+        "Arie Luyendykbocht",
+        "CM.com Circuit Zandvoort",
+        "CM.com bocht",
+        "Gerlachbocht",
+        "Hans Ernst chicane",
+        "Hugenholtzbocht",
+        "Hunserug",
+        "Mastersbocht",
+        "Rob Slotemakerbocht",
+        "Scheivlak",
+        "Tarzanbocht"
+      ],
+      "ways": [
+        {
+          "wayId": 1311822341
+        },
+        {
+          "wayId": 1311822340
+        },
+        {
+          "wayId": 1311822339
+        },
+        {
+          "wayId": 1311802779
+        },
+        {
+          "wayId": 1311765615,
+          "fromNode": {
+            "lat": 52.3880148,
+            "lon": 4.5477581
+          }
+        },
+        {
+          "wayId": 23285868,
+          "fromNode": {
+            "lat": 52.3883623,
+            "lon": 4.5479959
+          }
+        },
+        {
+          "wayId": 24627114
+        },
+        {
+          "wayId": 23285808,
+          "toNode": {
+            "lat": 52.3883681,
+            "lon": 4.5483956
+          }
+        },
+        {
+          "wayId": 1311765615,
+          "toNode": {
+            "lat": 52.3880594,
+            "lon": 4.5487076
+          }
+        },
+        {
+          "wayId": 24626850
+        },
+        {
+          "wayId": 1311710253
+        },
+        {
+          "wayId": 1311566940
+        },
+        {
+          "wayId": 1313671992
+        },
+        {
+          "wayId": 1311566939
+        },
+        {
+          "wayId": 1313671991
+        },
+        {
+          "wayId": 1311566937
+        },
+        {
+          "wayId": 1311566938
+        },
+        {
+          "wayId": 1311522218
+        },
+        {
+          "wayId": 1311522217
+        },
+        {
+          "wayId": 1311522216
+        },
+        {
+          "wayId": 1311522215
+        },
+        {
+          "wayId": 1311522214
+        },
+        {
+          "wayId": 1313671990
+        },
+        {
+          "wayId": 1311522213
+        },
+        {
+          "wayId": 1313671989
+        },
+        {
+          "wayId": 1311522212
+        },
+        {
+          "wayId": 1311522211
+        },
+        {
+          "wayId": 1311879069
+        }
+      ]
+    }
+  ],
+  "unusedWays": []
+}

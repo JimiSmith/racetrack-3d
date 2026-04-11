@@ -1,0 +1,162 @@
+{
+  "trackId": "Q171402",
+  "name": "Silverstone Circuit",
+  "layouts": {
+    "Grand Prix": {
+      "ways": [
+        { "wayId": 169733770 },
+        { "wayId": 169733769 },
+        { "wayId": 169733766 },
+        { "wayId": 430075118 },
+        { "wayId": 169730586 },
+        { "wayId": 169733768 },
+        { "wayId": 169730587 },
+        { "wayId": 169730585 },
+        { "wayId": 3571477 },
+        { "wayId": 169730588 },
+        { "wayId": 169609611 },
+        { "wayId": 169618245 },
+        { "wayId": 169618241 },
+        { "wayId": 169618240 },
+        { "wayId": 169618242 },
+        { "wayId": 169800222 },
+        { "wayId": 169800224 },
+        { "wayId": 169848882 },
+        { "wayId": 169800225 },
+        { "wayId": 169800223 },
+        { "wayId": 169800226 },
+        { "wayId": 169854842 },
+        { "wayId": 55224167 },
+        { "wayId": 55224168 },
+        { "wayId": 169848881 },
+        { "wayId": 169848884 },
+        { "wayId": 169848880 }
+      ]
+    },
+    "National": {
+      "ways": [
+        { "wayId": 169730586, "toNode": { "lat": 52.0731007, "lon": -1.0096291 } },
+        { "wayId": 169733768 },
+        { "wayId": 169730587 },
+        { "wayId": 169730585 },
+        { "wayId": 3571477 },
+        { "wayId": 169730588 },
+        { "wayId": 169609611 },
+        { "wayId": 169618245 },
+        { "wayId": 169618241 },
+        { "wayId": 169618240 },
+        { "wayId": 169618242 },
+        { "wayId": 227820537 }
+      ]
+    },
+    "Long National": {
+      "ways": [
+        { "wayId": 169733766, "toNode": { "lat": 52.0704519, "lon": -1.0097476 } },
+        { "wayId": 430075118 },
+        { "wayId": 169730586 },
+        { "wayId": 169733768 },
+        { "wayId": 169730587 },
+        { "wayId": 169730585 },
+        { "wayId": 3571477 },
+        { "wayId": 169730588 },
+        { "wayId": 169609611 },
+        { "wayId": 169618245 },
+        { "wayId": 169618241 },
+        { "wayId": 169618240 },
+        { "wayId": 169618242 },
+        { "wayId": 169800222 },
+        { "wayId": 169800224, "fromNode": { "lat": 52.0716006, "lon": -1.0119003 } },
+        { "wayId": 169733771 },
+        { "wayId": 227820536, "fromNode": { "lat": 52.0711554, "lon": -1.0117132 }, "toNode": { "lat": 52.0706238, "lon": -1.0105705 } },
+        { "wayId": 227820535 }
+      ]
+    },
+    "International": {
+      "ways": [
+        { "wayId": 169733770 },
+        { "wayId": 169733769, "fromNode": { "lat": 52.0697491, "lon": -1.0112691 } },
+        { "wayId": 227332428, "fromNode": { "lat": 52.0701779, "lon": -1.0108915 } },
+        { "wayId": 227820536 },
+        { "wayId": 169800224, "toNode": { "lat": 52.0714208, "lon": -1.0124441 } },
+        { "wayId": 169848882 },
+        { "wayId": 169800225 },
+        { "wayId": 169800223 },
+        { "wayId": 169800226 },
+        { "wayId": 169854842 },
+        { "wayId": 55224167 },
+        { "wayId": 55224168 },
+        { "wayId": 169848881 },
+        { "wayId": 169848884 },
+        { "wayId": 169848880 }
+      ]
+    },
+    "Stowe": {
+      "ways": [
+        { "wayId": 169851260 },
+        { "wayId": 259160215 },
+        { "wayId": 259160219 },
+        { "wayId": 259160218 },
+        { "wayId": 259160217 },
+        { "wayId": 259160214 }
+      ]
+    },
+    "Stowe Long": {
+      "ways": [
+        { "wayId": 169851260 },
+        { "wayId": 227339144 },
+        { "wayId": 227339145 },
+        { "wayId": 259160217 },
+        { "wayId": 227310197 }
+      ]
+    }
+  },
+  "excludedWays": [
+    { "wayId": 3945001, "reason": "alternative Vale connector" },
+    { "wayId": 227902927, "reason": "International pit lane" },
+    { "wayId": 227339146, "reason": "Stowe Circuit pit lane variant" },
+    { "wayId": 259160216, "reason": "Stowe Circuit variant" },
+    { "wayId": 227912189, "reason": "stunt driving experience track (Ice Hill)" },
+    { "wayId": 227912202, "reason": "stunt driving experience track (Kick Plate)" },
+    { "wayId": 892391587, "reason": "stunt driving experience track (Limestone Curves)" },
+    { "wayId": 169854666, "reason": "service road" },
+    { "wayId": 224513497, "reason": "service road" },
+    { "wayId": 227912193, "reason": "experience track" },
+    { "wayId": 227912210, "reason": "experience track" },
+    { "wayId": 227912211, "reason": "experience track" },
+    { "wayId": 434659829, "reason": "pit lane / paddock area" },
+    { "wayId": 434659834, "reason": "pit lane / paddock area" },
+    { "wayId": 434659836, "reason": "pit lane / paddock area" },
+    { "wayId": 434659841, "reason": "pit lane / paddock area" },
+    { "wayId": 434659843, "reason": "pit lane / paddock area" },
+    { "wayId": 507983803, "reason": "service road" },
+    { "wayId": 606111964, "reason": "service road" },
+    { "wayId": 606111976, "reason": "service road" },
+    { "wayId": 606111982, "reason": "service road" },
+    { "wayId": 606170355, "reason": "service road" },
+    { "wayId": 606170356, "reason": "service road" },
+    { "wayId": 606170358, "reason": "service road" },
+    { "wayId": 606170360, "reason": "service road" },
+    { "wayId": 606170361, "reason": "service road" },
+    { "wayId": 892391583, "reason": "experience track" },
+    { "wayId": 892391584, "reason": "experience track" },
+    { "wayId": 892391588, "reason": "experience track" },
+    { "wayId": 892391589, "reason": "experience track" },
+    { "wayId": 892391591, "reason": "experience track" },
+    { "wayId": 892391592, "reason": "experience track" },
+    { "wayId": 892391593, "reason": "experience track" },
+    { "wayId": 892391594, "reason": "experience track" },
+    { "wayId": 892391595, "reason": "experience track" },
+    { "wayId": 892391596, "reason": "experience track" },
+    { "wayId": 892391599, "reason": "experience track" },
+    { "wayId": 892391600, "reason": "experience track" },
+    { "wayId": 1098338048, "reason": "service road" },
+    { "wayId": 1484867844, "reason": "pit lane / paddock area" },
+    { "wayId": 1484867845, "reason": "pit lane / paddock area" },
+    { "wayId": 1484867846, "reason": "pit lane / paddock area" },
+    { "wayId": 1484867847, "reason": "pit lane / paddock area" },
+    { "wayId": 1484867848, "reason": "pit lane / paddock area" },
+    { "wayId": 1484867849, "reason": "pit lane / paddock area" },
+    { "wayId": 1484867850, "reason": "pit lane / paddock area" },
+    { "wayId": 1484867851, "reason": "pit lane / paddock area" }
+  ]
+}

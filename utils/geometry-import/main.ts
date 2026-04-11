@@ -20,6 +20,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
       break;
     }
 
+    case 'find-loops': {
+      const { run } = await import('./commands/find-loops.js');
+      await run(commandArgs);
+      break;
+    }
+
     default:
       printUsage();
       process.exitCode = command == null || command === '--help' || command === '-h' ? 0 : 1;
@@ -33,6 +39,7 @@ Usage: geometry-import <command> [options]
 Commands:
   import-osm-data         Fetch OSM way data for racetracks
   create-track-geometry   Generate runtime geometry from layout files
+  find-loops              Find all closed loops in OSM way data
 
 Run <command> --help for command-specific options.
 `.trim());
