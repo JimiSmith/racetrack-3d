@@ -71,7 +71,7 @@ Build a map from every node coordinate (across all ways) to the ways that pass t
 nodeIndex: Map<CoordKey, Array<{ wayId: number, nodeIndex: number }>>
 ```
 
-Where `CoordKey` is `(lat, lon)` rounded to 6 decimal places (~0.11m resolution). This coarse key is used for fast lookup only — any two nodes that hash to the same key are then confirmed with `coordsMatch` at full OSM precision (1e-7° tolerance), the same function used by the stitcher. This avoids boundary-case misses that a rounding-only approach would have. The index captures every connection — endpoint-to-endpoint, endpoint-to-interior, and interior-to-interior.
+Where `CoordKey` is `(lat, lon)` rounded to 5 decimal places (~1.1m resolution). This coarse key ensures that any two nodes within `coordsMatch` tolerance (1e-7°) always fall into the same bucket, avoiding hash-boundary misses. Matches are then confirmed with `coordsMatch` at full OSM precision, the same function used by the stitcher. The index captures every connection — endpoint-to-endpoint, endpoint-to-interior, and interior-to-interior.
 
 **Example (Spa, 41 ways):** 514 unique node coordinates indexed.
 
@@ -117,20 +117,23 @@ A way with no interior junctions produces a single segment spanning `[0, nodeCou
 
 ### Step 4 — Adjacency graph
 
-Vertices are junction coordinates. Edges are segments. The graph is **undirected** — each segment can be traversed in either direction, matching the stitcher's existing auto-reversal behaviour. Two segments are adjacent if they share a junction coordinate endpoint.
+Vertices are junction coordinates. Edges are segments. Two segments are adjacent if they share a junction coordinate endpoint.
+
+The graph is **mixed directed/undirected.** If a segment's parent way has an `oneway=yes` tag, the edge is directed (traversable only from `fromCoord` to `toCoord`, following the way's node order). Otherwise, the edge is undirected — matching the stitcher's existing auto-reversal behaviour. This prevents the DFS from producing loops that traverse one-way sections against traffic, which would not represent real racing layouts.
 
 ```
-adj: Map<CoordKey, Array<{ toCoord: CoordKey, segmentId: number }>>
+adj: Map<CoordKey, Array<{ toCoord: CoordKey, segmentId: number, directed: boolean }>>
 ```
 
 ### Step 5 — Cycle enumeration
 
-Depth-first search from every junction vertex, collecting all simple cycles (no vertex revisited). Pruning:
+Depth-first search from every junction vertex, collecting all simple cycles (no vertex revisited). The DFS respects edge directionality: directed edges (from `oneway=yes` ways) are only traversed in their forward direction. Pruning:
 
 - **Length window:** Discard cycles with total length < 200m or > 30,000m.
 - **Depth cap:** Abort traversal at a configurable maximum depth (default: 50 segments). This prevents combinatorial explosion on dense graphs.
+- **Loop cap:** Stop enumeration after a configurable maximum number of loops (default: 100). Tracks that hit this cap log a warning so the operator can adjust filters or inspect the graph.
 
-Deduplication: two cycles are identical if they contain the same set of segment IDs (regardless of traversal direction or start vertex). Because the graph is undirected, each cycle is discovered multiple times (both directions × every start vertex); set-based dedup eliminates all duplicates.
+Deduplication: two cycles are identical if they contain the same set of segment IDs (regardless of start vertex). For undirected edges, both traversal directions produce the same cycle; for directed edges, the direction is fixed. Set-based dedup eliminates all duplicates.
 
 The algorithm logs the loop count and elapsed time for each track, providing a signal if any track's graph structure causes unexpectedly slow enumeration.
 
@@ -142,9 +145,11 @@ For each loop, collapse the segment list back into way-level `LayoutWayEntry`-co
 
 1. **Full way:** If a loop uses every segment of a split way, merge them back into a single entry with no `fromNode`/`toNode`.
 
-2. **Partial way:** If a loop uses only some segments of a split way, emit one entry per contiguous run of segments, with `fromNode` and/or `toNode` set to the junction coordinate where the slice occurs.
+2. **Partial way:** If a loop uses only some segments of a split way, emit one entry per contiguous run of segments, with `fromNode` and/or `toNode` set to the junction coordinate where the slice occurs. Junction coordinates are always exact nodes from the parent way's node array, so emitted `fromNode`/`toNode` values are guaranteed to pass `sliceWayNodes` validation.
 
 3. **Ordering:** Emit ways in traversal order (the stitching sequence). The stitcher handles direction resolution, so the traversal order is sufficient.
+
+4. **Self-intersecting ways:** Ways that cross themselves (e.g. a figure-8 mapped as a single way) are not detected as containing internal loops. The junction condition requires nodes shared by 2+ distinct ways. These cases are rare in raceway mapping and can be handled manually if encountered.
 
 ---
 
@@ -156,7 +161,7 @@ For each loop, collapse the segment list back into way-level `LayoutWayEntry`-co
 {
   "trackId": "Q172851",
   "generatedAt": "2026-04-11T16:00:00.000Z",
-  "waysFileHash": "sha256:abc123...",  // detect stale loops if ways change
+  "waysFileHash": "sha256:abc123...",  // SHA-256 of raw file bytes; detect stale loops if ways change
   "stats": {
     "totalWays": 41,
     "junctionCoords": 41,
@@ -251,6 +256,7 @@ npx tsx utils/geometry-import/main.ts find-loops [options]
 | `--max-depth <n>` | Maximum DFS traversal depth in segments (default: 50). Increase for tracks with many small ways. |
 | `--min-length <m>` | Minimum loop length in metres (default: 200). |
 | `--max-length <m>` | Maximum loop length in metres (default: 30000). |
+| `--max-loops <n>` | Maximum number of loops to emit (default: 100). Enumeration stops early once this limit is reached. |
 | `--force` | Overwrite existing loops file. |
 | `--dry-run` | Print stats without writing files. |
 
@@ -285,6 +291,10 @@ For complex tracks, additional pruning strategies:
 1. **Dead-end filtering:** Ways whose endpoints connect to only one other way (degree-1 vertices in the segment graph) cannot be part of any cycle. Prune them before DFS. At Spa, this would remove the "Rallycross start" way immediately.
 
 2. **Depth cap:** The `--max-depth` flag prevents unbounded traversal. For most tracks, the longest real layout uses fewer than 35 ways, so a default of 50 provides headroom without explosion.
+
+3. **Loop cap:** The `--max-loops` flag stops enumeration after the specified number of loops (default: 100). This makes the tool's output size predictable regardless of graph density and keeps the output consumable by an LLM agent's context window.
+
+**Disconnected subgraphs:** If a ways file contains ways that form two or more disconnected components (e.g. a main circuit and an unrelated test track nearby), the DFS handles them naturally — loops within each component are discovered independently, and no cross-component loops are produced.
 
 ---
 
