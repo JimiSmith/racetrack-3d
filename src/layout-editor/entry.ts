@@ -80,6 +80,7 @@ function findNodeIndex(wayId: number, node: LatLon): number {
 let map: any;
 let wayLayers: any[] = [];
 let trimMarkers: any[] = [];
+let trimOverlayLayers: any[] = [];
 
 let currentTrackId: string | null = null;
 let currentTrackName: string | null = null;
@@ -98,6 +99,7 @@ const WAY_COLOR_RACEWAY = '#ffaa00';
 const WAY_COLOR_DEFAULT = '#888';
 const WAY_COLOR_IN_LAYOUT = '#44ddaa';
 const WAY_COLOR_ACTIVE = '#00ccff';
+const WAY_COLOR_TRIMMED_INACTIVE = '#4a7a8a';
 
 // --- DOM refs ---
 
@@ -391,17 +393,67 @@ function getActiveLayoutWayIds(): Set<number> {
   return layout ? new Set(layout.ways.map(w => w.wayId)) : new Set();
 }
 
+function clearTrimOverlays(): void {
+  for (const layer of trimOverlayLayers) map.removeLayer(layer);
+  trimOverlayLayers = [];
+}
+
 function updateWayStyles(): void {
+  clearTrimOverlays();
   const inAnyLayout = getWayIdsInAnyLayout();
   const inActiveLayout = getActiveLayoutWayIds();
+  const activeLayout = activeSelectLayoutId
+    ? editorLayouts.find(l => l.id === activeSelectLayoutId)
+    : null;
 
   for (const [wayId, layer] of wayLayerById) {
     if (inActiveLayout.has(wayId)) {
-      layer.setStyle({ color: WAY_COLOR_ACTIVE, weight: 5, opacity: 1 });
+      // For active layout ways, show only the effective (trimmed) portion in cyan
+      const entry = activeLayout?.ways.find(w => w.wayId === wayId);
+      const way = wayDataById.get(wayId);
+      if (entry && way && (entry.fromNode || entry.toNode)) {
+        // Redraw the main polyline with only the effective nodes
+        const effectiveNodes = getEffectiveNodes(entry);
+        layer.setLatLngs(effectiveNodes.map((n: LatLon) => [n.lat, n.lon]));
+        layer.setStyle({ color: WAY_COLOR_ACTIVE, weight: 5, opacity: 1 });
+
+        // Add overlay polylines for trimmed-off portions
+        const allNodes = way.nodes;
+        if (entry.fromNode) {
+          const fromIdx = allNodes.findIndex(n => coordsMatch(n, entry.fromNode!));
+          if (fromIdx > 0) {
+            const inactiveNodes = allNodes.slice(0, fromIdx + 1);
+            const overlay = L.polyline(
+              inactiveNodes.map((n: LatLon) => [n.lat, n.lon]),
+              { color: WAY_COLOR_TRIMMED_INACTIVE, weight: 4, opacity: 0.5, dashArray: '6 4' },
+            ).addTo(map);
+            trimOverlayLayers.push(overlay);
+          }
+        }
+        if (entry.toNode) {
+          const toIdx = allNodes.findIndex(n => coordsMatch(n, entry.toNode!));
+          if (toIdx >= 0 && toIdx < allNodes.length - 1) {
+            const inactiveNodes = allNodes.slice(toIdx);
+            const overlay = L.polyline(
+              inactiveNodes.map((n: LatLon) => [n.lat, n.lon]),
+              { color: WAY_COLOR_TRIMMED_INACTIVE, weight: 4, opacity: 0.5, dashArray: '6 4' },
+            ).addTo(map);
+            trimOverlayLayers.push(overlay);
+          }
+        }
+      } else {
+        // No trim — show full way in cyan
+        if (way) layer.setLatLngs(way.nodes.map((n: LatLon) => [n.lat, n.lon]));
+        layer.setStyle({ color: WAY_COLOR_ACTIVE, weight: 5, opacity: 1 });
+      }
     } else if (inAnyLayout.has(wayId)) {
+      // Restore full geometry for ways no longer in the active layout
+      const way = wayDataById.get(wayId);
+      if (way) layer.setLatLngs(way.nodes.map((n: LatLon) => [n.lat, n.lon]));
       layer.setStyle({ color: WAY_COLOR_IN_LAYOUT, weight: 4, opacity: 0.85 });
     } else {
       const way = wayDataById.get(wayId);
+      if (way) layer.setLatLngs(way.nodes.map((n: LatLon) => [n.lat, n.lon]));
       const isRaceway = String(way?.tags.highway ?? '').toLowerCase() === 'raceway';
       layer.setStyle({
         color: isRaceway ? WAY_COLOR_RACEWAY : WAY_COLOR_DEFAULT,
