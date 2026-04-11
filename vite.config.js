@@ -17,8 +17,14 @@ function trackGeometryAssetsPlugin() {
           return;
         }
 
-        const fileName = path.basename(requestPath);
-        const filePath = path.join(geometrySourceDir, fileName);
+        const relativePath = requestPath.slice(`/${geometryAssetDir}/`.length);
+        const filePath = path.join(geometrySourceDir, relativePath);
+
+        // Guard against path traversal
+        if (!filePath.startsWith(geometrySourceDir)) {
+          next();
+          return;
+        }
 
         try {
           const body = await fs.readFile(filePath);
@@ -31,15 +37,18 @@ function trackGeometryAssetsPlugin() {
       });
     },
     async generateBundle() {
-      const entries = await fs.readdir(geometrySourceDir, { withFileTypes: true });
+      const entries = await fs.readdir(geometrySourceDir, { withFileTypes: true, recursive: true });
 
       await Promise.all(entries
         .filter(entry => entry.isFile() && entry.name.endsWith('.json'))
         .map(async entry => {
-          const source = await fs.readFile(path.join(geometrySourceDir, entry.name));
+          const parentPath = entry.parentPath ?? entry.path;
+          const fullPath = path.join(parentPath, entry.name);
+          const relativePath = path.relative(geometrySourceDir, fullPath).replace(/\\/g, '/');
+          const source = await fs.readFile(fullPath);
           this.emitFile({
             type: 'asset',
-            fileName: `${geometryAssetDir}/${entry.name}`,
+            fileName: `${geometryAssetDir}/${relativePath}`,
             source,
           });
         }));
@@ -55,6 +64,7 @@ export default defineConfig(({ command }) => ({
       input: {
         main: 'index.html',
         debug: 'debug.html',
+        'layout-editor': 'layout-editor.html',
       },
     },
   },

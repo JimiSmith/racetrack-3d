@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>racetrack-3d — Layout Editor</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; }
+
+      :root {
+        --bg: #0b0d12;
+        --surface: rgba(22, 26, 35, 0.88);
+        --border: rgba(120, 137, 164, 0.2);
+        --border-strong: rgba(120, 137, 164, 0.34);
+        --text: #f2f4f8;
+        --text-muted: #a4afc4;
+        --text-soft: #7e889d;
+        --accent: #ff234f;
+        --green: #44ddaa;
+        --cyan: #00ccff;
+        --gold: #ffaa00;
+        color-scheme: dark;
+      }
+
+      html, body {
+        margin: 0;
+        height: 100%;
+        font: 14px/1.4 "Avenir Next", Montserrat, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 280px 1fr 340px;
+        grid-template-rows: auto 1fr;
+        height: 100vh;
+      }
+
+      .header {
+        grid-column: 1 / -1;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+      }
+
+      .header h1 span {
+        color: var(--text-muted);
+        font-weight: 400;
+      }
+
+      #search-input {
+        flex: 1;
+        max-width: 400px;
+        padding: 8px 14px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: rgba(14, 18, 25, 0.7);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.95rem;
+        outline: none;
+      }
+
+      #search-input:focus {
+        border-color: var(--accent);
+      }
+
+      #search-input::placeholder {
+        color: var(--text-soft);
+      }
+
+      .search-wrap {
+        position: relative;
+        flex: 1;
+        max-width: 400px;
+      }
+
+      #search-results {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        list-style: none;
+        margin: 0;
+        padding: 4px;
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid var(--border-strong);
+        border-radius: 12px;
+        background: rgba(14, 18, 25, 0.97);
+        display: none;
+      }
+
+      #search-results.open { display: block; }
+
+      #search-results li {
+        padding: 8px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      #search-results li:hover {
+        background: rgba(255, 35, 79, 0.12);
+        color: var(--text);
+      }
+
+      .sidebar {
+        overflow-y: auto;
+        padding: 16px;
+        border-right: 1px solid var(--border);
+        background: var(--surface);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .sidebar h2 {
+        margin: 0;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      #track-info {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+      }
+
+      #track-info .track-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 4px;
+      }
+
+      .empty-state {
+        color: var(--text-soft);
+        font-size: 0.88rem;
+        font-style: italic;
+      }
+
+      #map {
+        width: 100%;
+        height: 100%;
+      }
+
+      #status-bar {
+        font-size: 0.85rem;
+        color: var(--text-soft);
+        min-height: 1.2em;
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        font-size: 0.82rem;
+        color: var(--text-muted);
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .legend-swatch {
+        width: 20px;
+        height: 4px;
+        border-radius: 2px;
+      }
+
+      /* --- Right panel: layout editor --- */
+
+      .right-panel {
+        overflow-y: auto;
+        border-left: 1px solid var(--border);
+        background: var(--surface);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .right-panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .right-panel-header h2 {
+        margin: 0;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      #create-layout-btn {
+        padding: 5px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: rgba(14, 18, 25, 0.7);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      #create-layout-btn:hover {
+        border-color: var(--accent);
+      }
+
+      #layouts-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0;
+      }
+
+      #layouts-container > .empty-state {
+        padding: 16px;
+      }
+
+      .right-panel-footer {
+        padding: 12px 16px;
+        border-top: 1px solid var(--border);
+      }
+
+      .layout-card {
+        border-bottom: 1px solid var(--border);
+      }
+
+      .layout-card-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .layout-card-header:hover {
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .layout-chevron {
+        font-size: 0.65rem;
+        width: 12px;
+        text-align: center;
+        flex-shrink: 0;
+        color: var(--text-soft);
+      }
+
+      .layout-card-name {
+        flex: 1;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .layout-card-count {
+        font-size: 0.75rem;
+        color: var(--text-soft);
+      }
+
+      .layout-card-delete {
+        background: none;
+        border: none;
+        color: var(--text-soft);
+        cursor: pointer;
+        font-size: 0.9rem;
+        padding: 0 4px;
+      }
+
+      .layout-card-delete:hover {
+        color: var(--accent);
+      }
+
+      .layout-card-body {
+        padding: 0 12px 12px;
+      }
+
+      .layout-card.collapsed .layout-card-body {
+        display: none;
+      }
+
+      .layout-name-input {
+        width: 100%;
+        padding: 6px 10px;
+        margin-bottom: 8px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: rgba(14, 18, 25, 0.7);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.85rem;
+        outline: none;
+      }
+
+      .layout-name-input:focus {
+        border-color: var(--accent);
+      }
+
+      .select-ways-btn {
+        display: block;
+        width: 100%;
+        padding: 6px 12px;
+        margin-bottom: 8px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: rgba(14, 18, 25, 0.7);
+        color: var(--text-muted);
+        font: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+      }
+
+      .select-ways-btn:hover {
+        border-color: var(--cyan);
+        color: var(--text);
+      }
+
+      .select-ways-btn.active {
+        background: rgba(0, 204, 255, 0.15);
+        border-color: var(--cyan);
+        color: var(--cyan);
+      }
+
+      .way-list {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .way-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 6px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-family: monospace;
+        transition: background 0.15s;
+      }
+
+      .way-item:hover {
+        background: rgba(255, 35, 79, 0.08);
+      }
+
+      .way-item .way-index {
+        color: var(--text-soft);
+        font-size: 0.72rem;
+        width: 20px;
+        text-align: right;
+        flex-shrink: 0;
+      }
+
+      .way-item .way-id {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .way-item .way-name {
+        font-family: inherit;
+        font-size: 0.72rem;
+        color: var(--text-soft);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100px;
+      }
+
+      .way-item-controls {
+        display: flex;
+        gap: 2px;
+        flex-shrink: 0;
+      }
+
+      .way-item-controls button {
+        background: none;
+        border: none;
+        color: var(--text-soft);
+        cursor: pointer;
+        font-size: 0.75rem;
+        padding: 0 3px;
+        line-height: 1;
+      }
+
+      .way-item-controls button:hover {
+        color: var(--text);
+      }
+
+      .way-item-controls .remove-btn:hover {
+        color: var(--accent);
+      }
+
+      #save-btn {
+        width: 100%;
+        padding: 8px 14px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: rgba(14, 18, 25, 0.7);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: border-color 0.15s;
+      }
+
+      #save-btn:hover {
+        border-color: var(--accent);
+      }
+
+      #save-btn:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <div class="header">
+        <h1>Layout Editor <span>— racetrack-3d</span></h1>
+        <div class="search-wrap">
+          <input id="search-input" type="text" placeholder="Search for a circuit..." autocomplete="off" />
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+
+      <div class="sidebar">
+        <div id="track-info">
+          <p class="empty-state">Search for a circuit to begin.</p>
+        </div>
+
+        <div id="status-bar"></div>
+
+        <div class="legend">
+          <div class="legend-item"><span class="legend-swatch" style="background:#ffaa00"></span> Raceway</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#44ddaa"></span> In layout</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#00ccff"></span> Active selection</div>
+        </div>
+      </div>
+
+      <div id="map"></div>
+
+      <div class="right-panel">
+        <div class="right-panel-header">
+          <h2>Layouts</h2>
+          <button id="create-layout-btn">+ Create Layout</button>
+        </div>
+        <div id="layouts-container">
+          <p class="empty-state">Create a layout to begin.</p>
+        </div>
+        <div class="right-panel-footer">
+          <button id="save-btn" disabled>Save Layout File</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/layout-editor/entry.ts"></script>
+  </body>
+</html>
