@@ -1,0 +1,89 @@
+{
+  "trackId": "Q172851",
+  "name": "Spa-Francorchamps Circuit",
+
+  "layouts": {
+    "Grand Prix": {
+      "ways": [
+        { "wayId": 175178443 },
+        { "wayId": 175178448 },
+        { "wayId": 126807110 },
+        { "wayId": 126835639 },
+        { "wayId": 126835637 },
+        { "wayId": 126835638 },
+        { "wayId": 1430527230 },
+        { "wayId": 24449918 },
+        { "wayId": 126807113 },
+        { "wayId": 175195997 },
+        { "wayId": 126807111 },
+        { "wayId": 126807112 },
+        { "wayId": 1359025268 },
+        { "wayId": 126807106 },
+        { "wayId": 1359025267 },
+        { "wayId": 126807103 },
+        { "wayId": 126807101 },
+        { "wayId": 126807109 },
+        { "wayId": 126807116 },
+        { "wayId": 175371353 },
+        { "wayId": 175371365 },
+        { "wayId": 126807100 },
+        { "wayId": 176133746 },
+        { "wayId": 126807114 },
+        { "wayId": 176133745 },
+        { "wayId": 178964809 },
+        { "wayId": 126807105 },
+        { "wayId": 637268672 },
+        { "wayId": 613486590 },
+        { "wayId": 126807099 }
+      ]
+    },
+
+    "Moto": {
+      "ways": [
+        { "wayId": 175178443 },
+        { "wayId": 175178448 },
+        { "wayId": 126807110 },
+        { "wayId": 126835639 },
+        { "wayId": 126835637 },
+        { "wayId": 126835638 },
+        { "wayId": 1430527230 },
+        { "wayId": 24449918 },
+        { "wayId": 126807113 },
+        { "wayId": 175195997 },
+        { "wayId": 126807111 },
+        { "wayId": 126807112 },
+        { "wayId": 1359025268 },
+        { "wayId": 1134119259 },
+        { "wayId": 1359025267 },
+        { "wayId": 126807103 },
+        { "wayId": 126807101 },
+        { "wayId": 126807109 },
+        { "wayId": 126807116 },
+        { "wayId": 175371353 },
+        { "wayId": 175371365 },
+        { "wayId": 126807100 },
+        { "wayId": 176133746 },
+        { "wayId": 126807114 },
+        { "wayId": 176133745 },
+        { "wayId": 178964809 },
+        { "wayId": 126807105 },
+        { "wayId": 637268672 },
+        { "wayId": 613486590 },
+        { "wayId": 126807099 }
+      ]
+    }
+  },
+
+  "excludedWays": [
+    { "wayId": 126807525, "reason": "support pit lane" },
+    { "wayId": 323851541, "reason": "pit lane" },
+    { "wayId": 689853533, "reason": "rallycross circuit" },
+    { "wayId": 689853534, "reason": "rallycross circuit" },
+    { "wayId": 689853537, "reason": "rallycross joker lap" },
+    { "wayId": 711703474, "reason": "rallycross start" },
+    { "wayId": 1467574854, "reason": "rallycross circuit" },
+    { "wayId": 1467574855, "reason": "rallycross circuit" },
+    { "wayId": 1467574856, "reason": "rallycross joker lap" },
+    { "wayId": 1467574857, "reason": "rallycross start" }
+  ]
+}
