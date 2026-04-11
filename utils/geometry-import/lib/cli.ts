@@ -1,4 +1,4 @@
-import type { ImportOsmDataOptions } from './types.js';
+import type { CreateTrackGeometryOptions, ImportOsmDataOptions } from './types.js';
 
 const DEFAULT_BBOX_MARGIN = 0.02;
 
@@ -66,6 +66,61 @@ Options:
   --force             Re-fetch even if the output file already exists.
   --bbox-margin <n>   Bounding box margin in degrees (default: ${DEFAULT_BBOX_MARGIN}).
   --dry-run           Print what would be fetched without making network requests.
+  -h, --help          Show this help message.
+`.trim());
+}
+
+export function parseCreateTrackGeometryArgs(argv: string[]): CreateTrackGeometryOptions {
+  const options: CreateTrackGeometryOptions = {
+    tracks: null,
+    force: false,
+    dryRun: false,
+  };
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+
+    if (arg === '--help' || arg === '-h') {
+      printCreateTrackGeometryHelp();
+      process.exit(0);
+    }
+
+    if (arg === '--track') {
+      const value = argv[i + 1] ?? '';
+      options.tracks = value.split(',').map(s => s.trim()).filter(Boolean);
+      if (options.tracks.length === 0) {
+        console.error('Error: --track requires at least one Wikidata ID (e.g. --track Q172851)');
+        process.exit(1);
+      }
+      i += 1;
+      continue;
+    }
+
+    if (arg === '--force') {
+      options.force = true;
+      continue;
+    }
+
+    if (arg === '--dry-run') {
+      options.dryRun = true;
+      continue;
+    }
+  }
+
+  return options;
+}
+
+function printCreateTrackGeometryHelp(): void {
+  console.log(`
+Usage: create-track-geometry [options]
+
+Generate runtime geometry from layout files and ways files.
+
+Options:
+  --track <ids>       Comma-separated Wikidata IDs (e.g. Q171402,Q172851)
+                      If omitted, processes all layout files found.
+  --force             Overwrite existing output files.
+  --dry-run           Print what would be generated without writing files.
   -h, --help          Show this help message.
 `.trim());
 }

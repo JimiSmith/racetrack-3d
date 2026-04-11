@@ -40,3 +40,40 @@ export interface TrackWaysFile {
   };
   ways: OutputWay[];
 }
+
+// ---------------------------------------------------------------------------
+// Step 3 — Layout file types
+// ---------------------------------------------------------------------------
+
+/** CLI options for the create-track-geometry command. */
+export interface CreateTrackGeometryOptions {
+  tracks: string[] | null; // null = all layout files
+  force: boolean;
+  dryRun: boolean;
+}
+
+/** A way reference within a layout definition, as authored in the layout file. */
+export interface LayoutWayEntry {
+  wayId: number;
+  fromNode?: LatLon;
+  toNode?: LatLon;
+}
+
+/** A single layout definition as read from the layout file. */
+export interface LayoutDefinition {
+  ways: LayoutWayEntry[];
+}
+
+/** An excluded way entry in the layout file. */
+export interface ExcludedWayEntry {
+  wayId: number;
+  reason?: string;
+}
+
+/** The complete layout file for one track (Step 3 input). */
+export interface TrackLayoutFile {
+  trackId: string;
+  name: string;
+  layouts: Record<string, LayoutDefinition>;
+  excludedWays?: ExcludedWayEntry[];
+}
