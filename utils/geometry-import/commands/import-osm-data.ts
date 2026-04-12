@@ -2,8 +2,7 @@ import { access, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseImportOsmDataArgs } from '../lib/cli.js';
-import { fetchOsmMapXml, RateLimitExhaustedError } from '../lib/osm-fetch.js';
-import { parseOsmXmlWays } from '../lib/osm-xml-parser.js';
+import { fetchOsmWays, RateLimitExhaustedError } from '../lib/osm-fetch.js';
 import { resolveTracks } from '../lib/track-index.js';
 import type { ImportOsmDataOptions, TrackEntry, TrackWaysFile } from '../lib/types.js';
 
@@ -40,8 +39,7 @@ export async function run(argv: string[]): Promise<void> {
     try {
       process.stdout.write(`${label} - fetching...`);
 
-      const { xml, margin } = await fetchOsmMapXml(track.lat, track.lon, options.bboxMargin);
-      const allWays = parseOsmXmlWays(xml);
+      const { ways: allWays, bbox, requestCount } = await fetchOsmWays(track.lat, track.lon, options.bboxMargin);
 
       const racewayWays = allWays.filter(way => {
         const highway = String(way.tags.highway ?? '').trim().toLowerCase();
@@ -53,12 +51,7 @@ export async function run(argv: string[]): Promise<void> {
         trackId: track.wikidataId,
         fetchedAt: new Date().toISOString(),
         center: { lat: track.lat, lon: track.lon },
-        boundingBox: {
-          south: track.lat - margin,
-          west: track.lon - margin,
-          north: track.lat + margin,
-          east: track.lon + margin,
-        },
+        boundingBox: bbox,
         ways: racewayWays.map(way => ({
           id: way.id,
           tags: way.tags,
@@ -70,7 +63,8 @@ export async function run(argv: string[]): Promise<void> {
 
       const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
       const wayCount = racewayWays.length;
-      process.stdout.write(`\r${label} - ${wayCount} way${wayCount === 1 ? '' : 's'} (${elapsed}s)\n`);
+      const suffix = requestCount > 1 ? ` via ${requestCount} quadrants` : '';
+      process.stdout.write(`\r${label} - ${wayCount} way${wayCount === 1 ? '' : 's'}${suffix} (${elapsed}s)\n`);
 
       if (wayCount === 0) {
         report.empty += 1;

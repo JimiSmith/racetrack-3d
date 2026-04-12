@@ -121,9 +121,17 @@ export function buildOsmApiMapUrl(lat: number, lon: number, margin: number = DEF
     throw new Error('OSM API bbox margin must be a positive number');
   }
 
-  const minLon = lon - margin;
-  const minLat = lat - margin;
-  const maxLon = lon + margin;
-  const maxLat = lat + margin;
-  return `${OSM_API_BASE_URL}?bbox=${minLon},${minLat},${maxLon},${maxLat}`;
+  return buildOsmApiMapUrlForBbox(lat - margin, lon - margin, lat + margin, lon + margin);
+}
+
+export function buildOsmApiMapUrlForBbox(south: number, west: number, north: number, east: number): string {
+  if (![south, west, north, east].every(Number.isFinite)) {
+    throw new Error('OSM API bbox coordinates must be finite');
+  }
+
+  if (south >= north || west >= east) {
+    throw new Error('OSM API bbox must have south < north and west < east');
+  }
+
+  return `${OSM_API_BASE_URL}?bbox=${west},${south},${east},${north}`;
 }

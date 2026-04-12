@@ -1,9 +1,8 @@
-import { buildOsmApiMapUrl } from './osm-xml-parser.js';
+import { buildOsmApiMapUrlForBbox, parseOsmXmlWays, type ParsedOsmWay } from './osm-xml-parser.js';
 
 const REQUEST_PACE_MS = 1200;
 const REQUEST_TIMEOUT_MS = 20_000;
-const MAX_ADAPTIVE_ATTEMPTS = 6;
-const MIN_MARGIN = 0.001;
+const MAX_SPLIT_DEPTH = 6;
 const NODE_LIMIT_PATTERN = /too many nodes/i;
 const RATE_LIMIT_STATUS_CODES = new Set([429, 509]);
 const RATE_LIMIT_BODY_PATTERN = /(downloaded too much data|rate limit|quota exceeded|too many requests|bandwidth limit exceeded|please wait)/i;
@@ -11,16 +10,30 @@ const RETRY_AFTER_PATTERN = /(?:please\s+)?wait\s+(\d+)\s*(second|seconds|minute
 const MAX_RATE_LIMIT_RETRIES = 2;
 const RATE_LIMIT_FALLBACK_DELAYS_MS = [5_000, 15_000];
 
+export interface Bbox {
+  south: number;
+  west: number;
+  north: number;
+  east: number;
+}
+
 export interface FetchResult {
-  xml: string;
-  url: string;
-  margin: number;
+  ways: ParsedOsmWay[];
+  bbox: Bbox;
+  requestCount: number;
 }
 
 export class RateLimitExhaustedError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'RateLimitExhaustedError';
+  }
+}
+
+export class NodeLimitExhaustedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NodeLimitExhaustedError';
   }
 }
 
@@ -79,12 +92,12 @@ function isRateLimitResponse(status: number, body: string): boolean {
 }
 
 /**
- * Fetch raw OSM XML for a single margin value, with rate-limit retry.
- * Throws on node-limit errors (with a `.nodeLimitExceeded` flag) so the
- * adaptive caller can reduce the margin and retry.
+ * Fetch raw OSM XML for a single bbox, with rate-limit retry.
+ * Throws with `.nodeLimitExceeded = true` on node-cap errors so the
+ * caller can subdivide the bbox and retry.
  */
-async function fetchSingleMargin(lat: number, lon: number, margin: number): Promise<{ xml: string; url: string }> {
-  const url = buildOsmApiMapUrl(lat, lon, margin);
+async function fetchSingleBbox(bbox: Bbox): Promise<string> {
+  const url = buildOsmApiMapUrlForBbox(bbox.south, bbox.west, bbox.north, bbox.east);
 
   for (let retry = 0; retry <= MAX_RATE_LIMIT_RETRIES; retry++) {
     await waitForPacingSlot();
@@ -95,14 +108,13 @@ async function fetchSingleMargin(lat: number, lon: number, margin: number): Prom
     });
 
     if (response.ok) {
-      const xml = await response.text();
-      return { xml, url };
+      return await response.text();
     }
 
     const body = (await response.text()).trim();
 
     if (isNodeLimitError(body)) {
-      const err = new Error(`OSM API node limit exceeded (margin ${margin})`);
+      const err = new Error(`OSM API node limit exceeded for bbox ${JSON.stringify(bbox)}`);
       (err as any).nodeLimitExceeded = true;
       throw err;
     }
@@ -125,26 +137,84 @@ async function fetchSingleMargin(lat: number, lon: number, margin: number): Prom
   throw new Error('Unreachable');
 }
 
-/**
- * Fetch OSM map XML with adaptive margin shrinking.
- * Starts at the given margin and halves on node-limit errors until MIN_MARGIN.
- * Same pattern as the debug webview (src/debug/entry.ts).
- */
-export async function fetchOsmMapXml(lat: number, lon: number, startMargin: number): Promise<FetchResult> {
-  let margin = startMargin;
+function splitBbox(bbox: Bbox): [Bbox, Bbox, Bbox, Bbox] {
+  const midLat = (bbox.south + bbox.north) / 2;
+  const midLon = (bbox.west + bbox.east) / 2;
+  return [
+    { south: bbox.south, west: bbox.west, north: midLat, east: midLon },
+    { south: bbox.south, west: midLon, north: midLat, east: bbox.east },
+    { south: midLat, west: bbox.west, north: bbox.north, east: midLon },
+    { south: midLat, west: midLon, north: bbox.north, east: bbox.east },
+  ];
+}
 
-  for (let attempt = 0; attempt < MAX_ADAPTIVE_ATTEMPTS; attempt++) {
-    try {
-      const { xml, url } = await fetchSingleMargin(lat, lon, margin);
-      return { xml, url, margin };
-    } catch (err) {
-      if (!(err as any).nodeLimitExceeded || margin <= MIN_MARGIN) {
-        throw err;
+interface FetchBboxResult {
+  xmls: string[];
+  requestCount: number;
+}
+
+async function fetchBbox(bbox: Bbox, depth: number): Promise<FetchBboxResult> {
+  try {
+    const xml = await fetchSingleBbox(bbox);
+    return { xmls: [xml], requestCount: 1 };
+  } catch (err) {
+    if (!(err as any).nodeLimitExceeded) {
+      throw err;
+    }
+
+    if (depth >= MAX_SPLIT_DEPTH) {
+      throw new NodeLimitExhaustedError(
+        `OSM API node limit exceeded at max split depth ${MAX_SPLIT_DEPTH} for bbox ${JSON.stringify(bbox)}`,
+      );
+    }
+
+    console.log(`  Too many nodes, splitting bbox into 4 quadrants (depth ${depth + 1})...`);
+    const quadrants = splitBbox(bbox);
+    const results = await Promise.all(quadrants.map(q => fetchBbox(q, depth + 1)));
+
+    return {
+      xmls: results.flatMap(r => r.xmls),
+      requestCount: results.reduce((sum, r) => sum + r.requestCount, 0),
+    };
+  }
+}
+
+/**
+ * Fetch OSM ways for an area centred on (lat, lon) with the given margin.
+ * If the request hits the OSM node cap, the bbox is recursively split into
+ * quadrants and fetched in parallel. Ways that straddle quadrant boundaries
+ * are returned whole by at least one request (OSM returns the full way
+ * whenever any of its nodes is in-bbox) and deduped here by way id.
+ */
+export async function fetchOsmWays(lat: number, lon: number, margin: number): Promise<FetchResult> {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    throw new Error('Track coordinates must be finite to query the OSM API');
+  }
+  if (!Number.isFinite(margin) || margin <= 0) {
+    throw new Error('OSM API bbox margin must be a positive number');
+  }
+
+  const bbox: Bbox = {
+    south: lat - margin,
+    west: lon - margin,
+    north: lat + margin,
+    east: lon + margin,
+  };
+
+  const { xmls, requestCount } = await fetchBbox(bbox, 0);
+
+  const wayById = new Map<number, ParsedOsmWay>();
+  for (const xml of xmls) {
+    for (const way of parseOsmXmlWays(xml)) {
+      if (!wayById.has(way.id)) {
+        wayById.set(way.id, way);
       }
-      margin = Math.max(MIN_MARGIN, margin / 2);
-      console.log(`  Too many nodes, retrying with smaller area (margin ${margin.toFixed(4)})...`);
     }
   }
 
-  throw new Error(`Could not fetch OSM data: area too dense even at minimum margin (${MIN_MARGIN})`);
+  return {
+    ways: Array.from(wayById.values()),
+    bbox,
+    requestCount,
+  };
 }
