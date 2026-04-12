@@ -18,8 +18,6 @@ Both `npm test` and `npm run build` must pass before committing.
 | File | Covers |
 |---|---|
 | `test/search.test.js` | Runtime geometry search and layout selection |
-| `test/build-track-geometry-index.test.js` | Geometry build script logic |
-| `test/osm-api-source.test.js` | OSM API fetch helper (adaptive bbox, rate limiting) |
 | `test/elevation.test.js` | Elevation fetching and exaggeration modes |
 | `test/geometry.test.js` | Geometry projection and outline building |
 | `test/model.test.js` | 3D model construction |

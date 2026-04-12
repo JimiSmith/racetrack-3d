@@ -1,62 +1,39 @@
 ---
 name: geometry-pipeline
-description: Build-time system that fetches OSM circuit geometry and stores it in per-track prebuilt files shipped with the app. Use when working on the geometry build script, OSM API source helper, staleness logic, or the generated geometry artifacts. Triggers on tasks like "rebuild geometry", "update the geometry index", "fix OSM fetch", "add a track to the index", or anything touching scripts/build-track-geometry-index.mjs or scripts/lib/osm-api-source.mjs.
+description: Build-time system that fetches OSM circuit geometry and stores it in per-track prebuilt files shipped with the app. Use when working on the geometry build pipeline, OSM fetch helper, or the generated geometry artifacts. Triggers on tasks like "rebuild geometry", "update a track's geometry", "fix OSM fetch", "add a track to the index", or anything touching utils/geometry-import/.
 ---
 
 # Geometry Pipeline
 
 ## Key files
 
-- `scripts/build-track-geometry-index.mjs` — main build script
-- `scripts/lib/osm-api-source.mjs` — OSM API fetch helper with adaptive bbox, rate-limit handling, and retry
-- `src/generated/geometry/<wikidataId>.json` — committed per-track artifacts; durable canonical cache
-- `src/geometry-index.js` — runtime loader for the prebuilt index
-- `.cache/` — ephemeral local acceleration cache; never committed
+- `utils/geometry-import/main.ts` — entry point that dispatches to subcommands
+- `utils/geometry-import/commands/import-osm-data.ts` — fetches raw OSM ways per track
+- `utils/geometry-import/commands/find-loops.ts` — detects closed loops in the fetched ways
+- `utils/geometry-import/commands/create-track-geometry.ts` — stitches layout files into the runtime artifacts
+- `utils/geometry-import/lib/osm-fetch.ts` — OSM API fetch helper with rate-limit handling and retry
+- `src/generated/geometry/ways/<wikidataId>.json` — raw OSM ways per track
+- `src/generated/geometry/loops/<wikidataId>.json` — detected loops
+- `src/generated/geometry/layouts/<wikidataId>.json` — hand-authored layout definitions
+- `src/generated/geometry/<wikidataId>.json` — runtime artifact consumed by the app
+- `src/search/geometry-index.ts` — runtime loader (fetches the top-level per-track file)
 
-## Architecture
+## Pipeline stages
 
-- **OSM API** (`api.openstreetmap.org/api/0.6/map?bbox=...`) is the primary build-time source
-- **Overpass** is the fallback only — used when OSM API fails to yield valid geometry
-- Runtime never hits Overpass or live OSM for tracks covered by the index
-- Source-specific cleanup and normalization belongs in the build script only — never in `src/search.js`
-
-## Running a build
-
-```bash
-# Full build (all tracks)
-node scripts/build-track-geometry-index.mjs
-
-# Limited run (useful for testing)
-node scripts/build-track-geometry-index.mjs --limit 20
-
-# Single track by Wikidata ID
-node scripts/build-track-geometry-index.mjs --track Q171402
-```
-
-Output is written to `src/generated/geometry/<wikidataId>.json`.
-Run logs are written to `scripts/run-logs/` (gitignored).
-
-## Staleness
-
-- Entries refresh after **2 weeks** + ±3-day deterministic per-track jitter (hash of Wikidata ID)
-- Entries deferred by `--limit` preserve existing geometry unchanged
-- `.cache/` stores raw OSM responses for local acceleration; safe to delete at any time
-
-## OSM API behaviour
-
-- Adaptive bbox: starts small, grows progressively to find geometry without hitting the 50k-node cap
-- Rate-limit (509) responses are detected, respected with backoff, and retried
-- Requests are paced to avoid hammering the API in bulk runs
-
-## npm scripts
+Three commands, run in order, each consuming the previous stage's output:
 
 ```bash
-npm run build:geometry-index:ci   # CI-safe full build
-npm run validate:geometry-index   # Validate existing artifact without fetching
+npm run geometry:import -- import-osm-data        # -> ways/<id>.json
+npm run geometry:import -- find-loops             # -> loops/<id>.json
+npm run geometry:import -- create-track-geometry  # -> <id>.json (runtime)
 ```
 
-## Known edge cases
+Each command accepts `--track <wikidataId>` (repeatable) to limit to specific tracks, and `--help` for full options.
 
-- Dense street circuits (e.g. Adelaide, Alexandra Park) often hit the node cap before geometry is found — falls back to Overpass
-- Some venues have no OSM raceway geometry at all — both paths fail; logged as failures
-- Tiny false-positive geometries (< ~500m) are rejected by sanity-length validation
+## Runtime contract
+
+The runtime only reads `src/generated/geometry/<wikidataId>.json`. The `ways/`, `loops/`, and `layouts/` subdirectories are build-time inputs to `create-track-geometry` and are also consumed by the layout editor (`src/layout-editor/entry.ts`). Source-specific cleanup and normalization belongs in the import pipeline — never in `src/search.js`.
+
+## Layouts
+
+Layout files under `src/generated/geometry/layouts/` are hand-authored (via the layout editor) and reference which loop ways form each named layout (Grand Prix, National, etc.). `create-track-geometry` stitches those way references into the runtime geometry.

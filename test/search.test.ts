@@ -29,8 +29,6 @@ import {
   expectNoImmediateBacktrack,
 } from '../test-utils/layout-assertions.js';
 
-/** Geometry hints matching TRACK_BUILD_OVERRIDES in build-track-geometry-index.mjs.
- *  SYNC: keep in sync with layoutLengthTargets in scripts/build-track-geometry-index.mjs */
 const GEOMETRY_HINTS: Record<string, GeometryHints> = {
   'Bahrain International Circuit': {
     layoutLengthTargets: { 'inner': 2550, 'oval|test': 2500 },
