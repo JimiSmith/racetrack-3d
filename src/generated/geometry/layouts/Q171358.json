@@ -1,0 +1,21 @@
+{
+  "trackId": "Q171358",
+  "name": "Shanghai International Circuit",
+  "layouts": {
+    "Grand Prix": {
+      "ways": [
+        {
+          "wayId": 156328670
+        }
+      ]
+    },
+    "East Handling 2": {
+      "ways": [
+        {
+          "wayId": 329189199
+        }
+      ]
+    }
+  },
+  "excludedWays": []
+}

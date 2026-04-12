@@ -3,9 +3,8 @@
   "name": "Circuit Gilles Villeneuve",
   "source": {
     "kind": "osm-prebuilt",
-    "generatedAt": "2026-04-08T16:12:57.396Z",
-    "osmQueryVersion": 1,
-    "buildSource": "osm-api"
+    "generatedAt": "2026-04-12T10:53:55.361Z",
+    "pipelineVersion": 2
   },
   "center": {
     "lat": 45.500555555556,
@@ -13,16 +12,15 @@
   },
   "names": {
     "searchLabel": "Circuit Gilles Villeneuve",
-    "shortName": "Montreal",
+    "shortName": null,
     "osmVenueNames": [
-      "Circuit Gilles Villeneuve",
       "Circuit Gilles-Villeneuve"
     ]
   },
   "layouts": [
     {
-      "id": "main",
-      "name": "Main",
+      "id": "grand-prix",
+      "name": "Grand Prix",
       "nodes": [
         {
           "lat": 45.5045625,
@@ -955,9 +953,9 @@
       ],
       "stats": {
         "lengthMetres": 4367.12548460482,
-        "segmentCount": 1,
-        "variantSectionCount": 0
+        "segmentCount": 1
       }
     }
-  ]
+  ],
+  "selectedLayoutIndex": 0
 }

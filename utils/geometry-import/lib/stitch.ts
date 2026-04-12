@@ -2,7 +2,13 @@ import { measureDistanceMetres } from './geo-math.js';
 import type { LatLon, LayoutWayEntry, OutputWay } from './types.js';
 
 const COORD_TOLERANCE = 1e-7; // degrees — matches OSM node precision
+const JUNCTION_TOLERANCE_METRES = 2; // absorb OSM precision drift at way-to-way joins
 const CLOSURE_TOLERANCE_METRES = 50;
+
+function junctionMatches(a: LatLon, b: LatLon): boolean {
+  if (coordsMatch(a, b)) return true;
+  return measureDistanceMetres(a, b) <= JUNCTION_TOLERANCE_METRES;
+}
 
 /** Check whether two coordinates refer to the same OSM node. */
 export function coordsMatch(a: LatLon, b: LatLon, tolerance = COORD_TOLERANCE): boolean {
@@ -131,19 +137,19 @@ function resolveFirstTwoWays(
   const sLast = second[second.length - 1]!;
 
   // chain[last] ≈ way[first]: both in correct order
-  if (coordsMatch(fLast, sFirst)) {
+  if (junctionMatches(fLast, sFirst)) {
     return [...first, ...second.slice(1)];
   }
   // chain[last] ≈ way[last]: first correct, second reversed
-  if (coordsMatch(fLast, sLast)) {
+  if (junctionMatches(fLast, sLast)) {
     return [...first, ...second.slice(0, -1).reverse()];
   }
   // chain[first] ≈ way[first]: first reversed, second correct
-  if (coordsMatch(fFirst, sFirst)) {
+  if (junctionMatches(fFirst, sFirst)) {
     return [...first.slice().reverse(), ...second.slice(1)];
   }
   // chain[first] ≈ way[last]: first reversed, second reversed
-  if (coordsMatch(fFirst, sLast)) {
+  if (junctionMatches(fFirst, sLast)) {
     return [...first.slice().reverse(), ...second.slice(0, -1).reverse()];
   }
 
@@ -168,11 +174,11 @@ function appendWay(layoutName: string, chain: LatLon[], way: LatLon[], wayId: nu
   const wayFirst = way[0]!;
   const wayLast = way[way.length - 1]!;
 
-  if (coordsMatch(chainTail, wayFirst)) {
+  if (junctionMatches(chainTail, wayFirst)) {
     for (let i = 1; i < way.length; i++) {
       chain.push(way[i]!);
     }
-  } else if (coordsMatch(chainTail, wayLast)) {
+  } else if (junctionMatches(chainTail, wayLast)) {
     for (let i = way.length - 2; i >= 0; i--) {
       chain.push(way[i]!);
     }

@@ -1,0 +1,14 @@
+{
+  "trackId": "Q172860",
+  "name": "Circuit Gilles Villeneuve",
+  "layouts": {
+    "Grand Prix": {
+      "ways": [
+        {
+          "wayId": 136717490
+        }
+      ]
+    }
+  },
+  "excludedWays": []
+}

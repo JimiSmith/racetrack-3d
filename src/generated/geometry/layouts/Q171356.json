@@ -1,0 +1,17 @@
+{
+  "trackId": "Q171356",
+  "name": "Hungaroring",
+  "layouts": {
+    "Grand Prix": {
+      "ways": [
+        {
+          "wayId": 231328650
+        },
+        {
+          "wayId": 1333262244
+        }
+      ]
+    }
+  },
+  "excludedWays": []
+}

@@ -1,0 +1,28 @@
+{
+  "trackId": "Q547535",
+  "name": "Lusail International Circuit",
+  "layouts": {
+    "Grand Prix": {
+      "ways": [
+        {
+          "wayId": 196193732
+        },
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4919501,
+            "lon": 51.4479661
+          },
+          "toNode": {
+            "lat": 25.4851995,
+            "lon": 51.4544205
+          }
+        },
+        {
+          "wayId": 1037707300
+        }
+      ]
+    }
+  },
+  "excludedWays": []
+}

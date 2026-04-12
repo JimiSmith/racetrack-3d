@@ -3,9 +3,8 @@
   "name": "Hungaroring",
   "source": {
     "kind": "osm-prebuilt",
-    "generatedAt": "2026-04-08T16:13:11.071Z",
-    "osmQueryVersion": 1,
-    "buildSource": "osm-api"
+    "generatedAt": "2026-04-12T10:53:55.345Z",
+    "pipelineVersion": 2
   },
   "center": {
     "lat": 47.582222222222,
@@ -13,16 +12,15 @@
   },
   "names": {
     "searchLabel": "Hungaroring",
-    "shortName": "Hungaroring",
+    "shortName": null,
     "osmVenueNames": [
-      "Bokszutca",
       "Hungaroring"
     ]
   },
   "layouts": [
     {
-      "id": "main",
-      "name": "Main",
+      "id": "grand-prix",
+      "name": "Grand Prix",
       "nodes": [
         {
           "lat": 47.5820518,
@@ -1743,9 +1741,9 @@
       ],
       "stats": {
         "lengthMetres": 4371.569254793269,
-        "segmentCount": 3,
-        "variantSectionCount": 0
+        "segmentCount": 2
       }
     }
-  ]
+  ],
+  "selectedLayoutIndex": 0
 }
