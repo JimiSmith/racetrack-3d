@@ -26,17 +26,17 @@ npx tsx utils/geometry-import/main.ts <command> [options]
 
 ## Step 1: Generate loops
 
-Prerequisites: a ways file must exist at `src/generated/geometry/ways/<ID>.json`. If not, run `import-osm-data --track <ID>` first.
+Prerequisites: a ways file must exist at `src/generated/geometry/ways/<ID>.json`. If not, run `import-osm-data --track <ID>` first. If the ways data is empty after import, note and skip it. Do not investigate or invent.
 
 ```bash
 npx tsx utils/geometry-import/main.ts find-loops --track Q171402 --force
 ```
 
 Key options:
-- `--max-depth 50` (default) — max DFS traversal depth in segments
+- `--max-depth 500` (default) — max DFS traversal depth in segments
 - `--min-length 200` (default) — minimum loop length in metres
 - `--max-length 30000` (default) — maximum loop length in metres
-- `--max-loops 100` (default) — cap on total loops emitted. Increase with `--max-loops 500` for venues with many possible configurations
+- `--max-loops 1000` (default) — cap on total loops emitted. Increase with `--max-loops 5000` for venues with many possible configurations
 
 Output: `src/generated/geometry/loops/<ID>.json`
 
@@ -86,6 +86,7 @@ Look up the circuit on a reference site like racingcircuits.info to find:
 - Layout names (e.g. "Grand Prix", "National", "International")
 - Approximate lengths (e.g. 5.891 km, 2.638 km)
 - Which layouts exist and are distinct
+- You must validate the found loops against the reference data
 
 ### Match loops to layouts
 
@@ -100,8 +101,8 @@ For each known real-world layout:
 
 If a known real-world layout doesn't appear in the loops output:
 
-1. **Check `--max-loops`** — the default cap of 100 may cut off longer/more complex loops. Try `--max-loops 500`
-2. **Check `--max-depth`** — layouts that traverse many short segments may exceed the default depth of 50. Try `--max-depth 80`
+1. **Check `--max-loops`** — the default cap of 100 may cut off longer/more complex loops. Try `--max-loops 5000`
+2. **Check `--max-depth`** — layouts that traverse many short segments may exceed the default depth of 50. Try `--max-depth 200`
 3. **Check `--max-length`** — some layouts (like endurance circuits) exceed 30km. Increase with `--max-length 50000`
 4. **Check that all necessary ways exist** — read the ways file and verify the connecting roads are present. Missing OSM data can't be fixed by the algorithm
 5. **Do not manually construct layouts that should be discoverable** — fix the algorithm parameters or investigate the data gap instead
