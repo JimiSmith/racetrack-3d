@@ -20,6 +20,21 @@ interface LayoutFile {
   excludedWays?: ExcludedWayEntry[];
 }
 
+// --- Inline types for loops file ---
+
+interface LoopsFileLoopWay { wayId: number; fromNode?: LatLon; toNode?: LatLon }
+interface LoopsFileLoop {
+  loopId: number;
+  lengthMetres: number;
+  wayCount: number;
+  namedSections: string[];
+  ways: LoopsFileLoopWay[];
+}
+interface LoopsFile {
+  trackId: string;
+  loops: LoopsFileLoop[];
+}
+
 // --- Editor layout state ---
 
 interface EditorWayEntry {
@@ -81,6 +96,7 @@ let map: any;
 let wayLayers: any[] = [];
 let trimMarkers: any[] = [];
 let trimOverlayLayers: any[] = [];
+let loopPreviewLayers: any[] = [];
 
 let currentTrackId: string | null = null;
 let currentTrackName: string | null = null;
@@ -92,6 +108,11 @@ const editorLayouts: EditorLayout[] = [];
 let activeSelectLayoutId: string | null = null;
 let existingExcludedWays: ExcludedWayEntry[] = [];
 
+// Loops file + picker state
+let loopsFile: LoopsFile | null = null;
+let loopPickerLayoutId: string | null = null;
+let pendingLoopId: number | null = null;
+
 // Trim mode state
 let trimTarget: { layoutId: string; wayIdx: number; field: 'fromNode' | 'toNode' } | null = null;
 
@@ -100,6 +121,7 @@ const WAY_COLOR_DEFAULT = '#888';
 const WAY_COLOR_IN_LAYOUT = '#44ddaa';
 const WAY_COLOR_ACTIVE = '#00ccff';
 const WAY_COLOR_TRIMMED_INACTIVE = '#4a7a8a';
+const WAY_COLOR_LOOP_PREVIEW = '#ff8844';
 
 // --- DOM refs ---
 
@@ -206,6 +228,18 @@ async function selectTrack(track: SearchResult): Promise<void> {
   // Draw ways on map
   drawWays(waysFile.ways);
 
+  // Try to load loops file (non-fatal)
+  try {
+    const resp = await fetch(`${base}generated/geometry/loops/${encodeURIComponent(track.wikidataId)}.json`);
+    if (resp.ok) {
+      loopsFile = await resp.json() as LoopsFile;
+    } else {
+      loopsFile = null;
+    }
+  } catch {
+    loopsFile = null;
+  }
+
   // Try to load existing layout file
   setStatus('Checking for existing layout file...');
   try {
@@ -245,6 +279,7 @@ async function selectTrack(track: SearchResult): Promise<void> {
 function clearAll(): void {
   for (const layer of wayLayers) map.removeLayer(layer);
   clearTrimMarkers();
+  clearLoopPreview();
   wayLayers = [];
   wayDataById.clear();
   wayLayerById.clear();
@@ -252,6 +287,9 @@ function clearAll(): void {
   activeSelectLayoutId = null;
   trimTarget = null;
   existingExcludedWays = [];
+  loopsFile = null;
+  loopPickerLayoutId = null;
+  pendingLoopId = null;
   currentTrackId = null;
   currentTrackName = null;
   renderLayoutsPanel();
@@ -518,6 +556,93 @@ function clearTrimMarkers(): void {
   trimMarkers = [];
 }
 
+// --- Loop picker ---
+
+function enterLoopPicker(layoutId: string): void {
+  loopPickerLayoutId = layoutId;
+  pendingLoopId = null;
+  activeSelectLayoutId = null;
+  exitTrimMode();
+  clearLoopPreview();
+  updateWayStyles();
+  renderLayoutsPanel();
+}
+
+function exitLoopPicker(): void {
+  loopPickerLayoutId = null;
+  pendingLoopId = null;
+  clearLoopPreview();
+}
+
+function clearLoopPreview(): void {
+  for (const layer of loopPreviewLayers) {
+    map.removeLayer(layer);
+  }
+  loopPreviewLayers = [];
+}
+
+function drawLoopPreview(loopId: number): void {
+  clearLoopPreview();
+  if (!loopsFile) {
+    return;
+  }
+  const loop = loopsFile.loops.find(l => l.loopId === loopId);
+  if (!loop) {
+    return;
+  }
+
+  for (const entry of loop.ways) {
+    const nodes = getEffectiveNodes(entry);
+    if (nodes.length < 2) {
+      continue;
+    }
+    const overlay = L.polyline(
+      nodes.map((n: LatLon) => [n.lat, n.lon]),
+      { color: WAY_COLOR_LOOP_PREVIEW, weight: 6, opacity: 0.85 },
+    ).addTo(map);
+    loopPreviewLayers.push(overlay);
+  }
+}
+
+function applyPendingLoop(): void {
+  if (!loopPickerLayoutId || pendingLoopId === null || !loopsFile) {
+    return;
+  }
+  const layout = editorLayouts.find(l => l.id === loopPickerLayoutId);
+  if (!layout) {
+    return;
+  }
+  const loop = loopsFile.loops.find(l => l.loopId === pendingLoopId);
+  if (!loop) {
+    return;
+  }
+
+  if (layout.ways.length > 0) {
+    const plural = layout.ways.length === 1 ? '' : 's';
+    const ok = window.confirm(`Replace ${layout.ways.length} existing way${plural} in "${layout.name || 'Untitled'}" with this loop?`);
+    if (!ok) {
+      return;
+    }
+  }
+
+  layout.ways = loop.ways.map(w => {
+    const e: EditorWayEntry = { wayId: w.wayId };
+    if (w.fromNode) {
+      e.fromNode = { lat: w.fromNode.lat, lon: w.fromNode.lon };
+    }
+    if (w.toNode) {
+      e.toNode = { lat: w.toNode.lat, lon: w.toNode.lon };
+    }
+    return e;
+  });
+  layout.collapsed = false;
+
+  exitLoopPicker();
+  updateWayStyles();
+  renderLayoutsPanel();
+  updateSaveBtn();
+}
+
 // Escape key exits trim mode
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && trimTarget) {
@@ -528,10 +653,17 @@ document.addEventListener('keydown', (e) => {
 // --- Layout panel rendering ---
 
 function renderLayoutsPanel(): void {
+  if (loopPickerLayoutId) {
+    renderLoopPicker();
+    return;
+  }
+
   if (editorLayouts.length === 0) {
     layoutsContainer.innerHTML = '<p class="empty-state">Create a layout to begin.</p>';
     return;
   }
+
+  const hasLoops = Boolean(loopsFile) && loopsFile!.loops.length > 0;
 
   const html = editorLayouts.map((layout) => {
     const isActive = activeSelectLayoutId === layout.id;
@@ -577,6 +709,9 @@ function renderLayoutsPanel(): void {
         <button class="select-ways-btn${isActive ? ' active' : ''}" data-layout-id="${layout.id}">
           ${isActive ? '\u25cf Select Ways (active)' : '\u25cb Select Ways'}
         </button>
+        <button class="pick-loops-btn" data-layout-id="${layout.id}"${hasLoops ? '' : ' disabled title="No detected loops for this track"'}>
+          \u21ba Pick from Loops${hasLoops ? ` (${loopsFile!.loops.length})` : ''}
+        </button>
         <div class="way-list">${wayItems || '<span class="empty-state">No ways added yet.</span>'}</div>
       </div>
     </div>`;
@@ -584,6 +719,82 @@ function renderLayoutsPanel(): void {
 
   layoutsContainer.innerHTML = html;
   wireLayoutEvents();
+}
+
+function renderLoopPicker(): void {
+  const layout = editorLayouts.find(l => l.id === loopPickerLayoutId);
+  if (!layout) {
+    exitLoopPicker();
+    layoutsContainer.innerHTML = '<p class="empty-state">Create a layout to begin.</p>';
+    return;
+  }
+
+  const loops = loopsFile?.loops ?? [];
+  const body = loops.length === 0
+    ? '<p class="empty-state">No detected loops for this track.</p>'
+    : `<div class="loops-list">${loops.map((loop) => {
+        const isPending = pendingLoopId === loop.loopId;
+        const sections = loop.namedSections.length > 0
+          ? escapeHtml(loop.namedSections.join(', '))
+          : '<span class="loop-row-unnamed">unnamed</span>';
+        return `<div class="loop-row${isPending ? ' pending' : ''}" data-loop-id="${loop.loopId}">
+          <div class="loop-row-head">
+            <span class="loop-row-id">#${loop.loopId}</span>
+            <span class="loop-row-stat">${loop.wayCount} ways</span>
+            <span class="loop-row-stat">${loop.lengthMetres} m</span>
+          </div>
+          <div class="loop-row-sections">${sections}</div>
+        </div>`;
+      }).join('')}</div>`;
+
+  const applyDisabled = pendingLoopId === null ? ' disabled' : '';
+
+  layoutsContainer.innerHTML = `
+    <div class="loops-picker">
+      <div class="loops-picker-header">
+        Pick loop for <strong>${escapeHtml(layout.name || 'Untitled')}</strong>
+      </div>
+      <div class="loops-picker-body">${body}</div>
+      <div class="loops-picker-footer">
+        <button class="loop-cancel-btn">Cancel</button>
+        <button class="loop-apply-btn"${applyDisabled}>Apply</button>
+      </div>
+    </div>
+  `;
+
+  wireLoopPickerEvents();
+}
+
+function wireLoopPickerEvents(): void {
+  for (const row of layoutsContainer.querySelectorAll<HTMLElement>('.loop-row')) {
+    const loopId = Number(row.dataset.loopId);
+    row.addEventListener('mouseenter', () => {
+      if (pendingLoopId === null) {
+        drawLoopPreview(loopId);
+      }
+    });
+    row.addEventListener('mouseleave', () => {
+      if (pendingLoopId === null) {
+        clearLoopPreview();
+      }
+    });
+    row.addEventListener('click', () => {
+      pendingLoopId = loopId;
+      drawLoopPreview(loopId);
+      renderLoopPicker();
+    });
+  }
+
+  const cancelBtn = layoutsContainer.querySelector('.loop-cancel-btn');
+  cancelBtn?.addEventListener('click', () => {
+    exitLoopPicker();
+    renderLayoutsPanel();
+  });
+
+  const applyBtn = layoutsContainer.querySelector('.loop-apply-btn');
+  applyBtn?.addEventListener('click', () => {
+    applyPendingLoop();
+  });
 }
 
 function wireLayoutEvents(): void {
@@ -645,6 +856,17 @@ function wireLayoutEvents(): void {
       exitTrimMode();
       updateWayStyles();
       renderLayoutsPanel();
+    });
+  }
+
+  // Pick from loops
+  for (const btn of layoutsContainer.querySelectorAll<HTMLButtonElement>('.pick-loops-btn')) {
+    if (btn.disabled) {
+      continue;
+    }
+    btn.addEventListener('click', () => {
+      const layoutId = btn.dataset.layoutId!;
+      enterLoopPicker(layoutId);
     });
   }
 

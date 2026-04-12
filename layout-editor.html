@@ -348,6 +348,155 @@
         color: var(--cyan);
       }
 
+      .pick-loops-btn {
+        display: block;
+        width: 100%;
+        padding: 6px 12px;
+        margin-bottom: 8px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: rgba(14, 18, 25, 0.7);
+        color: var(--text-muted);
+        font: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+      }
+
+      .pick-loops-btn:hover:not(:disabled) {
+        border-color: #ff8844;
+        color: var(--text);
+      }
+
+      .pick-loops-btn:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+
+      /* --- Loops picker view --- */
+
+      .loops-picker {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      .loops-picker-header {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
+
+      .loops-picker-header strong {
+        color: var(--text);
+      }
+
+      .loops-picker-body {
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .loops-list {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .loop-row {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        transition: background 0.15s, border-left-color 0.15s;
+        border-left: 3px solid transparent;
+      }
+
+      .loop-row:hover {
+        background: rgba(255, 136, 68, 0.08);
+        border-left-color: #ff8844;
+      }
+
+      .loop-row.pending {
+        background: rgba(255, 136, 68, 0.18);
+        border-left-color: #ff8844;
+      }
+
+      .loop-row-head {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .loop-row-id {
+        color: #ff8844;
+        font-family: monospace;
+      }
+
+      .loop-row-stat {
+        font-size: 0.78rem;
+        color: var(--text-soft);
+        font-weight: 500;
+      }
+
+      .loop-row-sections {
+        margin-top: 3px;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+
+      .loop-row-unnamed {
+        color: var(--text-soft);
+        font-style: italic;
+      }
+
+      .loops-picker-footer {
+        display: flex;
+        gap: 8px;
+        padding: 12px 16px;
+        border-top: 1px solid var(--border);
+      }
+
+      .loops-picker-footer button {
+        flex: 1;
+        padding: 8px 14px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: rgba(14, 18, 25, 0.7);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: border-color 0.15s, background 0.15s;
+      }
+
+      .loops-picker-footer .loop-cancel-btn:hover {
+        border-color: var(--accent);
+      }
+
+      .loops-picker-footer .loop-apply-btn:not(:disabled) {
+        background: rgba(255, 136, 68, 0.15);
+        border-color: #ff8844;
+        color: #ff8844;
+      }
+
+      .loops-picker-footer .loop-apply-btn:not(:disabled):hover {
+        background: rgba(255, 136, 68, 0.28);
+      }
+
+      .loops-picker-footer .loop-apply-btn:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+
       .way-list {
         display: flex;
         flex-direction: column;
@@ -498,6 +647,7 @@
           <div class="legend-item"><span class="legend-swatch" style="background:#ffaa00"></span> Raceway</div>
           <div class="legend-item"><span class="legend-swatch" style="background:#44ddaa"></span> In layout</div>
           <div class="legend-item"><span class="legend-swatch" style="background:#00ccff"></span> Active selection</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#ff8844"></span> Loop preview</div>
         </div>
       </div>
 
