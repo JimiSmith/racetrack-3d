@@ -125,10 +125,10 @@ Options:
 `.trim());
 }
 
-const DEFAULT_MAX_DEPTH = 50;
+const DEFAULT_MAX_DEPTH = 1000;
 const DEFAULT_MIN_LENGTH = 200;
 const DEFAULT_MAX_LENGTH = 30_000;
-const DEFAULT_MAX_LOOPS = 100;
+const DEFAULT_MAX_LOOPS = 1000;
 
 export function parseFindLoopsArgs(argv: string[]): FindLoopsOptions {
   const options: FindLoopsOptions = {

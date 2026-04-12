@@ -33,7 +33,7 @@ npx tsx utils/geometry-import/main.ts find-loops --track Q171402 --force
 ```
 
 Key options:
-- `--max-depth 500` (default) — max DFS traversal depth in segments
+- `--max-depth 1000` (default) — max DFS traversal depth in segments
 - `--min-length 200` (default) — minimum loop length in metres
 - `--max-length 30000` (default) — maximum loop length in metres
 - `--max-loops 1000` (default) — cap on total loops emitted. Increase with `--max-loops 5000` for venues with many possible configurations
@@ -101,8 +101,8 @@ For each known real-world layout:
 
 If a known real-world layout doesn't appear in the loops output:
 
-1. **Check `--max-loops`** — the default cap of 100 may cut off longer/more complex loops. Try `--max-loops 5000`
-2. **Check `--max-depth`** — layouts that traverse many short segments may exceed the default depth of 50. Try `--max-depth 200`
+1. **Check `--max-loops`** — the default cap of 1000 may cut off longer/more complex loops. Try `--max-loops 5000`
+2. **Check `--max-depth`** — layouts that traverse many short segments may exceed the default depth of 1000. Try raising it
 3. **Check `--max-length`** — some layouts (like endurance circuits) exceed 30km. Increase with `--max-length 50000`
 4. **Check that all necessary ways exist** — read the ways file and verify the connecting roads are present. Missing OSM data can't be fixed by the algorithm
 5. **Do not manually construct layouts that should be discoverable** — fix the algorithm parameters or investigate the data gap instead
