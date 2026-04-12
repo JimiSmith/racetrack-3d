@@ -1,0 +1,773 @@
+{
+  "trackId": "Q547535",
+  "generatedAt": "2026-04-12T09:23:25.172Z",
+  "waysFileHash": "sha256:40bda8c9afa87f59aed992313e101bdc0e7f2e0623fb6735cec11d0730c1b5c5",
+  "stats": {
+    "totalWays": 8,
+    "junctionCoords": 13,
+    "segments": 18,
+    "loopsFound": 25
+  },
+  "loops": [
+    {
+      "loopId": 1,
+      "lengthMetres": 200,
+      "wayCount": 2,
+      "namedSections": [
+        "MotoGP Long Lap Penalty"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4943242,
+            "lon": 51.4531592
+          },
+          "toNode": {
+            "lat": 25.493888,
+            "lon": 51.4534949
+          }
+        },
+        {
+          "wayId": 1004121313
+        }
+      ]
+    },
+    {
+      "loopId": 2,
+      "lengthMetres": 718,
+      "wayCount": 3,
+      "namedSections": [
+        "F1 Pit entry",
+        "MotoGP Pit entry"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4851995,
+            "lon": 51.4544205
+          },
+          "toNode": {
+            "lat": 25.4847688,
+            "lon": 51.4523517
+          }
+        },
+        {
+          "wayId": 1037707300
+        },
+        {
+          "wayId": 1004121314
+        }
+      ]
+    },
+    {
+      "loopId": 3,
+      "lengthMetres": 1830,
+      "wayCount": 3,
+      "namedSections": [
+        "MotoGP Pit entry",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595
+        },
+        {
+          "wayId": 196193732
+        },
+        {
+          "wayId": 1004121314
+        }
+      ]
+    },
+    {
+      "loopId": 4,
+      "lengthMetres": 2334,
+      "wayCount": 4,
+      "namedSections": [
+        "Lusail International Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.49163,
+            "lon": 51.4543135
+          },
+          "toNode": {
+            "lat": 25.4898812,
+            "lon": 51.4553322
+          }
+        },
+        {
+          "wayId": 1316236348
+        },
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4929471,
+            "lon": 51.4491107
+          },
+          "toNode": {
+            "lat": 25.4951478,
+            "lon": 51.4513466
+          }
+        },
+        {
+          "wayId": 1316236347
+        }
+      ]
+    },
+    {
+      "loopId": 5,
+      "lengthMetres": 2445,
+      "wayCount": 2,
+      "namedSections": [
+        "Lusail International Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4951478,
+            "lon": 51.4513466
+          },
+          "toNode": {
+            "lat": 25.49163,
+            "lon": 51.4543135
+          }
+        },
+        {
+          "wayId": 1316236348
+        }
+      ]
+    },
+    {
+      "loopId": 6,
+      "lengthMetres": 2494,
+      "wayCount": 4,
+      "namedSections": [
+        "Lusail International Circuit",
+        "MotoGP Long Lap Penalty"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.493888,
+            "lon": 51.4534949
+          },
+          "toNode": {
+            "lat": 25.49163,
+            "lon": 51.4543135
+          }
+        },
+        {
+          "wayId": 1004121313
+        },
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4951478,
+            "lon": 51.4513466
+          },
+          "toNode": {
+            "lat": 25.4943242,
+            "lon": 51.4531592
+          }
+        },
+        {
+          "wayId": 1316236348
+        }
+      ]
+    },
+    {
+      "loopId": 7,
+      "lengthMetres": 2496,
+      "wayCount": 3,
+      "namedSections": [
+        "F1 Pit entry",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595
+        },
+        {
+          "wayId": 1037707300
+        },
+        {
+          "wayId": 196193732
+        }
+      ]
+    },
+    {
+      "loopId": 8,
+      "lengthMetres": 3229,
+      "wayCount": 2,
+      "namedSections": [
+        "Lusail International Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4929471,
+            "lon": 51.4491107
+          },
+          "toNode": {
+            "lat": 25.4898812,
+            "lon": 51.4553322
+          }
+        },
+        {
+          "wayId": 1316236347
+        }
+      ]
+    },
+    {
+      "loopId": 9,
+      "lengthMetres": 3278,
+      "wayCount": 4,
+      "namedSections": [
+        "Lusail International Circuit",
+        "MotoGP Long Lap Penalty"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.493888,
+            "lon": 51.4534949
+          },
+          "toNode": {
+            "lat": 25.4898812,
+            "lon": 51.4553322
+          }
+        },
+        {
+          "wayId": 1004121313
+        },
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4929471,
+            "lon": 51.4491107
+          },
+          "toNode": {
+            "lat": 25.4943242,
+            "lon": 51.4531592
+          }
+        },
+        {
+          "wayId": 1316236347
+        }
+      ]
+    },
+    {
+      "loopId": 10,
+      "lengthMetres": 3672,
+      "wayCount": 5,
+      "namedSections": [
+        "F1 Pit entry",
+        "Lusail International Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 196193732
+        },
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4919501,
+            "lon": 51.4479661
+          },
+          "toNode": {
+            "lat": 25.4929471,
+            "lon": 51.4491107
+          }
+        },
+        {
+          "wayId": 1316236347
+        },
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4898812,
+            "lon": 51.4553322
+          },
+          "toNode": {
+            "lat": 25.4851995,
+            "lon": 51.4544205
+          }
+        },
+        {
+          "wayId": 1037707300
+        }
+      ]
+    },
+    {
+      "loopId": 11,
+      "lengthMetres": 3696,
+      "wayCount": 2,
+      "namedSections": [
+        "Lusail International Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595
+        },
+        {
+          "wayId": 1316236347
+        }
+      ]
+    },
+    {
+      "loopId": 12,
+      "lengthMetres": 3700,
+      "wayCount": 5,
+      "namedSections": [
+        "Lusail International Circuit",
+        "MotoGP Pit entry",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4898812,
+            "lon": 51.4553322
+          },
+          "toNode": {
+            "lat": 25.4847688,
+            "lon": 51.4523517
+          }
+        },
+        {
+          "wayId": 1316236347
+        },
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4919501,
+            "lon": 51.4479661
+          },
+          "toNode": {
+            "lat": 25.4929471,
+            "lon": 51.4491107
+          }
+        },
+        {
+          "wayId": 196193732
+        },
+        {
+          "wayId": 1004121314
+        }
+      ]
+    },
+    {
+      "loopId": 13,
+      "lengthMetres": 3721,
+      "wayCount": 5,
+      "namedSections": [
+        "F1 Pit entry",
+        "Lusail International Circuit",
+        "MotoGP Pit entry"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595
+        },
+        {
+          "wayId": 1316236347
+        },
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4898812,
+            "lon": 51.4553322
+          },
+          "toNode": {
+            "lat": 25.4851995,
+            "lon": 51.4544205
+          }
+        },
+        {
+          "wayId": 1037707300
+        },
+        {
+          "wayId": 1004121314
+        }
+      ]
+    },
+    {
+      "loopId": 14,
+      "lengthMetres": 4514,
+      "wayCount": 5,
+      "namedSections": [
+        "F1 Pit entry",
+        "Lusail International Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 196193732
+        },
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4919501,
+            "lon": 51.4479661
+          },
+          "toNode": {
+            "lat": 25.4951478,
+            "lon": 51.4513466
+          }
+        },
+        {
+          "wayId": 1316236348
+        },
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.49163,
+            "lon": 51.4543135
+          },
+          "toNode": {
+            "lat": 25.4851995,
+            "lon": 51.4544205
+          }
+        },
+        {
+          "wayId": 1037707300
+        }
+      ]
+    },
+    {
+      "loopId": 15,
+      "lengthMetres": 4537,
+      "wayCount": 2,
+      "namedSections": [
+        "Lusail International Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595
+        },
+        {
+          "wayId": 1316236348
+        }
+      ]
+    },
+    {
+      "loopId": 16,
+      "lengthMetres": 4541,
+      "wayCount": 5,
+      "namedSections": [
+        "Lusail International Circuit",
+        "MotoGP Pit entry",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.49163,
+            "lon": 51.4543135
+          },
+          "toNode": {
+            "lat": 25.4847688,
+            "lon": 51.4523517
+          }
+        },
+        {
+          "wayId": 1316236348
+        },
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4919501,
+            "lon": 51.4479661
+          },
+          "toNode": {
+            "lat": 25.4951478,
+            "lon": 51.4513466
+          }
+        },
+        {
+          "wayId": 196193732
+        },
+        {
+          "wayId": 1004121314
+        }
+      ]
+    },
+    {
+      "loopId": 17,
+      "lengthMetres": 4562,
+      "wayCount": 5,
+      "namedSections": [
+        "F1 Pit entry",
+        "Lusail International Circuit",
+        "MotoGP Pit entry"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595
+        },
+        {
+          "wayId": 1316236348
+        },
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.49163,
+            "lon": 51.4543135
+          },
+          "toNode": {
+            "lat": 25.4851995,
+            "lon": 51.4544205
+          }
+        },
+        {
+          "wayId": 1037707300
+        },
+        {
+          "wayId": 1004121314
+        }
+      ]
+    },
+    {
+      "loopId": 18,
+      "lengthMetres": 5408,
+      "wayCount": 3,
+      "namedSections": [
+        "F1 Pit entry",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 196193732
+        },
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4919501,
+            "lon": 51.4479661
+          },
+          "toNode": {
+            "lat": 25.4851995,
+            "lon": 51.4544205
+          }
+        },
+        {
+          "wayId": 1037707300
+        }
+      ]
+    },
+    {
+      "loopId": 19,
+      "lengthMetres": 5432,
+      "wayCount": 1,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 152483595
+        }
+      ]
+    },
+    {
+      "loopId": 20,
+      "lengthMetres": 5436,
+      "wayCount": 3,
+      "namedSections": [
+        "MotoGP Pit entry",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4919501,
+            "lon": 51.4479661
+          },
+          "toNode": {
+            "lat": 25.4847688,
+            "lon": 51.4523517
+          }
+        },
+        {
+          "wayId": 196193732
+        },
+        {
+          "wayId": 1004121314
+        }
+      ]
+    },
+    {
+      "loopId": 21,
+      "lengthMetres": 5457,
+      "wayCount": 3,
+      "namedSections": [
+        "F1 Pit entry",
+        "MotoGP Pit entry"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595
+        },
+        {
+          "wayId": 1037707300
+        },
+        {
+          "wayId": 1004121314
+        }
+      ]
+    },
+    {
+      "loopId": 22,
+      "lengthMetres": 5457,
+      "wayCount": 5,
+      "namedSections": [
+        "F1 Pit entry",
+        "MotoGP Long Lap Penalty",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 196193732
+        },
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4919501,
+            "lon": 51.4479661
+          },
+          "toNode": {
+            "lat": 25.4943242,
+            "lon": 51.4531592
+          }
+        },
+        {
+          "wayId": 1004121313
+        },
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.493888,
+            "lon": 51.4534949
+          },
+          "toNode": {
+            "lat": 25.4851995,
+            "lon": 51.4544205
+          }
+        },
+        {
+          "wayId": 1037707300
+        }
+      ]
+    },
+    {
+      "loopId": 23,
+      "lengthMetres": 5481,
+      "wayCount": 2,
+      "namedSections": [
+        "MotoGP Long Lap Penalty"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595
+        },
+        {
+          "wayId": 1004121313
+        }
+      ]
+    },
+    {
+      "loopId": 24,
+      "lengthMetres": 5485,
+      "wayCount": 5,
+      "namedSections": [
+        "MotoGP Long Lap Penalty",
+        "MotoGP Pit entry",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.493888,
+            "lon": 51.4534949
+          },
+          "toNode": {
+            "lat": 25.4847688,
+            "lon": 51.4523517
+          }
+        },
+        {
+          "wayId": 1004121313
+        },
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.4919501,
+            "lon": 51.4479661
+          },
+          "toNode": {
+            "lat": 25.4943242,
+            "lon": 51.4531592
+          }
+        },
+        {
+          "wayId": 196193732
+        },
+        {
+          "wayId": 1004121314
+        }
+      ]
+    },
+    {
+      "loopId": 25,
+      "lengthMetres": 5506,
+      "wayCount": 5,
+      "namedSections": [
+        "F1 Pit entry",
+        "MotoGP Long Lap Penalty",
+        "MotoGP Pit entry"
+      ],
+      "ways": [
+        {
+          "wayId": 152483595
+        },
+        {
+          "wayId": 1004121313
+        },
+        {
+          "wayId": 152483595,
+          "fromNode": {
+            "lat": 25.493888,
+            "lon": 51.4534949
+          },
+          "toNode": {
+            "lat": 25.4851995,
+            "lon": 51.4544205
+          }
+        },
+        {
+          "wayId": 1037707300
+        },
+        {
+          "wayId": 1004121314
+        }
+      ]
+    }
+  ],
+  "unusedWays": [
+    {
+      "wayId": 1299064755,
+      "name": "Pit lane"
+    }
+  ]
+}

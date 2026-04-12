@@ -1,0 +1,198 @@
+{
+  "trackId": "Q17004958",
+  "generatedAt": "2026-04-12T09:12:29.940Z",
+  "waysFileHash": "sha256:b63411fcd8ab5a1ca4e746b6b81cbdf3488ec31d22e12d379cd442fb3300d223",
+  "stats": {
+    "totalWays": 46,
+    "junctionCoords": 47,
+    "segments": 46,
+    "loopsFound": 0
+  },
+  "loops": [],
+  "unusedWays": [
+    {
+      "wayId": 25402777,
+      "name": "Puşkin küçəsi"
+    },
+    {
+      "wayId": 25406140,
+      "name": "İstiqlaliyyət küçəsi"
+    },
+    {
+      "wayId": 131835265,
+      "name": "Neftçilər prospekti"
+    },
+    {
+      "wayId": 165695131,
+      "name": "Xaqani küçəsi"
+    },
+    {
+      "wayId": 167173315,
+      "name": "Neftçilər prospekti"
+    },
+    {
+      "wayId": 177431273,
+      "name": "Bülbül prospekti"
+    },
+    {
+      "wayId": 179238852,
+      "name": "Neftçilər prospekti"
+    },
+    {
+      "wayId": 182645384,
+      "name": "Bülbül prospekti"
+    },
+    {
+      "wayId": 202546449,
+      "name": "İstiqlaliyyət küçəsi"
+    },
+    {
+      "wayId": 249018354,
+      "name": "Neftçilər prospekti"
+    },
+    {
+      "wayId": 278666424,
+      "name": "Puşkin küçəsi"
+    },
+    {
+      "wayId": 290633714,
+      "name": "Zərifə Əliyeva küçəsi"
+    },
+    {
+      "wayId": 323377758,
+      "name": "Neftçilər prospekti"
+    },
+    {
+      "wayId": 414510525,
+      "name": "Zərifə Əliyeva küçəsi"
+    },
+    {
+      "wayId": 476752809,
+      "name": "İstiqlaliyyət küçəsi"
+    },
+    {
+      "wayId": 639403533,
+      "name": "İstiqlaliyyət küçəsi"
+    },
+    {
+      "wayId": 766787796,
+      "name": "Neftçilər prospekti"
+    },
+    {
+      "wayId": 822375070,
+      "name": ""
+    },
+    {
+      "wayId": 1069034735,
+      "name": "Əziz Əliyev küçəsi"
+    },
+    {
+      "wayId": 1167453170,
+      "name": "Neftçilər prospekti"
+    },
+    {
+      "wayId": 1168829202,
+      "name": "Puşkin küçəsi"
+    },
+    {
+      "wayId": 1168829203,
+      "name": ""
+    },
+    {
+      "wayId": 1329392226,
+      "name": "Xaqani küçəsi"
+    },
+    {
+      "wayId": 1329392228,
+      "name": "Puşkin küçəsi"
+    },
+    {
+      "wayId": 1413579322,
+      "name": "İstiqlaliyyət küçəsi"
+    },
+    {
+      "wayId": 1413965638,
+      "name": "Neftçilər prospekti"
+    },
+    {
+      "wayId": 1415063177,
+      "name": "Xaqani küçəsi"
+    },
+    {
+      "wayId": 1415063178,
+      "name": "Xaqani küçəsi"
+    },
+    {
+      "wayId": 1415063201,
+      "name": "Xaqani küçəsi"
+    },
+    {
+      "wayId": 1415063202,
+      "name": "Puşkin küçəsi"
+    },
+    {
+      "wayId": 1415075088,
+      "name": "Xaqani küçəsi"
+    },
+    {
+      "wayId": 1415075090,
+      "name": "Xaqani küçəsi"
+    },
+    {
+      "wayId": 1415085013,
+      "name": "Zərifə Əliyeva küçəsi"
+    },
+    {
+      "wayId": 1415085014,
+      "name": "Zərifə Əliyeva küçəsi"
+    },
+    {
+      "wayId": 1415085016,
+      "name": "Bülbül prospekti"
+    },
+    {
+      "wayId": 1415085017,
+      "name": "Bülbül prospekti"
+    },
+    {
+      "wayId": 1415085020,
+      "name": "Xaqani küçəsi"
+    },
+    {
+      "wayId": 1464153930,
+      "name": "Neftçilər prospekti"
+    },
+    {
+      "wayId": 1464153931,
+      "name": ""
+    },
+    {
+      "wayId": 500527621,
+      "name": "Niyazi küçəsi"
+    },
+    {
+      "wayId": 1050381555,
+      "name": "Niyazi küçəsi"
+    },
+    {
+      "wayId": 167173308,
+      "name": "Niyazi küçəsi"
+    },
+    {
+      "wayId": 1050381554,
+      "name": "İstiqlaliyyət küçəsi"
+    },
+    {
+      "wayId": 476752810,
+      "name": "İstiqlaliyyət küçəsi"
+    },
+    {
+      "wayId": 926192527,
+      "name": "İstiqlaliyyət küçəsi"
+    },
+    {
+      "wayId": 1279858618,
+      "name": "İstiqlaliyyət küçəsi"
+    }
+  ]
+}

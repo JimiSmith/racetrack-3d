@@ -1,6 +1,6 @@
 {
   "trackId": "Q17004958",
-  "fetchedAt": "2026-04-11T14:28:32.799Z",
+  "fetchedAt": "2026-04-12T09:06:11.836Z",
   "center": {
     "lat": 40.3725,
     "lon": 49.8533
@@ -12,6 +12,797 @@
     "east": 49.8733
   },
   "ways": [
+    {
+      "id": 25402777,
+      "tags": {
+        "highway": "secondary",
+        "lanes": "5",
+        "lanes:backward": "3",
+        "lanes:forward": "2",
+        "lit": "yes",
+        "name": "Puşkin küçəsi",
+        "name:az": "Puşkin küçəsi",
+        "name:az-cyr": "Пушкин күчәси",
+        "name:en": "Pushkin Street",
+        "name:ru": "улица Пушкина",
+        "oneway": "no",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3753742,
+          "lon": 49.8540339
+        },
+        {
+          "lat": 40.3753526,
+          "lon": 49.8540464
+        },
+        {
+          "lat": 40.375224,
+          "lon": 49.8541224
+        },
+        {
+          "lat": 40.3744093,
+          "lon": 49.8546391
+        }
+      ]
+    },
+    {
+      "id": 25406140,
+      "tags": {
+        "cycleway:right": "lane",
+        "highway": "service",
+        "lit": "yes",
+        "maxspeed": "60",
+        "name": "İstiqlaliyyət küçəsi",
+        "name:az": "İstiqlaliyyət küçəsi",
+        "name:en": "Istiglaliyyat Street",
+        "name:ru": "улица Истиглалиййят",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.369172,
+          "lon": 49.8347612
+        },
+        {
+          "lat": 40.369191,
+          "lon": 49.8348349
+        },
+        {
+          "lat": 40.3692007,
+          "lon": 49.8348707
+        },
+        {
+          "lat": 40.3694258,
+          "lon": 49.8357734
+        }
+      ]
+    },
+    {
+      "id": 131835265,
+      "tags": {
+        "highway": "trunk",
+        "int_ref": "E 60",
+        "lanes": "4",
+        "maxspeed": "60",
+        "name": "Neftçilər prospekti",
+        "name:az": "Neftçilər prospekti",
+        "name:az-cyr": "Нефтчиләр проспекти",
+        "name:en": "Neftchilar Avenue",
+        "name:ru": "проспект Нефтяников",
+        "oneway": "yes",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3686959,
+          "lon": 49.8413111
+        },
+        {
+          "lat": 40.3688299,
+          "lon": 49.8415609
+        },
+        {
+          "lat": 40.3689114,
+          "lon": 49.8417306
+        },
+        {
+          "lat": 40.3689768,
+          "lon": 49.8418955
+        },
+        {
+          "lat": 40.36933,
+          "lon": 49.8429139
+        },
+        {
+          "lat": 40.3701255,
+          "lon": 49.8453609
+        },
+        {
+          "lat": 40.3701955,
+          "lon": 49.8455768
+        },
+        {
+          "lat": 40.370218,
+          "lon": 49.8456502
+        }
+      ]
+    },
+    {
+      "id": 165695131,
+      "tags": {
+        "cycleway:both": "shoulder",
+        "highway": "residential",
+        "lanes": "2",
+        "maxspeed": "60",
+        "name": "Xaqani küçəsi",
+        "name:az": "Xaqani küçəsi",
+        "name:en": "Khagani Street",
+        "name:ru": "улица Хагани",
+        "oneway": "yes",
+        "surface": "asphalt",
+        "wikidata": "Q368862",
+        "wikipedia": "en:Khaqani"
+      },
+      "nodes": [
+        {
+          "lat": 40.3750372,
+          "lon": 49.849819
+        },
+        {
+          "lat": 40.3751491,
+          "lon": 49.8501887
+        },
+        {
+          "lat": 40.3755552,
+          "lon": 49.851492
+        },
+        {
+          "lat": 40.3755748,
+          "lon": 49.8515529
+        },
+        {
+          "lat": 40.3755792,
+          "lon": 49.8515706
+        },
+        {
+          "lat": 40.375597,
+          "lon": 49.8516237
+        },
+        {
+          "lat": 40.3756525,
+          "lon": 49.851801
+        },
+        {
+          "lat": 40.3759653,
+          "lon": 49.8528955
+        },
+        {
+          "lat": 40.376134,
+          "lon": 49.8534515
+        }
+      ]
+    },
+    {
+      "id": 167173315,
+      "tags": {
+        "highway": "trunk",
+        "int_name": "Neftchilar Prospect",
+        "int_ref": "E 60",
+        "lanes": "3",
+        "maxspeed": "60",
+        "name": "Neftçilər prospekti",
+        "name:az": "Neftçilər prospekti",
+        "name:az-cyr": "Нефтчиләр проспекти",
+        "name:en": "Neftchilar Avenue",
+        "name:ru": "проспект Нефтяников",
+        "oneway": "yes",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3690778,
+          "lon": 49.8417595
+        },
+        {
+          "lat": 40.3687248,
+          "lon": 49.8411486
+        }
+      ]
+    },
+    {
+      "id": 177431273,
+      "tags": {
+        "cycleway:left": "lane",
+        "cycleway:left:oneway": "no",
+        "highway": "primary",
+        "lanes": "3",
+        "lit": "yes",
+        "name": "Bülbül prospekti",
+        "name:az": "Bülbül prospekti",
+        "name:en": "Bulbul Avenue",
+        "name:ru": "проспект Бюльбюля",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3722258,
+          "lon": 49.8445259
+        },
+        {
+          "lat": 40.3721233,
+          "lon": 49.8445837
+        },
+        {
+          "lat": 40.3712449,
+          "lon": 49.8450789
+        },
+        {
+          "lat": 40.3711229,
+          "lon": 49.8451477
+        }
+      ]
+    },
+    {
+      "id": 179238852,
+      "tags": {
+        "highway": "trunk",
+        "int_ref": "E 60",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "60",
+        "name": "Neftçilər prospekti",
+        "name:az": "Neftçilər prospekti",
+        "name:az-cyr": "Нефтчиләр проспекти",
+        "name:en": "Neftchilar Avenue",
+        "name:ru": "проспект Нефтяников",
+        "oneway": "yes",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3711852,
+          "lon": 49.8486029
+        },
+        {
+          "lat": 40.3712074,
+          "lon": 49.8486724
+        },
+        {
+          "lat": 40.3712272,
+          "lon": 49.8487342
+        },
+        {
+          "lat": 40.371668,
+          "lon": 49.850091
+        },
+        {
+          "lat": 40.3717988,
+          "lon": 49.8505044
+        },
+        {
+          "lat": 40.3718192,
+          "lon": 49.8505682
+        },
+        {
+          "lat": 40.3718508,
+          "lon": 49.8506578
+        },
+        {
+          "lat": 40.3720939,
+          "lon": 49.851408
+        }
+      ]
+    },
+    {
+      "id": 182645384,
+      "tags": {
+        "cycleway:left": "lane",
+        "cycleway:left:oneway": "no",
+        "foot": "no",
+        "highway": "primary",
+        "lanes": "3",
+        "name": "Bülbül prospekti",
+        "name:az": "Bülbül prospekti",
+        "name:en": "Bulbul Avenue",
+        "name:ru": "проспект Бюльбюля",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3723258,
+          "lon": 49.8444737
+        },
+        {
+          "lat": 40.3722949,
+          "lon": 49.844491
+        },
+        {
+          "lat": 40.3722258,
+          "lon": 49.8445259
+        }
+      ]
+    },
+    {
+      "id": 202546449,
+      "tags": {
+        "cycleway:right": "lane",
+        "highway": "service",
+        "lit": "yes",
+        "maxspeed": "60",
+        "name": "İstiqlaliyyət küçəsi",
+        "name:az": "İstiqlaliyyət küçəsi",
+        "name:en": "Istiglaliyyat Street",
+        "name:ru": "улица Истиглалиййят",
+        "oneway": "yes",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3693974,
+          "lon": 49.8358859
+        },
+        {
+          "lat": 40.3689282,
+          "lon": 49.8360709
+        },
+        {
+          "lat": 40.3688977,
+          "lon": 49.8360994
+        },
+        {
+          "lat": 40.3688782,
+          "lon": 49.8361342
+        },
+        {
+          "lat": 40.3688656,
+          "lon": 49.8361929
+        }
+      ]
+    },
+    {
+      "id": 249018354,
+      "tags": {
+        "highway": "trunk",
+        "lanes": "3",
+        "lit": "yes",
+        "maxspeed": "60",
+        "name": "Neftçilər prospekti",
+        "name:az": "Neftçilər prospekti",
+        "name:az-cyr": "Нефтчиләр проспекти",
+        "name:en": "Neftchilar Avenue",
+        "name:ru": "проспект Нефтяников",
+        "oneway": "yes",
+        "parking:both": "no",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.363315,
+          "lon": 49.8354168
+        },
+        {
+          "lat": 40.3640753,
+          "lon": 49.8359273
+        },
+        {
+          "lat": 40.3641212,
+          "lon": 49.8359702
+        },
+        {
+          "lat": 40.3641702,
+          "lon": 49.8360228
+        },
+        {
+          "lat": 40.3655061,
+          "lon": 49.8379302
+        },
+        {
+          "lat": 40.365599,
+          "lon": 49.8380408
+        },
+        {
+          "lat": 40.3656539,
+          "lon": 49.8380801
+        },
+        {
+          "lat": 40.3657356,
+          "lon": 49.838115
+        },
+        {
+          "lat": 40.3667173,
+          "lon": 49.8383428
+        },
+        {
+          "lat": 40.3667997,
+          "lon": 49.8383683
+        },
+        {
+          "lat": 40.3668776,
+          "lon": 49.8383955
+        },
+        {
+          "lat": 40.3669193,
+          "lon": 49.8384132
+        },
+        {
+          "lat": 40.3669478,
+          "lon": 49.8384265
+        },
+        {
+          "lat": 40.3669986,
+          "lon": 49.838465
+        },
+        {
+          "lat": 40.3670517,
+          "lon": 49.8385285
+        },
+        {
+          "lat": 40.3670979,
+          "lon": 49.8386012
+        },
+        {
+          "lat": 40.3673716,
+          "lon": 49.8390734
+        },
+        {
+          "lat": 40.3675418,
+          "lon": 49.839361
+        },
+        {
+          "lat": 40.3686959,
+          "lon": 49.8413111
+        }
+      ]
+    },
+    {
+      "id": 278666424,
+      "tags": {
+        "cycleway:both": "shoulder",
+        "highway": "secondary",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Puşkin küçəsi",
+        "name:az": "Puşkin küçəsi",
+        "name:az-cyr": "Пушкин күчәси",
+        "name:en": "Pushkin Street",
+        "name:ru": "улица Пушкина",
+        "oneway": "no",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.376089,
+          "lon": 49.8536281
+        },
+        {
+          "lat": 40.3756973,
+          "lon": 49.8538434
+        },
+        {
+          "lat": 40.3755461,
+          "lon": 49.8539269
+        },
+        {
+          "lat": 40.3754718,
+          "lon": 49.8539725
+        },
+        {
+          "lat": 40.3753742,
+          "lon": 49.8540339
+        }
+      ]
+    },
+    {
+      "id": 290633714,
+      "tags": {
+        "highway": "trunk",
+        "int_ref": "E 60",
+        "lanes": "4",
+        "maxspeed": "60",
+        "name": "Zərifə Əliyeva küçəsi",
+        "name:az": "Zərifə Əliyeva küçəsi",
+        "name:en": "Zarifa Aliyeva Street",
+        "name:ru": "улица Зарифы Алиевой",
+        "oneway": "yes",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3699691,
+          "lon": 49.8421253
+        },
+        {
+          "lat": 40.3698938,
+          "lon": 49.8419955
+        },
+        {
+          "lat": 40.369832,
+          "lon": 49.8419016
+        },
+        {
+          "lat": 40.3697865,
+          "lon": 49.8418345
+        },
+        {
+          "lat": 40.3697456,
+          "lon": 49.8417805
+        },
+        {
+          "lat": 40.3697134,
+          "lon": 49.8417434
+        },
+        {
+          "lat": 40.3696813,
+          "lon": 49.841723
+        },
+        {
+          "lat": 40.3696427,
+          "lon": 49.8417121
+        },
+        {
+          "lat": 40.3696134,
+          "lon": 49.8417091
+        },
+        {
+          "lat": 40.3695704,
+          "lon": 49.8417158
+        },
+        {
+          "lat": 40.3695421,
+          "lon": 49.8417261
+        },
+        {
+          "lat": 40.369249,
+          "lon": 49.8418425
+        },
+        {
+          "lat": 40.3692132,
+          "lon": 49.841846
+        },
+        {
+          "lat": 40.3691692,
+          "lon": 49.8418349
+        },
+        {
+          "lat": 40.3691346,
+          "lon": 49.8418184
+        },
+        {
+          "lat": 40.3691043,
+          "lon": 49.8417939
+        },
+        {
+          "lat": 40.3690778,
+          "lon": 49.8417595
+        }
+      ]
+    },
+    {
+      "id": 323377758,
+      "tags": {
+        "highway": "trunk",
+        "int_ref": "E 60",
+        "lanes": "4",
+        "maxspeed": "60",
+        "name": "Neftçilər prospekti",
+        "name:az": "Neftçilər prospekti",
+        "name:az-cyr": "Нефтчиләр проспекти",
+        "name:en": "Neftchilar Avenue",
+        "name:ru": "проспект Нефтяников",
+        "oneway": "yes",
+        "surface": "asphalt",
+        "turn:lanes": "left|left;through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 40.370218,
+          "lon": 49.8456502
+        },
+        {
+          "lat": 40.3708293,
+          "lon": 49.8475002
+        },
+        {
+          "lat": 40.3711852,
+          "lon": 49.8486029
+        }
+      ]
+    },
+    {
+      "id": 414510525,
+      "tags": {
+        "cycleway:both": "shoulder",
+        "cycleway:left:oneway": "-1",
+        "highway": "trunk",
+        "int_ref": "E 60",
+        "lanes": "3",
+        "maxspeed": "60",
+        "name": "Zərifə Əliyeva küçəsi",
+        "name:az": "Zərifə Əliyeva küçəsi",
+        "name:en": "Zarifa Aliyeva Street",
+        "name:ru": "улица Зарифы Алиевой",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3711229,
+          "lon": 49.8451477
+        },
+        {
+          "lat": 40.3709294,
+          "lon": 49.8445875
+        },
+        {
+          "lat": 40.3708947,
+          "lon": 49.8444834
+        },
+        {
+          "lat": 40.3707378,
+          "lon": 49.8440058
+        },
+        {
+          "lat": 40.3706977,
+          "lon": 49.8438871
+        },
+        {
+          "lat": 40.370525,
+          "lon": 49.843349
+        }
+      ]
+    },
+    {
+      "id": 476752809,
+      "tags": {
+        "cycleway:right": "track",
+        "highway": "primary",
+        "int_ref": "AH8",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "60",
+        "name": "İstiqlaliyyət küçəsi",
+        "name:az": "İstiqlaliyyət küçəsi",
+        "name:en": "Istiglaliyyat Street",
+        "name:ru": "улица Истиглалиййят",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "parking:both": "no",
+        "sidewalk:both": "separate",
+        "surface": "asphalt",
+        "wikidata": "Q4472311",
+        "wikipedia": "en:Istiglaliyyat Street"
+      },
+      "nodes": [
+        {
+          "lat": 40.367165,
+          "lon": 49.8313437
+        },
+        {
+          "lat": 40.3673438,
+          "lon": 49.8314116
+        },
+        {
+          "lat": 40.3676905,
+          "lon": 49.8315478
+        },
+        {
+          "lat": 40.3677415,
+          "lon": 49.8315717
+        },
+        {
+          "lat": 40.3677881,
+          "lon": 49.8316014
+        },
+        {
+          "lat": 40.3678426,
+          "lon": 49.8316408
+        },
+        {
+          "lat": 40.3678889,
+          "lon": 49.8316892
+        },
+        {
+          "lat": 40.3679101,
+          "lon": 49.8317105
+        },
+        {
+          "lat": 40.3679468,
+          "lon": 49.8317555
+        },
+        {
+          "lat": 40.3679949,
+          "lon": 49.8318279
+        },
+        {
+          "lat": 40.3680368,
+          "lon": 49.8319016
+        },
+        {
+          "lat": 40.3682624,
+          "lon": 49.8323905
+        },
+        {
+          "lat": 40.3685626,
+          "lon": 49.8330439
+        },
+        {
+          "lat": 40.3686536,
+          "lon": 49.8332933
+        },
+        {
+          "lat": 40.3688909,
+          "lon": 49.8339413
+        },
+        {
+          "lat": 40.3691276,
+          "lon": 49.8346129
+        },
+        {
+          "lat": 40.369172,
+          "lon": 49.8347612
+        }
+      ]
+    },
+    {
+      "id": 639403533,
+      "tags": {
+        "cycleway:right": "lane",
+        "highway": "service",
+        "maxspeed": "60",
+        "name": "İstiqlaliyyət küçəsi",
+        "name:az": "İstiqlaliyyət küçəsi",
+        "name:en": "Istiglaliyyat Street",
+        "name:ru": "улица Истиглалиййят",
+        "oneway": "yes",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3688656,
+          "lon": 49.8361929
+        },
+        {
+          "lat": 40.368873,
+          "lon": 49.8363257
+        }
+      ]
+    },
+    {
+      "id": 766787796,
+      "tags": {
+        "highway": "trunk",
+        "int_ref": "E 60",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "60",
+        "name": "Neftçilər prospekti",
+        "name:az": "Neftçilər prospekti",
+        "name:az-cyr": "Нефтчиләр проспекти",
+        "name:en": "Neftchilar Avenue",
+        "name:ru": "проспект Нефтяников",
+        "oneway": "yes",
+        "sidewalk:left": "yes",
+        "sidewalk:right": "separate",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3720939,
+          "lon": 49.851408
+        },
+        {
+          "lat": 40.3733112,
+          "lon": 49.8551386
+        }
+      ]
+    },
     {
       "id": 822375070,
       "tags": {
@@ -76,6 +867,180 @@
       ]
     },
     {
+      "id": 1069034735,
+      "tags": {
+        "access": "no",
+        "addr:street": "Əziz Əliyev küç.",
+        "bicycle": "no",
+        "cycleway:right": "lane",
+        "foot": "yes",
+        "highway": "pedestrian",
+        "horse": "permissive",
+        "lit": "yes",
+        "maxspeed": "60",
+        "motor_vehicle": "no",
+        "name": "Əziz Əliyev küçəsi",
+        "name:az": "Əziz Əliyev küçəsi",
+        "name:en": "Aziz Aliyev Street",
+        "oneway": "no",
+        "surface": "asphalt",
+        "wikidata": "Q4062274",
+        "wikipedia": "en:Aziz Aliyev"
+      },
+      "nodes": [
+        {
+          "lat": 40.3688442,
+          "lon": 49.836343
+        },
+        {
+          "lat": 40.3688444,
+          "lon": 49.8363814
+        },
+        {
+          "lat": 40.3688468,
+          "lon": 49.8364187
+        },
+        {
+          "lat": 40.3688526,
+          "lon": 49.8365553
+        },
+        {
+          "lat": 40.3688523,
+          "lon": 49.8366896
+        },
+        {
+          "lat": 40.3688455,
+          "lon": 49.8367283
+        },
+        {
+          "lat": 40.3688328,
+          "lon": 49.8367744
+        },
+        {
+          "lat": 40.3688056,
+          "lon": 49.8368501
+        },
+        {
+          "lat": 40.3687266,
+          "lon": 49.8370603
+        },
+        {
+          "lat": 40.3687218,
+          "lon": 49.8370883
+        },
+        {
+          "lat": 40.3687237,
+          "lon": 49.8371176
+        },
+        {
+          "lat": 40.3687345,
+          "lon": 49.8371798
+        },
+        {
+          "lat": 40.3687449,
+          "lon": 49.8372188
+        },
+        {
+          "lat": 40.3687515,
+          "lon": 49.8372584
+        },
+        {
+          "lat": 40.3687477,
+          "lon": 49.8372983
+        },
+        {
+          "lat": 40.3687328,
+          "lon": 49.837335
+        },
+        {
+          "lat": 40.3686922,
+          "lon": 49.8373731
+        },
+        {
+          "lat": 40.3671006,
+          "lon": 49.8380909
+        }
+      ]
+    },
+    {
+      "id": 1167453170,
+      "tags": {
+        "highway": "trunk",
+        "int_name": "Neftchilar Prospect",
+        "int_ref": "E 60",
+        "lanes": "3",
+        "lit": "yes",
+        "maxspeed": "60",
+        "name": "Neftçilər prospekti",
+        "name:az": "Neftçilər prospekti",
+        "name:az-cyr": "Нефтчиләр проспекти",
+        "name:en": "Neftchilar Avenue",
+        "name:ru": "проспект Нефтяников",
+        "oneway": "yes",
+        "parking:both": "no",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3687248,
+          "lon": 49.8411486
+        },
+        {
+          "lat": 40.3681684,
+          "lon": 49.8402124
+        },
+        {
+          "lat": 40.3674542,
+          "lon": 49.8389888
+        },
+        {
+          "lat": 40.3673493,
+          "lon": 49.8388073
+        },
+        {
+          "lat": 40.3672033,
+          "lon": 49.8385545
+        },
+        {
+          "lat": 40.3671631,
+          "lon": 49.8384878
+        },
+        {
+          "lat": 40.3671154,
+          "lon": 49.8384263
+        }
+      ]
+    },
+    {
+      "id": 1168829202,
+      "tags": {
+        "cycleway:right": "lane",
+        "highway": "secondary",
+        "lit": "yes",
+        "name": "Puşkin küçəsi",
+        "name:az": "Puşkin küçəsi",
+        "name:az-cyr": "Пушкин күчәси",
+        "name:en": "Pushkin Street",
+        "name:ru": "улица Пушкина",
+        "oneway": "yes",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3744093,
+          "lon": 49.8546391
+        },
+        {
+          "lat": 40.3743876,
+          "lon": 49.8546521
+        },
+        {
+          "lat": 40.3741607,
+          "lon": 49.8547871
+        }
+      ]
+    },
+    {
       "id": 1168829203,
       "tags": {
         "highway": "raceway",
@@ -109,6 +1074,746 @@
         {
           "lat": 40.3737941,
           "lon": 49.8550024
+        }
+      ]
+    },
+    {
+      "id": 1329392226,
+      "tags": {
+        "cycleway:both": "shoulder",
+        "highway": "residential",
+        "lanes": "2",
+        "maxspeed": "60",
+        "name": "Xaqani küçəsi",
+        "name:az": "Xaqani küçəsi",
+        "name:en": "Khagani Street",
+        "name:ru": "улица Хагани",
+        "oneway": "yes",
+        "surface": "asphalt",
+        "wikidata": "Q368862",
+        "wikipedia": "en:Khaqani"
+      },
+      "nodes": [
+        {
+          "lat": 40.3731112,
+          "lon": 49.8442609
+        },
+        {
+          "lat": 40.3739722,
+          "lon": 49.8467214
+        },
+        {
+          "lat": 40.3739938,
+          "lon": 49.8467878
+        }
+      ]
+    },
+    {
+      "id": 1329392228,
+      "tags": {
+        "highway": "secondary",
+        "lit": "yes",
+        "name": "Puşkin küçəsi",
+        "name:az": "Puşkin küçəsi",
+        "name:az-cyr": "Пушкин күчәси",
+        "name:en": "Pushkin Street",
+        "name:ru": "улица Пушкина",
+        "oneway": "yes",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3741607,
+          "lon": 49.8547871
+        },
+        {
+          "lat": 40.3738985,
+          "lon": 49.8549323
+        },
+        {
+          "lat": 40.3737941,
+          "lon": 49.8550024
+        }
+      ]
+    },
+    {
+      "id": 1413579322,
+      "tags": {
+        "cycleway:right": "lane",
+        "highway": "service",
+        "name": "İstiqlaliyyət küçəsi",
+        "name:az": "İstiqlaliyyət küçəsi",
+        "name:en": "Istiglaliyyat Street",
+        "name:ru": "улица Истиглалиййят",
+        "oneway": "yes"
+      },
+      "nodes": [
+        {
+          "lat": 40.3694258,
+          "lon": 49.8357734
+        },
+        {
+          "lat": 40.3694115,
+          "lon": 49.8358456
+        },
+        {
+          "lat": 40.3693974,
+          "lon": 49.8358859
+        }
+      ]
+    },
+    {
+      "id": 1413965638,
+      "tags": {
+        "highway": "trunk",
+        "int_name": "Neftchilar Prospect",
+        "int_ref": "E 60",
+        "lanes": "3",
+        "lit": "yes",
+        "maxspeed": "60",
+        "name": "Neftçilər prospekti",
+        "name:az": "Neftçilər prospekti",
+        "name:az-cyr": "Нефтчиләр проспекти",
+        "name:en": "Neftchilar Avenue",
+        "name:ru": "проспект Нефтяников",
+        "oneway": "yes",
+        "parking:both": "no",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3671154,
+          "lon": 49.8384263
+        },
+        {
+          "lat": 40.367075,
+          "lon": 49.8383772
+        },
+        {
+          "lat": 40.367015,
+          "lon": 49.8383183
+        }
+      ]
+    },
+    {
+      "id": 1415063177,
+      "tags": {
+        "cycleway:both": "shoulder",
+        "foot": "no",
+        "highway": "residential",
+        "lanes": "2",
+        "maxspeed": "60",
+        "name": "Xaqani küçəsi",
+        "name:az": "Xaqani küçəsi",
+        "name:en": "Khagani Street",
+        "name:ru": "улица Хагани",
+        "oneway": "yes",
+        "surface": "asphalt",
+        "wikidata": "Q368862",
+        "wikipedia": "en:Khaqani"
+      },
+      "nodes": [
+        {
+          "lat": 40.3749734,
+          "lon": 49.8496235
+        },
+        {
+          "lat": 40.3750116,
+          "lon": 49.8497366
+        },
+        {
+          "lat": 40.3750372,
+          "lon": 49.849819
+        }
+      ]
+    },
+    {
+      "id": 1415063178,
+      "tags": {
+        "cycleway:both": "shoulder",
+        "foot": "no",
+        "highway": "residential",
+        "lanes": "2",
+        "maxspeed": "60",
+        "name": "Xaqani küçəsi",
+        "name:az": "Xaqani küçəsi",
+        "name:en": "Khagani Street",
+        "name:ru": "улица Хагани",
+        "oneway": "yes",
+        "surface": "asphalt",
+        "wikidata": "Q368862",
+        "wikipedia": "en:Khaqani"
+      },
+      "nodes": [
+        {
+          "lat": 40.3740342,
+          "lon": 49.8469006
+        },
+        {
+          "lat": 40.3740687,
+          "lon": 49.8470069
+        }
+      ]
+    },
+    {
+      "id": 1415063201,
+      "tags": {
+        "cycleway:both": "shoulder",
+        "foot": "no",
+        "highway": "residential",
+        "lanes": "2",
+        "maxspeed": "60",
+        "name": "Xaqani küçəsi",
+        "name:az": "Xaqani küçəsi",
+        "name:en": "Khagani Street",
+        "name:ru": "улица Хагани",
+        "oneway": "yes",
+        "surface": "asphalt",
+        "wikidata": "Q368862",
+        "wikipedia": "en:Khaqani"
+      },
+      "nodes": [
+        {
+          "lat": 40.376134,
+          "lon": 49.8534515
+        },
+        {
+          "lat": 40.3761687,
+          "lon": 49.8535811
+        }
+      ]
+    },
+    {
+      "id": 1415063202,
+      "tags": {
+        "cycleway:both": "shoulder",
+        "foot": "no",
+        "highway": "secondary",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Puşkin küçəsi",
+        "name:az": "Puşkin küçəsi",
+        "name:az-cyr": "Пушкин күчәси",
+        "name:en": "Pushkin Street",
+        "name:ru": "улица Пушкина",
+        "oneway": "no",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3761687,
+          "lon": 49.8535811
+        },
+        {
+          "lat": 40.376089,
+          "lon": 49.8536281
+        }
+      ]
+    },
+    {
+      "id": 1415075088,
+      "tags": {
+        "cycleway:both": "shoulder",
+        "highway": "residential",
+        "lanes": "2",
+        "maxspeed": "60",
+        "name": "Xaqani küçəsi",
+        "name:az": "Xaqani küçəsi",
+        "name:en": "Khagani Street",
+        "name:ru": "улица Хагани",
+        "oneway": "yes",
+        "surface": "asphalt",
+        "wikidata": "Q368862",
+        "wikipedia": "en:Khaqani"
+      },
+      "nodes": [
+        {
+          "lat": 40.3740687,
+          "lon": 49.8470069
+        },
+        {
+          "lat": 40.3749734,
+          "lon": 49.8496235
+        }
+      ]
+    },
+    {
+      "id": 1415075090,
+      "tags": {
+        "cycleway:both": "shoulder",
+        "foot": "no",
+        "highway": "residential",
+        "lanes": "2",
+        "maxspeed": "60",
+        "name": "Xaqani küçəsi",
+        "name:az": "Xaqani küçəsi",
+        "name:en": "Khagani Street",
+        "name:ru": "улица Хагани",
+        "oneway": "yes",
+        "surface": "asphalt",
+        "wikidata": "Q368862",
+        "wikipedia": "en:Khaqani"
+      },
+      "nodes": [
+        {
+          "lat": 40.3739938,
+          "lon": 49.8467878
+        },
+        {
+          "lat": 40.3740342,
+          "lon": 49.8469006
+        }
+      ]
+    },
+    {
+      "id": 1415085013,
+      "tags": {
+        "cycleway:both": "shoulder",
+        "cycleway:left:oneway": "-1",
+        "foot": "no",
+        "highway": "trunk",
+        "int_ref": "E 60",
+        "lanes": "3",
+        "maxspeed": "60",
+        "name": "Zərifə Əliyeva küçəsi",
+        "name:az": "Zərifə Əliyeva küçəsi",
+        "name:en": "Zarifa Aliyeva Street",
+        "name:ru": "улица Зарифы Алиевой",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.370525,
+          "lon": 49.843349
+        },
+        {
+          "lat": 40.3704894,
+          "lon": 49.843251
+        }
+      ]
+    },
+    {
+      "id": 1415085014,
+      "tags": {
+        "cycleway:both": "shoulder",
+        "cycleway:left:oneway": "-1",
+        "highway": "trunk",
+        "int_ref": "E 60",
+        "lanes": "3",
+        "maxspeed": "60",
+        "name": "Zərifə Əliyeva küçəsi",
+        "name:az": "Zərifə Əliyeva küçəsi",
+        "name:en": "Zarifa Aliyeva Street",
+        "name:ru": "улица Зарифы Алиевой",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3704894,
+          "lon": 49.843251
+        },
+        {
+          "lat": 40.370009,
+          "lon": 49.8422111
+        },
+        {
+          "lat": 40.3699691,
+          "lon": 49.8421253
+        }
+      ]
+    },
+    {
+      "id": 1415085016,
+      "tags": {
+        "cycleway:left": "lane",
+        "cycleway:left:oneway": "no",
+        "highway": "primary",
+        "lanes": "3",
+        "name": "Bülbül prospekti",
+        "name:az": "Bülbül prospekti",
+        "name:en": "Bulbul Avenue",
+        "name:ru": "проспект Бюльбюля",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.373003,
+          "lon": 49.8441538
+        },
+        {
+          "lat": 40.3723258,
+          "lon": 49.8444737
+        }
+      ]
+    },
+    {
+      "id": 1415085017,
+      "tags": {
+        "cycleway:left": "lane",
+        "cycleway:left:oneway": "no",
+        "foot": "no",
+        "highway": "primary",
+        "lanes": "3",
+        "name": "Bülbül prospekti",
+        "name:az": "Bülbül prospekti",
+        "name:en": "Bulbul Avenue",
+        "name:ru": "проспект Бюльбюля",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3730659,
+          "lon": 49.8441291
+        },
+        {
+          "lat": 40.373003,
+          "lon": 49.8441538
+        }
+      ]
+    },
+    {
+      "id": 1415085020,
+      "tags": {
+        "cycleway:both": "shoulder",
+        "foot": "no",
+        "highway": "residential",
+        "lanes": "2",
+        "maxspeed": "60",
+        "name": "Xaqani küçəsi",
+        "name:az": "Xaqani küçəsi",
+        "name:en": "Khagani Street",
+        "name:ru": "улица Хагани",
+        "oneway": "yes",
+        "surface": "asphalt",
+        "wikidata": "Q368862",
+        "wikipedia": "en:Khaqani"
+      },
+      "nodes": [
+        {
+          "lat": 40.3730659,
+          "lon": 49.8441291
+        },
+        {
+          "lat": 40.3730994,
+          "lon": 49.8442261
+        },
+        {
+          "lat": 40.3731112,
+          "lon": 49.8442609
+        }
+      ]
+    },
+    {
+      "id": 1464153930,
+      "tags": {
+        "highway": "trunk",
+        "int_name": "Neftchilar Prospect",
+        "int_ref": "E 60",
+        "lanes": "3",
+        "lit": "yes",
+        "maxspeed": "60",
+        "name": "Neftçilər prospekti",
+        "name:az": "Neftçilər prospekti",
+        "name:az-cyr": "Нефтчиләр проспекти",
+        "name:en": "Neftchilar Avenue",
+        "name:ru": "проспект Нефтяников",
+        "oneway": "yes",
+        "parking:both": "no",
+        "sidewalk": "both",
+        "sidewalk:both:surface": "paving_stones",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.367015,
+          "lon": 49.8383183
+        },
+        {
+          "lat": 40.36698,
+          "lon": 49.8382934
+        }
+      ]
+    },
+    {
+      "id": 1464153931,
+      "tags": {
+        "crossing": "traffic_signals",
+        "crossing:markings": "yes",
+        "footway": "crossing",
+        "highway": "footway"
+      },
+      "nodes": [
+        {
+          "lat": 40.3671006,
+          "lon": 49.8380909
+        },
+        {
+          "lat": 40.3670679,
+          "lon": 49.8381179
+        },
+        {
+          "lat": 40.367032,
+          "lon": 49.8381475
+        },
+        {
+          "lat": 40.3670137,
+          "lon": 49.8381989
+        },
+        {
+          "lat": 40.3669942,
+          "lon": 49.8382536
+        },
+        {
+          "lat": 40.3669869,
+          "lon": 49.838274
+        },
+        {
+          "lat": 40.36698,
+          "lon": 49.8382934
+        }
+      ]
+    },
+    {
+      "id": 500527621,
+      "tags": {
+        "highway": "primary",
+        "int_ref": "AH8",
+        "lanes": "2",
+        "lit": "yes",
+        "name": "Niyazi küçəsi",
+        "name:en": "Niyazi Street",
+        "name:ru": "улица Ниязи",
+        "oneway": "no",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3635853,
+          "lon": 49.8319415
+        },
+        {
+          "lat": 40.3631032,
+          "lon": 49.8331686
+        }
+      ]
+    },
+    {
+      "id": 1050381555,
+      "tags": {
+        "highway": "primary",
+        "int_ref": "AH8",
+        "lane_markings": "yes",
+        "lit": "yes",
+        "name": "Niyazi küçəsi",
+        "name:en": "Niyazi Street",
+        "name:ru": "улица Ниязи",
+        "oneway": "no",
+        "sidewalk": "both",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.363895,
+          "lon": 49.8311531
+        },
+        {
+          "lat": 40.3635853,
+          "lon": 49.8319415
+        }
+      ]
+    },
+    {
+      "id": 167173308,
+      "tags": {
+        "highway": "primary",
+        "int_ref": "AH8",
+        "lit": "yes",
+        "name": "Niyazi küçəsi",
+        "name:en": "Niyazi Street",
+        "name:ru": "улица Ниязи",
+        "oneway": "no",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3639098,
+          "lon": 49.8311157
+        },
+        {
+          "lat": 40.363895,
+          "lon": 49.8311531
+        }
+      ]
+    },
+    {
+      "id": 1050381554,
+      "tags": {
+        "highway": "primary",
+        "int_ref": "AH8",
+        "lit": "yes",
+        "name": "İstiqlaliyyət küçəsi",
+        "oneway": "no",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3639914,
+          "lon": 49.8310762
+        },
+        {
+          "lat": 40.3639648,
+          "lon": 49.8310775
+        },
+        {
+          "lat": 40.3639462,
+          "lon": 49.8310819
+        },
+        {
+          "lat": 40.3639347,
+          "lon": 49.8310876
+        },
+        {
+          "lat": 40.3639265,
+          "lon": 49.8310943
+        },
+        {
+          "lat": 40.3639188,
+          "lon": 49.831103
+        },
+        {
+          "lat": 40.3639098,
+          "lon": 49.8311157
+        }
+      ]
+    },
+    {
+      "id": 476752810,
+      "tags": {
+        "highway": "primary",
+        "int_ref": "AH8",
+        "lane_markings": "yes",
+        "lanes": "4",
+        "lit": "yes",
+        "name": "İstiqlaliyyət küçəsi",
+        "name:az": "İstiqlaliyyət küçəsi",
+        "name:en": "Istiglaliyyat Street",
+        "name:ru": "улица Истиглалиййят",
+        "oneway": "no",
+        "parking:both": "no",
+        "sidewalk:both": "separate",
+        "smoothness": "excellent",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3661235,
+          "lon": 49.8309367
+        },
+        {
+          "lat": 40.3660381,
+          "lon": 49.830924
+        },
+        {
+          "lat": 40.3659582,
+          "lon": 49.830922
+        },
+        {
+          "lat": 40.3658756,
+          "lon": 49.8309253
+        },
+        {
+          "lat": 40.3657592,
+          "lon": 49.8309343
+        },
+        {
+          "lat": 40.3652591,
+          "lon": 49.8309703
+        },
+        {
+          "lat": 40.3644489,
+          "lon": 49.8310425
+        },
+        {
+          "lat": 40.3639914,
+          "lon": 49.8310762
+        }
+      ]
+    },
+    {
+      "id": 926192527,
+      "tags": {
+        "cycleway:right": "track",
+        "highway": "primary",
+        "int_ref": "AH8",
+        "lanes": "3",
+        "lit": "yes",
+        "maxspeed": "60",
+        "name": "İstiqlaliyyət küçəsi",
+        "name:az": "İstiqlaliyyət küçəsi",
+        "name:en": "Istiglaliyyat Street",
+        "name:ru": "улица Истиглалиййят",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "sidewalk:both": "separate",
+        "smoothness": "good",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3661235,
+          "lon": 49.8309367
+        },
+        {
+          "lat": 40.3661771,
+          "lon": 49.8309535
+        },
+        {
+          "lat": 40.3662292,
+          "lon": 49.8309723
+        },
+        {
+          "lat": 40.3662844,
+          "lon": 49.8309939
+        },
+        {
+          "lat": 40.3665488,
+          "lon": 49.8311006
+        }
+      ]
+    },
+    {
+      "id": 1279858618,
+      "tags": {
+        "cycleway:right": "track",
+        "highway": "primary",
+        "int_ref": "AH8",
+        "lanes": "3",
+        "lit": "yes",
+        "maxspeed": "60",
+        "name": "İstiqlaliyyət küçəsi",
+        "name:az": "İstiqlaliyyət küçəsi",
+        "name:en": "Istiglaliyyat Street",
+        "name:ru": "улица Истиглалиййят",
+        "oneway": "yes",
+        "oneway:bicycle": "no",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 40.3665488,
+          "lon": 49.8311006
+        },
+        {
+          "lat": 40.367165,
+          "lon": 49.8313437
         }
       ]
     }

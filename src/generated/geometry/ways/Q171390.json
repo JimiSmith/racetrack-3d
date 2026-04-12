@@ -1,17 +1,116 @@
 {
   "trackId": "Q171390",
-  "fetchedAt": "2026-04-11T14:28:40.080Z",
+  "fetchedAt": "2026-04-12T09:06:28.104Z",
   "center": {
     "lat": 1.291403,
     "lon": 103.864147
   },
   "boundingBox": {
-    "south": 1.281403,
-    "west": 103.854147,
-    "north": 1.301403,
-    "east": 103.87414700000001
+    "south": 1.271403,
+    "west": 103.844147,
+    "north": 1.311403,
+    "east": 103.884147
   },
   "ways": [
+    {
+      "id": 21584500,
+      "tags": {
+        "highway": "tertiary",
+        "lanes": "2",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Saint Andrew's Road",
+        "oneway": "yes",
+        "sidewalk:left": "yes",
+        "sidewalk:right": "separate",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2896701,
+          "lon": 103.8517392
+        },
+        {
+          "lat": 1.2907304,
+          "lon": 103.8523289
+        },
+        {
+          "lat": 1.2908769,
+          "lon": 103.8524116
+        },
+        {
+          "lat": 1.2909086,
+          "lon": 103.8524294
+        }
+      ]
+    },
+    {
+      "id": 29377119,
+      "tags": {
+        "bridge": "yes",
+        "bridge:name": "Anderson Bridge",
+        "highway": "footway",
+        "image": "https://images.mapillary.com/4kwZ6YR3RVToi_vUG8YcJg/thumb-2048.jpg",
+        "lanes": "2",
+        "lanes:backward": "1",
+        "lanes:forward": "1",
+        "layer": "1",
+        "lit": "yes",
+        "mapillary": "1215895535872042",
+        "maxspeed": "50",
+        "name": "Fullerton Road",
+        "name:zh": "浮尔顿路",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes:backward": "through",
+        "turn:lanes:forward": "through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2874994,
+          "lon": 103.8527757
+        },
+        {
+          "lat": 1.2871039,
+          "lon": 103.8532676
+        }
+      ]
+    },
+    {
+      "id": 35037538,
+      "tags": {
+        "bridge": "yes",
+        "bridge:name": "Esplanade Bridge",
+        "busway:left": "lane",
+        "highway": "trunk",
+        "lanes": "4",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "layer": "1",
+        "lit": "yes",
+        "maxspeed": "70",
+        "name": "Esplanade Drive",
+        "name:zh": "海滨公园通道",
+        "oneway": "yes",
+        "sidewalk:left": "separate",
+        "sidewalk:right": "no",
+        "source": "Yahoo aerial images",
+        "start_date": "1997",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2867007,
+          "lon": 103.8537803
+        },
+        {
+          "lat": 1.2892613,
+          "lon": 103.854266
+        }
+      ]
+    },
     {
       "id": 100484287,
       "tags": {
@@ -135,6 +234,180 @@
       ]
     },
     {
+      "id": 152783801,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "3",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "raceway": "sometimes",
+        "smoothness": "excellent",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "through|through|through;right"
+      },
+      "nodes": [
+        {
+          "lat": 1.2895592,
+          "lon": 103.8609857
+        },
+        {
+          "lat": 1.289565,
+          "lon": 103.8608765
+        }
+      ]
+    },
+    {
+      "id": 155907160,
+      "tags": {
+        "highway": "tertiary",
+        "lanes": "2",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Saint Andrew's Road",
+        "oneway": "yes",
+        "sidewalk:left": "yes",
+        "sidewalk:right": "separate",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2909086,
+          "lon": 103.8524294
+        },
+        {
+          "lat": 1.2910839,
+          "lon": 103.8525268
+        }
+      ]
+    },
+    {
+      "id": 173791995,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "4",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "raceway": "sometimes",
+        "smoothness": "excellent",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.289565,
+          "lon": 103.8608765
+        },
+        {
+          "lat": 1.2895672,
+          "lon": 103.8608347
+        },
+        {
+          "lat": 1.2895801,
+          "lon": 103.8605926
+        }
+      ]
+    },
+    {
+      "id": 174262763,
+      "tags": {
+        "foot": "yes",
+        "highway": "primary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "smoothness": "excellent",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "left|left|right|right"
+      },
+      "nodes": [
+        {
+          "lat": 1.2913099,
+          "lon": 103.8620486
+        },
+        {
+          "lat": 1.2912552,
+          "lon": 103.862347
+        }
+      ]
+    },
+    {
+      "id": 176298699,
+      "tags": {
+        "foot": "yes",
+        "highway": "primary",
+        "lanes": "5",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "smoothness": "excellent",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2913301,
+          "lon": 103.8608319
+        },
+        {
+          "lat": 1.2913321,
+          "lon": 103.8609332
+        }
+      ]
+    },
+    {
+      "id": 180551367,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "4",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "sidewalk": "left",
+        "smoothness": "excellent",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.289613,
+          "lon": 103.8599725
+        },
+        {
+          "lat": 1.2896305,
+          "lon": 103.8596687
+        }
+      ]
+    },
+    {
       "id": 303311924,
       "tags": {
         "access": "private",
@@ -200,68 +473,945 @@
       ]
     },
     {
-      "id": 465064165,
+      "id": 303314681,
       "tags": {
-        "access": "private",
-        "foot": "no",
-        "highway": "raceway",
-        "name": "Marina Bay Street Circuit",
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "4",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
         "oneway": "yes",
-        "sport": "motor",
+        "raceway": "sometimes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "none|through|through|through;right"
+      },
+      "nodes": [
+        {
+          "lat": 1.2897405,
+          "lon": 103.8575749
+        },
+        {
+          "lat": 1.2897454,
+          "lon": 103.8574822
+        },
+        {
+          "lat": 1.2897468,
+          "lon": 103.8574561
+        },
+        {
+          "lat": 1.2897535,
+          "lon": 103.8573305
+        },
+        {
+          "lat": 1.2897548,
+          "lon": 103.8573058
+        }
+      ]
+    },
+    {
+      "id": 383365018,
+      "tags": {
+        "foot": "yes",
+        "highway": "primary",
+        "lanes": "3",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
         "surface": "asphalt"
       },
       "nodes": [
         {
-          "lat": 1.294522,
-          "lon": 103.8630464
+          "lat": 1.2913406,
+          "lon": 103.8616157
         },
         {
-          "lat": 1.2945495,
-          "lon": 103.8630271
+          "lat": 1.2913099,
+          "lon": 103.8620486
+        }
+      ]
+    },
+    {
+      "id": 383365019,
+      "tags": {
+        "foot": "yes",
+        "highway": "primary",
+        "lanes": "3",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2913424,
+          "lon": 103.8612076
         },
         {
-          "lat": 1.2946271,
-          "lon": 103.8629806
+          "lat": 1.2913404,
+          "lon": 103.8615148
+        }
+      ]
+    },
+    {
+      "id": 448084962,
+      "tags": {
+        "highway": "residential",
+        "lanes": "2",
+        "lanes:backward": "1",
+        "lanes:forward": "1",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Connaught Drive",
+        "surface": "asphalt",
+        "turn:lanes:backward": "through",
+        "turn:lanes:forward": "through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2889492,
+          "lon": 103.8516398
         },
         {
-          "lat": 1.2947144,
-          "lon": 103.8629382
+          "lat": 1.2887807,
+          "lon": 103.851867
+        }
+      ]
+    },
+    {
+      "id": 475215022,
+      "tags": {
+        "foot": "yes",
+        "highway": "footway",
+        "lit": "yes",
+        "motor_vehicle": "yes",
+        "name": "Fullerton Road",
+        "name:zh": "浮尔顿路",
+        "surface": "cobblestone:flattened"
+      },
+      "nodes": [
+        {
+          "lat": 1.2877239,
+          "lon": 103.8525432
         },
         {
-          "lat": 1.294785,
-          "lon": 103.8628791
+          "lat": 1.2878349,
+          "lon": 103.8524516
         },
         {
-          "lat": 1.2948213,
-          "lon": 103.8628109
+          "lat": 1.2880957,
+          "lon": 103.8523772
         },
         {
-          "lat": 1.2948393,
-          "lon": 103.8627335
+          "lat": 1.2882495,
+          "lon": 103.8523827
         },
         {
-          "lat": 1.2948392,
-          "lon": 103.8626592
+          "lat": 1.2882719,
+          "lon": 103.8523895
         },
         {
-          "lat": 1.2948194,
-          "lon": 103.8625906
+          "lat": 1.288339,
+          "lon": 103.8524101
+        }
+      ]
+    },
+    {
+      "id": 475217889,
+      "tags": {
+        "highway": "residential",
+        "lanes": "2",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Connaught Drive",
+        "oneway": "yes",
+        "sidewalk": "right",
+        "surface": "asphalt",
+        "turn:lanes": "through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.289092,
+          "lon": 103.8514513
         },
         {
-          "lat": 1.2947585,
-          "lon": 103.8625153
+          "lat": 1.2891414,
+          "lon": 103.8514573
         },
         {
-          "lat": 1.2947048,
-          "lon": 103.8624761
+          "lat": 1.2891874,
+          "lon": 103.8514743
         },
         {
-          "lat": 1.2946376,
-          "lon": 103.8624309
+          "lat": 1.2893739,
+          "lon": 103.8515745
+        }
+      ]
+    },
+    {
+      "id": 479284866,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "4",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "oneway": "yes",
+        "smoothness": "excellent",
+        "source": "aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "left;through|through|through;right|right"
+      },
+      "nodes": [
+        {
+          "lat": 1.2895529,
+          "lon": 103.8611045
         },
         {
-          "lat": 1.2945431,
-          "lon": 103.8623862
+          "lat": 1.2895592,
+          "lon": 103.8609857
+        }
+      ]
+    },
+    {
+      "id": 479540202,
+      "tags": {
+        "foot": "yes",
+        "highway": "primary",
+        "lanes": "5",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "smoothness": "excellent",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "through|through|through|through;right|right"
+      },
+      "nodes": [
+        {
+          "lat": 1.2913836,
+          "lon": 103.86038
+        },
+        {
+          "lat": 1.2913364,
+          "lon": 103.860753
+        },
+        {
+          "lat": 1.2913301,
+          "lon": 103.8608319
+        }
+      ]
+    },
+    {
+      "id": 479565608,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "4",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "sidewalk": "both",
+        "smoothness": "excellent",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "none|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2896723,
+          "lon": 103.8588597
+        },
+        {
+          "lat": 1.289678,
+          "lon": 103.8587507
+        },
+        {
+          "lat": 1.2896858,
+          "lon": 103.8586061
+        }
+      ]
+    },
+    {
+      "id": 479565612,
+      "tags": {
+        "highway": "primary",
+        "lanes": "5",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "raceway": "sometimes",
+        "sidewalk": "separate",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "left;through|through|through|through|right"
+      },
+      "nodes": [
+        {
+          "lat": 1.2903222,
+          "lon": 103.8561749
+        },
+        {
+          "lat": 1.2904397,
+          "lon": 103.8560384
+        },
+        {
+          "lat": 1.2904752,
+          "lon": 103.8559972
+        },
+        {
+          "lat": 1.2905895,
+          "lon": 103.8558644
+        },
+        {
+          "lat": 1.2906494,
+          "lon": 103.8557948
+        }
+      ]
+    },
+    {
+      "id": 479565613,
+      "tags": {
+        "highway": "primary",
+        "lanes": "6",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "raceway": "sometimes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "left|left;through|through|through|through;right|right"
+      },
+      "nodes": [
+        {
+          "lat": 1.2909459,
+          "lon": 103.8554503
+        },
+        {
+          "lat": 1.2911304,
+          "lon": 103.8552358
+        },
+        {
+          "lat": 1.2911468,
+          "lon": 103.8552168
+        }
+      ]
+    },
+    {
+      "id": 479605911,
+      "tags": {
+        "foot": "no",
+        "highway": "primary",
+        "lanes": "5",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "raceway": "sometimes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "left;through|through|through|through;right|right"
+      },
+      "nodes": [
+        {
+          "lat": 1.2911468,
+          "lon": 103.8552168
+        },
+        {
+          "lat": 1.2912783,
+          "lon": 103.855059
+        },
+        {
+          "lat": 1.291324,
+          "lon": 103.8550077
+        }
+      ]
+    },
+    {
+      "id": 480247943,
+      "tags": {
+        "highway": "footway",
+        "lanes": "2",
+        "lanes:backward": "1",
+        "lanes:forward": "1",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Fullerton Road",
+        "name:zh": "浮尔顿路",
+        "sidewalk": "right",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes:backward": "through",
+        "turn:lanes:forward": "through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2877239,
+          "lon": 103.8525432
+        },
+        {
+          "lat": 1.2876704,
+          "lon": 103.8526038
+        },
+        {
+          "lat": 1.2876606,
+          "lon": 103.8526136
+        },
+        {
+          "lat": 1.2874994,
+          "lon": 103.8527757
+        }
+      ]
+    },
+    {
+      "id": 480250096,
+      "tags": {
+        "highway": "tertiary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Saint Andrew's Road",
+        "oneway": "yes",
+        "sidewalk": "left",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "through|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2910839,
+          "lon": 103.8525268
+        },
+        {
+          "lat": 1.2912821,
+          "lon": 103.8526354
+        }
+      ]
+    },
+    {
+      "id": 528537303,
+      "tags": {
+        "foot": "yes",
+        "highway": "primary",
+        "lanes": "3",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "smoothness": "excellent",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2913404,
+          "lon": 103.8615148
+        },
+        {
+          "lat": 1.2913406,
+          "lon": 103.8616157
+        }
+      ]
+    },
+    {
+      "id": 528539591,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "trunk",
+        "lanes": "4",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "70",
+        "name": "Esplanade Drive",
+        "name:zh": "海滨公园通道",
+        "oneway": "yes",
+        "sidewalk:left": "separate",
+        "sidewalk:right": "no",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2866054,
+          "lon": 103.8537625
+        },
+        {
+          "lat": 1.2866461,
+          "lon": 103.8537699
+        },
+        {
+          "lat": 1.2867007,
+          "lon": 103.8537803
+        }
+      ]
+    },
+    {
+      "id": 581766308,
+      "tags": {
+        "highway": "trunk",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "70",
+        "name": "Esplanade Drive",
+        "name:zh": "海滨公园通道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.291324,
+          "lon": 103.8550077
+        },
+        {
+          "lat": 1.2910827,
+          "lon": 103.8549222
+        }
+      ]
+    },
+    {
+      "id": 581942152,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "4",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "raceway": "sometimes",
+        "sidewalk": "left",
+        "smoothness": "excellent",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2895801,
+          "lon": 103.8605926
+        },
+        {
+          "lat": 1.2895948,
+          "lon": 103.8603161
+        },
+        {
+          "lat": 1.289613,
+          "lon": 103.8599725
+        }
+      ]
+    },
+    {
+      "id": 584419619,
+      "tags": {
+        "foot": "yes",
+        "highway": "primary",
+        "lanes": "3",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "smoothness": "excellent",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2913321,
+          "lon": 103.8609332
+        },
+        {
+          "lat": 1.2913371,
+          "lon": 103.8610007
+        },
+        {
+          "lat": 1.2913424,
+          "lon": 103.8612076
+        }
+      ]
+    },
+    {
+      "id": 633311062,
+      "tags": {
+        "highway": "primary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "raceway": "sometimes",
+        "sidewalk": "separate",
+        "smoothness": "excellent",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "none|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.289794,
+          "lon": 103.8569869
+        },
+        {
+          "lat": 1.2898254,
+          "lon": 103.8568781
+        },
+        {
+          "lat": 1.2898549,
+          "lon": 103.8567861
+        },
+        {
+          "lat": 1.2898782,
+          "lon": 103.8567376
+        },
+        {
+          "lat": 1.2899135,
+          "lon": 103.8566645
+        },
+        {
+          "lat": 1.2899715,
+          "lon": 103.8565763
+        },
+        {
+          "lat": 1.2899906,
+          "lon": 103.8565472
+        },
+        {
+          "lat": 1.2900794,
+          "lon": 103.8564514
+        },
+        {
+          "lat": 1.2901714,
+          "lon": 103.8563522
+        },
+        {
+          "lat": 1.2902257,
+          "lon": 103.8562871
+        }
+      ]
+    },
+    {
+      "id": 633340452,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "4",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "sidewalk": "both",
+        "smoothness": "excellent",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "none|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2896858,
+          "lon": 103.8586061
+        },
+        {
+          "lat": 1.2897023,
+          "lon": 103.858293
+        }
+      ]
+    },
+    {
+      "id": 633340456,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "4",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "sidewalk": "left",
+        "smoothness": "excellent",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "none|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2896398,
+          "lon": 103.8595101
+        },
+        {
+          "lat": 1.2896553,
+          "lon": 103.8591787
+        }
+      ]
+    },
+    {
+      "id": 633343709,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "4",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "sidewalk": "right",
+        "smoothness": "excellent",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "none|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2897023,
+          "lon": 103.858293
+        },
+        {
+          "lat": 1.2897137,
+          "lon": 103.8580786
+        }
+      ]
+    },
+    {
+      "id": 633871920,
+      "tags": {
+        "foot": "yes",
+        "highway": "primary",
+        "lanes": "6",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "left|through|through|through|through;right|right"
+      },
+      "nodes": [
+        {
+          "lat": 1.2914033,
+          "lon": 103.8600553
+        },
+        {
+          "lat": 1.2913836,
+          "lon": 103.86038
+        }
+      ]
+    },
+    {
+      "id": 634832601,
+      "tags": {
+        "highway": "primary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "raceway": "sometimes",
+        "sidewalk": "separate",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "none|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2902257,
+          "lon": 103.8562871
+        },
+        {
+          "lat": 1.2903222,
+          "lon": 103.8561749
+        }
+      ]
+    },
+    {
+      "id": 635394837,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "4",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "sidewalk": "left",
+        "smoothness": "excellent",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2896305,
+          "lon": 103.8596687
+        },
+        {
+          "lat": 1.2896398,
+          "lon": 103.8595101
+        }
+      ]
+    },
+    {
+      "id": 649520780,
+      "tags": {
+        "highway": "tertiary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Saint Andrew's Road",
+        "oneway": "yes",
+        "sidewalk": "left",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2912821,
+          "lon": 103.8526354
+        },
+        {
+          "lat": 1.2919144,
+          "lon": 103.8529922
+        }
+      ]
+    },
+    {
+      "id": 654223306,
+      "tags": {
+        "highway": "primary",
+        "lanes": "2",
+        "lit": "yes",
+        "maxspeed": "60",
+        "name": "Republic Boulevard",
+        "name:zh": "共和国林荫道",
+        "oneway": "yes",
+        "sidewalk": "left",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2913032,
+          "lon": 103.862531
+        },
+        {
+          "lat": 1.2913649,
+          "lon": 103.8626721
+        },
+        {
+          "lat": 1.2914334,
+          "lon": 103.862765
+        },
+        {
+          "lat": 1.2914723,
+          "lon": 103.8628065
+        },
+        {
+          "lat": 1.2915327,
+          "lon": 103.8628486
+        }
+      ]
+    },
+    {
+      "id": 672222982,
+      "tags": {
+        "highway": "primary",
+        "lanes": "2",
+        "lit": "yes",
+        "maxspeed": "60",
+        "name": "Republic Boulevard",
+        "name:zh": "共和国林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "left|left"
+      },
+      "nodes": [
+        {
+          "lat": 1.2912552,
+          "lon": 103.862347
+        },
+        {
+          "lat": 1.2913032,
+          "lon": 103.862531
+        }
+      ]
+    },
+    {
+      "id": 684544691,
+      "tags": {
+        "highway": "residential",
+        "lanes": "2",
+        "lanes:backward": "1",
+        "lanes:forward": "1",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Connaught Drive",
+        "surface": "asphalt",
+        "turn:lanes:backward": "through;right",
+        "turn:lanes:forward": "through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2887807,
+          "lon": 103.851867
+        },
+        {
+          "lat": 1.2886636,
+          "lon": 103.8520374
         }
       ]
     },
@@ -394,6 +1544,206 @@
       ]
     },
     {
+      "id": 747875236,
+      "tags": {
+        "highway": "tertiary",
+        "lanes": "2",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Saint Andrew's Road",
+        "oneway": "yes",
+        "sidewalk:left": "yes",
+        "sidewalk:right": "separate",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.289514,
+          "lon": 103.8516524
+        },
+        {
+          "lat": 1.2896701,
+          "lon": 103.8517392
+        }
+      ]
+    },
+    {
+      "id": 747875237,
+      "tags": {
+        "highway": "tertiary",
+        "lanes": "2",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Saint Andrew's Road",
+        "oneway": "yes",
+        "sidewalk:left": "yes",
+        "sidewalk:right": "separate",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2893739,
+          "lon": 103.8515745
+        },
+        {
+          "lat": 1.289514,
+          "lon": 103.8516524
+        }
+      ]
+    },
+    {
+      "id": 750071184,
+      "tags": {
+        "highway": "trunk",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "70",
+        "name": "Esplanade Drive",
+        "name:zh": "海滨公园通道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2910827,
+          "lon": 103.8549222
+        },
+        {
+          "lat": 1.2909735,
+          "lon": 103.8548828
+        },
+        {
+          "lat": 1.2906554,
+          "lon": 103.8547722
+        },
+        {
+          "lat": 1.2904014,
+          "lon": 103.8546839
+        }
+      ]
+    },
+    {
+      "id": 759511978,
+      "tags": {
+        "highway": "residential",
+        "lanes": "1",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Connaught Drive",
+        "surface": "asphalt",
+        "turn:lanes": "through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2889492,
+          "lon": 103.8516398
+        },
+        {
+          "lat": 1.289092,
+          "lon": 103.8514513
+        }
+      ]
+    },
+    {
+      "id": 763531722,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "4",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "smoothness": "excellent",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "none|through|through|through;right"
+      },
+      "nodes": [
+        {
+          "lat": 1.2897137,
+          "lon": 103.8580786
+        },
+        {
+          "lat": 1.2897309,
+          "lon": 103.8577561
+        }
+      ]
+    },
+    {
+      "id": 764062389,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "4",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "raceway": "sometimes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "none|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2897548,
+          "lon": 103.8573058
+        },
+        {
+          "lat": 1.2897557,
+          "lon": 103.8572552
+        },
+        {
+          "lat": 1.2897751,
+          "lon": 103.8571045
+        },
+        {
+          "lat": 1.289794,
+          "lon": 103.8569869
+        }
+      ]
+    },
+    {
+      "id": 764062390,
+      "tags": {
+        "highway": "primary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "raceway": "sometimes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "left;through|through|through|through;right"
+      },
+      "nodes": [
+        {
+          "lat": 1.2906494,
+          "lon": 103.8557948
+        },
+        {
+          "lat": 1.2909459,
+          "lon": 103.8554503
+        }
+      ]
+    },
+    {
       "id": 767388313,
       "tags": {
         "highway": "raceway",
@@ -410,6 +1760,1475 @@
         {
           "lat": 1.2904014,
           "lon": 103.8546839
+        }
+      ]
+    },
+    {
+      "id": 767388315,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "4",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "smoothness": "excellent",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "none|through|through|through;right"
+      },
+      "nodes": [
+        {
+          "lat": 1.2897309,
+          "lon": 103.8577561
+        },
+        {
+          "lat": 1.2897405,
+          "lon": 103.8575749
+        }
+      ]
+    },
+    {
+      "id": 842953325,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "4",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Avenue",
+        "name:zh": "莱佛士大道",
+        "note": "Part of it estimated ???",
+        "oneway": "yes",
+        "sidewalk": "both",
+        "smoothness": "excellent",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "none|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2896553,
+          "lon": 103.8591787
+        },
+        {
+          "lat": 1.2896723,
+          "lon": 103.8588597
+        }
+      ]
+    },
+    {
+      "id": 1015882722,
+      "tags": {
+        "highway": "residential",
+        "lanes": "1",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Connaught Drive",
+        "oneway": "yes",
+        "surface": "asphalt",
+        "turn:lanes": "through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2884014,
+          "lon": 103.8523418
+        },
+        {
+          "lat": 1.288464,
+          "lon": 103.8522876
+        },
+        {
+          "lat": 1.2885016,
+          "lon": 103.8522399
+        },
+        {
+          "lat": 1.2886362,
+          "lon": 103.8520792
+        }
+      ]
+    },
+    {
+      "id": 1015882723,
+      "tags": {
+        "highway": "residential",
+        "lanes": "1",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Connaught Drive",
+        "surface": "asphalt",
+        "turn:lanes": "through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2886636,
+          "lon": 103.8520374
+        },
+        {
+          "lat": 1.2886362,
+          "lon": 103.8520792
+        }
+      ]
+    },
+    {
+      "id": 1121759129,
+      "tags": {
+        "highway": "service",
+        "lit": "yes",
+        "name": "Fullerton Road",
+        "oneway": "yes"
+      },
+      "nodes": [
+        {
+          "lat": 1.2871039,
+          "lon": 103.8532676
+        },
+        {
+          "lat": 1.2870678,
+          "lon": 103.8533008
+        },
+        {
+          "lat": 1.2870013,
+          "lon": 103.8533443
+        },
+        {
+          "lat": 1.2869481,
+          "lon": 103.8533754
+        },
+        {
+          "lat": 1.2868763,
+          "lon": 103.8534399
+        }
+      ]
+    },
+    {
+      "id": 1121759130,
+      "tags": {
+        "highway": "residential",
+        "junction": "roundabout",
+        "lanes": "1",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Connaught Drive",
+        "oneway": "yes",
+        "surface": "asphalt",
+        "turn:lanes": "right"
+      },
+      "nodes": [
+        {
+          "lat": 1.288339,
+          "lon": 103.8524101
+        },
+        {
+          "lat": 1.2883511,
+          "lon": 103.8523788
+        },
+        {
+          "lat": 1.2883751,
+          "lon": 103.8523538
+        },
+        {
+          "lat": 1.2884014,
+          "lon": 103.8523418
+        }
+      ]
+    },
+    {
+      "id": 1121759131,
+      "tags": {
+        "highway": "service",
+        "lit": "yes",
+        "name": "Fullerton Road"
+      },
+      "nodes": [
+        {
+          "lat": 1.2868763,
+          "lon": 103.8534399
+        },
+        {
+          "lat": 1.286772,
+          "lon": 103.8535107
+        },
+        {
+          "lat": 1.2866113,
+          "lon": 103.8536251
+        },
+        {
+          "lat": 1.2865708,
+          "lon": 103.85365
+        }
+      ]
+    },
+    {
+      "id": 1206760203,
+      "tags": {
+        "highway": "service",
+        "lit": "yes",
+        "name": "Fullerton Road",
+        "oneway": "yes",
+        "smoothness": "excellent",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2865708,
+          "lon": 103.85365
+        },
+        {
+          "lat": 1.2865738,
+          "lon": 103.8536782
+        },
+        {
+          "lat": 1.2865829,
+          "lon": 103.8537184
+        },
+        {
+          "lat": 1.2866054,
+          "lon": 103.8537625
+        }
+      ]
+    },
+    {
+      "id": 16688065,
+      "tags": {
+        "highway": "trunk",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "70",
+        "name": "Nicoll Highway",
+        "name:ms": "Lebuhraya Nicoll",
+        "name:ta": "நிகோல் நெடுஞ்சாலை",
+        "name:zh": "尼诰大道",
+        "oneway": "yes",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2914505,
+          "lon": 103.8548655
+        },
+        {
+          "lat": 1.2915357,
+          "lon": 103.8549025
+        },
+        {
+          "lat": 1.2915866,
+          "lon": 103.8549246
+        },
+        {
+          "lat": 1.2918822,
+          "lon": 103.8550798
+        },
+        {
+          "lat": 1.2922894,
+          "lon": 103.8552936
+        }
+      ]
+    },
+    {
+      "id": 21701074,
+      "tags": {
+        "highway": "primary",
+        "lanes": "6",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "sidewalk:both": "separate",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2927809,
+          "lon": 103.856514
+        },
+        {
+          "lat": 1.2925727,
+          "lon": 103.8568682
+        }
+      ]
+    },
+    {
+      "id": 21805129,
+      "tags": {
+        "highway": "primary",
+        "lanes": "2",
+        "lit": "yes",
+        "maxspeed": "60",
+        "name": "Republic Boulevard",
+        "name:zh": "共和国林荫道",
+        "oneway": "yes",
+        "sidewalk": "left",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2915327,
+          "lon": 103.8628486
+        },
+        {
+          "lat": 1.2916159,
+          "lon": 103.8628898
+        },
+        {
+          "lat": 1.2916981,
+          "lon": 103.8629054
+        },
+        {
+          "lat": 1.2918067,
+          "lon": 103.8629088
+        },
+        {
+          "lat": 1.2919464,
+          "lon": 103.8628983
+        },
+        {
+          "lat": 1.292052,
+          "lon": 103.8628904
+        },
+        {
+          "lat": 1.2924838,
+          "lon": 103.8628207
+        },
+        {
+          "lat": 1.292604,
+          "lon": 103.8627941
+        },
+        {
+          "lat": 1.2928397,
+          "lon": 103.8627184
+        },
+        {
+          "lat": 1.2933616,
+          "lon": 103.8625264
+        }
+      ]
+    },
+    {
+      "id": 51511339,
+      "tags": {
+        "foot": "no",
+        "highway": "primary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Stamford Road",
+        "name:zh": "史丹福路",
+        "oneway": "yes",
+        "source": "GPS & Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2914505,
+          "lon": 103.8548655
+        },
+        {
+          "lat": 1.2915628,
+          "lon": 103.8547543
+        }
+      ]
+    },
+    {
+      "id": 51511352,
+      "tags": {
+        "foot": "no",
+        "highway": "primary",
+        "lanes": "5",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Bras Basah Road",
+        "name:zh": "勿拉士巴沙路",
+        "oneway": "yes",
+        "source": "GPS & Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.293172,
+          "lon": 103.8558226
+        },
+        {
+          "lat": 1.2930831,
+          "lon": 103.8559769
+        }
+      ]
+    },
+    {
+      "id": 75067163,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "5",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "sidewalk:both": "separate",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2923557,
+          "lon": 103.8572319
+        },
+        {
+          "lat": 1.292102,
+          "lon": 103.8576827
+        },
+        {
+          "lat": 1.2920774,
+          "lon": 103.8577256
+        }
+      ]
+    },
+    {
+      "id": 156457347,
+      "tags": {
+        "highway": "primary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Stamford Road",
+        "name:zh": "史丹福路",
+        "oneway": "yes",
+        "source": "GPS & Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.291663,
+          "lon": 103.854655
+        },
+        {
+          "lat": 1.2918487,
+          "lon": 103.854467
+        }
+      ]
+    },
+    {
+      "id": 173779754,
+      "tags": {
+        "highway": "tertiary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Saint Andrew's Road",
+        "oneway": "yes",
+        "sidewalk:left": "no",
+        "sidewalk:right": "separate",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "through|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2923897,
+          "lon": 103.853252
+        },
+        {
+          "lat": 1.2925175,
+          "lon": 103.8533954
+        },
+        {
+          "lat": 1.2925756,
+          "lon": 103.8534982
+        },
+        {
+          "lat": 1.2926038,
+          "lon": 103.8536185
+        }
+      ]
+    },
+    {
+      "id": 173791997,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "5",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2920774,
+          "lon": 103.8577256
+        },
+        {
+          "lat": 1.2919894,
+          "lon": 103.8578775
+        }
+      ]
+    },
+    {
+      "id": 459186771,
+      "tags": {
+        "highway": "trunk",
+        "lanes": "5",
+        "lit": "yes",
+        "maxspeed": "70",
+        "name": "Nicoll Highway",
+        "name:ms": "Lebuhraya Nicoll",
+        "name:ta": "நிகோல் நெடுஞ்சாலை",
+        "name:zh": "尼诰大道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "through|through|through;right|right|right"
+      },
+      "nodes": [
+        {
+          "lat": 1.2924992,
+          "lon": 103.855412
+        },
+        {
+          "lat": 1.2928507,
+          "lon": 103.8556295
+        },
+        {
+          "lat": 1.293172,
+          "lon": 103.8558226
+        }
+      ]
+    },
+    {
+      "id": 465064165,
+      "tags": {
+        "access": "private",
+        "foot": "no",
+        "highway": "raceway",
+        "name": "Marina Bay Street Circuit",
+        "oneway": "yes",
+        "sport": "motor",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.294522,
+          "lon": 103.8630464
+        },
+        {
+          "lat": 1.2945495,
+          "lon": 103.8630271
+        },
+        {
+          "lat": 1.2946271,
+          "lon": 103.8629806
+        },
+        {
+          "lat": 1.2947144,
+          "lon": 103.8629382
+        },
+        {
+          "lat": 1.294785,
+          "lon": 103.8628791
+        },
+        {
+          "lat": 1.2948213,
+          "lon": 103.8628109
+        },
+        {
+          "lat": 1.2948393,
+          "lon": 103.8627335
+        },
+        {
+          "lat": 1.2948392,
+          "lon": 103.8626592
+        },
+        {
+          "lat": 1.2948194,
+          "lon": 103.8625906
+        },
+        {
+          "lat": 1.2947585,
+          "lon": 103.8625153
+        },
+        {
+          "lat": 1.2947048,
+          "lon": 103.8624761
+        },
+        {
+          "lat": 1.2946376,
+          "lon": 103.8624309
+        },
+        {
+          "lat": 1.2945431,
+          "lon": 103.8623862
+        }
+      ]
+    },
+    {
+      "id": 479540200,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "5",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.291612,
+          "lon": 103.8585312
+        },
+        {
+          "lat": 1.2915475,
+          "lon": 103.858703
+        },
+        {
+          "lat": 1.2915233,
+          "lon": 103.8587725
+        },
+        {
+          "lat": 1.2915103,
+          "lon": 103.8588089
+        },
+        {
+          "lat": 1.2914743,
+          "lon": 103.8590169
+        }
+      ]
+    },
+    {
+      "id": 479565615,
+      "tags": {
+        "highway": "primary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Stamford Road",
+        "name:zh": "史丹福路",
+        "oneway": "yes",
+        "source": "GPS & Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "through|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2924047,
+          "lon": 103.8539248
+        },
+        {
+          "lat": 1.2924912,
+          "lon": 103.8537917
+        },
+        {
+          "lat": 1.2926038,
+          "lon": 103.8536185
+        }
+      ]
+    },
+    {
+      "id": 479745478,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "5",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxheight": "4.5",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "tunnel": "building_passage"
+      },
+      "nodes": [
+        {
+          "lat": 1.2914593,
+          "lon": 103.8591706
+        },
+        {
+          "lat": 1.2914491,
+          "lon": 103.8592734
+        },
+        {
+          "lat": 1.2914445,
+          "lon": 103.8593764
+        }
+      ]
+    },
+    {
+      "id": 479745479,
+      "tags": {
+        "busway:left": "lane",
+        "foot": "yes",
+        "highway": "primary",
+        "lanes": "5",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2914445,
+          "lon": 103.8593764
+        },
+        {
+          "lat": 1.2914304,
+          "lon": 103.8596063
+        },
+        {
+          "lat": 1.2914253,
+          "lon": 103.8597007
+        }
+      ]
+    },
+    {
+      "id": 545362402,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "5",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxheight": "4.5",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "tunnel": "building_passage"
+      },
+      "nodes": [
+        {
+          "lat": 1.291982,
+          "lon": 103.8578896
+        },
+        {
+          "lat": 1.2918934,
+          "lon": 103.8580435
+        },
+        {
+          "lat": 1.2918776,
+          "lon": 103.8580705
+        },
+        {
+          "lat": 1.291779,
+          "lon": 103.8582423
+        }
+      ]
+    },
+    {
+      "id": 545362403,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "5",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "tunnel": "building_passage",
+        "turn:lanes": "left;through|through|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.291779,
+          "lon": 103.8582423
+        },
+        {
+          "lat": 1.2917694,
+          "lon": 103.8582593
+        }
+      ]
+    },
+    {
+      "id": 633871919,
+      "tags": {
+        "busway:left": "lane",
+        "foot": "yes",
+        "highway": "primary",
+        "lanes": "5",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "left;through|none|none|none|none"
+      },
+      "nodes": [
+        {
+          "lat": 1.2914253,
+          "lon": 103.8597007
+        },
+        {
+          "lat": 1.2914117,
+          "lon": 103.8599232
+        }
+      ]
+    },
+    {
+      "id": 634770511,
+      "tags": {
+        "highway": "primary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Stamford Road",
+        "name:zh": "史丹福路",
+        "oneway": "yes",
+        "sidewalk:both": "separate",
+        "source": "GPS & Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "through|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2920088,
+          "lon": 103.8543182
+        },
+        {
+          "lat": 1.2922316,
+          "lon": 103.8540982
+        }
+      ]
+    },
+    {
+      "id": 635373148,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "5",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2917694,
+          "lon": 103.8582593
+        },
+        {
+          "lat": 1.2917362,
+          "lon": 103.8583143
+        },
+        {
+          "lat": 1.291612,
+          "lon": 103.8585312
+        }
+      ]
+    },
+    {
+      "id": 635375722,
+      "tags": {
+        "highway": "primary",
+        "lanes": "6",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "sidewalk:both": "separate",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "left|left;through|through|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2923891,
+          "lon": 103.857176
+        },
+        {
+          "lat": 1.2923557,
+          "lon": 103.8572319
+        }
+      ]
+    },
+    {
+      "id": 647084783,
+      "tags": {
+        "highway": "tertiary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Saint Andrew's Road",
+        "oneway": "yes",
+        "sidewalk": "left",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "left|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2919144,
+          "lon": 103.8529922
+        },
+        {
+          "lat": 1.2920809,
+          "lon": 103.8530832
+        },
+        {
+          "lat": 1.2921701,
+          "lon": 103.853132
+        }
+      ]
+    },
+    {
+      "id": 649336906,
+      "tags": {
+        "highway": "primary",
+        "lanes": "6",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "sidewalk:both": "separate",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "left|left;through|through|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2924516,
+          "lon": 103.8570723
+        },
+        {
+          "lat": 1.2923891,
+          "lon": 103.857176
+        }
+      ]
+    },
+    {
+      "id": 649944021,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "5",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "none|through|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2914743,
+          "lon": 103.8590169
+        },
+        {
+          "lat": 1.2914593,
+          "lon": 103.8591706
+        }
+      ]
+    },
+    {
+      "id": 650084964,
+      "tags": {
+        "highway": "primary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Stamford Road",
+        "name:zh": "史丹福路",
+        "oneway": "yes",
+        "source": "GPS & Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2918487,
+          "lon": 103.854467
+        },
+        {
+          "lat": 1.2920088,
+          "lon": 103.8543182
+        }
+      ]
+    },
+    {
+      "id": 686323967,
+      "tags": {
+        "highway": "primary",
+        "lanes": "2",
+        "lit": "yes",
+        "maxspeed": "60",
+        "name": "Republic Boulevard",
+        "name:zh": "共和国林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2943413,
+          "lon": 103.8623708
+        },
+        {
+          "lat": 1.2944856,
+          "lon": 103.8623818
+        },
+        {
+          "lat": 1.2945431,
+          "lon": 103.8623862
+        }
+      ]
+    },
+    {
+      "id": 686323968,
+      "tags": {
+        "highway": "primary",
+        "image": "https://images.mapillary.com/AYKz9KrqqwYJuXU8KLXNuA/thumb-2048.jpg",
+        "lanes": "2",
+        "lit": "yes",
+        "mapillary": "1146291622500301",
+        "maxspeed": "60",
+        "name": "Republic Boulevard",
+        "name:zh": "共和国林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2937185,
+          "lon": 103.8623795
+        },
+        {
+          "lat": 1.2937976,
+          "lon": 103.8623658
+        }
+      ]
+    },
+    {
+      "id": 686335799,
+      "tags": {
+        "highway": "primary",
+        "image": "https://images.mapillary.com/AYKz9KrqqwYJuXU8KLXNuA/thumb-2048.jpg",
+        "lanes": "2",
+        "lit": "yes",
+        "mapillary": "1146291622500301",
+        "maxspeed": "60",
+        "name": "Republic Boulevard",
+        "name:zh": "共和国林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2937976,
+          "lon": 103.8623658
+        },
+        {
+          "lat": 1.293866,
+          "lon": 103.862354
+        },
+        {
+          "lat": 1.2940148,
+          "lon": 103.862346
+        },
+        {
+          "lat": 1.2943413,
+          "lon": 103.8623708
+        }
+      ]
+    },
+    {
+      "id": 686335800,
+      "tags": {
+        "highway": "primary",
+        "image": "https://images.mapillary.com/o72ouKUNKmshV92TGsV5zw/thumb-2048.jpg",
+        "lanes": "2",
+        "lit": "yes",
+        "mapillary": "212247987118309",
+        "maxspeed": "60",
+        "name": "Republic Boulevard",
+        "name:zh": "共和国林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2933616,
+          "lon": 103.8625264
+        },
+        {
+          "lat": 1.2935764,
+          "lon": 103.8624291
+        },
+        {
+          "lat": 1.2937185,
+          "lon": 103.8623795
+        }
+      ]
+    },
+    {
+      "id": 723073393,
+      "tags": {
+        "busway:left": "lane",
+        "highway": "primary",
+        "lanes": "5",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "through|through|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2919894,
+          "lon": 103.8578775
+        },
+        {
+          "lat": 1.291982,
+          "lon": 103.8578896
+        }
+      ]
+    },
+    {
+      "id": 750071183,
+      "tags": {
+        "highway": "primary",
+        "lanes": "5",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Stamford Road",
+        "name:zh": "史丹福路",
+        "oneway": "yes",
+        "sidewalk:both": "separate",
+        "source": "GPS & Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "through|through|through|through|right"
+      },
+      "nodes": [
+        {
+          "lat": 1.2922316,
+          "lon": 103.8540982
+        },
+        {
+          "lat": 1.2922407,
+          "lon": 103.8540891
+        },
+        {
+          "lat": 1.2923967,
+          "lon": 103.8539328
+        }
+      ]
+    },
+    {
+      "id": 763525862,
+      "tags": {
+        "highway": "primary",
+        "lanes": "6",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "sidewalk:both": "separate",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "left|left;through|through|through|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2925027,
+          "lon": 103.8569856
+        },
+        {
+          "lat": 1.2924516,
+          "lon": 103.8570723
+        }
+      ]
+    },
+    {
+      "id": 763525863,
+      "tags": {
+        "highway": "primary",
+        "lanes": "6",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "left;through|through|none|none|none|none"
+      },
+      "nodes": [
+        {
+          "lat": 1.2929484,
+          "lon": 103.8562154
+        },
+        {
+          "lat": 1.2927809,
+          "lon": 103.856514
+        }
+      ]
+    },
+    {
+      "id": 763525864,
+      "tags": {
+        "highway": "primary",
+        "lanes": "5",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2930831,
+          "lon": 103.8559769
+        },
+        {
+          "lat": 1.2929484,
+          "lon": 103.8562154
+        }
+      ]
+    },
+    {
+      "id": 831044956,
+      "tags": {
+        "highway": "trunk",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "70",
+        "name": "Nicoll Highway",
+        "name:ms": "Lebuhraya Nicoll",
+        "name:ta": "நிகோல் நெடுஞ்சாலை",
+        "name:zh": "尼诰大道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "through|through|through;right|right"
+      },
+      "nodes": [
+        {
+          "lat": 1.2922894,
+          "lon": 103.8552936
+        },
+        {
+          "lat": 1.2924992,
+          "lon": 103.855412
+        }
+      ]
+    },
+    {
+      "id": 845894319,
+      "tags": {
+        "highway": "tertiary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Saint Andrew's Road",
+        "oneway": "yes",
+        "sidewalk": "left",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "left|slight_left;slight_right|through|through"
+      },
+      "nodes": [
+        {
+          "lat": 1.2921701,
+          "lon": 103.853132
+        },
+        {
+          "lat": 1.2923897,
+          "lon": 103.853252
+        }
+      ]
+    },
+    {
+      "id": 1303467716,
+      "tags": {
+        "foot": "no",
+        "highway": "primary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Stamford Road",
+        "name:zh": "史丹福路",
+        "oneway": "yes",
+        "source": "GPS & Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2915628,
+          "lon": 103.8547543
+        },
+        {
+          "lat": 1.291663,
+          "lon": 103.854655
+        }
+      ]
+    },
+    {
+      "id": 1392512181,
+      "tags": {
+        "highway": "primary",
+        "lanes": "5",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Stamford Road",
+        "name:zh": "史丹福路",
+        "oneway": "yes",
+        "sidewalk:both": "separate",
+        "source": "GPS & Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "through|through|through|through|right"
+      },
+      "nodes": [
+        {
+          "lat": 1.2923967,
+          "lon": 103.8539328
+        },
+        {
+          "lat": 1.2924047,
+          "lon": 103.8539248
+        }
+      ]
+    },
+    {
+      "id": 1415079998,
+      "tags": {
+        "busway:left": "lane",
+        "foot": "yes",
+        "highway": "primary",
+        "lanes": "5",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "left;through|none|none|none|none"
+      },
+      "nodes": [
+        {
+          "lat": 1.2914054,
+          "lon": 103.860022
+        },
+        {
+          "lat": 1.2914033,
+          "lon": 103.8600553
+        }
+      ]
+    },
+    {
+      "id": 1415079999,
+      "tags": {
+        "busway:left": "lane",
+        "foot": "yes",
+        "highway": "primary",
+        "lanes": "5",
+        "lanes:bus": "1",
+        "lanes:bus:conditional": "1 @ (Mo-Sa 07:30-23:00)",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt",
+        "turn:lanes": "left;through|none|none|none|none"
+      },
+      "nodes": [
+        {
+          "lat": 1.2914117,
+          "lon": 103.8599232
+        },
+        {
+          "lat": 1.2914054,
+          "lon": 103.860022
+        }
+      ]
+    },
+    {
+      "id": 1498693105,
+      "tags": {
+        "highway": "primary",
+        "lanes": "6",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Raffles Boulevard",
+        "name:zh": "莱佛士林荫道",
+        "oneway": "yes",
+        "sidewalk:both": "separate",
+        "source": "Yahoo aerial images",
+        "surface": "asphalt"
+      },
+      "nodes": [
+        {
+          "lat": 1.2925727,
+          "lon": 103.8568682
+        },
+        {
+          "lat": 1.2925027,
+          "lon": 103.8569856
         }
       ]
     }

@@ -1,0 +1,725 @@
+{
+  "trackId": "Q106544792",
+  "generatedAt": "2026-04-12T09:12:29.933Z",
+  "waysFileHash": "sha256:b30d1600a2f597388627cd0b19686a9165a5bfb5e2ef529e831175fa2fb2f8f4",
+  "stats": {
+    "totalWays": 11,
+    "junctionCoords": 9,
+    "segments": 13,
+    "loopsFound": 21
+  },
+  "loops": [
+    {
+      "loopId": 1,
+      "lengthMetres": 725,
+      "wayCount": 2,
+      "namedSections": [
+        "Miami International Autodrome"
+      ],
+      "ways": [
+        {
+          "wayId": 1472686141
+        },
+        {
+          "wayId": 1485453201
+        }
+      ]
+    },
+    {
+      "loopId": 2,
+      "lengthMetres": 1550,
+      "wayCount": 3,
+      "namedSections": [
+        "Miami International Autodrome",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 1017340352
+        },
+        {
+          "wayId": 1472686141,
+          "fromNode": {
+            "lat": 25.9597645,
+            "lon": -80.2415191
+          }
+        },
+        {
+          "wayId": 1485453197,
+          "toNode": {
+            "lat": 25.9572399,
+            "lon": -80.2359148
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 3,
+      "lengthMetres": 1785,
+      "wayCount": 2,
+      "namedSections": [
+        "Miami International Autodrome"
+      ],
+      "ways": [
+        {
+          "wayId": 1017340351
+        },
+        {
+          "wayId": 1485454063
+        }
+      ]
+    },
+    {
+      "loopId": 4,
+      "lengthMetres": 1910,
+      "wayCount": 4,
+      "namedSections": [
+        "Miami International Autodrome",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 1017340352
+        },
+        {
+          "wayId": 1472686141,
+          "toNode": {
+            "lat": 25.9597645,
+            "lon": -80.2415191
+          }
+        },
+        {
+          "wayId": 1485453201
+        },
+        {
+          "wayId": 1485453197,
+          "toNode": {
+            "lat": 25.9572399,
+            "lon": -80.2359148
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 5,
+      "lengthMetres": 2079,
+      "wayCount": 2,
+      "namedSections": [
+        "Miami International Autodrome"
+      ],
+      "ways": [
+        {
+          "wayId": 1233165737
+        },
+        {
+          "wayId": 1472684485
+        }
+      ]
+    },
+    {
+      "loopId": 6,
+      "lengthMetres": 2283,
+      "wayCount": 7,
+      "namedSections": [
+        "Miami International Autodrome"
+      ],
+      "ways": [
+        {
+          "wayId": 1485453204
+        },
+        {
+          "wayId": 1233165737
+        },
+        {
+          "wayId": 1485453202
+        },
+        {
+          "wayId": 1485453200
+        },
+        {
+          "wayId": 1485453201
+        },
+        {
+          "wayId": 1485453197
+        },
+        {
+          "wayId": 1485454063
+        }
+      ]
+    },
+    {
+      "loopId": 7,
+      "lengthMetres": 2582,
+      "wayCount": 9,
+      "namedSections": [
+        "Miami International Autodrome",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 1485453204
+        },
+        {
+          "wayId": 1233165737
+        },
+        {
+          "wayId": 1485453202
+        },
+        {
+          "wayId": 1485453200
+        },
+        {
+          "wayId": 1485453201
+        },
+        {
+          "wayId": 1472686141,
+          "fromNode": {
+            "lat": 25.9597645,
+            "lon": -80.2415191
+          }
+        },
+        {
+          "wayId": 1017340352
+        },
+        {
+          "wayId": 1485453197,
+          "fromNode": {
+            "lat": 25.9572399,
+            "lon": -80.2359148
+          }
+        },
+        {
+          "wayId": 1485454063
+        }
+      ]
+    },
+    {
+      "loopId": 8,
+      "lengthMetres": 2881,
+      "wayCount": 8,
+      "namedSections": [
+        "Miami International Autodrome",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 1485453204
+        },
+        {
+          "wayId": 1233165737
+        },
+        {
+          "wayId": 1485453202
+        },
+        {
+          "wayId": 1485453200
+        },
+        {
+          "wayId": 1472686141,
+          "toNode": {
+            "lat": 25.9597645,
+            "lon": -80.2415191
+          }
+        },
+        {
+          "wayId": 1017340352
+        },
+        {
+          "wayId": 1485453197,
+          "fromNode": {
+            "lat": 25.9572399,
+            "lon": -80.2359148
+          }
+        },
+        {
+          "wayId": 1485454063
+        }
+      ]
+    },
+    {
+      "loopId": 9,
+      "lengthMetres": 2946,
+      "wayCount": 7,
+      "namedSections": [
+        "Miami International Autodrome"
+      ],
+      "ways": [
+        {
+          "wayId": 1485453204
+        },
+        {
+          "wayId": 1233165737
+        },
+        {
+          "wayId": 1485453202
+        },
+        {
+          "wayId": 1485453200
+        },
+        {
+          "wayId": 1472686141
+        },
+        {
+          "wayId": 1485453197
+        },
+        {
+          "wayId": 1485454063
+        }
+      ]
+    },
+    {
+      "loopId": 10,
+      "lengthMetres": 3112,
+      "wayCount": 7,
+      "namedSections": [
+        "Miami International Autodrome"
+      ],
+      "ways": [
+        {
+          "wayId": 1485453204
+        },
+        {
+          "wayId": 1472684485
+        },
+        {
+          "wayId": 1485453202
+        },
+        {
+          "wayId": 1485453200
+        },
+        {
+          "wayId": 1485453201
+        },
+        {
+          "wayId": 1485453197
+        },
+        {
+          "wayId": 1485454063
+        }
+      ]
+    },
+    {
+      "loopId": 11,
+      "lengthMetres": 3411,
+      "wayCount": 9,
+      "namedSections": [
+        "Miami International Autodrome",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 1485453204
+        },
+        {
+          "wayId": 1472684485
+        },
+        {
+          "wayId": 1485453202
+        },
+        {
+          "wayId": 1485453200
+        },
+        {
+          "wayId": 1485453201
+        },
+        {
+          "wayId": 1472686141,
+          "fromNode": {
+            "lat": 25.9597645,
+            "lon": -80.2415191
+          }
+        },
+        {
+          "wayId": 1017340352
+        },
+        {
+          "wayId": 1485453197,
+          "fromNode": {
+            "lat": 25.9572399,
+            "lon": -80.2359148
+          }
+        },
+        {
+          "wayId": 1485454063
+        }
+      ]
+    },
+    {
+      "loopId": 12,
+      "lengthMetres": 3710,
+      "wayCount": 8,
+      "namedSections": [
+        "Miami International Autodrome",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 1485453204
+        },
+        {
+          "wayId": 1472684485
+        },
+        {
+          "wayId": 1485453202
+        },
+        {
+          "wayId": 1485453200
+        },
+        {
+          "wayId": 1472686141,
+          "toNode": {
+            "lat": 25.9597645,
+            "lon": -80.2415191
+          }
+        },
+        {
+          "wayId": 1017340352
+        },
+        {
+          "wayId": 1485453197,
+          "fromNode": {
+            "lat": 25.9572399,
+            "lon": -80.2359148
+          }
+        },
+        {
+          "wayId": 1485454063
+        }
+      ]
+    },
+    {
+      "loopId": 13,
+      "lengthMetres": 3775,
+      "wayCount": 7,
+      "namedSections": [
+        "Miami International Autodrome"
+      ],
+      "ways": [
+        {
+          "wayId": 1485453204
+        },
+        {
+          "wayId": 1472684485
+        },
+        {
+          "wayId": 1485453202
+        },
+        {
+          "wayId": 1485453200
+        },
+        {
+          "wayId": 1472686141
+        },
+        {
+          "wayId": 1485453197
+        },
+        {
+          "wayId": 1485454063
+        }
+      ]
+    },
+    {
+      "loopId": 14,
+      "lengthMetres": 3924,
+      "wayCount": 7,
+      "namedSections": [
+        "Miami International Autodrome"
+      ],
+      "ways": [
+        {
+          "wayId": 1017340351
+        },
+        {
+          "wayId": 1485453197
+        },
+        {
+          "wayId": 1485453201
+        },
+        {
+          "wayId": 1485453200
+        },
+        {
+          "wayId": 1485453202
+        },
+        {
+          "wayId": 1233165737
+        },
+        {
+          "wayId": 1485453204
+        }
+      ]
+    },
+    {
+      "loopId": 15,
+      "lengthMetres": 4223,
+      "wayCount": 9,
+      "namedSections": [
+        "Miami International Autodrome",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 1017340351
+        },
+        {
+          "wayId": 1485453197,
+          "fromNode": {
+            "lat": 25.9572399,
+            "lon": -80.2359148
+          }
+        },
+        {
+          "wayId": 1017340352
+        },
+        {
+          "wayId": 1472686141,
+          "fromNode": {
+            "lat": 25.9597645,
+            "lon": -80.2415191
+          }
+        },
+        {
+          "wayId": 1485453201
+        },
+        {
+          "wayId": 1485453200
+        },
+        {
+          "wayId": 1485453202
+        },
+        {
+          "wayId": 1233165737
+        },
+        {
+          "wayId": 1485453204
+        }
+      ]
+    },
+    {
+      "loopId": 16,
+      "lengthMetres": 4522,
+      "wayCount": 8,
+      "namedSections": [
+        "Miami International Autodrome",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 1017340351
+        },
+        {
+          "wayId": 1485453197,
+          "fromNode": {
+            "lat": 25.9572399,
+            "lon": -80.2359148
+          }
+        },
+        {
+          "wayId": 1017340352
+        },
+        {
+          "wayId": 1472686141,
+          "toNode": {
+            "lat": 25.9597645,
+            "lon": -80.2415191
+          }
+        },
+        {
+          "wayId": 1485453200
+        },
+        {
+          "wayId": 1485453202
+        },
+        {
+          "wayId": 1233165737
+        },
+        {
+          "wayId": 1485453204
+        }
+      ]
+    },
+    {
+      "loopId": 17,
+      "lengthMetres": 4587,
+      "wayCount": 7,
+      "namedSections": [
+        "Miami International Autodrome"
+      ],
+      "ways": [
+        {
+          "wayId": 1017340351
+        },
+        {
+          "wayId": 1485453197
+        },
+        {
+          "wayId": 1472686141
+        },
+        {
+          "wayId": 1485453200
+        },
+        {
+          "wayId": 1485453202
+        },
+        {
+          "wayId": 1233165737
+        },
+        {
+          "wayId": 1485453204
+        }
+      ]
+    },
+    {
+      "loopId": 18,
+      "lengthMetres": 4753,
+      "wayCount": 7,
+      "namedSections": [
+        "Miami International Autodrome"
+      ],
+      "ways": [
+        {
+          "wayId": 1017340351
+        },
+        {
+          "wayId": 1485453197
+        },
+        {
+          "wayId": 1485453201
+        },
+        {
+          "wayId": 1485453200
+        },
+        {
+          "wayId": 1485453202
+        },
+        {
+          "wayId": 1472684485
+        },
+        {
+          "wayId": 1485453204
+        }
+      ]
+    },
+    {
+      "loopId": 19,
+      "lengthMetres": 5052,
+      "wayCount": 9,
+      "namedSections": [
+        "Miami International Autodrome",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 1017340351
+        },
+        {
+          "wayId": 1485453197,
+          "fromNode": {
+            "lat": 25.9572399,
+            "lon": -80.2359148
+          }
+        },
+        {
+          "wayId": 1017340352
+        },
+        {
+          "wayId": 1472686141,
+          "fromNode": {
+            "lat": 25.9597645,
+            "lon": -80.2415191
+          }
+        },
+        {
+          "wayId": 1485453201
+        },
+        {
+          "wayId": 1485453200
+        },
+        {
+          "wayId": 1485453202
+        },
+        {
+          "wayId": 1472684485
+        },
+        {
+          "wayId": 1485453204
+        }
+      ]
+    },
+    {
+      "loopId": 20,
+      "lengthMetres": 5351,
+      "wayCount": 8,
+      "namedSections": [
+        "Miami International Autodrome",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 1017340351
+        },
+        {
+          "wayId": 1485453197,
+          "fromNode": {
+            "lat": 25.9572399,
+            "lon": -80.2359148
+          }
+        },
+        {
+          "wayId": 1017340352
+        },
+        {
+          "wayId": 1472686141,
+          "toNode": {
+            "lat": 25.9597645,
+            "lon": -80.2415191
+          }
+        },
+        {
+          "wayId": 1485453200
+        },
+        {
+          "wayId": 1485453202
+        },
+        {
+          "wayId": 1472684485
+        },
+        {
+          "wayId": 1485453204
+        }
+      ]
+    },
+    {
+      "loopId": 21,
+      "lengthMetres": 5416,
+      "wayCount": 7,
+      "namedSections": [
+        "Miami International Autodrome"
+      ],
+      "ways": [
+        {
+          "wayId": 1017340351
+        },
+        {
+          "wayId": 1485453197
+        },
+        {
+          "wayId": 1472686141
+        },
+        {
+          "wayId": 1485453200
+        },
+        {
+          "wayId": 1485453202
+        },
+        {
+          "wayId": 1472684485
+        },
+        {
+          "wayId": 1485453204
+        }
+      ]
+    }
+  ],
+  "unusedWays": []
+}

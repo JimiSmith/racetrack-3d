@@ -1,0 +1,67 @@
+{
+  "trackId": "Q172860",
+  "generatedAt": "2026-04-12T09:12:29.993Z",
+  "waysFileHash": "sha256:33f492b8128bf034935eaca89802451dbbecea4a60a9dfd09ea72157f4e07066",
+  "stats": {
+    "totalWays": 2,
+    "junctionCoords": 3,
+    "segments": 4,
+    "loopsFound": 3
+  },
+  "loops": [
+    {
+      "loopId": 1,
+      "lengthMetres": 1689,
+      "wayCount": 2,
+      "namedSections": [
+        "Circuit Gilles-Villeneuve"
+      ],
+      "ways": [
+        {
+          "wayId": 136717490,
+          "fromNode": {
+            "lat": 45.5040959,
+            "lon": -73.5234683
+          },
+          "toNode": {
+            "lat": 45.4970649,
+            "lon": -73.5224658
+          }
+        },
+        {
+          "wayId": 413000959
+        }
+      ]
+    },
+    {
+      "loopId": 2,
+      "lengthMetres": 4332,
+      "wayCount": 2,
+      "namedSections": [
+        "Circuit Gilles-Villeneuve"
+      ],
+      "ways": [
+        {
+          "wayId": 136717490
+        },
+        {
+          "wayId": 413000959
+        }
+      ]
+    },
+    {
+      "loopId": 3,
+      "lengthMetres": 4367,
+      "wayCount": 1,
+      "namedSections": [
+        "Circuit Gilles-Villeneuve"
+      ],
+      "ways": [
+        {
+          "wayId": 136717490
+        }
+      ]
+    }
+  ],
+  "unusedWays": []
+}

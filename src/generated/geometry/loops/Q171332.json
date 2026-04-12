@@ -1,0 +1,7392 @@
+{
+  "trackId": "Q171332",
+  "generatedAt": "2026-04-12T09:12:29.949Z",
+  "waysFileHash": "sha256:6bc4a60bab9f950a386c76f3916ec8c980fb35a3da2547e913d9aa346679aa5d",
+  "stats": {
+    "totalWays": 20,
+    "junctionCoords": 23,
+    "segments": 29,
+    "loopsFound": 130
+  },
+  "loops": [
+    {
+      "loopId": 1,
+      "lengthMetres": 292,
+      "wayCount": 2,
+      "namedSections": [
+        "Grand Prix Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          },
+          "toNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        }
+      ]
+    },
+    {
+      "loopId": 2,
+      "lengthMetres": 988,
+      "wayCount": 4,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756731
+        }
+      ]
+    },
+    {
+      "loopId": 3,
+      "lengthMetres": 1295,
+      "wayCount": 4,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756725
+        }
+      ]
+    },
+    {
+      "loopId": 4,
+      "lengthMetres": 1550,
+      "wayCount": 2,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 5,
+      "lengthMetres": 1716,
+      "wayCount": 6,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756731
+        }
+      ]
+    },
+    {
+      "loopId": 6,
+      "lengthMetres": 1877,
+      "wayCount": 4,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 881756729
+        }
+      ]
+    },
+    {
+      "loopId": 7,
+      "lengthMetres": 2024,
+      "wayCount": 5,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          },
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 8,
+      "lengthMetres": 2109,
+      "wayCount": 5,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          },
+          "toNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 9,
+      "lengthMetres": 2549,
+      "wayCount": 6,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          },
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 10,
+      "lengthMetres": 2569,
+      "wayCount": 3,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Inner Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 11,
+      "lengthMetres": 2773,
+      "wayCount": 6,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 881756725
+        }
+      ]
+    },
+    {
+      "loopId": 12,
+      "lengthMetres": 2824,
+      "wayCount": 5,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Outer Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756731
+        }
+      ]
+    },
+    {
+      "loopId": 13,
+      "lengthMetres": 2962,
+      "wayCount": 6,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          },
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 881756725
+        }
+      ]
+    },
+    {
+      "loopId": 14,
+      "lengthMetres": 2977,
+      "wayCount": 7,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756731
+        }
+      ]
+    },
+    {
+      "loopId": 15,
+      "lengthMetres": 2997,
+      "wayCount": 4,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 881756728
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756731
+        }
+      ]
+    },
+    {
+      "loopId": 16,
+      "lengthMetres": 3195,
+      "wayCount": 8,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756731
+        }
+      ]
+    },
+    {
+      "loopId": 17,
+      "lengthMetres": 3243,
+      "wayCount": 4,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Outer Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 881756728
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756731
+        }
+      ]
+    },
+    {
+      "loopId": 18,
+      "lengthMetres": 3381,
+      "wayCount": 5,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756725
+        }
+      ]
+    },
+    {
+      "loopId": 19,
+      "lengthMetres": 3453,
+      "wayCount": 5,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Outer Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        }
+      ]
+    },
+    {
+      "loopId": 20,
+      "lengthMetres": 3456,
+      "wayCount": 7,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 21,
+      "lengthMetres": 3555,
+      "wayCount": 3,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Outer Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        }
+      ]
+    },
+    {
+      "loopId": 22,
+      "lengthMetres": 3558,
+      "wayCount": 5,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 23,
+      "lengthMetres": 3605,
+      "wayCount": 7,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        }
+      ]
+    },
+    {
+      "loopId": 24,
+      "lengthMetres": 3609,
+      "wayCount": 9,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 25,
+      "lengthMetres": 3708,
+      "wayCount": 5,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        }
+      ]
+    },
+    {
+      "loopId": 26,
+      "lengthMetres": 3711,
+      "wayCount": 7,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 27,
+      "lengthMetres": 3738,
+      "wayCount": 5,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        }
+      ]
+    },
+    {
+      "loopId": 28,
+      "lengthMetres": 3741,
+      "wayCount": 7,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 29,
+      "lengthMetres": 3797,
+      "wayCount": 7,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Inner Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        }
+      ]
+    },
+    {
+      "loopId": 30,
+      "lengthMetres": 3800,
+      "wayCount": 9,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 31,
+      "lengthMetres": 3840,
+      "wayCount": 3,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        }
+      ]
+    },
+    {
+      "loopId": 32,
+      "lengthMetres": 3844,
+      "wayCount": 5,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 33,
+      "lengthMetres": 3899,
+      "wayCount": 5,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Inner Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        }
+      ]
+    },
+    {
+      "loopId": 34,
+      "lengthMetres": 3903,
+      "wayCount": 7,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 35,
+      "lengthMetres": 3917,
+      "wayCount": 8,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        }
+      ]
+    },
+    {
+      "loopId": 36,
+      "lengthMetres": 3921,
+      "wayCount": 10,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 37,
+      "lengthMetres": 4009,
+      "wayCount": 10,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 38,
+      "lengthMetres": 4019,
+      "wayCount": 6,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        }
+      ]
+    },
+    {
+      "loopId": 39,
+      "lengthMetres": 4023,
+      "wayCount": 8,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 40,
+      "lengthMetres": 4106,
+      "wayCount": 8,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          },
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        }
+      ]
+    },
+    {
+      "loopId": 41,
+      "lengthMetres": 4109,
+      "wayCount": 8,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        }
+      ]
+    },
+    {
+      "loopId": 42,
+      "lengthMetres": 4109,
+      "wayCount": 10,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          },
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 43,
+      "lengthMetres": 4111,
+      "wayCount": 8,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 44,
+      "lengthMetres": 4112,
+      "wayCount": 10,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 45,
+      "lengthMetres": 4161,
+      "wayCount": 12,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 46,
+      "lengthMetres": 4163,
+      "wayCount": 8,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Outer Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        }
+      ]
+    },
+    {
+      "loopId": 47,
+      "lengthMetres": 4167,
+      "wayCount": 10,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 48,
+      "lengthMetres": 4208,
+      "wayCount": 6,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          },
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 562936453
+        }
+      ]
+    },
+    {
+      "loopId": 49,
+      "lengthMetres": 4210,
+      "wayCount": 7,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        }
+      ]
+    },
+    {
+      "loopId": 50,
+      "lengthMetres": 4211,
+      "wayCount": 6,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        }
+      ]
+    },
+    {
+      "loopId": 51,
+      "lengthMetres": 4212,
+      "wayCount": 8,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          },
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 52,
+      "lengthMetres": 4214,
+      "wayCount": 9,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 53,
+      "lengthMetres": 4215,
+      "wayCount": 8,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 54,
+      "lengthMetres": 4264,
+      "wayCount": 10,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 55,
+      "lengthMetres": 4265,
+      "wayCount": 6,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Outer Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        }
+      ]
+    },
+    {
+      "loopId": 56,
+      "lengthMetres": 4269,
+      "wayCount": 8,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 57,
+      "lengthMetres": 4294,
+      "wayCount": 10,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 58,
+      "lengthMetres": 4313,
+      "wayCount": 5,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        }
+      ]
+    },
+    {
+      "loopId": 59,
+      "lengthMetres": 4316,
+      "wayCount": 7,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 60,
+      "lengthMetres": 4353,
+      "wayCount": 12,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 61,
+      "lengthMetres": 4396,
+      "wayCount": 8,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 62,
+      "lengthMetres": 4455,
+      "wayCount": 10,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 63,
+      "lengthMetres": 4473,
+      "wayCount": 13,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 64,
+      "lengthMetres": 4575,
+      "wayCount": 11,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 65,
+      "lengthMetres": 4662,
+      "wayCount": 13,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          },
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 66,
+      "lengthMetres": 4665,
+      "wayCount": 13,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 67,
+      "lengthMetres": 4719,
+      "wayCount": 13,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 68,
+      "lengthMetres": 4764,
+      "wayCount": 11,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          },
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 69,
+      "lengthMetres": 4766,
+      "wayCount": 12,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 70,
+      "lengthMetres": 4767,
+      "wayCount": 11,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 71,
+      "lengthMetres": 4821,
+      "wayCount": 11,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 72,
+      "lengthMetres": 4835,
+      "wayCount": 10,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          },
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        }
+      ]
+    },
+    {
+      "loopId": 73,
+      "lengthMetres": 4838,
+      "wayCount": 12,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          },
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 74,
+      "lengthMetres": 4869,
+      "wayCount": 10,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 75,
+      "lengthMetres": 4921,
+      "wayCount": 10,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        }
+      ]
+    },
+    {
+      "loopId": 76,
+      "lengthMetres": 4924,
+      "wayCount": 12,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 77,
+      "lengthMetres": 4937,
+      "wayCount": 8,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          },
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 562936453
+        }
+      ]
+    },
+    {
+      "loopId": 78,
+      "lengthMetres": 4940,
+      "wayCount": 10,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          },
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 79,
+      "lengthMetres": 5023,
+      "wayCount": 8,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        }
+      ]
+    },
+    {
+      "loopId": 80,
+      "lengthMetres": 5026,
+      "wayCount": 10,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 81,
+      "lengthMetres": 5323,
+      "wayCount": 5,
+      "namedSections": [
+        "Grand Prix Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 881756728
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        }
+      ]
+    },
+    {
+      "loopId": 82,
+      "lengthMetres": 5327,
+      "wayCount": 7,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756728
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 83,
+      "lengthMetres": 5391,
+      "wayCount": 15,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          },
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 84,
+      "lengthMetres": 5426,
+      "wayCount": 3,
+      "namedSections": [
+        "Grand Prix Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385
+        },
+        {
+          "wayId": 881756728
+        },
+        {
+          "wayId": 881756729
+        }
+      ]
+    },
+    {
+      "loopId": 85,
+      "lengthMetres": 5429,
+      "wayCount": 5,
+      "namedSections": [
+        "Grand Prix Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756728
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 86,
+      "lengthMetres": 5470,
+      "wayCount": 10,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 87,
+      "lengthMetres": 5477,
+      "wayCount": 15,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 88,
+      "lengthMetres": 5493,
+      "wayCount": 13,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          },
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 89,
+      "lengthMetres": 5572,
+      "wayCount": 8,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 90,
+      "lengthMetres": 5579,
+      "wayCount": 13,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 91,
+      "lengthMetres": 5623,
+      "wayCount": 12,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 92,
+      "lengthMetres": 5691,
+      "wayCount": 8,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        }
+      ]
+    },
+    {
+      "loopId": 93,
+      "lengthMetres": 5695,
+      "wayCount": 10,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 94,
+      "lengthMetres": 5725,
+      "wayCount": 10,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 95,
+      "lengthMetres": 5755,
+      "wayCount": 10,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 96,
+      "lengthMetres": 5794,
+      "wayCount": 6,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 881756729
+        }
+      ]
+    },
+    {
+      "loopId": 97,
+      "lengthMetres": 5797,
+      "wayCount": 8,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 98,
+      "lengthMetres": 5815,
+      "wayCount": 12,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 99,
+      "lengthMetres": 5858,
+      "wayCount": 8,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 100,
+      "lengthMetres": 5879,
+      "wayCount": 10,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 101,
+      "lengthMetres": 5917,
+      "wayCount": 10,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 102,
+      "lengthMetres": 5935,
+      "wayCount": 13,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 103,
+      "lengthMetres": 5982,
+      "wayCount": 8,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 104,
+      "lengthMetres": 6037,
+      "wayCount": 11,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 105,
+      "lengthMetres": 6123,
+      "wayCount": 13,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          },
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 106,
+      "lengthMetres": 6126,
+      "wayCount": 13,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 107,
+      "lengthMetres": 6181,
+      "wayCount": 13,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 108,
+      "lengthMetres": 6220,
+      "wayCount": 7,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 881756728
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        }
+      ]
+    },
+    {
+      "loopId": 109,
+      "lengthMetres": 6223,
+      "wayCount": 9,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756728
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 110,
+      "lengthMetres": 6226,
+      "wayCount": 11,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          },
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 111,
+      "lengthMetres": 6228,
+      "wayCount": 12,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 112,
+      "lengthMetres": 6229,
+      "wayCount": 11,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 113,
+      "lengthMetres": 6247,
+      "wayCount": 13,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 114,
+      "lengthMetres": 6283,
+      "wayCount": 11,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 115,
+      "lengthMetres": 6322,
+      "wayCount": 5,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385
+        },
+        {
+          "wayId": 881756728
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        }
+      ]
+    },
+    {
+      "loopId": 116,
+      "lengthMetres": 6325,
+      "wayCount": 7,
+      "namedSections": [
+        "Endurance Circuit",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 881756728
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          }
+        },
+        {
+          "wayId": 187123422
+        }
+      ]
+    },
+    {
+      "loopId": 117,
+      "lengthMetres": 6330,
+      "wayCount": 10,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 118,
+      "lengthMetres": 6350,
+      "wayCount": 11,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 119,
+      "lengthMetres": 6776,
+      "wayCount": 12,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 120,
+      "lengthMetres": 6852,
+      "wayCount": 15,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          },
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 121,
+      "lengthMetres": 6878,
+      "wayCount": 10,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0354215,
+            "lon": 50.5106222
+          }
+        },
+        {
+          "wayId": 187123422,
+          "fromNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 122,
+      "lengthMetres": 6938,
+      "wayCount": 15,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 123,
+      "lengthMetres": 6954,
+      "wayCount": 13,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          },
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 124,
+      "lengthMetres": 7040,
+      "wayCount": 13,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Paddock Layout",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728,
+          "fromNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0353187,
+            "lon": 50.5127603
+          }
+        },
+        {
+          "wayId": 562936453
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0365269,
+            "lon": 50.5132856
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 125,
+      "lengthMetres": 7341,
+      "wayCount": 10,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 126,
+      "lengthMetres": 7443,
+      "wayCount": 8,
+      "namedSections": [
+        "Drag Strip",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 127,
+      "lengthMetres": 7709,
+      "wayCount": 13,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 128,
+      "lengthMetres": 7811,
+      "wayCount": 11,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756731
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 4818386
+        },
+        {
+          "wayId": 881756728,
+          "toNode": {
+            "lat": 26.0306745,
+            "lon": 50.5150093
+          }
+        },
+        {
+          "wayId": 881756729
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 129,
+      "lengthMetres": 8237,
+      "wayCount": 12,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0363505,
+            "lon": 50.5115465
+          }
+        },
+        {
+          "wayId": 1359183362
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          },
+          "toNode": {
+            "lat": 26.0360635,
+            "lon": 50.510652
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    },
+    {
+      "loopId": 130,
+      "lengthMetres": 8339,
+      "wayCount": 10,
+      "namedSections": [
+        "Drag Strip",
+        "Endurance Circuit",
+        "Flat Oval Layout",
+        "Grand Prix Circuit",
+        "Inner Circuit",
+        "Outer Circuit",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 4818385,
+          "toNode": {
+            "lat": 26.0284501,
+            "lon": 50.5103162
+          }
+        },
+        {
+          "wayId": 881756728
+        },
+        {
+          "wayId": 4818389
+        },
+        {
+          "wayId": 4818387
+        },
+        {
+          "wayId": 881756725
+        },
+        {
+          "wayId": 4818385,
+          "fromNode": {
+            "lat": 26.0284805,
+            "lon": 50.5103183
+          }
+        },
+        {
+          "wayId": 187123422,
+          "toNode": {
+            "lat": 26.0350254,
+            "lon": 50.5106563
+          }
+        },
+        {
+          "wayId": 562936458
+        },
+        {
+          "wayId": 271528411
+        },
+        {
+          "wayId": 1487133866
+        }
+      ]
+    }
+  ],
+  "unusedWays": [
+    {
+      "wayId": 271528378,
+      "name": "Drag Strip"
+    },
+    {
+      "wayId": 1251965000,
+      "name": "Drag Strip"
+    },
+    {
+      "wayId": 1251965004,
+      "name": "Drag Strip"
+    },
+    {
+      "wayId": 1251965005,
+      "name": "Drag Strip"
+    },
+    {
+      "wayId": 1251965006,
+      "name": "Drag Strip"
+    },
+    {
+      "wayId": 1251965007,
+      "name": ""
+    }
+  ]
+}

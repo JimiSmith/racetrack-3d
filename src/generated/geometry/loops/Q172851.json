@@ -1,0 +1,2462 @@
+{
+  "trackId": "Q172851",
+  "generatedAt": "2026-04-12T09:12:29.991Z",
+  "waysFileHash": "sha256:b93050a8f442f82e261e1a82e94cc672dfb1721f092779af763f62bc37ab3338",
+  "stats": {
+    "totalWays": 41,
+    "junctionCoords": 42,
+    "segments": 47,
+    "loopsFound": 27
+  },
+  "loops": [
+    {
+      "loopId": 1,
+      "lengthMetres": 491,
+      "wayCount": 2,
+      "namedSections": [
+        "Moto layout",
+        "Speaker's Corner"
+      ],
+      "ways": [
+        {
+          "wayId": 126807106
+        },
+        {
+          "wayId": 1134119259
+        }
+      ]
+    },
+    {
+      "loopId": 2,
+      "lengthMetres": 636,
+      "wayCount": 4,
+      "namedSections": [
+        "Joker lap",
+        "Rallycross circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 1467574854
+        },
+        {
+          "wayId": 689853534,
+          "toNode": {
+            "lat": 50.4439472,
+            "lon": 5.9705963
+          }
+        },
+        {
+          "wayId": 689853537
+        },
+        {
+          "wayId": 1467574856
+        }
+      ]
+    },
+    {
+      "loopId": 3,
+      "lengthMetres": 988,
+      "wayCount": 8,
+      "namedSections": [
+        "Eau Rouge",
+        "Joker lap",
+        "Raidillon",
+        "Rallycross circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 126835637,
+          "toNode": {
+            "lat": 50.4411262,
+            "lon": 5.9719918
+          }
+        },
+        {
+          "wayId": 126835639
+        },
+        {
+          "wayId": 126807110,
+          "fromNode": {
+            "lat": 50.4429533,
+            "lon": 5.9698663
+          }
+        },
+        {
+          "wayId": 1467574855
+        },
+        {
+          "wayId": 689853534,
+          "fromNode": {
+            "lat": 50.4439472,
+            "lon": 5.9705963
+          }
+        },
+        {
+          "wayId": 689853537
+        },
+        {
+          "wayId": 1467574856
+        },
+        {
+          "wayId": 689853533
+        }
+      ]
+    },
+    {
+      "loopId": 4,
+      "lengthMetres": 992,
+      "wayCount": 7,
+      "namedSections": [
+        "Eau Rouge",
+        "Raidillon",
+        "Rallycross circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 126835637,
+          "toNode": {
+            "lat": 50.4411262,
+            "lon": 5.9719918
+          }
+        },
+        {
+          "wayId": 126835639
+        },
+        {
+          "wayId": 126807110,
+          "fromNode": {
+            "lat": 50.4429533,
+            "lon": 5.9698663
+          }
+        },
+        {
+          "wayId": 1467574855
+        },
+        {
+          "wayId": 689853534
+        },
+        {
+          "wayId": 1467574854
+        },
+        {
+          "wayId": 689853533
+        }
+      ]
+    },
+    {
+      "loopId": 5,
+      "lengthMetres": 1502,
+      "wayCount": 5,
+      "namedSections": [
+        "La Source",
+        "Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 323851541
+        },
+        {
+          "wayId": 175178448
+        },
+        {
+          "wayId": 175178443
+        },
+        {
+          "wayId": 126807099
+        },
+        {
+          "wayId": 613486590
+        }
+      ]
+    },
+    {
+      "loopId": 6,
+      "lengthMetres": 2412,
+      "wayCount": 6,
+      "namedSections": [
+        "Eau Rouge",
+        "Kemmel",
+        "Pit Lane",
+        "Raidillon",
+        "Support Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 126807525
+        },
+        {
+          "wayId": 323851541,
+          "fromNode": {
+            "lat": 50.4459413,
+            "lon": 5.964119
+          }
+        },
+        {
+          "wayId": 126807110
+        },
+        {
+          "wayId": 126835639
+        },
+        {
+          "wayId": 126835637
+        },
+        {
+          "wayId": 126835638,
+          "toNode": {
+            "lat": 50.4379469,
+            "lon": 5.9746894
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 7,
+      "lengthMetres": 2871,
+      "wayCount": 10,
+      "namedSections": [
+        "Joker lap",
+        "Kemmel",
+        "Pit Lane",
+        "Raidillon",
+        "Rallycross circuit",
+        "Support Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 126807525
+        },
+        {
+          "wayId": 323851541,
+          "fromNode": {
+            "lat": 50.4459413,
+            "lon": 5.964119
+          }
+        },
+        {
+          "wayId": 126807110,
+          "toNode": {
+            "lat": 50.4429533,
+            "lon": 5.9698663
+          }
+        },
+        {
+          "wayId": 1467574855
+        },
+        {
+          "wayId": 689853534,
+          "fromNode": {
+            "lat": 50.4439472,
+            "lon": 5.9705963
+          }
+        },
+        {
+          "wayId": 689853537
+        },
+        {
+          "wayId": 1467574856
+        },
+        {
+          "wayId": 689853533
+        },
+        {
+          "wayId": 126835637,
+          "fromNode": {
+            "lat": 50.4411262,
+            "lon": 5.9719918
+          }
+        },
+        {
+          "wayId": 126835638,
+          "toNode": {
+            "lat": 50.4379469,
+            "lon": 5.9746894
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 8,
+      "lengthMetres": 2875,
+      "wayCount": 9,
+      "namedSections": [
+        "Kemmel",
+        "Pit Lane",
+        "Raidillon",
+        "Rallycross circuit",
+        "Support Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 126807525
+        },
+        {
+          "wayId": 323851541,
+          "fromNode": {
+            "lat": 50.4459413,
+            "lon": 5.964119
+          }
+        },
+        {
+          "wayId": 126807110,
+          "toNode": {
+            "lat": 50.4429533,
+            "lon": 5.9698663
+          }
+        },
+        {
+          "wayId": 1467574855
+        },
+        {
+          "wayId": 689853534
+        },
+        {
+          "wayId": 1467574854
+        },
+        {
+          "wayId": 689853533
+        },
+        {
+          "wayId": 126835637,
+          "fromNode": {
+            "lat": 50.4411262,
+            "lon": 5.9719918
+          }
+        },
+        {
+          "wayId": 126835638,
+          "toNode": {
+            "lat": 50.4379469,
+            "lon": 5.9746894
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 9,
+      "lengthMetres": 3719,
+      "wayCount": 10,
+      "namedSections": [
+        "Eau Rouge",
+        "Kemmel",
+        "La Source",
+        "Pit Lane",
+        "Raidillon",
+        "Support Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 126807525
+        },
+        {
+          "wayId": 323851541,
+          "toNode": {
+            "lat": 50.4459413,
+            "lon": 5.964119
+          }
+        },
+        {
+          "wayId": 613486590
+        },
+        {
+          "wayId": 126807099
+        },
+        {
+          "wayId": 175178443
+        },
+        {
+          "wayId": 175178448
+        },
+        {
+          "wayId": 126807110
+        },
+        {
+          "wayId": 126835639
+        },
+        {
+          "wayId": 126835637
+        },
+        {
+          "wayId": 126835638,
+          "toNode": {
+            "lat": 50.4379469,
+            "lon": 5.9746894
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 10,
+      "lengthMetres": 4178,
+      "wayCount": 14,
+      "namedSections": [
+        "Joker lap",
+        "Kemmel",
+        "La Source",
+        "Pit Lane",
+        "Raidillon",
+        "Rallycross circuit",
+        "Support Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 126807525
+        },
+        {
+          "wayId": 323851541,
+          "toNode": {
+            "lat": 50.4459413,
+            "lon": 5.964119
+          }
+        },
+        {
+          "wayId": 613486590
+        },
+        {
+          "wayId": 126807099
+        },
+        {
+          "wayId": 175178443
+        },
+        {
+          "wayId": 175178448
+        },
+        {
+          "wayId": 126807110,
+          "toNode": {
+            "lat": 50.4429533,
+            "lon": 5.9698663
+          }
+        },
+        {
+          "wayId": 1467574855
+        },
+        {
+          "wayId": 689853534,
+          "fromNode": {
+            "lat": 50.4439472,
+            "lon": 5.9705963
+          }
+        },
+        {
+          "wayId": 689853537
+        },
+        {
+          "wayId": 1467574856
+        },
+        {
+          "wayId": 689853533
+        },
+        {
+          "wayId": 126835637,
+          "fromNode": {
+            "lat": 50.4411262,
+            "lon": 5.9719918
+          }
+        },
+        {
+          "wayId": 126835638,
+          "toNode": {
+            "lat": 50.4379469,
+            "lon": 5.9746894
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 11,
+      "lengthMetres": 4181,
+      "wayCount": 13,
+      "namedSections": [
+        "Kemmel",
+        "La Source",
+        "Pit Lane",
+        "Raidillon",
+        "Rallycross circuit",
+        "Support Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 126807525
+        },
+        {
+          "wayId": 323851541,
+          "toNode": {
+            "lat": 50.4459413,
+            "lon": 5.964119
+          }
+        },
+        {
+          "wayId": 613486590
+        },
+        {
+          "wayId": 126807099
+        },
+        {
+          "wayId": 175178443
+        },
+        {
+          "wayId": 175178448
+        },
+        {
+          "wayId": 126807110,
+          "toNode": {
+            "lat": 50.4429533,
+            "lon": 5.9698663
+          }
+        },
+        {
+          "wayId": 1467574855
+        },
+        {
+          "wayId": 689853534
+        },
+        {
+          "wayId": 1467574854
+        },
+        {
+          "wayId": 689853533
+        },
+        {
+          "wayId": 126835637,
+          "fromNode": {
+            "lat": 50.4411262,
+            "lon": 5.9719918
+          }
+        },
+        {
+          "wayId": 126835638,
+          "toNode": {
+            "lat": 50.4379469,
+            "lon": 5.9746894
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 12,
+      "lengthMetres": 6912,
+      "wayCount": 25,
+      "namedSections": [
+        "Blanchimont",
+        "Bruxelles",
+        "Campus",
+        "Chicane",
+        "Courbe Paul Frère",
+        "Double Gauche",
+        "Fagnes",
+        "Kemmel",
+        "Les Combes",
+        "Malmedy",
+        "Moto layout",
+        "Pit Lane",
+        "Support Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 126807111
+        },
+        {
+          "wayId": 175195997
+        },
+        {
+          "wayId": 126807113
+        },
+        {
+          "wayId": 24449918
+        },
+        {
+          "wayId": 1430527230
+        },
+        {
+          "wayId": 126835638,
+          "fromNode": {
+            "lat": 50.4379469,
+            "lon": 5.9746894
+          }
+        },
+        {
+          "wayId": 126807525
+        },
+        {
+          "wayId": 323851541,
+          "toNode": {
+            "lat": 50.4459413,
+            "lon": 5.964119
+          }
+        },
+        {
+          "wayId": 637268672
+        },
+        {
+          "wayId": 126807105
+        },
+        {
+          "wayId": 178964809
+        },
+        {
+          "wayId": 176133745
+        },
+        {
+          "wayId": 126807114
+        },
+        {
+          "wayId": 176133746
+        },
+        {
+          "wayId": 126807100
+        },
+        {
+          "wayId": 175371365
+        },
+        {
+          "wayId": 175371353
+        },
+        {
+          "wayId": 126807116
+        },
+        {
+          "wayId": 126807109
+        },
+        {
+          "wayId": 126807101
+        },
+        {
+          "wayId": 126807103
+        },
+        {
+          "wayId": 1359025267
+        },
+        {
+          "wayId": 1134119259
+        },
+        {
+          "wayId": 1359025268
+        },
+        {
+          "wayId": 126807112
+        }
+      ]
+    },
+    {
+      "loopId": 13,
+      "lengthMetres": 6920,
+      "wayCount": 27,
+      "namedSections": [
+        "Blanchimont",
+        "Bruxelles",
+        "Campus",
+        "Chicane",
+        "Courbe Paul Frère",
+        "Double Gauche",
+        "Eau Rouge",
+        "Fagnes",
+        "Kemmel",
+        "Les Combes",
+        "Malmedy",
+        "Moto layout",
+        "Pit Lane",
+        "Raidillon"
+      ],
+      "ways": [
+        {
+          "wayId": 126807111
+        },
+        {
+          "wayId": 175195997
+        },
+        {
+          "wayId": 126807113
+        },
+        {
+          "wayId": 24449918
+        },
+        {
+          "wayId": 1430527230
+        },
+        {
+          "wayId": 126835638
+        },
+        {
+          "wayId": 126835637
+        },
+        {
+          "wayId": 126835639
+        },
+        {
+          "wayId": 126807110
+        },
+        {
+          "wayId": 323851541
+        },
+        {
+          "wayId": 637268672
+        },
+        {
+          "wayId": 126807105
+        },
+        {
+          "wayId": 178964809
+        },
+        {
+          "wayId": 176133745
+        },
+        {
+          "wayId": 126807114
+        },
+        {
+          "wayId": 176133746
+        },
+        {
+          "wayId": 126807100
+        },
+        {
+          "wayId": 175371365
+        },
+        {
+          "wayId": 175371353
+        },
+        {
+          "wayId": 126807116
+        },
+        {
+          "wayId": 126807109
+        },
+        {
+          "wayId": 126807101
+        },
+        {
+          "wayId": 126807103
+        },
+        {
+          "wayId": 1359025267
+        },
+        {
+          "wayId": 1134119259
+        },
+        {
+          "wayId": 1359025268
+        },
+        {
+          "wayId": 126807112
+        }
+      ]
+    },
+    {
+      "loopId": 14,
+      "lengthMetres": 6931,
+      "wayCount": 25,
+      "namedSections": [
+        "Blanchimont",
+        "Bruxelles",
+        "Campus",
+        "Chicane",
+        "Courbe Paul Frère",
+        "Double Gauche",
+        "Fagnes",
+        "Kemmel",
+        "Les Combes",
+        "Malmedy",
+        "Pit Lane",
+        "Speaker's Corner",
+        "Support Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 126807111
+        },
+        {
+          "wayId": 175195997
+        },
+        {
+          "wayId": 126807113
+        },
+        {
+          "wayId": 24449918
+        },
+        {
+          "wayId": 1430527230
+        },
+        {
+          "wayId": 126835638,
+          "fromNode": {
+            "lat": 50.4379469,
+            "lon": 5.9746894
+          }
+        },
+        {
+          "wayId": 126807525
+        },
+        {
+          "wayId": 323851541,
+          "toNode": {
+            "lat": 50.4459413,
+            "lon": 5.964119
+          }
+        },
+        {
+          "wayId": 637268672
+        },
+        {
+          "wayId": 126807105
+        },
+        {
+          "wayId": 178964809
+        },
+        {
+          "wayId": 176133745
+        },
+        {
+          "wayId": 126807114
+        },
+        {
+          "wayId": 176133746
+        },
+        {
+          "wayId": 126807100
+        },
+        {
+          "wayId": 175371365
+        },
+        {
+          "wayId": 175371353
+        },
+        {
+          "wayId": 126807116
+        },
+        {
+          "wayId": 126807109
+        },
+        {
+          "wayId": 126807101
+        },
+        {
+          "wayId": 126807103
+        },
+        {
+          "wayId": 1359025267
+        },
+        {
+          "wayId": 126807106
+        },
+        {
+          "wayId": 1359025268
+        },
+        {
+          "wayId": 126807112
+        }
+      ]
+    },
+    {
+      "loopId": 15,
+      "lengthMetres": 6938,
+      "wayCount": 27,
+      "namedSections": [
+        "Blanchimont",
+        "Bruxelles",
+        "Campus",
+        "Chicane",
+        "Courbe Paul Frère",
+        "Double Gauche",
+        "Eau Rouge",
+        "Fagnes",
+        "Kemmel",
+        "Les Combes",
+        "Malmedy",
+        "Pit Lane",
+        "Raidillon",
+        "Speaker's Corner"
+      ],
+      "ways": [
+        {
+          "wayId": 126807111
+        },
+        {
+          "wayId": 175195997
+        },
+        {
+          "wayId": 126807113
+        },
+        {
+          "wayId": 24449918
+        },
+        {
+          "wayId": 1430527230
+        },
+        {
+          "wayId": 126835638
+        },
+        {
+          "wayId": 126835637
+        },
+        {
+          "wayId": 126835639
+        },
+        {
+          "wayId": 126807110
+        },
+        {
+          "wayId": 323851541
+        },
+        {
+          "wayId": 637268672
+        },
+        {
+          "wayId": 126807105
+        },
+        {
+          "wayId": 178964809
+        },
+        {
+          "wayId": 176133745
+        },
+        {
+          "wayId": 126807114
+        },
+        {
+          "wayId": 176133746
+        },
+        {
+          "wayId": 126807100
+        },
+        {
+          "wayId": 175371365
+        },
+        {
+          "wayId": 175371353
+        },
+        {
+          "wayId": 126807116
+        },
+        {
+          "wayId": 126807109
+        },
+        {
+          "wayId": 126807101
+        },
+        {
+          "wayId": 126807103
+        },
+        {
+          "wayId": 1359025267
+        },
+        {
+          "wayId": 126807106
+        },
+        {
+          "wayId": 1359025268
+        },
+        {
+          "wayId": 126807112
+        }
+      ]
+    },
+    {
+      "loopId": 16,
+      "lengthMetres": 6985,
+      "wayCount": 30,
+      "namedSections": [
+        "Blanchimont",
+        "Bruxelles",
+        "Campus",
+        "Chicane",
+        "Courbe Paul Frère",
+        "Double Gauche",
+        "Eau Rouge",
+        "Fagnes",
+        "Kemmel",
+        "La Source",
+        "Les Combes",
+        "Malmedy",
+        "Moto layout",
+        "Raidillon"
+      ],
+      "ways": [
+        {
+          "wayId": 126807111
+        },
+        {
+          "wayId": 175195997
+        },
+        {
+          "wayId": 126807113
+        },
+        {
+          "wayId": 24449918
+        },
+        {
+          "wayId": 1430527230
+        },
+        {
+          "wayId": 126835638
+        },
+        {
+          "wayId": 126835637
+        },
+        {
+          "wayId": 126835639
+        },
+        {
+          "wayId": 126807110
+        },
+        {
+          "wayId": 175178448
+        },
+        {
+          "wayId": 175178443
+        },
+        {
+          "wayId": 126807099
+        },
+        {
+          "wayId": 613486590
+        },
+        {
+          "wayId": 637268672
+        },
+        {
+          "wayId": 126807105
+        },
+        {
+          "wayId": 178964809
+        },
+        {
+          "wayId": 176133745
+        },
+        {
+          "wayId": 126807114
+        },
+        {
+          "wayId": 176133746
+        },
+        {
+          "wayId": 126807100
+        },
+        {
+          "wayId": 175371365
+        },
+        {
+          "wayId": 175371353
+        },
+        {
+          "wayId": 126807116
+        },
+        {
+          "wayId": 126807109
+        },
+        {
+          "wayId": 126807101
+        },
+        {
+          "wayId": 126807103
+        },
+        {
+          "wayId": 1359025267
+        },
+        {
+          "wayId": 1134119259
+        },
+        {
+          "wayId": 1359025268
+        },
+        {
+          "wayId": 126807112
+        }
+      ]
+    },
+    {
+      "loopId": 17,
+      "lengthMetres": 7003,
+      "wayCount": 30,
+      "namedSections": [
+        "Blanchimont",
+        "Bruxelles",
+        "Campus",
+        "Chicane",
+        "Courbe Paul Frère",
+        "Double Gauche",
+        "Eau Rouge",
+        "Fagnes",
+        "Kemmel",
+        "La Source",
+        "Les Combes",
+        "Malmedy",
+        "Raidillon",
+        "Speaker's Corner"
+      ],
+      "ways": [
+        {
+          "wayId": 126807111
+        },
+        {
+          "wayId": 175195997
+        },
+        {
+          "wayId": 126807113
+        },
+        {
+          "wayId": 24449918
+        },
+        {
+          "wayId": 1430527230
+        },
+        {
+          "wayId": 126835638
+        },
+        {
+          "wayId": 126835637
+        },
+        {
+          "wayId": 126835639
+        },
+        {
+          "wayId": 126807110
+        },
+        {
+          "wayId": 175178448
+        },
+        {
+          "wayId": 175178443
+        },
+        {
+          "wayId": 126807099
+        },
+        {
+          "wayId": 613486590
+        },
+        {
+          "wayId": 637268672
+        },
+        {
+          "wayId": 126807105
+        },
+        {
+          "wayId": 178964809
+        },
+        {
+          "wayId": 176133745
+        },
+        {
+          "wayId": 126807114
+        },
+        {
+          "wayId": 176133746
+        },
+        {
+          "wayId": 126807100
+        },
+        {
+          "wayId": 175371365
+        },
+        {
+          "wayId": 175371353
+        },
+        {
+          "wayId": 126807116
+        },
+        {
+          "wayId": 126807109
+        },
+        {
+          "wayId": 126807101
+        },
+        {
+          "wayId": 126807103
+        },
+        {
+          "wayId": 1359025267
+        },
+        {
+          "wayId": 126807106
+        },
+        {
+          "wayId": 1359025268
+        },
+        {
+          "wayId": 126807112
+        }
+      ]
+    },
+    {
+      "loopId": 18,
+      "lengthMetres": 7172,
+      "wayCount": 29,
+      "namedSections": [
+        "Blanchimont",
+        "Bruxelles",
+        "Campus",
+        "Chicane",
+        "Courbe Paul Frère",
+        "Double Gauche",
+        "Fagnes",
+        "Kemmel",
+        "La Source",
+        "Les Combes",
+        "Malmedy",
+        "Moto layout",
+        "Pit Lane",
+        "Support Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 126807111
+        },
+        {
+          "wayId": 175195997
+        },
+        {
+          "wayId": 126807113
+        },
+        {
+          "wayId": 24449918
+        },
+        {
+          "wayId": 1430527230
+        },
+        {
+          "wayId": 126835638,
+          "fromNode": {
+            "lat": 50.4379469,
+            "lon": 5.9746894
+          }
+        },
+        {
+          "wayId": 126807525
+        },
+        {
+          "wayId": 323851541,
+          "fromNode": {
+            "lat": 50.4459413,
+            "lon": 5.964119
+          }
+        },
+        {
+          "wayId": 175178448
+        },
+        {
+          "wayId": 175178443
+        },
+        {
+          "wayId": 126807099
+        },
+        {
+          "wayId": 613486590
+        },
+        {
+          "wayId": 637268672
+        },
+        {
+          "wayId": 126807105
+        },
+        {
+          "wayId": 178964809
+        },
+        {
+          "wayId": 176133745
+        },
+        {
+          "wayId": 126807114
+        },
+        {
+          "wayId": 176133746
+        },
+        {
+          "wayId": 126807100
+        },
+        {
+          "wayId": 175371365
+        },
+        {
+          "wayId": 175371353
+        },
+        {
+          "wayId": 126807116
+        },
+        {
+          "wayId": 126807109
+        },
+        {
+          "wayId": 126807101
+        },
+        {
+          "wayId": 126807103
+        },
+        {
+          "wayId": 1359025267
+        },
+        {
+          "wayId": 1134119259
+        },
+        {
+          "wayId": 1359025268
+        },
+        {
+          "wayId": 126807112
+        }
+      ]
+    },
+    {
+      "loopId": 19,
+      "lengthMetres": 7191,
+      "wayCount": 29,
+      "namedSections": [
+        "Blanchimont",
+        "Bruxelles",
+        "Campus",
+        "Chicane",
+        "Courbe Paul Frère",
+        "Double Gauche",
+        "Fagnes",
+        "Kemmel",
+        "La Source",
+        "Les Combes",
+        "Malmedy",
+        "Pit Lane",
+        "Speaker's Corner",
+        "Support Pit Lane"
+      ],
+      "ways": [
+        {
+          "wayId": 126807111
+        },
+        {
+          "wayId": 175195997
+        },
+        {
+          "wayId": 126807113
+        },
+        {
+          "wayId": 24449918
+        },
+        {
+          "wayId": 1430527230
+        },
+        {
+          "wayId": 126835638,
+          "fromNode": {
+            "lat": 50.4379469,
+            "lon": 5.9746894
+          }
+        },
+        {
+          "wayId": 126807525
+        },
+        {
+          "wayId": 323851541,
+          "fromNode": {
+            "lat": 50.4459413,
+            "lon": 5.964119
+          }
+        },
+        {
+          "wayId": 175178448
+        },
+        {
+          "wayId": 175178443
+        },
+        {
+          "wayId": 126807099
+        },
+        {
+          "wayId": 613486590
+        },
+        {
+          "wayId": 637268672
+        },
+        {
+          "wayId": 126807105
+        },
+        {
+          "wayId": 178964809
+        },
+        {
+          "wayId": 176133745
+        },
+        {
+          "wayId": 126807114
+        },
+        {
+          "wayId": 176133746
+        },
+        {
+          "wayId": 126807100
+        },
+        {
+          "wayId": 175371365
+        },
+        {
+          "wayId": 175371353
+        },
+        {
+          "wayId": 126807116
+        },
+        {
+          "wayId": 126807109
+        },
+        {
+          "wayId": 126807101
+        },
+        {
+          "wayId": 126807103
+        },
+        {
+          "wayId": 1359025267
+        },
+        {
+          "wayId": 126807106
+        },
+        {
+          "wayId": 1359025268
+        },
+        {
+          "wayId": 126807112
+        }
+      ]
+    },
+    {
+      "loopId": 20,
+      "lengthMetres": 7379,
+      "wayCount": 31,
+      "namedSections": [
+        "Blanchimont",
+        "Bruxelles",
+        "Campus",
+        "Chicane",
+        "Courbe Paul Frère",
+        "Double Gauche",
+        "Fagnes",
+        "Joker lap",
+        "Kemmel",
+        "Les Combes",
+        "Malmedy",
+        "Moto layout",
+        "Pit Lane",
+        "Raidillon",
+        "Rallycross circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 126807111
+        },
+        {
+          "wayId": 175195997
+        },
+        {
+          "wayId": 126807113
+        },
+        {
+          "wayId": 24449918
+        },
+        {
+          "wayId": 1430527230
+        },
+        {
+          "wayId": 126835638
+        },
+        {
+          "wayId": 126835637,
+          "fromNode": {
+            "lat": 50.4411262,
+            "lon": 5.9719918
+          }
+        },
+        {
+          "wayId": 689853533
+        },
+        {
+          "wayId": 1467574856
+        },
+        {
+          "wayId": 689853537
+        },
+        {
+          "wayId": 689853534,
+          "fromNode": {
+            "lat": 50.4439472,
+            "lon": 5.9705963
+          }
+        },
+        {
+          "wayId": 1467574855
+        },
+        {
+          "wayId": 126807110,
+          "toNode": {
+            "lat": 50.4429533,
+            "lon": 5.9698663
+          }
+        },
+        {
+          "wayId": 323851541
+        },
+        {
+          "wayId": 637268672
+        },
+        {
+          "wayId": 126807105
+        },
+        {
+          "wayId": 178964809
+        },
+        {
+          "wayId": 176133745
+        },
+        {
+          "wayId": 126807114
+        },
+        {
+          "wayId": 176133746
+        },
+        {
+          "wayId": 126807100
+        },
+        {
+          "wayId": 175371365
+        },
+        {
+          "wayId": 175371353
+        },
+        {
+          "wayId": 126807116
+        },
+        {
+          "wayId": 126807109
+        },
+        {
+          "wayId": 126807101
+        },
+        {
+          "wayId": 126807103
+        },
+        {
+          "wayId": 1359025267
+        },
+        {
+          "wayId": 1134119259
+        },
+        {
+          "wayId": 1359025268
+        },
+        {
+          "wayId": 126807112
+        }
+      ]
+    },
+    {
+      "loopId": 21,
+      "lengthMetres": 7382,
+      "wayCount": 30,
+      "namedSections": [
+        "Blanchimont",
+        "Bruxelles",
+        "Campus",
+        "Chicane",
+        "Courbe Paul Frère",
+        "Double Gauche",
+        "Fagnes",
+        "Kemmel",
+        "Les Combes",
+        "Malmedy",
+        "Moto layout",
+        "Pit Lane",
+        "Raidillon",
+        "Rallycross circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 126807111
+        },
+        {
+          "wayId": 175195997
+        },
+        {
+          "wayId": 126807113
+        },
+        {
+          "wayId": 24449918
+        },
+        {
+          "wayId": 1430527230
+        },
+        {
+          "wayId": 126835638
+        },
+        {
+          "wayId": 126835637,
+          "fromNode": {
+            "lat": 50.4411262,
+            "lon": 5.9719918
+          }
+        },
+        {
+          "wayId": 689853533
+        },
+        {
+          "wayId": 1467574854
+        },
+        {
+          "wayId": 689853534
+        },
+        {
+          "wayId": 1467574855
+        },
+        {
+          "wayId": 126807110,
+          "toNode": {
+            "lat": 50.4429533,
+            "lon": 5.9698663
+          }
+        },
+        {
+          "wayId": 323851541
+        },
+        {
+          "wayId": 637268672
+        },
+        {
+          "wayId": 126807105
+        },
+        {
+          "wayId": 178964809
+        },
+        {
+          "wayId": 176133745
+        },
+        {
+          "wayId": 126807114
+        },
+        {
+          "wayId": 176133746
+        },
+        {
+          "wayId": 126807100
+        },
+        {
+          "wayId": 175371365
+        },
+        {
+          "wayId": 175371353
+        },
+        {
+          "wayId": 126807116
+        },
+        {
+          "wayId": 126807109
+        },
+        {
+          "wayId": 126807101
+        },
+        {
+          "wayId": 126807103
+        },
+        {
+          "wayId": 1359025267
+        },
+        {
+          "wayId": 1134119259
+        },
+        {
+          "wayId": 1359025268
+        },
+        {
+          "wayId": 126807112
+        }
+      ]
+    },
+    {
+      "loopId": 22,
+      "lengthMetres": 7397,
+      "wayCount": 31,
+      "namedSections": [
+        "Blanchimont",
+        "Bruxelles",
+        "Campus",
+        "Chicane",
+        "Courbe Paul Frère",
+        "Double Gauche",
+        "Fagnes",
+        "Joker lap",
+        "Kemmel",
+        "Les Combes",
+        "Malmedy",
+        "Pit Lane",
+        "Raidillon",
+        "Rallycross circuit",
+        "Speaker's Corner"
+      ],
+      "ways": [
+        {
+          "wayId": 126807111
+        },
+        {
+          "wayId": 175195997
+        },
+        {
+          "wayId": 126807113
+        },
+        {
+          "wayId": 24449918
+        },
+        {
+          "wayId": 1430527230
+        },
+        {
+          "wayId": 126835638
+        },
+        {
+          "wayId": 126835637,
+          "fromNode": {
+            "lat": 50.4411262,
+            "lon": 5.9719918
+          }
+        },
+        {
+          "wayId": 689853533
+        },
+        {
+          "wayId": 1467574856
+        },
+        {
+          "wayId": 689853537
+        },
+        {
+          "wayId": 689853534,
+          "fromNode": {
+            "lat": 50.4439472,
+            "lon": 5.9705963
+          }
+        },
+        {
+          "wayId": 1467574855
+        },
+        {
+          "wayId": 126807110,
+          "toNode": {
+            "lat": 50.4429533,
+            "lon": 5.9698663
+          }
+        },
+        {
+          "wayId": 323851541
+        },
+        {
+          "wayId": 637268672
+        },
+        {
+          "wayId": 126807105
+        },
+        {
+          "wayId": 178964809
+        },
+        {
+          "wayId": 176133745
+        },
+        {
+          "wayId": 126807114
+        },
+        {
+          "wayId": 176133746
+        },
+        {
+          "wayId": 126807100
+        },
+        {
+          "wayId": 175371365
+        },
+        {
+          "wayId": 175371353
+        },
+        {
+          "wayId": 126807116
+        },
+        {
+          "wayId": 126807109
+        },
+        {
+          "wayId": 126807101
+        },
+        {
+          "wayId": 126807103
+        },
+        {
+          "wayId": 1359025267
+        },
+        {
+          "wayId": 126807106
+        },
+        {
+          "wayId": 1359025268
+        },
+        {
+          "wayId": 126807112
+        }
+      ]
+    },
+    {
+      "loopId": 23,
+      "lengthMetres": 7401,
+      "wayCount": 30,
+      "namedSections": [
+        "Blanchimont",
+        "Bruxelles",
+        "Campus",
+        "Chicane",
+        "Courbe Paul Frère",
+        "Double Gauche",
+        "Fagnes",
+        "Kemmel",
+        "Les Combes",
+        "Malmedy",
+        "Pit Lane",
+        "Raidillon",
+        "Rallycross circuit",
+        "Speaker's Corner"
+      ],
+      "ways": [
+        {
+          "wayId": 126807111
+        },
+        {
+          "wayId": 175195997
+        },
+        {
+          "wayId": 126807113
+        },
+        {
+          "wayId": 24449918
+        },
+        {
+          "wayId": 1430527230
+        },
+        {
+          "wayId": 126835638
+        },
+        {
+          "wayId": 126835637,
+          "fromNode": {
+            "lat": 50.4411262,
+            "lon": 5.9719918
+          }
+        },
+        {
+          "wayId": 689853533
+        },
+        {
+          "wayId": 1467574854
+        },
+        {
+          "wayId": 689853534
+        },
+        {
+          "wayId": 1467574855
+        },
+        {
+          "wayId": 126807110,
+          "toNode": {
+            "lat": 50.4429533,
+            "lon": 5.9698663
+          }
+        },
+        {
+          "wayId": 323851541
+        },
+        {
+          "wayId": 637268672
+        },
+        {
+          "wayId": 126807105
+        },
+        {
+          "wayId": 178964809
+        },
+        {
+          "wayId": 176133745
+        },
+        {
+          "wayId": 126807114
+        },
+        {
+          "wayId": 176133746
+        },
+        {
+          "wayId": 126807100
+        },
+        {
+          "wayId": 175371365
+        },
+        {
+          "wayId": 175371353
+        },
+        {
+          "wayId": 126807116
+        },
+        {
+          "wayId": 126807109
+        },
+        {
+          "wayId": 126807101
+        },
+        {
+          "wayId": 126807103
+        },
+        {
+          "wayId": 1359025267
+        },
+        {
+          "wayId": 126807106
+        },
+        {
+          "wayId": 1359025268
+        },
+        {
+          "wayId": 126807112
+        }
+      ]
+    },
+    {
+      "loopId": 24,
+      "lengthMetres": 7443,
+      "wayCount": 34,
+      "namedSections": [
+        "Blanchimont",
+        "Bruxelles",
+        "Campus",
+        "Chicane",
+        "Courbe Paul Frère",
+        "Double Gauche",
+        "Fagnes",
+        "Joker lap",
+        "Kemmel",
+        "La Source",
+        "Les Combes",
+        "Malmedy",
+        "Moto layout",
+        "Raidillon",
+        "Rallycross circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 126807111
+        },
+        {
+          "wayId": 175195997
+        },
+        {
+          "wayId": 126807113
+        },
+        {
+          "wayId": 24449918
+        },
+        {
+          "wayId": 1430527230
+        },
+        {
+          "wayId": 126835638
+        },
+        {
+          "wayId": 126835637,
+          "fromNode": {
+            "lat": 50.4411262,
+            "lon": 5.9719918
+          }
+        },
+        {
+          "wayId": 689853533
+        },
+        {
+          "wayId": 1467574856
+        },
+        {
+          "wayId": 689853537
+        },
+        {
+          "wayId": 689853534,
+          "fromNode": {
+            "lat": 50.4439472,
+            "lon": 5.9705963
+          }
+        },
+        {
+          "wayId": 1467574855
+        },
+        {
+          "wayId": 126807110,
+          "toNode": {
+            "lat": 50.4429533,
+            "lon": 5.9698663
+          }
+        },
+        {
+          "wayId": 175178448
+        },
+        {
+          "wayId": 175178443
+        },
+        {
+          "wayId": 126807099
+        },
+        {
+          "wayId": 613486590
+        },
+        {
+          "wayId": 637268672
+        },
+        {
+          "wayId": 126807105
+        },
+        {
+          "wayId": 178964809
+        },
+        {
+          "wayId": 176133745
+        },
+        {
+          "wayId": 126807114
+        },
+        {
+          "wayId": 176133746
+        },
+        {
+          "wayId": 126807100
+        },
+        {
+          "wayId": 175371365
+        },
+        {
+          "wayId": 175371353
+        },
+        {
+          "wayId": 126807116
+        },
+        {
+          "wayId": 126807109
+        },
+        {
+          "wayId": 126807101
+        },
+        {
+          "wayId": 126807103
+        },
+        {
+          "wayId": 1359025267
+        },
+        {
+          "wayId": 1134119259
+        },
+        {
+          "wayId": 1359025268
+        },
+        {
+          "wayId": 126807112
+        }
+      ]
+    },
+    {
+      "loopId": 25,
+      "lengthMetres": 7447,
+      "wayCount": 33,
+      "namedSections": [
+        "Blanchimont",
+        "Bruxelles",
+        "Campus",
+        "Chicane",
+        "Courbe Paul Frère",
+        "Double Gauche",
+        "Fagnes",
+        "Kemmel",
+        "La Source",
+        "Les Combes",
+        "Malmedy",
+        "Moto layout",
+        "Raidillon",
+        "Rallycross circuit"
+      ],
+      "ways": [
+        {
+          "wayId": 126807111
+        },
+        {
+          "wayId": 175195997
+        },
+        {
+          "wayId": 126807113
+        },
+        {
+          "wayId": 24449918
+        },
+        {
+          "wayId": 1430527230
+        },
+        {
+          "wayId": 126835638
+        },
+        {
+          "wayId": 126835637,
+          "fromNode": {
+            "lat": 50.4411262,
+            "lon": 5.9719918
+          }
+        },
+        {
+          "wayId": 689853533
+        },
+        {
+          "wayId": 1467574854
+        },
+        {
+          "wayId": 689853534
+        },
+        {
+          "wayId": 1467574855
+        },
+        {
+          "wayId": 126807110,
+          "toNode": {
+            "lat": 50.4429533,
+            "lon": 5.9698663
+          }
+        },
+        {
+          "wayId": 175178448
+        },
+        {
+          "wayId": 175178443
+        },
+        {
+          "wayId": 126807099
+        },
+        {
+          "wayId": 613486590
+        },
+        {
+          "wayId": 637268672
+        },
+        {
+          "wayId": 126807105
+        },
+        {
+          "wayId": 178964809
+        },
+        {
+          "wayId": 176133745
+        },
+        {
+          "wayId": 126807114
+        },
+        {
+          "wayId": 176133746
+        },
+        {
+          "wayId": 126807100
+        },
+        {
+          "wayId": 175371365
+        },
+        {
+          "wayId": 175371353
+        },
+        {
+          "wayId": 126807116
+        },
+        {
+          "wayId": 126807109
+        },
+        {
+          "wayId": 126807101
+        },
+        {
+          "wayId": 126807103
+        },
+        {
+          "wayId": 1359025267
+        },
+        {
+          "wayId": 1134119259
+        },
+        {
+          "wayId": 1359025268
+        },
+        {
+          "wayId": 126807112
+        }
+      ]
+    },
+    {
+      "loopId": 26,
+      "lengthMetres": 7462,
+      "wayCount": 34,
+      "namedSections": [
+        "Blanchimont",
+        "Bruxelles",
+        "Campus",
+        "Chicane",
+        "Courbe Paul Frère",
+        "Double Gauche",
+        "Fagnes",
+        "Joker lap",
+        "Kemmel",
+        "La Source",
+        "Les Combes",
+        "Malmedy",
+        "Raidillon",
+        "Rallycross circuit",
+        "Speaker's Corner"
+      ],
+      "ways": [
+        {
+          "wayId": 126807111
+        },
+        {
+          "wayId": 175195997
+        },
+        {
+          "wayId": 126807113
+        },
+        {
+          "wayId": 24449918
+        },
+        {
+          "wayId": 1430527230
+        },
+        {
+          "wayId": 126835638
+        },
+        {
+          "wayId": 126835637,
+          "fromNode": {
+            "lat": 50.4411262,
+            "lon": 5.9719918
+          }
+        },
+        {
+          "wayId": 689853533
+        },
+        {
+          "wayId": 1467574856
+        },
+        {
+          "wayId": 689853537
+        },
+        {
+          "wayId": 689853534,
+          "fromNode": {
+            "lat": 50.4439472,
+            "lon": 5.9705963
+          }
+        },
+        {
+          "wayId": 1467574855
+        },
+        {
+          "wayId": 126807110,
+          "toNode": {
+            "lat": 50.4429533,
+            "lon": 5.9698663
+          }
+        },
+        {
+          "wayId": 175178448
+        },
+        {
+          "wayId": 175178443
+        },
+        {
+          "wayId": 126807099
+        },
+        {
+          "wayId": 613486590
+        },
+        {
+          "wayId": 637268672
+        },
+        {
+          "wayId": 126807105
+        },
+        {
+          "wayId": 178964809
+        },
+        {
+          "wayId": 176133745
+        },
+        {
+          "wayId": 126807114
+        },
+        {
+          "wayId": 176133746
+        },
+        {
+          "wayId": 126807100
+        },
+        {
+          "wayId": 175371365
+        },
+        {
+          "wayId": 175371353
+        },
+        {
+          "wayId": 126807116
+        },
+        {
+          "wayId": 126807109
+        },
+        {
+          "wayId": 126807101
+        },
+        {
+          "wayId": 126807103
+        },
+        {
+          "wayId": 1359025267
+        },
+        {
+          "wayId": 126807106
+        },
+        {
+          "wayId": 1359025268
+        },
+        {
+          "wayId": 126807112
+        }
+      ]
+    },
+    {
+      "loopId": 27,
+      "lengthMetres": 7465,
+      "wayCount": 33,
+      "namedSections": [
+        "Blanchimont",
+        "Bruxelles",
+        "Campus",
+        "Chicane",
+        "Courbe Paul Frère",
+        "Double Gauche",
+        "Fagnes",
+        "Kemmel",
+        "La Source",
+        "Les Combes",
+        "Malmedy",
+        "Raidillon",
+        "Rallycross circuit",
+        "Speaker's Corner"
+      ],
+      "ways": [
+        {
+          "wayId": 126807111
+        },
+        {
+          "wayId": 175195997
+        },
+        {
+          "wayId": 126807113
+        },
+        {
+          "wayId": 24449918
+        },
+        {
+          "wayId": 1430527230
+        },
+        {
+          "wayId": 126835638
+        },
+        {
+          "wayId": 126835637,
+          "fromNode": {
+            "lat": 50.4411262,
+            "lon": 5.9719918
+          }
+        },
+        {
+          "wayId": 689853533
+        },
+        {
+          "wayId": 1467574854
+        },
+        {
+          "wayId": 689853534
+        },
+        {
+          "wayId": 1467574855
+        },
+        {
+          "wayId": 126807110,
+          "toNode": {
+            "lat": 50.4429533,
+            "lon": 5.9698663
+          }
+        },
+        {
+          "wayId": 175178448
+        },
+        {
+          "wayId": 175178443
+        },
+        {
+          "wayId": 126807099
+        },
+        {
+          "wayId": 613486590
+        },
+        {
+          "wayId": 637268672
+        },
+        {
+          "wayId": 126807105
+        },
+        {
+          "wayId": 178964809
+        },
+        {
+          "wayId": 176133745
+        },
+        {
+          "wayId": 126807114
+        },
+        {
+          "wayId": 176133746
+        },
+        {
+          "wayId": 126807100
+        },
+        {
+          "wayId": 175371365
+        },
+        {
+          "wayId": 175371353
+        },
+        {
+          "wayId": 126807116
+        },
+        {
+          "wayId": 126807109
+        },
+        {
+          "wayId": 126807101
+        },
+        {
+          "wayId": 126807103
+        },
+        {
+          "wayId": 1359025267
+        },
+        {
+          "wayId": 126807106
+        },
+        {
+          "wayId": 1359025268
+        },
+        {
+          "wayId": 126807112
+        }
+      ]
+    }
+  ],
+  "unusedWays": [
+    {
+      "wayId": 711703474,
+      "name": "Rallycross start"
+    },
+    {
+      "wayId": 1467574857,
+      "name": "Rallycross start"
+    }
+  ]
+}

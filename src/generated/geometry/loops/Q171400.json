@@ -1,0 +1,590 @@
+{
+  "trackId": "Q171400",
+  "generatedAt": "2026-04-12T09:12:29.966Z",
+  "waysFileHash": "sha256:ba443bd3e51e3a5fe704f2f239dcca21ecfc8a29688c97e35cd75f716f352ada",
+  "stats": {
+    "totalWays": 41,
+    "junctionCoords": 40,
+    "segments": 42,
+    "loopsFound": 5
+  },
+  "loops": [
+    {
+      "loopId": 1,
+      "lengthMetres": 737,
+      "wayCount": 7,
+      "namedSections": [
+        "Avenue du Port",
+        "Boulevard Albert 1er",
+        "Circuit de Monaco",
+        "Voie des stands"
+      ],
+      "ways": [
+        {
+          "wayId": 850261588
+        },
+        {
+          "wayId": 166399479,
+          "toNode": {
+            "lat": 43.7352623,
+            "lon": 7.4212403
+          }
+        },
+        {
+          "wayId": 1019174508
+        },
+        {
+          "wayId": 4226740
+        },
+        {
+          "wayId": 60767229
+        },
+        {
+          "wayId": 168681959
+        },
+        {
+          "wayId": 1081401617
+        }
+      ]
+    },
+    {
+      "loopId": 2,
+      "lengthMetres": 3289,
+      "wayCount": 35,
+      "namedSections": [
+        "Avenue Princesse Grace",
+        "Avenue d'Ostende",
+        "Avenue de Monte-Carlo",
+        "Avenue des Spélugues",
+        "Boulevard Albert 1er",
+        "Boulevard Louis II",
+        "Circuit de Monaco",
+        "Place du Casino",
+        "Quai Antoine 1er",
+        "Quai des États-Unis",
+        "Route de la Piscine",
+        "Sortie des stands",
+        "Voie des stands"
+      ],
+      "ways": [
+        {
+          "wayId": 39839529
+        },
+        {
+          "wayId": 1081401615
+        },
+        {
+          "wayId": 214636589
+        },
+        {
+          "wayId": 1081401614
+        },
+        {
+          "wayId": 503475642
+        },
+        {
+          "wayId": 485746484
+        },
+        {
+          "wayId": 1081401613
+        },
+        {
+          "wayId": 348019480
+        },
+        {
+          "wayId": 1451501763
+        },
+        {
+          "wayId": 4229536
+        },
+        {
+          "wayId": 160004393
+        },
+        {
+          "wayId": 1230247123
+        },
+        {
+          "wayId": 4230891
+        },
+        {
+          "wayId": 41929969
+        },
+        {
+          "wayId": 1148199871
+        },
+        {
+          "wayId": 1470365907
+        },
+        {
+          "wayId": 1470365906
+        },
+        {
+          "wayId": 1148675745
+        },
+        {
+          "wayId": 4230007
+        },
+        {
+          "wayId": 568187257
+        },
+        {
+          "wayId": 166399501
+        },
+        {
+          "wayId": 434567309
+        },
+        {
+          "wayId": 4230006
+        },
+        {
+          "wayId": 4230009
+        },
+        {
+          "wayId": 4229658
+        },
+        {
+          "wayId": 161752645
+        },
+        {
+          "wayId": 1082515450
+        },
+        {
+          "wayId": 161775592
+        },
+        {
+          "wayId": 4229308
+        },
+        {
+          "wayId": 254596486
+        },
+        {
+          "wayId": 157719644
+        },
+        {
+          "wayId": 1388331347
+        },
+        {
+          "wayId": 1453878835
+        },
+        {
+          "wayId": 166399479,
+          "fromNode": {
+            "lat": 43.7352623,
+            "lon": 7.4212403
+          }
+        },
+        {
+          "wayId": 850261588
+        }
+      ]
+    },
+    {
+      "loopId": 3,
+      "lengthMetres": 3300,
+      "wayCount": 35,
+      "namedSections": [
+        "Avenue Princesse Grace",
+        "Avenue d'Ostende",
+        "Avenue de Monte-Carlo",
+        "Avenue des Spélugues",
+        "Boulevard Albert 1er",
+        "Boulevard Louis II",
+        "Circuit de Monaco",
+        "Place du Casino",
+        "Quai Antoine 1er",
+        "Quai des États-Unis",
+        "Route de la Piscine",
+        "Voie des stands"
+      ],
+      "ways": [
+        {
+          "wayId": 39839529
+        },
+        {
+          "wayId": 1081401615
+        },
+        {
+          "wayId": 214636589
+        },
+        {
+          "wayId": 1081401614
+        },
+        {
+          "wayId": 503475642
+        },
+        {
+          "wayId": 485746484
+        },
+        {
+          "wayId": 1081401613
+        },
+        {
+          "wayId": 348019480
+        },
+        {
+          "wayId": 1451501763
+        },
+        {
+          "wayId": 4229536
+        },
+        {
+          "wayId": 160004393
+        },
+        {
+          "wayId": 1230247123
+        },
+        {
+          "wayId": 4230891
+        },
+        {
+          "wayId": 41929969
+        },
+        {
+          "wayId": 1148199871
+        },
+        {
+          "wayId": 1470365907
+        },
+        {
+          "wayId": 1470365906
+        },
+        {
+          "wayId": 1148675745
+        },
+        {
+          "wayId": 4230007
+        },
+        {
+          "wayId": 568187257
+        },
+        {
+          "wayId": 166399501
+        },
+        {
+          "wayId": 434567309
+        },
+        {
+          "wayId": 4230006
+        },
+        {
+          "wayId": 4230009
+        },
+        {
+          "wayId": 4229658
+        },
+        {
+          "wayId": 161752645
+        },
+        {
+          "wayId": 1082515450
+        },
+        {
+          "wayId": 161775592
+        },
+        {
+          "wayId": 4229308
+        },
+        {
+          "wayId": 254596486
+        },
+        {
+          "wayId": 157719644
+        },
+        {
+          "wayId": 1081401616
+        },
+        {
+          "wayId": 1453878835
+        },
+        {
+          "wayId": 166399479,
+          "fromNode": {
+            "lat": 43.7352623,
+            "lon": 7.4212403
+          }
+        },
+        {
+          "wayId": 850261588
+        }
+      ]
+    },
+    {
+      "loopId": 4,
+      "lengthMetres": 3312,
+      "wayCount": 39,
+      "namedSections": [
+        "Avenue Princesse Grace",
+        "Avenue d'Ostende",
+        "Avenue de Monte-Carlo",
+        "Avenue des Spélugues",
+        "Avenue du Port",
+        "Boulevard Albert 1er",
+        "Boulevard Louis II",
+        "Circuit de Monaco",
+        "Place du Casino",
+        "Quai Antoine 1er",
+        "Quai des États-Unis",
+        "Route de la Piscine",
+        "Sortie des stands"
+      ],
+      "ways": [
+        {
+          "wayId": 39839529
+        },
+        {
+          "wayId": 1081401615
+        },
+        {
+          "wayId": 214636589
+        },
+        {
+          "wayId": 1081401614
+        },
+        {
+          "wayId": 503475642
+        },
+        {
+          "wayId": 485746484
+        },
+        {
+          "wayId": 1081401613
+        },
+        {
+          "wayId": 348019480
+        },
+        {
+          "wayId": 1451501763
+        },
+        {
+          "wayId": 4229536
+        },
+        {
+          "wayId": 160004393
+        },
+        {
+          "wayId": 1230247123
+        },
+        {
+          "wayId": 4230891
+        },
+        {
+          "wayId": 41929969
+        },
+        {
+          "wayId": 1148199871
+        },
+        {
+          "wayId": 1470365907
+        },
+        {
+          "wayId": 1470365906
+        },
+        {
+          "wayId": 1148675745
+        },
+        {
+          "wayId": 4230007
+        },
+        {
+          "wayId": 568187257
+        },
+        {
+          "wayId": 166399501
+        },
+        {
+          "wayId": 434567309
+        },
+        {
+          "wayId": 4230006
+        },
+        {
+          "wayId": 4230009
+        },
+        {
+          "wayId": 4229658
+        },
+        {
+          "wayId": 161752645
+        },
+        {
+          "wayId": 1082515450
+        },
+        {
+          "wayId": 161775592
+        },
+        {
+          "wayId": 4229308
+        },
+        {
+          "wayId": 254596486
+        },
+        {
+          "wayId": 157719644
+        },
+        {
+          "wayId": 1388331347
+        },
+        {
+          "wayId": 1453878835
+        },
+        {
+          "wayId": 166399479
+        },
+        {
+          "wayId": 1019174508
+        },
+        {
+          "wayId": 4226740
+        },
+        {
+          "wayId": 60767229
+        },
+        {
+          "wayId": 168681959
+        },
+        {
+          "wayId": 1081401617
+        }
+      ]
+    },
+    {
+      "loopId": 5,
+      "lengthMetres": 3323,
+      "wayCount": 39,
+      "namedSections": [
+        "Avenue Princesse Grace",
+        "Avenue d'Ostende",
+        "Avenue de Monte-Carlo",
+        "Avenue des Spélugues",
+        "Avenue du Port",
+        "Boulevard Albert 1er",
+        "Boulevard Louis II",
+        "Circuit de Monaco",
+        "Place du Casino",
+        "Quai Antoine 1er",
+        "Quai des États-Unis",
+        "Route de la Piscine"
+      ],
+      "ways": [
+        {
+          "wayId": 39839529
+        },
+        {
+          "wayId": 1081401615
+        },
+        {
+          "wayId": 214636589
+        },
+        {
+          "wayId": 1081401614
+        },
+        {
+          "wayId": 503475642
+        },
+        {
+          "wayId": 485746484
+        },
+        {
+          "wayId": 1081401613
+        },
+        {
+          "wayId": 348019480
+        },
+        {
+          "wayId": 1451501763
+        },
+        {
+          "wayId": 4229536
+        },
+        {
+          "wayId": 160004393
+        },
+        {
+          "wayId": 1230247123
+        },
+        {
+          "wayId": 4230891
+        },
+        {
+          "wayId": 41929969
+        },
+        {
+          "wayId": 1148199871
+        },
+        {
+          "wayId": 1470365907
+        },
+        {
+          "wayId": 1470365906
+        },
+        {
+          "wayId": 1148675745
+        },
+        {
+          "wayId": 4230007
+        },
+        {
+          "wayId": 568187257
+        },
+        {
+          "wayId": 166399501
+        },
+        {
+          "wayId": 434567309
+        },
+        {
+          "wayId": 4230006
+        },
+        {
+          "wayId": 4230009
+        },
+        {
+          "wayId": 4229658
+        },
+        {
+          "wayId": 161752645
+        },
+        {
+          "wayId": 1082515450
+        },
+        {
+          "wayId": 161775592
+        },
+        {
+          "wayId": 4229308
+        },
+        {
+          "wayId": 254596486
+        },
+        {
+          "wayId": 157719644
+        },
+        {
+          "wayId": 1081401616
+        },
+        {
+          "wayId": 1453878835
+        },
+        {
+          "wayId": 166399479
+        },
+        {
+          "wayId": 1019174508
+        },
+        {
+          "wayId": 4226740
+        },
+        {
+          "wayId": 60767229
+        },
+        {
+          "wayId": 168681959
+        },
+        {
+          "wayId": 1081401617
+        }
+      ]
+    }
+  ],
+  "unusedWays": []
+}

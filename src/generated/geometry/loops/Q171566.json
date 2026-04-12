@@ -1,0 +1,8173 @@
+{
+  "trackId": "Q171566",
+  "generatedAt": "2026-04-12T09:12:29.987Z",
+  "waysFileHash": "sha256:2807e7287ab6f3ab9079dc3f65fde9874d8d5101ae5ea8c378e1e4cb07a1d715",
+  "stats": {
+    "totalWays": 34,
+    "junctionCoords": 40,
+    "segments": 54,
+    "loopsFound": 151
+  },
+  "loops": [
+    {
+      "loopId": 1,
+      "lengthMetres": 238,
+      "wayCount": 2,
+      "namedSections": [
+        "Moto GP chicane"
+      ],
+      "ways": [
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2224388,
+            "lon": 14.7579173
+          },
+          "toNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        },
+        {
+          "wayId": 1077423714,
+          "toNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 2,
+      "lengthMetres": 255,
+      "wayCount": 2,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416529
+        },
+        {
+          "wayId": 118398758
+        }
+      ]
+    },
+    {
+      "loopId": 3,
+      "lengthMetres": 287,
+      "wayCount": 5,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          },
+          "toNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        }
+      ]
+    },
+    {
+      "loopId": 4,
+      "lengthMetres": 295,
+      "wayCount": 5,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          },
+          "toNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        }
+      ]
+    },
+    {
+      "loopId": 5,
+      "lengthMetres": 303,
+      "wayCount": 2,
+      "namedSections": [
+        "Moto GP chicane"
+      ],
+      "ways": [
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          },
+          "toNode": {
+            "lat": 47.2244693,
+            "lon": 14.7563451
+          }
+        },
+        {
+          "wayId": 1077423714,
+          "fromNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 6,
+      "lengthMetres": 356,
+      "wayCount": 4,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        }
+      ]
+    },
+    {
+      "loopId": 7,
+      "lengthMetres": 363,
+      "wayCount": 4,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        }
+      ]
+    },
+    {
+      "loopId": 8,
+      "lengthMetres": 412,
+      "wayCount": 2,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416757
+        },
+        {
+          "wayId": 84416644
+        }
+      ]
+    },
+    {
+      "loopId": 9,
+      "lengthMetres": 428,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          },
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        }
+      ]
+    },
+    {
+      "loopId": 10,
+      "lengthMetres": 429,
+      "wayCount": 3,
+      "namedSections": [
+        "MotoGP Long Lap Penalty",
+        "Niki Lauda Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 822592403,
+          "fromNode": {
+            "lat": 47.2192591,
+            "lon": 14.7610875
+          }
+        },
+        {
+          "wayId": 822592404,
+          "toNode": {
+            "lat": 47.2206319,
+            "lon": 14.7595511
+          }
+        },
+        {
+          "wayId": 823820476
+        }
+      ]
+    },
+    {
+      "loopId": 11,
+      "lengthMetres": 436,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          },
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        }
+      ]
+    },
+    {
+      "loopId": 12,
+      "lengthMetres": 448,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 13,
+      "lengthMetres": 487,
+      "wayCount": 1,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 562879458
+        }
+      ]
+    },
+    {
+      "loopId": 14,
+      "lengthMetres": 503,
+      "wayCount": 2,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 562879458,
+          "fromNode": {
+            "lat": 47.2186619,
+            "lon": 14.7588523
+          },
+          "toNode": {
+            "lat": 47.2188541,
+            "lon": 14.7587017
+          }
+        },
+        {
+          "wayId": 562879459
+        }
+      ]
+    },
+    {
+      "loopId": 15,
+      "lengthMetres": 511,
+      "wayCount": 4,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416757
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 16,
+      "lengthMetres": 517,
+      "wayCount": 2,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        }
+      ]
+    },
+    {
+      "loopId": 17,
+      "lengthMetres": 547,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 18,
+      "lengthMetres": 549,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416667
+        }
+      ]
+    },
+    {
+      "loopId": 19,
+      "lengthMetres": 630,
+      "wayCount": 2,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 347958274
+        },
+        {
+          "wayId": 84416644
+        }
+      ]
+    },
+    {
+      "loopId": 20,
+      "lengthMetres": 649,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416667
+        }
+      ]
+    },
+    {
+      "loopId": 21,
+      "lengthMetres": 653,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 22,
+      "lengthMetres": 660,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 23,
+      "lengthMetres": 667,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 24,
+      "lengthMetres": 671,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 25,
+      "lengthMetres": 674,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 26,
+      "lengthMetres": 675,
+      "wayCount": 4,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 27,
+      "lengthMetres": 678,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 28,
+      "lengthMetres": 696,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 29,
+      "lengthMetres": 701,
+      "wayCount": 4,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 30,
+      "lengthMetres": 701,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          },
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 31,
+      "lengthMetres": 703,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 32,
+      "lengthMetres": 712,
+      "wayCount": 11,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 33,
+      "lengthMetres": 715,
+      "wayCount": 5,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 34,
+      "lengthMetres": 719,
+      "wayCount": 11,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 35,
+      "lengthMetres": 726,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 36,
+      "lengthMetres": 730,
+      "wayCount": 12,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 37,
+      "lengthMetres": 734,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 38,
+      "lengthMetres": 735,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 39,
+      "lengthMetres": 737,
+      "wayCount": 12,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 40,
+      "lengthMetres": 743,
+      "wayCount": 10,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 41,
+      "lengthMetres": 750,
+      "wayCount": 10,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 42,
+      "lengthMetres": 755,
+      "wayCount": 12,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 43,
+      "lengthMetres": 757,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 44,
+      "lengthMetres": 760,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 45,
+      "lengthMetres": 760,
+      "wayCount": 10,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          },
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 46,
+      "lengthMetres": 761,
+      "wayCount": 11,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 47,
+      "lengthMetres": 763,
+      "wayCount": 12,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 48,
+      "lengthMetres": 765,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 49,
+      "lengthMetres": 766,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 50,
+      "lengthMetres": 768,
+      "wayCount": 11,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 51,
+      "lengthMetres": 769,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 52,
+      "lengthMetres": 769,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 53,
+      "lengthMetres": 775,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 54,
+      "lengthMetres": 776,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 55,
+      "lengthMetres": 777,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 56,
+      "lengthMetres": 781,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 57,
+      "lengthMetres": 783,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 58,
+      "lengthMetres": 786,
+      "wayCount": 11,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 59,
+      "lengthMetres": 787,
+      "wayCount": 10,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 60,
+      "lengthMetres": 789,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 61,
+      "lengthMetres": 790,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 62,
+      "lengthMetres": 791,
+      "wayCount": 5,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 63,
+      "lengthMetres": 791,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 64,
+      "lengthMetres": 791,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          },
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 65,
+      "lengthMetres": 793,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        }
+      ]
+    },
+    {
+      "loopId": 66,
+      "lengthMetres": 794,
+      "wayCount": 10,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 67,
+      "lengthMetres": 794,
+      "wayCount": 11,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 68,
+      "lengthMetres": 798,
+      "wayCount": 10,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 69,
+      "lengthMetres": 800,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        }
+      ]
+    },
+    {
+      "loopId": 70,
+      "lengthMetres": 802,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 71,
+      "lengthMetres": 803,
+      "wayCount": 5,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 72,
+      "lengthMetres": 805,
+      "wayCount": 10,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 73,
+      "lengthMetres": 806,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 74,
+      "lengthMetres": 809,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 75,
+      "lengthMetres": 810,
+      "wayCount": 11,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 76,
+      "lengthMetres": 812,
+      "wayCount": 10,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 77,
+      "lengthMetres": 814,
+      "wayCount": 10,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 78,
+      "lengthMetres": 815,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 79,
+      "lengthMetres": 817,
+      "wayCount": 5,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 80,
+      "lengthMetres": 817,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          },
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 81,
+      "lengthMetres": 817,
+      "wayCount": 11,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 82,
+      "lengthMetres": 818,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 83,
+      "lengthMetres": 819,
+      "wayCount": 10,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 84,
+      "lengthMetres": 820,
+      "wayCount": 10,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 85,
+      "lengthMetres": 821,
+      "wayCount": 10,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 86,
+      "lengthMetres": 825,
+      "wayCount": 5,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 87,
+      "lengthMetres": 828,
+      "wayCount": 10,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 88,
+      "lengthMetres": 829,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 89,
+      "lengthMetres": 831,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 90,
+      "lengthMetres": 832,
+      "wayCount": 11,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 91,
+      "lengthMetres": 837,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 92,
+      "lengthMetres": 838,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 93,
+      "lengthMetres": 839,
+      "wayCount": 11,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 94,
+      "lengthMetres": 845,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 95,
+      "lengthMetres": 850,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          },
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 96,
+      "lengthMetres": 860,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 97,
+      "lengthMetres": 862,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          },
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          },
+          "toNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 98,
+      "lengthMetres": 866,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 99,
+      "lengthMetres": 867,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 100,
+      "lengthMetres": 870,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 101,
+      "lengthMetres": 871,
+      "wayCount": 4,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 102,
+      "lengthMetres": 874,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 103,
+      "lengthMetres": 878,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 104,
+      "lengthMetres": 886,
+      "wayCount": 5,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 105,
+      "lengthMetres": 888,
+      "wayCount": 12,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 106,
+      "lengthMetres": 889,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 107,
+      "lengthMetres": 892,
+      "wayCount": 11,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 108,
+      "lengthMetres": 892,
+      "wayCount": 10,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        }
+      ]
+    },
+    {
+      "loopId": 109,
+      "lengthMetres": 893,
+      "wayCount": 4,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 110,
+      "lengthMetres": 893,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 111,
+      "lengthMetres": 896,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 112,
+      "lengthMetres": 896,
+      "wayCount": 12,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 113,
+      "lengthMetres": 900,
+      "wayCount": 11,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 114,
+      "lengthMetres": 900,
+      "wayCount": 10,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        }
+      ]
+    },
+    {
+      "loopId": 115,
+      "lengthMetres": 908,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 116,
+      "lengthMetres": 911,
+      "wayCount": 12,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 117,
+      "lengthMetres": 915,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 118,
+      "lengthMetres": 918,
+      "wayCount": 12,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 119,
+      "lengthMetres": 919,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          },
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 347958274,
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 120,
+      "lengthMetres": 941,
+      "wayCount": 10,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416588,
+          "fromNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          },
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        },
+        {
+          "wayId": 84416644
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2223772,
+            "lon": 14.762745
+          }
+        },
+        {
+          "wayId": 84416609
+        },
+        {
+          "wayId": 347958274,
+          "fromNode": {
+            "lat": 47.2224873,
+            "lon": 14.7625915
+          },
+          "toNode": {
+            "lat": 47.220807,
+            "lon": 14.7611416
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 121,
+      "lengthMetres": 995,
+      "wayCount": 2,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 347958274
+        },
+        {
+          "wayId": 84416757
+        }
+      ]
+    },
+    {
+      "loopId": 122,
+      "lengthMetres": 1030,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 347958274
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2212713,
+            "lon": 14.7632924
+          }
+        },
+        {
+          "wayId": 84416629,
+          "toNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 123,
+      "lengthMetres": 1132,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 347958274
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416588,
+          "toNode": {
+            "lat": 47.2210237,
+            "lon": 14.7629139
+          }
+        },
+        {
+          "wayId": 84416667
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.2211814,
+            "lon": 14.762752
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 124,
+      "lengthMetres": 1375,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 347958274
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 118398754
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 125,
+      "lengthMetres": 1383,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 347958274
+        },
+        {
+          "wayId": 84416757,
+          "fromNode": {
+            "lat": 47.2212778,
+            "lon": 14.7636219
+          }
+        },
+        {
+          "wayId": 84416588
+        },
+        {
+          "wayId": 347958271
+        },
+        {
+          "wayId": 84416675
+        },
+        {
+          "wayId": 84416629,
+          "fromNode": {
+            "lat": 47.2213152,
+            "lon": 14.7632641
+          },
+          "toNode": {
+            "lat": 47.220995,
+            "lon": 14.7617389
+          }
+        },
+        {
+          "wayId": 84416518
+        },
+        {
+          "wayId": 84416757,
+          "toNode": {
+            "lat": 47.2214813,
+            "lon": 14.7635578
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 126,
+      "lengthMetres": 2069,
+      "wayCount": 6,
+      "namedSections": [
+        "Boxenstraße",
+        "Niki Lauda Kurve",
+        "Red Bull Mobile"
+      ],
+      "ways": [
+        {
+          "wayId": 822592403
+        },
+        {
+          "wayId": 822592410
+        },
+        {
+          "wayId": 822592409
+        },
+        {
+          "wayId": 822592408
+        },
+        {
+          "wayId": 289111668
+        },
+        {
+          "wayId": 822592404,
+          "toNode": {
+            "lat": 47.2203263,
+            "lon": 14.7598752
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 127,
+      "lengthMetres": 2188,
+      "wayCount": 7,
+      "namedSections": [
+        "Boxenstraße",
+        "MotoGP Long Lap Penalty",
+        "Niki Lauda Kurve",
+        "Red Bull Mobile"
+      ],
+      "ways": [
+        {
+          "wayId": 822592403,
+          "toNode": {
+            "lat": 47.2192591,
+            "lon": 14.7610875
+          }
+        },
+        {
+          "wayId": 822592410
+        },
+        {
+          "wayId": 822592409
+        },
+        {
+          "wayId": 822592408
+        },
+        {
+          "wayId": 289111668
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2203263,
+            "lon": 14.7598752
+          },
+          "toNode": {
+            "lat": 47.2206319,
+            "lon": 14.7595511
+          }
+        },
+        {
+          "wayId": 823820476
+        }
+      ]
+    },
+    {
+      "loopId": 128,
+      "lengthMetres": 2263,
+      "wayCount": 6,
+      "namedSections": [
+        "Boxenstraße",
+        "Red Bull Ring Südschleife National Circuit",
+        "Rindt",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 289111668
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 84416610
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2203263,
+            "lon": 14.7598752
+          },
+          "toNode": {
+            "lat": 47.222054,
+            "lon": 14.7581992
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 129,
+      "lengthMetres": 2287,
+      "wayCount": 8,
+      "namedSections": [
+        "Rauch",
+        "Red Bull Ring Südschleife National Circuit",
+        "Remus",
+        "Schlossgold"
+      ],
+      "ways": [
+        {
+          "wayId": 84416610
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.222054,
+            "lon": 14.7581992
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 130,
+      "lengthMetres": 2299,
+      "wayCount": 10,
+      "namedSections": [
+        "Moto GP chicane",
+        "Rauch",
+        "Red Bull Ring Südschleife National Circuit",
+        "Remus",
+        "Schlossgold"
+      ],
+      "ways": [
+        {
+          "wayId": 84416610
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        },
+        {
+          "wayId": 1077423714,
+          "toNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.222054,
+            "lon": 14.7581992
+          },
+          "toNode": {
+            "lat": 47.2224388,
+            "lon": 14.7579173
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 131,
+      "lengthMetres": 2304,
+      "wayCount": 10,
+      "namedSections": [
+        "Moto GP chicane",
+        "Rauch",
+        "Red Bull Ring Südschleife National Circuit",
+        "Remus",
+        "Schlossgold"
+      ],
+      "ways": [
+        {
+          "wayId": 84416610
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2244693,
+            "lon": 14.7563451
+          }
+        },
+        {
+          "wayId": 1077423714,
+          "fromNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.222054,
+            "lon": 14.7581992
+          },
+          "toNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 132,
+      "lengthMetres": 2316,
+      "wayCount": 10,
+      "namedSections": [
+        "Moto GP chicane",
+        "Rauch",
+        "Red Bull Ring Südschleife National Circuit",
+        "Remus",
+        "Schlossgold"
+      ],
+      "ways": [
+        {
+          "wayId": 84416610
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2244693,
+            "lon": 14.7563451
+          }
+        },
+        {
+          "wayId": 1077423714
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.222054,
+            "lon": 14.7581992
+          },
+          "toNode": {
+            "lat": 47.2224388,
+            "lon": 14.7579173
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 133,
+      "lengthMetres": 2333,
+      "wayCount": 9,
+      "namedSections": [
+        "Niki Lauda Kurve",
+        "Red Bull Mobile",
+        "Red Bull Ring Südschleife National Circuit",
+        "Rindt",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 822592403
+        },
+        {
+          "wayId": 822592410
+        },
+        {
+          "wayId": 822592409
+        },
+        {
+          "wayId": 822592408
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 84416610
+        },
+        {
+          "wayId": 822592404,
+          "toNode": {
+            "lat": 47.222054,
+            "lon": 14.7581992
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 134,
+      "lengthMetres": 2368,
+      "wayCount": 10,
+      "namedSections": [
+        "MotoGP Long Lap Penalty",
+        "Niki Lauda Kurve",
+        "Red Bull Mobile",
+        "Red Bull Ring Südschleife National Circuit",
+        "Rindt",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 822592403,
+          "toNode": {
+            "lat": 47.2192591,
+            "lon": 14.7610875
+          }
+        },
+        {
+          "wayId": 822592410
+        },
+        {
+          "wayId": 822592409
+        },
+        {
+          "wayId": 822592408
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 84416610
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2206319,
+            "lon": 14.7595511
+          },
+          "toNode": {
+            "lat": 47.222054,
+            "lon": 14.7581992
+          }
+        },
+        {
+          "wayId": 823820476
+        }
+      ]
+    },
+    {
+      "loopId": 135,
+      "lengthMetres": 2608,
+      "wayCount": 9,
+      "namedSections": [
+        "Boxenstraße",
+        "MotoGP Long Lap Penalty",
+        "Niki Lauda Kurve",
+        "Red Bull Ring Südschleife National Circuit",
+        "Rindt",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 822592403,
+          "fromNode": {
+            "lat": 47.2192591,
+            "lon": 14.7610875
+          }
+        },
+        {
+          "wayId": 822592404,
+          "toNode": {
+            "lat": 47.2203263,
+            "lon": 14.7598752
+          }
+        },
+        {
+          "wayId": 289111668
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 84416610
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2206319,
+            "lon": 14.7595511
+          },
+          "toNode": {
+            "lat": 47.222054,
+            "lon": 14.7581992
+          }
+        },
+        {
+          "wayId": 823820476
+        }
+      ]
+    },
+    {
+      "loopId": 136,
+      "lengthMetres": 4236,
+      "wayCount": 11,
+      "namedSections": [
+        "Boxenstraße",
+        "Rauch",
+        "Remus",
+        "Rindt",
+        "Schlossgold",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 289111668
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2203263,
+            "lon": 14.7598752
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 137,
+      "lengthMetres": 4248,
+      "wayCount": 13,
+      "namedSections": [
+        "Boxenstraße",
+        "Moto GP chicane",
+        "Rauch",
+        "Remus",
+        "Rindt",
+        "Schlossgold",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 289111668
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        },
+        {
+          "wayId": 1077423714,
+          "toNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2203263,
+            "lon": 14.7598752
+          },
+          "toNode": {
+            "lat": 47.2224388,
+            "lon": 14.7579173
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 138,
+      "lengthMetres": 4253,
+      "wayCount": 13,
+      "namedSections": [
+        "Boxenstraße",
+        "Moto GP chicane",
+        "Rauch",
+        "Remus",
+        "Rindt",
+        "Schlossgold",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 289111668
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2244693,
+            "lon": 14.7563451
+          }
+        },
+        {
+          "wayId": 1077423714,
+          "fromNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2203263,
+            "lon": 14.7598752
+          },
+          "toNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 139,
+      "lengthMetres": 4265,
+      "wayCount": 13,
+      "namedSections": [
+        "Boxenstraße",
+        "Moto GP chicane",
+        "Rauch",
+        "Remus",
+        "Rindt",
+        "Schlossgold",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 289111668
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2244693,
+            "lon": 14.7563451
+          }
+        },
+        {
+          "wayId": 1077423714
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2203263,
+            "lon": 14.7598752
+          },
+          "toNode": {
+            "lat": 47.2224388,
+            "lon": 14.7579173
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 140,
+      "lengthMetres": 4305,
+      "wayCount": 14,
+      "namedSections": [
+        "Niki Lauda Kurve",
+        "Rauch",
+        "Red Bull Mobile",
+        "Remus",
+        "Rindt",
+        "Schlossgold",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 822592403
+        },
+        {
+          "wayId": 822592410
+        },
+        {
+          "wayId": 822592409
+        },
+        {
+          "wayId": 822592408
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404
+        }
+      ]
+    },
+    {
+      "loopId": 141,
+      "lengthMetres": 4317,
+      "wayCount": 16,
+      "namedSections": [
+        "Moto GP chicane",
+        "Niki Lauda Kurve",
+        "Rauch",
+        "Red Bull Mobile",
+        "Remus",
+        "Rindt",
+        "Schlossgold",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 822592403
+        },
+        {
+          "wayId": 822592410
+        },
+        {
+          "wayId": 822592409
+        },
+        {
+          "wayId": 822592408
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        },
+        {
+          "wayId": 1077423714,
+          "toNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        },
+        {
+          "wayId": 822592404,
+          "toNode": {
+            "lat": 47.2224388,
+            "lon": 14.7579173
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 142,
+      "lengthMetres": 4322,
+      "wayCount": 16,
+      "namedSections": [
+        "Moto GP chicane",
+        "Niki Lauda Kurve",
+        "Rauch",
+        "Red Bull Mobile",
+        "Remus",
+        "Rindt",
+        "Schlossgold",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 822592403
+        },
+        {
+          "wayId": 822592410
+        },
+        {
+          "wayId": 822592409
+        },
+        {
+          "wayId": 822592408
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2244693,
+            "lon": 14.7563451
+          }
+        },
+        {
+          "wayId": 1077423714,
+          "fromNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        },
+        {
+          "wayId": 822592404,
+          "toNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 143,
+      "lengthMetres": 4334,
+      "wayCount": 16,
+      "namedSections": [
+        "Moto GP chicane",
+        "Niki Lauda Kurve",
+        "Rauch",
+        "Red Bull Mobile",
+        "Remus",
+        "Rindt",
+        "Schlossgold",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 822592403
+        },
+        {
+          "wayId": 822592410
+        },
+        {
+          "wayId": 822592409
+        },
+        {
+          "wayId": 822592408
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2244693,
+            "lon": 14.7563451
+          }
+        },
+        {
+          "wayId": 1077423714
+        },
+        {
+          "wayId": 822592404,
+          "toNode": {
+            "lat": 47.2224388,
+            "lon": 14.7579173
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 144,
+      "lengthMetres": 4340,
+      "wayCount": 15,
+      "namedSections": [
+        "MotoGP Long Lap Penalty",
+        "Niki Lauda Kurve",
+        "Rauch",
+        "Red Bull Mobile",
+        "Remus",
+        "Rindt",
+        "Schlossgold",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 822592403,
+          "toNode": {
+            "lat": 47.2192591,
+            "lon": 14.7610875
+          }
+        },
+        {
+          "wayId": 822592410
+        },
+        {
+          "wayId": 822592409
+        },
+        {
+          "wayId": 822592408
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2206319,
+            "lon": 14.7595511
+          }
+        },
+        {
+          "wayId": 823820476
+        }
+      ]
+    },
+    {
+      "loopId": 145,
+      "lengthMetres": 4352,
+      "wayCount": 17,
+      "namedSections": [
+        "Moto GP chicane",
+        "MotoGP Long Lap Penalty",
+        "Niki Lauda Kurve",
+        "Rauch",
+        "Red Bull Mobile",
+        "Remus",
+        "Rindt",
+        "Schlossgold",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 822592403,
+          "toNode": {
+            "lat": 47.2192591,
+            "lon": 14.7610875
+          }
+        },
+        {
+          "wayId": 822592410
+        },
+        {
+          "wayId": 822592409
+        },
+        {
+          "wayId": 822592408
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        },
+        {
+          "wayId": 1077423714,
+          "toNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2206319,
+            "lon": 14.7595511
+          },
+          "toNode": {
+            "lat": 47.2224388,
+            "lon": 14.7579173
+          }
+        },
+        {
+          "wayId": 823820476
+        }
+      ]
+    },
+    {
+      "loopId": 146,
+      "lengthMetres": 4357,
+      "wayCount": 17,
+      "namedSections": [
+        "Moto GP chicane",
+        "MotoGP Long Lap Penalty",
+        "Niki Lauda Kurve",
+        "Rauch",
+        "Red Bull Mobile",
+        "Remus",
+        "Rindt",
+        "Schlossgold",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 822592403,
+          "toNode": {
+            "lat": 47.2192591,
+            "lon": 14.7610875
+          }
+        },
+        {
+          "wayId": 822592410
+        },
+        {
+          "wayId": 822592409
+        },
+        {
+          "wayId": 822592408
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2244693,
+            "lon": 14.7563451
+          }
+        },
+        {
+          "wayId": 1077423714,
+          "fromNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2206319,
+            "lon": 14.7595511
+          },
+          "toNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        },
+        {
+          "wayId": 823820476
+        }
+      ]
+    },
+    {
+      "loopId": 147,
+      "lengthMetres": 4369,
+      "wayCount": 17,
+      "namedSections": [
+        "Moto GP chicane",
+        "MotoGP Long Lap Penalty",
+        "Niki Lauda Kurve",
+        "Rauch",
+        "Red Bull Mobile",
+        "Remus",
+        "Rindt",
+        "Schlossgold",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 822592403,
+          "toNode": {
+            "lat": 47.2192591,
+            "lon": 14.7610875
+          }
+        },
+        {
+          "wayId": 822592410
+        },
+        {
+          "wayId": 822592409
+        },
+        {
+          "wayId": 822592408
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2244693,
+            "lon": 14.7563451
+          }
+        },
+        {
+          "wayId": 1077423714
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2206319,
+            "lon": 14.7595511
+          },
+          "toNode": {
+            "lat": 47.2224388,
+            "lon": 14.7579173
+          }
+        },
+        {
+          "wayId": 823820476
+        }
+      ]
+    },
+    {
+      "loopId": 148,
+      "lengthMetres": 4581,
+      "wayCount": 14,
+      "namedSections": [
+        "Boxenstraße",
+        "MotoGP Long Lap Penalty",
+        "Niki Lauda Kurve",
+        "Rauch",
+        "Remus",
+        "Rindt",
+        "Schlossgold",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 822592403,
+          "fromNode": {
+            "lat": 47.2192591,
+            "lon": 14.7610875
+          }
+        },
+        {
+          "wayId": 822592404,
+          "toNode": {
+            "lat": 47.2203263,
+            "lon": 14.7598752
+          }
+        },
+        {
+          "wayId": 289111668
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2206319,
+            "lon": 14.7595511
+          }
+        },
+        {
+          "wayId": 823820476
+        }
+      ]
+    },
+    {
+      "loopId": 149,
+      "lengthMetres": 4593,
+      "wayCount": 16,
+      "namedSections": [
+        "Boxenstraße",
+        "Moto GP chicane",
+        "MotoGP Long Lap Penalty",
+        "Niki Lauda Kurve",
+        "Rauch",
+        "Remus",
+        "Rindt",
+        "Schlossgold",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 822592403,
+          "fromNode": {
+            "lat": 47.2192591,
+            "lon": 14.7610875
+          }
+        },
+        {
+          "wayId": 822592404,
+          "toNode": {
+            "lat": 47.2203263,
+            "lon": 14.7598752
+          }
+        },
+        {
+          "wayId": 289111668
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        },
+        {
+          "wayId": 1077423714,
+          "toNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2206319,
+            "lon": 14.7595511
+          },
+          "toNode": {
+            "lat": 47.2224388,
+            "lon": 14.7579173
+          }
+        },
+        {
+          "wayId": 823820476
+        }
+      ]
+    },
+    {
+      "loopId": 150,
+      "lengthMetres": 4598,
+      "wayCount": 16,
+      "namedSections": [
+        "Boxenstraße",
+        "Moto GP chicane",
+        "MotoGP Long Lap Penalty",
+        "Niki Lauda Kurve",
+        "Rauch",
+        "Remus",
+        "Rindt",
+        "Schlossgold",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 822592403,
+          "fromNode": {
+            "lat": 47.2192591,
+            "lon": 14.7610875
+          }
+        },
+        {
+          "wayId": 822592404,
+          "toNode": {
+            "lat": 47.2203263,
+            "lon": 14.7598752
+          }
+        },
+        {
+          "wayId": 289111668
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2244693,
+            "lon": 14.7563451
+          }
+        },
+        {
+          "wayId": 1077423714,
+          "fromNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2206319,
+            "lon": 14.7595511
+          },
+          "toNode": {
+            "lat": 47.2233578,
+            "lon": 14.7572808
+          }
+        },
+        {
+          "wayId": 823820476
+        }
+      ]
+    },
+    {
+      "loopId": 151,
+      "lengthMetres": 4610,
+      "wayCount": 16,
+      "namedSections": [
+        "Boxenstraße",
+        "Moto GP chicane",
+        "MotoGP Long Lap Penalty",
+        "Niki Lauda Kurve",
+        "Rauch",
+        "Remus",
+        "Rindt",
+        "Schlossgold",
+        "Würth Kurve"
+      ],
+      "ways": [
+        {
+          "wayId": 822592403,
+          "fromNode": {
+            "lat": 47.2192591,
+            "lon": 14.7610875
+          }
+        },
+        {
+          "wayId": 822592404,
+          "toNode": {
+            "lat": 47.2203263,
+            "lon": 14.7598752
+          }
+        },
+        {
+          "wayId": 289111668
+        },
+        {
+          "wayId": 822592407
+        },
+        {
+          "wayId": 822592406
+        },
+        {
+          "wayId": 822592405
+        },
+        {
+          "wayId": 822592402
+        },
+        {
+          "wayId": 822592401
+        },
+        {
+          "wayId": 822592400
+        },
+        {
+          "wayId": 822592399
+        },
+        {
+          "wayId": 822592398
+        },
+        {
+          "wayId": 347958266
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2244693,
+            "lon": 14.7563451
+          }
+        },
+        {
+          "wayId": 1077423714
+        },
+        {
+          "wayId": 822592404,
+          "fromNode": {
+            "lat": 47.2206319,
+            "lon": 14.7595511
+          },
+          "toNode": {
+            "lat": 47.2224388,
+            "lon": 14.7579173
+          }
+        },
+        {
+          "wayId": 823820476
+        }
+      ]
+    }
+  ],
+  "unusedWays": [
+    {
+      "wayId": 347958276,
+      "name": ""
+    }
+  ]
+}

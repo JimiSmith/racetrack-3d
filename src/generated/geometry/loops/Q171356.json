@@ -1,0 +1,51 @@
+{
+  "trackId": "Q171356",
+  "generatedAt": "2026-04-12T09:12:29.953Z",
+  "waysFileHash": "sha256:afa93ef1c2a05dd0cd610848271e0b1146607046d049fa847bb6406cd5cb8dd1",
+  "stats": {
+    "totalWays": 7,
+    "junctionCoords": 11,
+    "segments": 15,
+    "loopsFound": 1
+  },
+  "loops": [
+    {
+      "loopId": 1,
+      "lengthMetres": 4372,
+      "wayCount": 2,
+      "namedSections": [
+        "Hungaroring"
+      ],
+      "ways": [
+        {
+          "wayId": 231328650
+        },
+        {
+          "wayId": 1333262244
+        }
+      ]
+    }
+  ],
+  "unusedWays": [
+    {
+      "wayId": 1036486212,
+      "name": ""
+    },
+    {
+      "wayId": 1036486213,
+      "name": ""
+    },
+    {
+      "wayId": 1036486214,
+      "name": ""
+    },
+    {
+      "wayId": 1036486215,
+      "name": ""
+    },
+    {
+      "wayId": 1036486216,
+      "name": ""
+    }
+  ]
+}

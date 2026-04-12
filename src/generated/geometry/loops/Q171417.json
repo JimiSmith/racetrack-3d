@@ -1,0 +1,7314 @@
+{
+  "trackId": "Q171417",
+  "generatedAt": "2026-04-12T09:12:29.983Z",
+  "waysFileHash": "sha256:028f985f8d443d6cdbecf8bfc6b0879e371aa146d5397f4e1b78b10fe7ede775",
+  "stats": {
+    "totalWays": 49,
+    "junctionCoords": 61,
+    "segments": 73,
+    "loopsFound": 97
+  },
+  "loops": [
+    {
+      "loopId": 1,
+      "lengthMetres": 214,
+      "wayCount": 2,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6378109,
+            "lon": 9.2825236
+          },
+          "toNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 2,
+      "lengthMetres": 231,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "fromNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          },
+          "toNode": {
+            "lat": 45.6374645,
+            "lon": 9.2830639
+          }
+        },
+        {
+          "wayId": 188180734
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381351,
+            "lon": 9.2827376
+          }
+        },
+        {
+          "wayId": 188180747
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6381308,
+            "lon": 9.2824722
+          },
+          "toNode": {
+            "lat": 45.637761,
+            "lon": 9.2826811
+          }
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 3,
+      "lengthMetres": 255,
+      "wayCount": 5,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "toNode": {
+            "lat": 45.6374645,
+            "lon": 9.2830639
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6381308,
+            "lon": 9.2824722
+          },
+          "toNode": {
+            "lat": 45.6378109,
+            "lon": 9.2825236
+          }
+        },
+        {
+          "wayId": 188180747
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381351,
+            "lon": 9.2827376
+          }
+        },
+        {
+          "wayId": 188180734
+        }
+      ]
+    },
+    {
+      "loopId": 4,
+      "lengthMetres": 271,
+      "wayCount": 5,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "toNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6381308,
+            "lon": 9.2824722
+          },
+          "toNode": {
+            "lat": 45.6378109,
+            "lon": 9.2825236
+          }
+        },
+        {
+          "wayId": 188180747
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.637761,
+            "lon": 9.2826811
+          },
+          "toNode": {
+            "lat": 45.6381351,
+            "lon": 9.2827376
+          }
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 5,
+      "lengthMetres": 275,
+      "wayCount": 5,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "fromNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381351,
+            "lon": 9.2827376
+          }
+        },
+        {
+          "wayId": 188180747
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6381308,
+            "lon": 9.2824722
+          },
+          "toNode": {
+            "lat": 45.637761,
+            "lon": 9.2826811
+          }
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 6,
+      "lengthMetres": 298,
+      "wayCount": 4,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6381308,
+            "lon": 9.2824722
+          },
+          "toNode": {
+            "lat": 45.6378109,
+            "lon": 9.2825236
+          }
+        },
+        {
+          "wayId": 188180747
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381351,
+            "lon": 9.2827376
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 7,
+      "lengthMetres": 299,
+      "wayCount": 4,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180738,
+          "toNode": {
+            "lat": 45.6380667,
+            "lon": 9.2830723
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          },
+          "toNode": {
+            "lat": 45.6384503,
+            "lon": 9.2827628
+          }
+        },
+        {
+          "wayId": 188180738,
+          "fromNode": {
+            "lat": 45.6381478,
+            "lon": 9.2832799
+          }
+        },
+        {
+          "wayId": 188180740
+        }
+      ]
+    },
+    {
+      "loopId": 8,
+      "lengthMetres": 352,
+      "wayCount": 2,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180738
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          },
+          "toNode": {
+            "lat": 45.6384503,
+            "lon": 9.2827628
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 9,
+      "lengthMetres": 404,
+      "wayCount": 4,
+      "namedSections": [
+        "Variante del Rettifilo"
+      ],
+      "ways": [
+        {
+          "wayId": 179968242,
+          "fromNode": {
+            "lat": 45.6244736,
+            "lon": 9.281898
+          },
+          "toNode": {
+            "lat": 45.6245326,
+            "lon": 9.2819322
+          }
+        },
+        {
+          "wayId": 38168756
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6248654,
+            "lon": 9.2824108
+          },
+          "toNode": {
+            "lat": 45.6261909,
+            "lon": 9.2820745
+          }
+        },
+        {
+          "wayId": 179968267
+        }
+      ]
+    },
+    {
+      "loopId": 10,
+      "lengthMetres": 409,
+      "wayCount": 2,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180747
+        }
+      ]
+    },
+    {
+      "loopId": 11,
+      "lengthMetres": 422,
+      "wayCount": 3,
+      "namedSections": [
+        "Variante del Rettifilo"
+      ],
+      "ways": [
+        {
+          "wayId": 179968242,
+          "fromNode": {
+            "lat": 45.6244736,
+            "lon": 9.281898
+          }
+        },
+        {
+          "wayId": 179968264,
+          "toNode": {
+            "lat": 45.6261909,
+            "lon": 9.2820745
+          }
+        },
+        {
+          "wayId": 179968267
+        }
+      ]
+    },
+    {
+      "loopId": 12,
+      "lengthMetres": 450,
+      "wayCount": 2,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          },
+          "toNode": {
+            "lat": 45.6393837,
+            "lon": 9.2831902
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 13,
+      "lengthMetres": 539,
+      "wayCount": 1,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180745
+        }
+      ]
+    },
+    {
+      "loopId": 14,
+      "lengthMetres": 595,
+      "wayCount": 4,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "fromNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          },
+          "toNode": {
+            "lat": 45.6374645,
+            "lon": 9.2830639
+          }
+        },
+        {
+          "wayId": 188180734
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 15,
+      "lengthMetres": 619,
+      "wayCount": 3,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "toNode": {
+            "lat": 45.6374645,
+            "lon": 9.2830639
+          }
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180734
+        }
+      ]
+    },
+    {
+      "loopId": 16,
+      "lengthMetres": 635,
+      "wayCount": 3,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "toNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          }
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 17,
+      "lengthMetres": 639,
+      "wayCount": 3,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "fromNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          }
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 18,
+      "lengthMetres": 650,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180738,
+          "toNode": {
+            "lat": 45.6380667,
+            "lon": 9.2830723
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6381351,
+            "lon": 9.2827376
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180747
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180738,
+          "fromNode": {
+            "lat": 45.6381478,
+            "lon": 9.2832799
+          }
+        },
+        {
+          "wayId": 188180740
+        }
+      ]
+    },
+    {
+      "loopId": 19,
+      "lengthMetres": 662,
+      "wayCount": 2,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730
+        },
+        {
+          "wayId": 188180745
+        }
+      ]
+    },
+    {
+      "loopId": 20,
+      "lengthMetres": 703,
+      "wayCount": 4,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180738
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6381351,
+            "lon": 9.2827376
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180747
+        },
+        {
+          "wayId": 188180745
+        }
+      ]
+    },
+    {
+      "loopId": 21,
+      "lengthMetres": 779,
+      "wayCount": 4,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180738,
+          "fromNode": {
+            "lat": 45.6381478,
+            "lon": 9.2832799
+          }
+        },
+        {
+          "wayId": 188180740
+        },
+        {
+          "wayId": 188180738,
+          "toNode": {
+            "lat": 45.6380667,
+            "lon": 9.2830723
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 22,
+      "lengthMetres": 832,
+      "wayCount": 2,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180738
+        }
+      ]
+    },
+    {
+      "loopId": 23,
+      "lengthMetres": 836,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "fromNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          },
+          "toNode": {
+            "lat": 45.6374645,
+            "lon": 9.2830639
+          }
+        },
+        {
+          "wayId": 188180734
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180738,
+          "toNode": {
+            "lat": 45.6380667,
+            "lon": 9.2830723
+          }
+        },
+        {
+          "wayId": 188180740
+        },
+        {
+          "wayId": 188180738,
+          "fromNode": {
+            "lat": 45.6381478,
+            "lon": 9.2832799
+          }
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 24,
+      "lengthMetres": 845,
+      "wayCount": 4,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6381351,
+            "lon": 9.2827376
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        },
+        {
+          "wayId": 188180747
+        }
+      ]
+    },
+    {
+      "loopId": 25,
+      "lengthMetres": 859,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "toNode": {
+            "lat": 45.6374645,
+            "lon": 9.2830639
+          }
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180738,
+          "fromNode": {
+            "lat": 45.6381478,
+            "lon": 9.2832799
+          }
+        },
+        {
+          "wayId": 188180740
+        },
+        {
+          "wayId": 188180738,
+          "toNode": {
+            "lat": 45.6380667,
+            "lon": 9.2830723
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180734
+        }
+      ]
+    },
+    {
+      "loopId": 26,
+      "lengthMetres": 876,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "toNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          }
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180738,
+          "fromNode": {
+            "lat": 45.6381478,
+            "lon": 9.2832799
+          }
+        },
+        {
+          "wayId": 188180740
+        },
+        {
+          "wayId": 188180738,
+          "toNode": {
+            "lat": 45.6380667,
+            "lon": 9.2830723
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.637761,
+            "lon": 9.2826811
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 27,
+      "lengthMetres": 880,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "fromNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180738,
+          "toNode": {
+            "lat": 45.6380667,
+            "lon": 9.2830723
+          }
+        },
+        {
+          "wayId": 188180740
+        },
+        {
+          "wayId": 188180738,
+          "fromNode": {
+            "lat": 45.6381478,
+            "lon": 9.2832799
+          }
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 28,
+      "lengthMetres": 889,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "fromNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          },
+          "toNode": {
+            "lat": 45.6374645,
+            "lon": 9.2830639
+          }
+        },
+        {
+          "wayId": 188180734
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180738
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 29,
+      "lengthMetres": 903,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180738,
+          "fromNode": {
+            "lat": 45.6381478,
+            "lon": 9.2832799
+          }
+        },
+        {
+          "wayId": 188180740
+        },
+        {
+          "wayId": 188180738,
+          "toNode": {
+            "lat": 45.6380667,
+            "lon": 9.2830723
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 30,
+      "lengthMetres": 912,
+      "wayCount": 5,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "toNode": {
+            "lat": 45.6374645,
+            "lon": 9.2830639
+          }
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180738
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180734
+        }
+      ]
+    },
+    {
+      "loopId": 31,
+      "lengthMetres": 929,
+      "wayCount": 5,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "toNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          }
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180738
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.637761,
+            "lon": 9.2826811
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 32,
+      "lengthMetres": 933,
+      "wayCount": 5,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "fromNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180738
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 33,
+      "lengthMetres": 956,
+      "wayCount": 4,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180738
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 34,
+      "lengthMetres": 974,
+      "wayCount": 2,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180726
+        }
+      ]
+    },
+    {
+      "loopId": 35,
+      "lengthMetres": 1031,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "fromNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          },
+          "toNode": {
+            "lat": 45.6374645,
+            "lon": 9.2830639
+          }
+        },
+        {
+          "wayId": 188180734
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 36,
+      "lengthMetres": 1054,
+      "wayCount": 5,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "toNode": {
+            "lat": 45.6374645,
+            "lon": 9.2830639
+          }
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        },
+        {
+          "wayId": 188180734
+        }
+      ]
+    },
+    {
+      "loopId": 37,
+      "lengthMetres": 1071,
+      "wayCount": 5,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "toNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          }
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.637761,
+            "lon": 9.2826811
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 38,
+      "lengthMetres": 1074,
+      "wayCount": 5,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "fromNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 39,
+      "lengthMetres": 1086,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180738,
+          "toNode": {
+            "lat": 45.6380667,
+            "lon": 9.2830723
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6381351,
+            "lon": 9.2827376
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180747
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6384503,
+            "lon": 9.2827628
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        },
+        {
+          "wayId": 188180738,
+          "fromNode": {
+            "lat": 45.6381478,
+            "lon": 9.2832799
+          }
+        },
+        {
+          "wayId": 188180740
+        }
+      ]
+    },
+    {
+      "loopId": 40,
+      "lengthMetres": 1098,
+      "wayCount": 4,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 41,
+      "lengthMetres": 1139,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180738
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6381351,
+            "lon": 9.2827376
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180747
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6384503,
+            "lon": 9.2827628
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 42,
+      "lengthMetres": 1215,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6384503,
+            "lon": 9.2827628
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        },
+        {
+          "wayId": 188180738,
+          "fromNode": {
+            "lat": 45.6381478,
+            "lon": 9.2832799
+          }
+        },
+        {
+          "wayId": 188180740
+        },
+        {
+          "wayId": 188180738,
+          "toNode": {
+            "lat": 45.6380667,
+            "lon": 9.2830723
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 43,
+      "lengthMetres": 1268,
+      "wayCount": 4,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6384503,
+            "lon": 9.2827628
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        },
+        {
+          "wayId": 188180738
+        }
+      ]
+    },
+    {
+      "loopId": 44,
+      "lengthMetres": 1272,
+      "wayCount": 10,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "fromNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          },
+          "toNode": {
+            "lat": 45.6374645,
+            "lon": 9.2830639
+          }
+        },
+        {
+          "wayId": 188180734
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180738,
+          "toNode": {
+            "lat": 45.6380667,
+            "lon": 9.2830723
+          }
+        },
+        {
+          "wayId": 188180740
+        },
+        {
+          "wayId": 188180738,
+          "fromNode": {
+            "lat": 45.6381478,
+            "lon": 9.2832799
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6384503,
+            "lon": 9.2827628
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 45,
+      "lengthMetres": 1295,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "toNode": {
+            "lat": 45.6374645,
+            "lon": 9.2830639
+          }
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6384503,
+            "lon": 9.2827628
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        },
+        {
+          "wayId": 188180738,
+          "fromNode": {
+            "lat": 45.6381478,
+            "lon": 9.2832799
+          }
+        },
+        {
+          "wayId": 188180740
+        },
+        {
+          "wayId": 188180738,
+          "toNode": {
+            "lat": 45.6380667,
+            "lon": 9.2830723
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180734
+        }
+      ]
+    },
+    {
+      "loopId": 46,
+      "lengthMetres": 1311,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "toNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          }
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6384503,
+            "lon": 9.2827628
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        },
+        {
+          "wayId": 188180738,
+          "fromNode": {
+            "lat": 45.6381478,
+            "lon": 9.2832799
+          }
+        },
+        {
+          "wayId": 188180740
+        },
+        {
+          "wayId": 188180738,
+          "toNode": {
+            "lat": 45.6380667,
+            "lon": 9.2830723
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.637761,
+            "lon": 9.2826811
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 47,
+      "lengthMetres": 1315,
+      "wayCount": 9,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "fromNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180738,
+          "toNode": {
+            "lat": 45.6380667,
+            "lon": 9.2830723
+          }
+        },
+        {
+          "wayId": 188180740
+        },
+        {
+          "wayId": 188180738,
+          "fromNode": {
+            "lat": 45.6381478,
+            "lon": 9.2832799
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6384503,
+            "lon": 9.2827628
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 48,
+      "lengthMetres": 1324,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "fromNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          },
+          "toNode": {
+            "lat": 45.6374645,
+            "lon": 9.2830639
+          }
+        },
+        {
+          "wayId": 188180734
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180738
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6384503,
+            "lon": 9.2827628
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 49,
+      "lengthMetres": 1338,
+      "wayCount": 8,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6384503,
+            "lon": 9.2827628
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        },
+        {
+          "wayId": 188180738,
+          "fromNode": {
+            "lat": 45.6381478,
+            "lon": 9.2832799
+          }
+        },
+        {
+          "wayId": 188180740
+        },
+        {
+          "wayId": 188180738,
+          "toNode": {
+            "lat": 45.6380667,
+            "lon": 9.2830723
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 50,
+      "lengthMetres": 1348,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "toNode": {
+            "lat": 45.6374645,
+            "lon": 9.2830639
+          }
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6384503,
+            "lon": 9.2827628
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        },
+        {
+          "wayId": 188180738
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180734
+        }
+      ]
+    },
+    {
+      "loopId": 51,
+      "lengthMetres": 1364,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "toNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          }
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6384503,
+            "lon": 9.2827628
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        },
+        {
+          "wayId": 188180738
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.637761,
+            "lon": 9.2826811
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 52,
+      "lengthMetres": 1368,
+      "wayCount": 7,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730,
+          "fromNode": {
+            "lat": 45.6374329,
+            "lon": 9.2827019
+          }
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        },
+        {
+          "wayId": 188180738
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6384503,
+            "lon": 9.2827628
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180731
+        }
+      ]
+    },
+    {
+      "loopId": 53,
+      "lengthMetres": 1391,
+      "wayCount": 6,
+      "namedSections": [],
+      "ways": [
+        {
+          "wayId": 188180730
+        },
+        {
+          "wayId": 188180745
+        },
+        {
+          "wayId": 188180726
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6384503,
+            "lon": 9.2827628
+          },
+          "toNode": {
+            "lat": 45.6394292,
+            "lon": 9.2832553
+          }
+        },
+        {
+          "wayId": 188180738
+        },
+        {
+          "wayId": 188180745,
+          "fromNode": {
+            "lat": 45.6376756,
+            "lon": 9.2830688
+          },
+          "toNode": {
+            "lat": 45.6381877,
+            "lon": 9.2827418
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 54,
+      "lengthMetres": 1485,
+      "wayCount": 3,
+      "namedSections": [
+        "Curva Alboreto",
+        "Pit Lane",
+        "Rettifilo di partenza"
+      ],
+      "ways": [
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 19842206,
+          "toNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          }
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 55,
+      "lengthMetres": 2415,
+      "wayCount": 5,
+      "namedSections": [
+        "Curva Alboreto",
+        "Pit Lane",
+        "Raccordo Junior",
+        "Rettifilo di partenza"
+      ],
+      "ways": [
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          },
+          "toNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          }
+        },
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 179968257,
+          "fromNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 56,
+      "lengthMetres": 2415,
+      "wayCount": 4,
+      "namedSections": [
+        "Curva Alboreto",
+        "Raccordo Junior",
+        "Rettifilo di partenza"
+      ],
+      "ways": [
+        {
+          "wayId": 179968234
+        },
+        {
+          "wayId": 19842206,
+          "toNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          }
+        },
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 179968257,
+          "fromNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 57,
+      "lengthMetres": 4231,
+      "wayCount": 21,
+      "namedSections": [
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          }
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6244736,
+            "lon": 9.281898
+          }
+        },
+        {
+          "wayId": 179968267
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6261909,
+            "lon": 9.2820745
+          }
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968257,
+          "toNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 58,
+      "lengthMetres": 4252,
+      "wayCount": 21,
+      "namedSections": [
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          }
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6245326,
+            "lon": 9.2819322
+          }
+        },
+        {
+          "wayId": 38168756
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6248654,
+            "lon": 9.2824108
+          }
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968257,
+          "toNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 59,
+      "lengthMetres": 4264,
+      "wayCount": 14,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 19842206,
+          "toNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 60,
+      "lengthMetres": 4269,
+      "wayCount": 20,
+      "namedSections": [
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          }
+        },
+        {
+          "wayId": 179968242
+        },
+        {
+          "wayId": 179968264
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968257,
+          "toNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 61,
+      "lengthMetres": 4309,
+      "wayCount": 15,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Tondo"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 19842206,
+          "toNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008,
+          "toNode": {
+            "lat": 45.6135887,
+            "lon": 9.2887549
+          }
+        },
+        {
+          "wayId": 34405200
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 62,
+      "lengthMetres": 4550,
+      "wayCount": 15,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Pit Lane",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          },
+          "toNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          },
+          "toNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 63,
+      "lengthMetres": 4595,
+      "wayCount": 16,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Pit Lane",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Tondo"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          },
+          "toNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          },
+          "toNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008,
+          "toNode": {
+            "lat": 45.6135887,
+            "lon": 9.2887549
+          }
+        },
+        {
+          "wayId": 34405200
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 64,
+      "lengthMetres": 5373,
+      "wayCount": 16,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 179968257,
+          "fromNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        },
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          },
+          "toNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 65,
+      "lengthMetres": 5418,
+      "wayCount": 17,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Tondo"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 179968257,
+          "fromNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        },
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          },
+          "toNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008,
+          "toNode": {
+            "lat": 45.6135887,
+            "lon": 9.2887549
+          }
+        },
+        {
+          "wayId": 34405200
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 66,
+      "lengthMetres": 5758,
+      "wayCount": 22,
+      "namedSections": [
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Pit Lane",
+        "Rettifilo di partenza",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          }
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6244736,
+            "lon": 9.281898
+          }
+        },
+        {
+          "wayId": 179968267
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6261909,
+            "lon": 9.2820745
+          }
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968257
+        }
+      ]
+    },
+    {
+      "loopId": 67,
+      "lengthMetres": 5758,
+      "wayCount": 21,
+      "namedSections": [
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Rettifilo di partenza",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 179968234
+        },
+        {
+          "wayId": 19842206
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6244736,
+            "lon": 9.281898
+          }
+        },
+        {
+          "wayId": 179968267
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6261909,
+            "lon": 9.2820745
+          }
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968257
+        }
+      ]
+    },
+    {
+      "loopId": 68,
+      "lengthMetres": 5778,
+      "wayCount": 22,
+      "namedSections": [
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Pit Lane",
+        "Rettifilo di partenza",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          }
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6245326,
+            "lon": 9.2819322
+          }
+        },
+        {
+          "wayId": 38168756
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6248654,
+            "lon": 9.2824108
+          }
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968257
+        }
+      ]
+    },
+    {
+      "loopId": 69,
+      "lengthMetres": 5778,
+      "wayCount": 21,
+      "namedSections": [
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Rettifilo di partenza",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 179968234
+        },
+        {
+          "wayId": 19842206
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6245326,
+            "lon": 9.2819322
+          }
+        },
+        {
+          "wayId": 38168756
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6248654,
+            "lon": 9.2824108
+          }
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968257
+        }
+      ]
+    },
+    {
+      "loopId": 70,
+      "lengthMetres": 5796,
+      "wayCount": 21,
+      "namedSections": [
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Pit Lane",
+        "Rettifilo di partenza",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          }
+        },
+        {
+          "wayId": 179968242
+        },
+        {
+          "wayId": 179968264
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968257
+        }
+      ]
+    },
+    {
+      "loopId": 71,
+      "lengthMetres": 5796,
+      "wayCount": 20,
+      "namedSections": [
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Rettifilo di partenza",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 179968234
+        },
+        {
+          "wayId": 19842206
+        },
+        {
+          "wayId": 179968242
+        },
+        {
+          "wayId": 179968264
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968257
+        }
+      ]
+    },
+    {
+      "loopId": 72,
+      "lengthMetres": 6572,
+      "wayCount": 19,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Pit Lane",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 19842206,
+          "toNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          }
+        },
+        {
+          "wayId": 179968257,
+          "fromNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        },
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          },
+          "toNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 73,
+      "lengthMetres": 6617,
+      "wayCount": 20,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Pit Lane",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Tondo"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 19842206,
+          "toNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          }
+        },
+        {
+          "wayId": 179968257,
+          "fromNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        },
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          },
+          "toNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008,
+          "toNode": {
+            "lat": 45.6135887,
+            "lon": 9.2887549
+          }
+        },
+        {
+          "wayId": 34405200
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 74,
+      "lengthMetres": 8470,
+      "wayCount": 35,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 19842206,
+          "toNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          }
+        },
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 179968257,
+          "toNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6261909,
+            "lon": 9.2820745
+          }
+        },
+        {
+          "wayId": 179968267
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6244736,
+            "lon": 9.281898
+          }
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 75,
+      "lengthMetres": 8491,
+      "wayCount": 35,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 19842206,
+          "toNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          }
+        },
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 179968257,
+          "toNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6248654,
+            "lon": 9.2824108
+          }
+        },
+        {
+          "wayId": 38168756
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6245326,
+            "lon": 9.2819322
+          }
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 76,
+      "lengthMetres": 8509,
+      "wayCount": 34,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 19842206,
+          "toNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          }
+        },
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 179968257,
+          "toNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264
+        },
+        {
+          "wayId": 179968242
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 77,
+      "lengthMetres": 8515,
+      "wayCount": 36,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Tondo",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 19842206,
+          "toNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          }
+        },
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 179968257,
+          "toNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6261909,
+            "lon": 9.2820745
+          }
+        },
+        {
+          "wayId": 179968267
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6244736,
+            "lon": 9.281898
+          }
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008,
+          "toNode": {
+            "lat": 45.6135887,
+            "lon": 9.2887549
+          }
+        },
+        {
+          "wayId": 34405200
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 78,
+      "lengthMetres": 8536,
+      "wayCount": 36,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Tondo",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 19842206,
+          "toNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          }
+        },
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 179968257,
+          "toNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6248654,
+            "lon": 9.2824108
+          }
+        },
+        {
+          "wayId": 38168756
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6245326,
+            "lon": 9.2819322
+          }
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008,
+          "toNode": {
+            "lat": 45.6135887,
+            "lon": 9.2887549
+          }
+        },
+        {
+          "wayId": 34405200
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 79,
+      "lengthMetres": 8554,
+      "wayCount": 35,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Tondo",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 19842206,
+          "toNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          }
+        },
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 179968257,
+          "toNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264
+        },
+        {
+          "wayId": 179968242
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008,
+          "toNode": {
+            "lat": 45.6135887,
+            "lon": 9.2887549
+          }
+        },
+        {
+          "wayId": 34405200
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 80,
+      "lengthMetres": 8691,
+      "wayCount": 33,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 179968257
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6261909,
+            "lon": 9.2820745
+          }
+        },
+        {
+          "wayId": 179968267
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6244736,
+            "lon": 9.281898
+          }
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 81,
+      "lengthMetres": 8712,
+      "wayCount": 33,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 179968257
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6248654,
+            "lon": 9.2824108
+          }
+        },
+        {
+          "wayId": 38168756
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6245326,
+            "lon": 9.2819322
+          }
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 82,
+      "lengthMetres": 8730,
+      "wayCount": 32,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 179968257
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264
+        },
+        {
+          "wayId": 179968242
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 83,
+      "lengthMetres": 8736,
+      "wayCount": 34,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Tondo",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 179968257
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6261909,
+            "lon": 9.2820745
+          }
+        },
+        {
+          "wayId": 179968267
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6244736,
+            "lon": 9.281898
+          }
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008,
+          "toNode": {
+            "lat": 45.6135887,
+            "lon": 9.2887549
+          }
+        },
+        {
+          "wayId": 34405200
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 84,
+      "lengthMetres": 8757,
+      "wayCount": 36,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Pit Lane",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          },
+          "toNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          },
+          "toNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          }
+        },
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 179968257,
+          "toNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6261909,
+            "lon": 9.2820745
+          }
+        },
+        {
+          "wayId": 179968267
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6244736,
+            "lon": 9.281898
+          }
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 85,
+      "lengthMetres": 8757,
+      "wayCount": 34,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Tondo",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 179968257
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6248654,
+            "lon": 9.2824108
+          }
+        },
+        {
+          "wayId": 38168756
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6245326,
+            "lon": 9.2819322
+          }
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008,
+          "toNode": {
+            "lat": 45.6135887,
+            "lon": 9.2887549
+          }
+        },
+        {
+          "wayId": 34405200
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 86,
+      "lengthMetres": 8775,
+      "wayCount": 33,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Tondo",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 179968257
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264
+        },
+        {
+          "wayId": 179968242
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008,
+          "toNode": {
+            "lat": 45.6135887,
+            "lon": 9.2887549
+          }
+        },
+        {
+          "wayId": 34405200
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 87,
+      "lengthMetres": 8778,
+      "wayCount": 36,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Pit Lane",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          },
+          "toNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          },
+          "toNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          }
+        },
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 179968257,
+          "toNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6248654,
+            "lon": 9.2824108
+          }
+        },
+        {
+          "wayId": 38168756
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6245326,
+            "lon": 9.2819322
+          }
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 88,
+      "lengthMetres": 8795,
+      "wayCount": 35,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Pit Lane",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          },
+          "toNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          },
+          "toNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          }
+        },
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 179968257,
+          "toNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264
+        },
+        {
+          "wayId": 179968242
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 89,
+      "lengthMetres": 8802,
+      "wayCount": 37,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Pit Lane",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Tondo",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          },
+          "toNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          },
+          "toNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          }
+        },
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 179968257,
+          "toNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6261909,
+            "lon": 9.2820745
+          }
+        },
+        {
+          "wayId": 179968267
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6244736,
+            "lon": 9.281898
+          }
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008,
+          "toNode": {
+            "lat": 45.6135887,
+            "lon": 9.2887549
+          }
+        },
+        {
+          "wayId": 34405200
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 90,
+      "lengthMetres": 8823,
+      "wayCount": 37,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Pit Lane",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Tondo",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          },
+          "toNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          },
+          "toNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          }
+        },
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 179968257,
+          "toNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6248654,
+            "lon": 9.2824108
+          }
+        },
+        {
+          "wayId": 38168756
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6245326,
+            "lon": 9.2819322
+          }
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008,
+          "toNode": {
+            "lat": 45.6135887,
+            "lon": 9.2887549
+          }
+        },
+        {
+          "wayId": 34405200
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 91,
+      "lengthMetres": 8840,
+      "wayCount": 36,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Pit Lane",
+        "Raccordo Junior",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Tondo",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          },
+          "toNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          },
+          "toNode": {
+            "lat": 45.6210889,
+            "lon": 9.2814693
+          }
+        },
+        {
+          "wayId": 34404709
+        },
+        {
+          "wayId": 179968257,
+          "toNode": {
+            "lat": 45.6191886,
+            "lon": 9.2846818
+          }
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264
+        },
+        {
+          "wayId": 179968242
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008,
+          "toNode": {
+            "lat": 45.6135887,
+            "lon": 9.2887549
+          }
+        },
+        {
+          "wayId": 34405200
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 92,
+      "lengthMetres": 9890,
+      "wayCount": 36,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Pit Lane",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 19842206,
+          "toNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          }
+        },
+        {
+          "wayId": 179968257
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6261909,
+            "lon": 9.2820745
+          }
+        },
+        {
+          "wayId": 179968267
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6244736,
+            "lon": 9.281898
+          }
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 93,
+      "lengthMetres": 9911,
+      "wayCount": 36,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Pit Lane",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 19842206,
+          "toNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          }
+        },
+        {
+          "wayId": 179968257
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6248654,
+            "lon": 9.2824108
+          }
+        },
+        {
+          "wayId": 38168756
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6245326,
+            "lon": 9.2819322
+          }
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 94,
+      "lengthMetres": 9929,
+      "wayCount": 35,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Pit Lane",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 19842206,
+          "toNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          }
+        },
+        {
+          "wayId": 179968257
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264
+        },
+        {
+          "wayId": 179968242
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 95,
+      "lengthMetres": 9935,
+      "wayCount": 37,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Pit Lane",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Tondo",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 19842206,
+          "toNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          }
+        },
+        {
+          "wayId": 179968257
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6261909,
+            "lon": 9.2820745
+          }
+        },
+        {
+          "wayId": 179968267
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6244736,
+            "lon": 9.281898
+          }
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008,
+          "toNode": {
+            "lat": 45.6135887,
+            "lon": 9.2887549
+          }
+        },
+        {
+          "wayId": 34405200
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 96,
+      "lengthMetres": 9956,
+      "wayCount": 37,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Pit Lane",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Tondo",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 19842206,
+          "toNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          }
+        },
+        {
+          "wayId": 179968257
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264,
+          "fromNode": {
+            "lat": 45.6248654,
+            "lon": 9.2824108
+          }
+        },
+        {
+          "wayId": 38168756
+        },
+        {
+          "wayId": 179968242,
+          "toNode": {
+            "lat": 45.6245326,
+            "lon": 9.2819322
+          }
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008,
+          "toNode": {
+            "lat": 45.6135887,
+            "lon": 9.2887549
+          }
+        },
+        {
+          "wayId": 34405200
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    },
+    {
+      "loopId": 97,
+      "lengthMetres": 9973,
+      "wayCount": 36,
+      "namedSections": [
+        "Autodromo nazionale di Monza - anello alta velocità",
+        "Curva Alboreto",
+        "Curva Biassono",
+        "Curva Vialone",
+        "Curva del Serraglio",
+        "Lesmo 1",
+        "Lesmo 2",
+        "Pit Lane",
+        "Rettifilo di partenza",
+        "Rettilineo anello alta velocità",
+        "Sopraelevata Nord",
+        "Sopraelevata Sud",
+        "Tondo",
+        "Variante Ascari",
+        "Variante del Rettifilo",
+        "Variante della Roggia"
+      ],
+      "ways": [
+        {
+          "wayId": 34404638
+        },
+        {
+          "wayId": 19983025
+        },
+        {
+          "wayId": 1313098146
+        },
+        {
+          "wayId": 1313098145
+        },
+        {
+          "wayId": 179968234,
+          "fromNode": {
+            "lat": 45.6152515,
+            "lon": 9.2806903
+          }
+        },
+        {
+          "wayId": 19842206,
+          "toNode": {
+            "lat": 45.6206107,
+            "lon": 9.2814088
+          }
+        },
+        {
+          "wayId": 38168747
+        },
+        {
+          "wayId": 179968234,
+          "toNode": {
+            "lat": 45.6139645,
+            "lon": 9.2807176
+          }
+        },
+        {
+          "wayId": 179968257
+        },
+        {
+          "wayId": 179968239
+        },
+        {
+          "wayId": 179968249
+        },
+        {
+          "wayId": 179968226
+        },
+        {
+          "wayId": 179968254
+        },
+        {
+          "wayId": 1443867793
+        },
+        {
+          "wayId": 1443867792
+        },
+        {
+          "wayId": 179968228
+        },
+        {
+          "wayId": 179968252
+        },
+        {
+          "wayId": 179968230
+        },
+        {
+          "wayId": 179968251
+        },
+        {
+          "wayId": 179968229
+        },
+        {
+          "wayId": 179968263
+        },
+        {
+          "wayId": 179968245
+        },
+        {
+          "wayId": 179968262
+        },
+        {
+          "wayId": 179968220
+        },
+        {
+          "wayId": 179968264
+        },
+        {
+          "wayId": 179968242
+        },
+        {
+          "wayId": 19842206,
+          "fromNode": {
+            "lat": 45.6211988,
+            "lon": 9.2814831
+          }
+        },
+        {
+          "wayId": 1313097098
+        },
+        {
+          "wayId": 19982933
+        },
+        {
+          "wayId": 725687995
+        },
+        {
+          "wayId": 725687994
+        },
+        {
+          "wayId": 34404729
+        },
+        {
+          "wayId": 34404730
+        },
+        {
+          "wayId": 231256008,
+          "toNode": {
+            "lat": 45.6135887,
+            "lon": 9.2887549
+          }
+        },
+        {
+          "wayId": 34405200
+        },
+        {
+          "wayId": 231256009
+        }
+      ]
+    }
+  ],
+  "unusedWays": [
+    {
+      "wayId": 1238685998,
+      "name": ""
+    },
+    {
+      "wayId": 193475050,
+      "name": "Ex Circuito Pirelli"
+    },
+    {
+      "wayId": 1443867790,
+      "name": "Ex Circuito Pirelli"
+    },
+    {
+      "wayId": 1443867791,
+      "name": "Ex Circuito Pirelli"
+    }
+  ]
+}
