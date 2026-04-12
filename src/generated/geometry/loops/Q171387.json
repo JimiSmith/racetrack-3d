@@ -1,0 +1,939 @@
+{
+  "trackId": "Q171387",
+  "generatedAt": "2026-04-12T20:09:44.139Z",
+  "waysFileHash": "sha256:2df6f866bad12005a4b29938f8a1137f4be5a337dfdad034ac87e853e32ee461",
+  "stats": {
+    "totalWays": 28,
+    "junctionCoords": 30,
+    "segments": 33,
+    "loopsFound": 11
+  },
+  "loops": [
+    {
+      "loopId": 1,
+      "lengthMetres": 289,
+      "wayCount": 3,
+      "namedSections": [
+        "Subida dos Boxes"
+      ],
+      "ways": [
+        {
+          "wayId": 189535481
+        },
+        {
+          "wayId": 138567239,
+          "toNode": {
+            "lat": -23.6977329,
+            "lon": -46.6995147
+          }
+        },
+        {
+          "wayId": 190164737,
+          "fromNode": {
+            "lat": -23.6971683,
+            "lon": -46.698366
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 2,
+      "lengthMetres": 289,
+      "wayCount": 2,
+      "namedSections": [
+        "Bico de Pato"
+      ],
+      "ways": [
+        {
+          "wayId": 138566993,
+          "fromNode": {
+            "lat": -23.699406,
+            "lon": -46.6994419
+          },
+          "toNode": {
+            "lat": -23.6988082,
+            "lon": -46.69892
+          }
+        },
+        {
+          "wayId": 638329117
+        }
+      ]
+    },
+    {
+      "loopId": 3,
+      "lengthMetres": 2815,
+      "wayCount": 8,
+      "namedSections": [
+        "Arquibancadas",
+        "Curva do Sol",
+        "Pit Lane",
+        "Reta Oposta",
+        "S do Senna"
+      ],
+      "ways": [
+        {
+          "wayId": 33779109
+        },
+        {
+          "wayId": 138567001,
+          "toNode": {
+            "lat": -23.7031047,
+            "lon": -46.6949777
+          }
+        },
+        {
+          "wayId": 138566995
+        },
+        {
+          "wayId": 807691487
+        },
+        {
+          "wayId": 189535473
+        },
+        {
+          "wayId": 131439569
+        },
+        {
+          "wayId": 138567241
+        },
+        {
+          "wayId": 190164733
+        }
+      ]
+    },
+    {
+      "loopId": 4,
+      "lengthMetres": 4166,
+      "wayCount": 22,
+      "namedSections": [
+        "Bico de Pato",
+        "Café",
+        "Curva do Laranjinha",
+        "Descida do Lago",
+        "Esse",
+        "Ferradura",
+        "Junção",
+        "Mergulho",
+        "Pinherinho",
+        "Pit Lane",
+        "Reta Oposta",
+        "Subida dos Boxes"
+      ],
+      "ways": [
+        {
+          "wayId": 138567242
+        },
+        {
+          "wayId": 190164736
+        },
+        {
+          "wayId": 189535472
+        },
+        {
+          "wayId": 138567236
+        },
+        {
+          "wayId": 138566999
+        },
+        {
+          "wayId": 190164734
+        },
+        {
+          "wayId": 138566993,
+          "fromNode": {
+            "lat": -23.6988082,
+            "lon": -46.69892
+          }
+        },
+        {
+          "wayId": 638329117
+        },
+        {
+          "wayId": 138566993,
+          "toNode": {
+            "lat": -23.699406,
+            "lon": -46.6994419
+          }
+        },
+        {
+          "wayId": 138566998
+        },
+        {
+          "wayId": 190164735
+        },
+        {
+          "wayId": 138567002
+        },
+        {
+          "wayId": 138566994
+        },
+        {
+          "wayId": 138566997
+        },
+        {
+          "wayId": 138567000
+        },
+        {
+          "wayId": 807691486
+        },
+        {
+          "wayId": 138566996
+        },
+        {
+          "wayId": 138567001,
+          "fromNode": {
+            "lat": -23.7031047,
+            "lon": -46.6949777
+          }
+        },
+        {
+          "wayId": 33779109
+        },
+        {
+          "wayId": 138567234
+        },
+        {
+          "wayId": 138567239
+        },
+        {
+          "wayId": 190164737
+        }
+      ]
+    },
+    {
+      "loopId": 5,
+      "lengthMetres": 4188,
+      "wayCount": 23,
+      "namedSections": [
+        "Bico de Pato",
+        "Café",
+        "Curva do Laranjinha",
+        "Descida do Lago",
+        "Esse",
+        "Ferradura",
+        "Junção",
+        "Mergulho",
+        "Pinherinho",
+        "Pit Lane",
+        "Reta Oposta",
+        "Subida dos Boxes"
+      ],
+      "ways": [
+        {
+          "wayId": 138567242
+        },
+        {
+          "wayId": 190164736
+        },
+        {
+          "wayId": 189535472
+        },
+        {
+          "wayId": 138567236
+        },
+        {
+          "wayId": 138566999
+        },
+        {
+          "wayId": 190164734
+        },
+        {
+          "wayId": 138566993,
+          "fromNode": {
+            "lat": -23.6988082,
+            "lon": -46.69892
+          }
+        },
+        {
+          "wayId": 638329117
+        },
+        {
+          "wayId": 138566993,
+          "toNode": {
+            "lat": -23.699406,
+            "lon": -46.6994419
+          }
+        },
+        {
+          "wayId": 138566998
+        },
+        {
+          "wayId": 190164735
+        },
+        {
+          "wayId": 138567002
+        },
+        {
+          "wayId": 138566994
+        },
+        {
+          "wayId": 138566997
+        },
+        {
+          "wayId": 138567000
+        },
+        {
+          "wayId": 807691486
+        },
+        {
+          "wayId": 138566996
+        },
+        {
+          "wayId": 138567001,
+          "fromNode": {
+            "lat": -23.7031047,
+            "lon": -46.6949777
+          }
+        },
+        {
+          "wayId": 33779109
+        },
+        {
+          "wayId": 138567234
+        },
+        {
+          "wayId": 138567239,
+          "fromNode": {
+            "lat": -23.6977329,
+            "lon": -46.6995147
+          }
+        },
+        {
+          "wayId": 189535481
+        },
+        {
+          "wayId": 190164737,
+          "toNode": {
+            "lat": -23.6971683,
+            "lon": -46.698366
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 6,
+      "lengthMetres": 4221,
+      "wayCount": 27,
+      "namedSections": [
+        "Arquibancadas",
+        "Bico de Pato",
+        "Café",
+        "Curva do Laranjinha",
+        "Curva do Sol",
+        "Descida do Lago",
+        "Esse",
+        "Ferradura",
+        "Junção",
+        "Mergulho",
+        "Pinherinho",
+        "Reta Oposta",
+        "S do Senna",
+        "Subida dos Boxes"
+      ],
+      "ways": [
+        {
+          "wayId": 138567242
+        },
+        {
+          "wayId": 190164736
+        },
+        {
+          "wayId": 189535472
+        },
+        {
+          "wayId": 138567236
+        },
+        {
+          "wayId": 138566999
+        },
+        {
+          "wayId": 190164734
+        },
+        {
+          "wayId": 138566993,
+          "fromNode": {
+            "lat": -23.6988082,
+            "lon": -46.69892
+          }
+        },
+        {
+          "wayId": 638329117
+        },
+        {
+          "wayId": 138566993,
+          "toNode": {
+            "lat": -23.699406,
+            "lon": -46.6994419
+          }
+        },
+        {
+          "wayId": 138566998
+        },
+        {
+          "wayId": 190164735
+        },
+        {
+          "wayId": 138567002
+        },
+        {
+          "wayId": 138566994
+        },
+        {
+          "wayId": 138566997
+        },
+        {
+          "wayId": 138567000
+        },
+        {
+          "wayId": 807691486
+        },
+        {
+          "wayId": 138566996
+        },
+        {
+          "wayId": 138567001
+        },
+        {
+          "wayId": 138566995
+        },
+        {
+          "wayId": 807691487
+        },
+        {
+          "wayId": 189535473
+        },
+        {
+          "wayId": 131439569
+        },
+        {
+          "wayId": 138567241
+        },
+        {
+          "wayId": 190164733
+        },
+        {
+          "wayId": 138567234
+        },
+        {
+          "wayId": 138567239
+        },
+        {
+          "wayId": 190164737
+        }
+      ]
+    },
+    {
+      "loopId": 7,
+      "lengthMetres": 4243,
+      "wayCount": 28,
+      "namedSections": [
+        "Arquibancadas",
+        "Bico de Pato",
+        "Café",
+        "Curva do Laranjinha",
+        "Curva do Sol",
+        "Descida do Lago",
+        "Esse",
+        "Ferradura",
+        "Junção",
+        "Mergulho",
+        "Pinherinho",
+        "Reta Oposta",
+        "S do Senna",
+        "Subida dos Boxes"
+      ],
+      "ways": [
+        {
+          "wayId": 138567242
+        },
+        {
+          "wayId": 190164736
+        },
+        {
+          "wayId": 189535472
+        },
+        {
+          "wayId": 138567236
+        },
+        {
+          "wayId": 138566999
+        },
+        {
+          "wayId": 190164734
+        },
+        {
+          "wayId": 138566993,
+          "fromNode": {
+            "lat": -23.6988082,
+            "lon": -46.69892
+          }
+        },
+        {
+          "wayId": 638329117
+        },
+        {
+          "wayId": 138566993,
+          "toNode": {
+            "lat": -23.699406,
+            "lon": -46.6994419
+          }
+        },
+        {
+          "wayId": 138566998
+        },
+        {
+          "wayId": 190164735
+        },
+        {
+          "wayId": 138567002
+        },
+        {
+          "wayId": 138566994
+        },
+        {
+          "wayId": 138566997
+        },
+        {
+          "wayId": 138567000
+        },
+        {
+          "wayId": 807691486
+        },
+        {
+          "wayId": 138566996
+        },
+        {
+          "wayId": 138567001
+        },
+        {
+          "wayId": 138566995
+        },
+        {
+          "wayId": 807691487
+        },
+        {
+          "wayId": 189535473
+        },
+        {
+          "wayId": 131439569
+        },
+        {
+          "wayId": 138567241
+        },
+        {
+          "wayId": 190164733
+        },
+        {
+          "wayId": 138567234
+        },
+        {
+          "wayId": 138567239,
+          "fromNode": {
+            "lat": -23.6977329,
+            "lon": -46.6995147
+          }
+        },
+        {
+          "wayId": 189535481
+        },
+        {
+          "wayId": 190164737,
+          "toNode": {
+            "lat": -23.6971683,
+            "lon": -46.698366
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 8,
+      "lengthMetres": 4258,
+      "wayCount": 20,
+      "namedSections": [
+        "Bico de Pato",
+        "Café",
+        "Curva do Laranjinha",
+        "Descida do Lago",
+        "Esse",
+        "Ferradura",
+        "Junção",
+        "Mergulho",
+        "Pinherinho",
+        "Pit Lane",
+        "Reta Oposta",
+        "Subida dos Boxes"
+      ],
+      "ways": [
+        {
+          "wayId": 138567242
+        },
+        {
+          "wayId": 190164736
+        },
+        {
+          "wayId": 189535472
+        },
+        {
+          "wayId": 138567236
+        },
+        {
+          "wayId": 138566999
+        },
+        {
+          "wayId": 190164734
+        },
+        {
+          "wayId": 138566993
+        },
+        {
+          "wayId": 138566998
+        },
+        {
+          "wayId": 190164735
+        },
+        {
+          "wayId": 138567002
+        },
+        {
+          "wayId": 138566994
+        },
+        {
+          "wayId": 138566997
+        },
+        {
+          "wayId": 138567000
+        },
+        {
+          "wayId": 807691486
+        },
+        {
+          "wayId": 138566996
+        },
+        {
+          "wayId": 138567001,
+          "fromNode": {
+            "lat": -23.7031047,
+            "lon": -46.6949777
+          }
+        },
+        {
+          "wayId": 33779109
+        },
+        {
+          "wayId": 138567234
+        },
+        {
+          "wayId": 138567239
+        },
+        {
+          "wayId": 190164737
+        }
+      ]
+    },
+    {
+      "loopId": 9,
+      "lengthMetres": 4279,
+      "wayCount": 21,
+      "namedSections": [
+        "Bico de Pato",
+        "Café",
+        "Curva do Laranjinha",
+        "Descida do Lago",
+        "Esse",
+        "Ferradura",
+        "Junção",
+        "Mergulho",
+        "Pinherinho",
+        "Pit Lane",
+        "Reta Oposta",
+        "Subida dos Boxes"
+      ],
+      "ways": [
+        {
+          "wayId": 138567242
+        },
+        {
+          "wayId": 190164736
+        },
+        {
+          "wayId": 189535472
+        },
+        {
+          "wayId": 138567236
+        },
+        {
+          "wayId": 138566999
+        },
+        {
+          "wayId": 190164734
+        },
+        {
+          "wayId": 138566993
+        },
+        {
+          "wayId": 138566998
+        },
+        {
+          "wayId": 190164735
+        },
+        {
+          "wayId": 138567002
+        },
+        {
+          "wayId": 138566994
+        },
+        {
+          "wayId": 138566997
+        },
+        {
+          "wayId": 138567000
+        },
+        {
+          "wayId": 807691486
+        },
+        {
+          "wayId": 138566996
+        },
+        {
+          "wayId": 138567001,
+          "fromNode": {
+            "lat": -23.7031047,
+            "lon": -46.6949777
+          }
+        },
+        {
+          "wayId": 33779109
+        },
+        {
+          "wayId": 138567234
+        },
+        {
+          "wayId": 138567239,
+          "fromNode": {
+            "lat": -23.6977329,
+            "lon": -46.6995147
+          }
+        },
+        {
+          "wayId": 189535481
+        },
+        {
+          "wayId": 190164737,
+          "toNode": {
+            "lat": -23.6971683,
+            "lon": -46.698366
+          }
+        }
+      ]
+    },
+    {
+      "loopId": 10,
+      "lengthMetres": 4312,
+      "wayCount": 25,
+      "namedSections": [
+        "Arquibancadas",
+        "Bico de Pato",
+        "Café",
+        "Curva do Laranjinha",
+        "Curva do Sol",
+        "Descida do Lago",
+        "Esse",
+        "Ferradura",
+        "Junção",
+        "Mergulho",
+        "Pinherinho",
+        "Reta Oposta",
+        "S do Senna",
+        "Subida dos Boxes"
+      ],
+      "ways": [
+        {
+          "wayId": 138567242
+        },
+        {
+          "wayId": 190164736
+        },
+        {
+          "wayId": 189535472
+        },
+        {
+          "wayId": 138567236
+        },
+        {
+          "wayId": 138566999
+        },
+        {
+          "wayId": 190164734
+        },
+        {
+          "wayId": 138566993
+        },
+        {
+          "wayId": 138566998
+        },
+        {
+          "wayId": 190164735
+        },
+        {
+          "wayId": 138567002
+        },
+        {
+          "wayId": 138566994
+        },
+        {
+          "wayId": 138566997
+        },
+        {
+          "wayId": 138567000
+        },
+        {
+          "wayId": 807691486
+        },
+        {
+          "wayId": 138566996
+        },
+        {
+          "wayId": 138567001
+        },
+        {
+          "wayId": 138566995
+        },
+        {
+          "wayId": 807691487
+        },
+        {
+          "wayId": 189535473
+        },
+        {
+          "wayId": 131439569
+        },
+        {
+          "wayId": 138567241
+        },
+        {
+          "wayId": 190164733
+        },
+        {
+          "wayId": 138567234
+        },
+        {
+          "wayId": 138567239
+        },
+        {
+          "wayId": 190164737
+        }
+      ]
+    },
+    {
+      "loopId": 11,
+      "lengthMetres": 4334,
+      "wayCount": 26,
+      "namedSections": [
+        "Arquibancadas",
+        "Bico de Pato",
+        "Café",
+        "Curva do Laranjinha",
+        "Curva do Sol",
+        "Descida do Lago",
+        "Esse",
+        "Ferradura",
+        "Junção",
+        "Mergulho",
+        "Pinherinho",
+        "Reta Oposta",
+        "S do Senna",
+        "Subida dos Boxes"
+      ],
+      "ways": [
+        {
+          "wayId": 138567242
+        },
+        {
+          "wayId": 190164736
+        },
+        {
+          "wayId": 189535472
+        },
+        {
+          "wayId": 138567236
+        },
+        {
+          "wayId": 138566999
+        },
+        {
+          "wayId": 190164734
+        },
+        {
+          "wayId": 138566993
+        },
+        {
+          "wayId": 138566998
+        },
+        {
+          "wayId": 190164735
+        },
+        {
+          "wayId": 138567002
+        },
+        {
+          "wayId": 138566994
+        },
+        {
+          "wayId": 138566997
+        },
+        {
+          "wayId": 138567000
+        },
+        {
+          "wayId": 807691486
+        },
+        {
+          "wayId": 138566996
+        },
+        {
+          "wayId": 138567001
+        },
+        {
+          "wayId": 138566995
+        },
+        {
+          "wayId": 807691487
+        },
+        {
+          "wayId": 189535473
+        },
+        {
+          "wayId": 131439569
+        },
+        {
+          "wayId": 138567241
+        },
+        {
+          "wayId": 190164733
+        },
+        {
+          "wayId": 138567234
+        },
+        {
+          "wayId": 138567239,
+          "fromNode": {
+            "lat": -23.6977329,
+            "lon": -46.6995147
+          }
+        },
+        {
+          "wayId": 189535481
+        },
+        {
+          "wayId": 190164737,
+          "toNode": {
+            "lat": -23.6971683,
+            "lon": -46.698366
+          }
+        }
+      ]
+    }
+  ],
+  "unusedWays": []
+}
