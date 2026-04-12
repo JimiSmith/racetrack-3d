@@ -11,7 +11,14 @@ export interface ParsedOsmWay {
   geometry: LatLon[];
 }
 
+export interface ParsedOsmRelation {
+  id: number;
+  tags: Record<string, string>;
+  memberWayIds: number[];
+}
+
 const OSM_API_BASE_URL = 'https://api.openstreetmap.org/api/0.6/map';
+const OSM_API_WAY_URL_PREFIX = 'https://api.openstreetmap.org/api/0.6/way';
 const DEFAULT_BBOX_MARGIN = 0.02;
 
 function decodeXmlEntities(value: string | undefined | null): string {
@@ -110,6 +117,78 @@ export function parseOsmXmlWays(xmlSource: string): ParsedOsmWay[] {
   }
 
   return ways;
+}
+
+/**
+ * Parse OSM XML and extract relations with their tags and way-member ids (in order).
+ * Non-way members (nodes, nested relations) are ignored.
+ */
+export function parseOsmXmlRelations(xmlSource: string): ParsedOsmRelation[] {
+  const xml = String(xmlSource ?? '');
+  const relations: ParsedOsmRelation[] = [];
+  let current: { id: number; tags: Record<string, string>; memberWayIds: number[] } | null = null;
+
+  for (const match of xml.matchAll(/<[^>]+>/g)) {
+    const tagSource = match[0];
+
+    if (tagSource.startsWith('<?') || tagSource.startsWith('<!--') || tagSource.startsWith('<!DOCTYPE')) {
+      continue;
+    }
+
+    if (tagSource.startsWith('</')) {
+      const tagName = tagSource.slice(2, -1).trim();
+      if (tagName === 'relation') {
+        if (current && Number.isFinite(current.id)) {
+          relations.push({ id: current.id, tags: current.tags, memberWayIds: current.memberWayIds });
+        }
+        current = null;
+      }
+      continue;
+    }
+
+    const tagName = tagSource.match(/^<\s*([^\s/>]+)/)?.[1];
+    if (!tagName) {
+      continue;
+    }
+
+    const selfClosing = /\/\s*>$/.test(tagSource);
+    const attributes = parseAttributes(tagSource);
+
+    if (tagName === 'relation') {
+      current = { id: Number(attributes.id), tags: {}, memberWayIds: [] };
+      if (selfClosing) {
+        current = null;
+      }
+      continue;
+    }
+
+    if (tagName === 'member' && current) {
+      if (attributes.type === 'way') {
+        const ref = Number(attributes.ref);
+        if (Number.isFinite(ref)) {
+          current.memberWayIds.push(ref);
+        }
+      }
+      continue;
+    }
+
+    if (tagName === 'tag' && current) {
+      const key = attributes.k;
+      const value = attributes.v ?? '';
+      if (key) {
+        current.tags[key] = value;
+      }
+    }
+  }
+
+  return relations;
+}
+
+export function buildOsmApiWayFullUrl(wayId: number): string {
+  if (!Number.isFinite(wayId) || wayId <= 0) {
+    throw new Error('OSM way id must be a positive finite number');
+  }
+  return `${OSM_API_WAY_URL_PREFIX}/${wayId}/full`;
 }
 
 export function buildOsmApiMapUrl(lat: number, lon: number, margin: number = DEFAULT_BBOX_MARGIN): string {

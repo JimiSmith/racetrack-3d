@@ -39,12 +39,23 @@ export async function run(argv: string[]): Promise<void> {
     try {
       process.stdout.write(`${label} - fetching...`);
 
-      const { ways: allWays, bbox, requestCount } = await fetchOsmWays(track.lat, track.lon, options.bboxMargin);
+      const { ways: allWays, bbox, requestCount, relationMemberIds } = await fetchOsmWays(
+        track.lat,
+        track.lon,
+        options.bboxMargin,
+        track.wikidataId,
+      );
 
-      const racewayWays = allWays.filter(way => {
+      let relationSourcedCount = 0;
+      const circuitWays = allWays.filter(way => {
+        const fromRelation = relationMemberIds.has(way.id);
         const highway = String(way.tags.highway ?? '').trim().toLowerCase();
         const sport = String(way.tags.sport ?? '').trim().toLowerCase();
-        return highway === 'raceway' && sport === 'motor';
+        const fromTags = highway === 'raceway' && sport === 'motor';
+        if (fromRelation && !fromTags) {
+          relationSourcedCount += 1;
+        }
+        return fromRelation || fromTags;
       });
 
       const output: TrackWaysFile = {
@@ -52,7 +63,7 @@ export async function run(argv: string[]): Promise<void> {
         fetchedAt: new Date().toISOString(),
         center: { lat: track.lat, lon: track.lon },
         boundingBox: bbox,
-        ways: racewayWays.map(way => ({
+        ways: circuitWays.map(way => ({
           id: way.id,
           tags: way.tags,
           nodes: way.geometry,
@@ -62,8 +73,15 @@ export async function run(argv: string[]): Promise<void> {
       await writeFile(outputPath, `${JSON.stringify(output, null, 2)}\n`, 'utf8');
 
       const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
-      const wayCount = racewayWays.length;
-      const suffix = requestCount > 1 ? ` via ${requestCount} quadrants` : '';
+      const wayCount = circuitWays.length;
+      const parts: string[] = [];
+      if (relationSourcedCount > 0) {
+        parts.push(`+${relationSourcedCount} via circuit relation`);
+      }
+      if (requestCount > 1) {
+        parts.push(`${requestCount} requests`);
+      }
+      const suffix = parts.length > 0 ? ` (${parts.join(', ')})` : '';
       process.stdout.write(`\r${label} - ${wayCount} way${wayCount === 1 ? '' : 's'}${suffix} (${elapsed}s)\n`);
 
       if (wayCount === 0) {
