@@ -1,6 +1,6 @@
 /**
- * OSM XML parser and URL builder extracted from the build-time OSM API source.
- * Shared by the build script (scripts/lib/osm-api-source.ts) and the debug layout view.
+ * OSM XML parser and URL builder.
+ * Shared by the geometry import pipeline and the debug layout view.
  */
 
 import type { LatLonNode as LatLon } from '../types/geometry.js';

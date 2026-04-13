@@ -298,7 +298,7 @@ npm run typecheck              →  tsc --noEmit
 npm run lint                   →  ESLint with @typescript-eslint
 npm test                       →  node --test (179 tests)
 npm run check                  →  typecheck + lint + test + file-size check
-npm run build:geometry-index   →  Node script for OSM geometry
+npm run geometry:import        →  OSM geometry pipeline (utils/geometry-import/)
 npm run build:track-search-index → Node script for search index
 ```
 
