@@ -1,0 +1,122 @@
+{
+  "trackId": "Q171404",
+  "name": "Circuit de Barcelona-Catalunya",
+  "layouts": {
+    "Grand Prix": {
+      "ways": [
+        {
+          "wayId": 831804327,
+          "fromNode": {
+            "lat": 41.5742068,
+            "lon": 2.2624621
+          },
+          "toNode": {
+            "lat": 41.574607,
+            "lon": 2.2604645
+          }
+        },
+        {
+          "wayId": 990483278
+        },
+        {
+          "wayId": 831804325
+        },
+        {
+          "wayId": 893732520
+        }
+      ]
+    },
+    "Grand Prix With Chicane": {
+      "ways": [
+        {
+          "wayId": 831804327
+        }
+      ]
+    },
+    "Club Circuit": {
+      "ways": [
+        {
+          "wayId": 114293334
+        },
+        {
+          "wayId": 831804327,
+          "fromNode": {
+            "lat": 41.5651602,
+            "lon": 2.2571347
+          },
+          "toNode": {
+            "lat": 41.5658658,
+            "lon": 2.2561555
+          }
+        }
+      ]
+    },
+    "National": {
+      "ways": [
+        {
+          "wayId": 831804327,
+          "fromNode": {
+            "lat": 41.5742068,
+            "lon": 2.2624621
+          },
+          "toNode": {
+          "lat": 41.5662607,
+          "lon": 2.2580545
+          }
+        },
+        {
+          "wayId": 114293333
+        },
+        {
+          "wayId": 831804327,
+          "fromNode": {
+            "lat": 41.5666048,
+            "lon": 2.2572067
+          },
+          "toNode": {
+            "lat": 41.574607,
+            "lon": 2.2604645
+          }
+        },
+        {
+          "wayId": 893732520
+        },
+        {
+          "wayId": 831804325
+        },
+        {
+          "wayId": 990483278
+        }
+      ]
+    },
+    "National With Chicane": {
+      "ways": [
+        {
+          "wayId": 114293333
+        },
+        {
+          "wayId": 831804327,
+          "fromNode": {
+            "lat": 41.5666048,
+            "lon": 2.2572067
+          },
+          "toNode": {
+            "lat": 41.5746115,
+            "lon": 2.2608196
+          }
+        },
+        {
+          "wayId": 831804327,
+          "fromNode": {
+            "lat": 41.5746115,
+            "lon": 2.2608196
+          },
+          "toNode": {
+            "lat": 41.5662607,
+            "lon": 2.2580545
+          }
+        }
+      ]
+    }
+  }
+}
