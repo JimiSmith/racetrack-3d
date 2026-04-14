@@ -7,6 +7,8 @@ export const TRACK_HEIGHT_MM = 3;
 export const COASTER_TRACK_HEIGHT_FLUSH_MM = 1;     // fills a 1 mm pocket carved into the top of the base
 export const COASTER_TRACK_HEIGHT_RAISED_MM = 0.2;  // thin inlay sitting on top of the base
 export const TRACK_WIDTH_METRES = 12;
+/** Minimum ribbon width in coaster mode, in mm (thin tracks look fragile at small scales). */
+export const MIN_COASTER_TRACK_WIDTH_MM = 0.5;
 export const MAX_RIBBON_SECTION_STEP_METRES = 4;
 
 export interface RibbonMeshOptions {
@@ -16,6 +18,8 @@ export interface RibbonMeshOptions {
   ignoreElevation?: boolean;
   /** Z of the ribbon base (top surface of the base plate). Defaults to BASE_THICKNESS_MM. */
   baseZ?: number;
+  /** Track width in metres. Defaults to TRACK_WIDTH_METRES. */
+  trackWidthMetres?: number;
 }
 
 export function normalizeProjectedPath(projectedNodes: ProjectedNode[] | null | undefined): ProjectedNode[] {
@@ -65,7 +69,7 @@ export function buildRaisedRibbonMesh(
   const trackHeight = options.trackHeightMm ?? TRACK_HEIGHT_MM;
   const ignoreElevation = options.ignoreElevation ?? false;
   const bottomZ = options.baseZ ?? BASE_THICKNESS_MM;
-  const halfWidth = TRACK_WIDTH_METRES / 2;
+  const halfWidth = (options.trackWidthMetres ?? TRACK_WIDTH_METRES) / 2;
 
   type Section = {
     topLeft: ReturnType<typeof createVertex>;

@@ -27,6 +27,8 @@ import { buildTrackPrismMesh, __setTrackPrismPerfCounters } from './track-prism.
 import {
   COASTER_TRACK_HEIGHT_FLUSH_MM,
   COASTER_TRACK_HEIGHT_RAISED_MM,
+  TRACK_WIDTH_METRES,
+  MIN_COASTER_TRACK_WIDTH_MM,
 } from './track-ribbon.js';
 import {
   PRIMARY_ORIENTATION_AUTO,
@@ -260,23 +262,31 @@ export function buildTrackModel({
   let workingSecondaryOutlines = secondaryOutlines;
   let workingSecondaries = orientedSecondaries;
   let scale: number;
+  let coasterTrackWidthMetres = TRACK_WIDTH_METRES;
 
   if (coasterMode) {
     const targetEnvelopeMm = COASTER_SIZE_MM - 2 * (COASTER_INNER_MARGIN_MM + BASE_CORNER_RADIUS_MM);
     const longestSide = Math.max(effectiveBasePlate.width, effectiveBasePlate.height);
     scale = longestSide > 0 ? targetEnvelopeMm / longestSide : 1;
+    coasterTrackWidthMetres = Math.max(TRACK_WIDTH_METRES, MIN_COASTER_TRACK_WIDTH_MM / scale);
 
     const centreX = (effectiveBasePlate.minX + effectiveBasePlate.maxX) / 2;
     const centreY = (effectiveBasePlate.minY + effectiveBasePlate.maxY) / 2;
     const dx = -centreX;
     const dy = -centreY;
 
-    workingOutline = translateOutline(orientedGeometry.outlinePoints, dx, dy);
     workingProjected = orientedGeometry.projectedNodes
       ? orientedGeometry.projectedNodes.map(n => translatePoint(n, dx, dy))
       : orientedGeometry.projectedNodes;
-    workingSecondaryOutlines = secondaryOutlines.map(o => translateOutline(o, dx, dy));
     workingSecondaries = orientedSecondaries.map(nodes => nodes.map(n => translatePoint(n, dx, dy)));
+
+    // Rebuild outlines with a ribbon width that prints at least
+    // MIN_COASTER_TRACK_WIDTH_MM. The base-plate pocket, ribbon mesh, and
+    // text-placement obstacle all derive from the same wider outline.
+    workingOutline = workingProjected?.length
+      ? buildTrackOutline(workingProjected, coasterTrackWidthMetres)
+      : translateOutline(orientedGeometry.outlinePoints, dx, dy);
+    workingSecondaryOutlines = workingSecondaries.map(nodes => buildTrackOutline(nodes, coasterTrackWidthMetres));
 
     // Synthetic base plate: a 90 mm square centred at origin, expressed in metres.
     // When scaled by `scale` it produces a 90×90 mm Rect2D for text placement.
@@ -298,6 +308,7 @@ export function buildTrackModel({
         trackHeightMm: coasterInlay === 'flush' ? COASTER_TRACK_HEIGHT_FLUSH_MM : COASTER_TRACK_HEIGHT_RAISED_MM,
         ignoreElevation: true,
         baseZ: coasterInlay === 'flush' ? BASE_THICKNESS_MM - COASTER_POCKET_DEPTH_MM : BASE_THICKNESS_MM,
+        trackWidthMetres: coasterTrackWidthMetres,
       }
     : undefined;
 
