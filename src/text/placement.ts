@@ -439,7 +439,12 @@ export interface PlacementMask extends PlacementGrid {
   outside: boolean[][];
 }
 
-export function computePlacementMask(allObstacleOutlines: OutlinePoints[], primaryOutline: OutlinePoints | null | undefined, basePlate: Rect2D): PlacementMask {
+export function computePlacementMask(
+  allObstacleOutlines: OutlinePoints[],
+  primaryOutline: OutlinePoints | null | undefined,
+  basePlate: Rect2D,
+  options: { coasterShape?: 'round' | 'square' } = {},
+): PlacementMask {
   if (__perfCounters) { __perfCounters.computePlacementMask++; }
   const grid = createPlacementGrid(basePlate);
   const { rows, columns, cellWidth, cellHeight } = grid;
@@ -475,6 +480,22 @@ export function computePlacementMask(allObstacleOutlines: OutlinePoints[], prima
         || column >= columns - grid.edgeMarginCells
       ) {
         dilated[row]![column] = true;
+      }
+    }
+  }
+
+  // Round coaster: block any cell whose centre lies outside the inscribed circle.
+  // The base plate is centred at (0,0) and its half-size is the circle radius.
+  if (options.coasterShape === 'round') {
+    const radius = Math.min(basePlate.width, basePlate.height) / 2;
+    const radiusSq = radius * radius;
+    for (let row = 0; row < rows; row += 1) {
+      for (let column = 0; column < columns; column += 1) {
+        const cellCentreX = originX + (column + 0.5) * cellWidth;
+        const cellCentreY = originY + (row + 0.5) * cellHeight;
+        if (cellCentreX * cellCentreX + cellCentreY * cellCentreY > radiusSq) {
+          dilated[row]![column] = true;
+        }
       }
     }
   }
@@ -856,6 +877,8 @@ interface ComputeRankedOptions {
   font?: import('opentype.js').Font | null;
   allOutlinePoints?: OutlinePoints[] | null;
   perfTimer?: PerfTimer | undefined;
+  /** When set, constrains placement to the given coaster shape (centred on the base plate). */
+  coasterShape?: 'round' | 'square' | undefined;
 }
 
 export function computeRankedTextPlacements(
@@ -880,7 +903,12 @@ export function computeRankedTextPlacements(
     ? options.allOutlinePoints.map(o => scaleOutline(o, scale))
     : [scaledOutline];
   perfTimer?.step('textPlacement:scale');
-  const placementMask = computePlacementMask(allScaledOutlines, scaledOutline, scaledBasePlate);
+  const placementMask = computePlacementMask(
+    allScaledOutlines,
+    scaledOutline,
+    scaledBasePlate,
+    options.coasterShape !== undefined ? { coasterShape: options.coasterShape } : {},
+  );
   perfTimer?.step('textPlacement:mask');
   const { candidates, distanceMap, maxTrackClearance } = findPlacementCandidates(scaledBasePlate, placementMask);
   perfTimer?.step('textPlacement:candidates');

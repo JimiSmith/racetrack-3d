@@ -29,6 +29,9 @@ import {
   exaggeration,
   placementCacheToken,
   effectiveLabel,
+  coasterMode,
+  coasterShape,
+  coasterInlay,
 } from './stores/options.js';
 import { statusMessage, statusIsError, previewOverlayState } from './stores/ui.js';
 import { placementDebugData } from './stores/debug.js';
@@ -118,6 +121,7 @@ export async function rebuildModel(elevationData: number[] | null = get(elevatio
   const currentOrientationDeg = get(primaryOrientationDeg);
   const currentTextPositionRank = get(textPositionRank);
   const generation = getCacheGeneration();
+  const isCoaster = get(coasterMode);
 
   try {
     const model = await modelWorkerClient.requestModelBuild({
@@ -127,6 +131,9 @@ export async function rebuildModel(elevationData: number[] | null = get(elevatio
       primaryOrientationDeg: currentOrientationDeg,
       textPositionRank: currentTextPositionRank,
       cacheGeneration: generation,
+      coasterMode: isCoaster,
+      coasterShape: get(coasterShape),
+      coasterInlay: get(coasterInlay),
     });
 
     nodes.set(layout.nodes);
@@ -149,10 +156,13 @@ export async function rebuildModel(elevationData: number[] | null = get(elevatio
     const trackNameState = getSelectedTrackNameState(layout);
     const segmentCount = layout.stats?.segmentCount;
     const lengthKm = layout.stats?.lengthMetres ? layout.stats.lengthMetres / 1000 : null;
+    const sizeDetail = isCoaster
+      ? `Coaster · 90×90 mm ${get(coasterShape) === 'round' ? 'round' : 'square'}`
+      : `${model.basePlate.width.toFixed(0)}m×${model.basePlate.height.toFixed(0)}m`;
     const detailParts = [
       Number.isFinite(lengthKm) ? `${lengthKm!.toFixed(1)} km` : null,
       Number.isFinite(segmentCount) ? `${segmentCount} segment${segmentCount === 1 ? '' : 's'}` : null,
-      `${model.basePlate.width.toFixed(0)}m×${model.basePlate.height.toFixed(0)}m`,
+      sizeDetail,
       currentOrientationDeg === PRIMARY_ORIENTATION_AUTO ? 'Auto orientation' : `${currentOrientationDeg}° orientation`,
     ].filter(Boolean);
     statusMessage.set(`${trackNameState.printedName} · ${detailParts.join(' · ')}`);
@@ -171,6 +181,11 @@ export async function rebuildModel(elevationData: number[] | null = get(elevatio
  */
 export async function loadElevations(primaryNodes: import('./types/geometry.js').LatLonNode[]): Promise<void> {
   if (!primaryNodes?.length) {
+    return;
+  }
+
+  // Coaster mode renders a level top surface — no elevation variation to fetch.
+  if (get(coasterMode)) {
     return;
   }
 

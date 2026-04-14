@@ -3,7 +3,7 @@ import type { Triangle, OutlinePoints } from '../types/model.js';
 import type { ProjectedNode } from '../types/geometry.js';
 import { createVertex, addTriangle, addQuad, normalizeRing, ensureCounterClockwise } from './mesh-primitives.js';
 import { BASE_THICKNESS_MM } from './base-plate.js';
-import { TRACK_HEIGHT_MM, buildRaisedRibbonMesh } from './track-ribbon.js';
+import { TRACK_HEIGHT_MM, buildRaisedRibbonMesh, type RibbonMeshOptions } from './track-ribbon.js';
 
 // Performance counters — set externally via __modelPerfCounters reference in track-model.ts
 export let __trackPrismPerfCounters: { buildTrackPrismMesh: number } | null = null;
@@ -20,9 +20,10 @@ export function buildTrackPrismMesh(
   scale: number,
   projectedNodes: ProjectedNode[] | null = null,
   forceOpen = false,
+  options: RibbonMeshOptions = {},
 ): Triangle[] {
   if (__trackPrismPerfCounters) { __trackPrismPerfCounters.buildTrackPrismMesh++; }
-  const raisedRibbonMesh = buildRaisedRibbonMesh(projectedNodes, scale, forceOpen);
+  const raisedRibbonMesh = buildRaisedRibbonMesh(projectedNodes, scale, forceOpen, options);
   if (raisedRibbonMesh) {
     return raisedRibbonMesh;
   }
@@ -50,12 +51,14 @@ export function buildTrackPrismMesh(
     throw new Error('Failed to triangulate track outline');
   }
 
-  const bottomZ = BASE_THICKNESS_MM;
+  const trackHeight = options.trackHeightMm ?? TRACK_HEIGHT_MM;
+  const ignoreElevation = options.ignoreElevation ?? false;
+  const bottomZ = options.baseZ ?? BASE_THICKNESS_MM;
 
   // Sample elevation from the nearest point along the path so each
   // cross-section stays level while the ribbon still rises and falls.
   function elevOffsetMm(px: number, py: number): number {
-    if (!projectedNodes?.length) { return 0; }
+    if (ignoreElevation || !projectedNodes?.length) { return 0; }
     if (projectedNodes.length === 1) {
       return (projectedNodes[0]!.elevation ?? 0) * scale;
     }
@@ -97,7 +100,7 @@ export function buildTrackPrismMesh(
   const top = allVertices.map((p, index) => createVertex(
     p.x * scale,
     p.y * scale,
-    bottomZ + TRACK_HEIGHT_MM + elevationOffsets[index]!,
+    bottomZ + trackHeight + elevationOffsets[index]!,
   ));
   const triangles: Triangle[] = [];
 

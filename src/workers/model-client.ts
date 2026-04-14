@@ -21,6 +21,12 @@ export interface ModelBuildParams {
   textPositionRank: number;
   /** Numeric generation counter for cache invalidation. Defaults to 0. */
   cacheGeneration?: number;
+  /** Whether to build a fixed-size coaster instead of an auto-scaled model. */
+  coasterMode?: boolean;
+  /** Coaster outline shape (used only when coasterMode is true). */
+  coasterShape?: 'round' | 'square';
+  /** Coaster track inlay style (used only when coasterMode is true). */
+  coasterInlay?: 'flush' | 'raised';
 }
 
 type WorkerResponse = ModelBuildResponse | ModelBuildErrorResponse;
@@ -142,6 +148,9 @@ export function createModelWorkerClient(): {
       primaryOrientationDeg: params.primaryOrientationDeg,
       textPositionRank: params.textPositionRank,
       cacheGeneration: params.cacheGeneration ?? 0,
+      ...(params.coasterMode !== undefined ? { coasterMode: params.coasterMode } : {}),
+      ...(params.coasterShape !== undefined ? { coasterShape: params.coasterShape } : {}),
+      ...(params.coasterInlay !== undefined ? { coasterInlay: params.coasterInlay } : {}),
     };
 
     return new Promise<TrackModel>((resolve, reject) => {

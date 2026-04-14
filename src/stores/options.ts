@@ -22,6 +22,19 @@ export const combinedLayoutMode = writable<boolean>(false);
 /** Elevation exaggeration multiplier (e.g. 1 = no exaggeration, 2 = double). */
 export const exaggeration = writable<number>(1);
 
+/** Whether the model is built as a fixed-size 9x9 cm coaster with a level top. */
+export const coasterMode = writable<boolean>(false);
+
+/** Outline shape used in coaster mode. */
+export const coasterShape = writable<'round' | 'square'>('round');
+
+/**
+ * How the track/text inlay sits on the coaster top.
+ * - 'flush': strictly coplanar with the base top (holes cut in the base top face).
+ * - 'raised': sits 0.2 mm above the base top (works well with colour-change layers).
+ */
+export const coasterInlay = writable<'flush' | 'raised'>('raised');
+
 /**
  * Cache-busting token for text placement; replaced with a new object whenever
  * placement needs to be invalidated (e.g. after orientation or track changes).

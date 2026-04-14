@@ -4,8 +4,19 @@ import { createVertex, addQuad, normalizeVector } from './mesh-primitives.js';
 import { BASE_THICKNESS_MM } from './base-plate.js';
 
 export const TRACK_HEIGHT_MM = 3;
+export const COASTER_TRACK_HEIGHT_FLUSH_MM = 1;     // fills a 1 mm pocket carved into the top of the base
+export const COASTER_TRACK_HEIGHT_RAISED_MM = 0.2;  // thin inlay sitting on top of the base
 export const TRACK_WIDTH_METRES = 12;
 export const MAX_RIBBON_SECTION_STEP_METRES = 4;
+
+export interface RibbonMeshOptions {
+  /** Height of the ribbon above its base, in mm. Defaults to TRACK_HEIGHT_MM. */
+  trackHeightMm?: number;
+  /** If true, ignore per-node elevation (flat ribbon). Defaults to false. */
+  ignoreElevation?: boolean;
+  /** Z of the ribbon base (top surface of the base plate). Defaults to BASE_THICKNESS_MM. */
+  baseZ?: number;
+}
 
 export function normalizeProjectedPath(projectedNodes: ProjectedNode[] | null | undefined): ProjectedNode[] {
   if (!projectedNodes?.length) {
@@ -42,6 +53,7 @@ export function buildRaisedRibbonMesh(
   projectedNodes: ProjectedNode[] | null | undefined,
   scale: number,
   forceOpen = false,
+  options: RibbonMeshOptions = {},
 ): Triangle[] | null {
   const path = normalizeProjectedPath(projectedNodes);
 
@@ -50,7 +62,9 @@ export function buildRaisedRibbonMesh(
   }
 
   const isClosed = !forceOpen && path.length > 2;
-  const bottomZ = BASE_THICKNESS_MM;
+  const trackHeight = options.trackHeightMm ?? TRACK_HEIGHT_MM;
+  const ignoreElevation = options.ignoreElevation ?? false;
+  const bottomZ = options.baseZ ?? BASE_THICKNESS_MM;
   const halfWidth = TRACK_WIDTH_METRES / 2;
 
   type Section = {
@@ -83,10 +97,13 @@ export function buildRaisedRibbonMesh(
       const t = sampleIndex / sampleCount;
       const x = start.x + dx * t;
       const y = start.y + dy * t;
-      const elevation = (start.elevation ?? 0) + ((end.elevation ?? start.elevation ?? 0) - (start.elevation ?? 0)) * t;
+      const elevation = ignoreElevation
+        ? 0
+        : (start.elevation ?? 0) + ((end.elevation ?? start.elevation ?? 0) - (start.elevation ?? 0)) * t;
+      const topZ = bottomZ + trackHeight + elevation * scale;
       const section: Section = {
-        topLeft: createVertex((x + offsetX) * scale, (y + offsetY) * scale, bottomZ + TRACK_HEIGHT_MM + elevation * scale),
-        topRight: createVertex((x - offsetX) * scale, (y - offsetY) * scale, bottomZ + TRACK_HEIGHT_MM + elevation * scale),
+        topLeft: createVertex((x + offsetX) * scale, (y + offsetY) * scale, topZ),
+        topRight: createVertex((x - offsetX) * scale, (y - offsetY) * scale, topZ),
         bottomLeft: createVertex((x + offsetX) * scale, (y + offsetY) * scale, bottomZ),
         bottomRight: createVertex((x - offsetX) * scale, (y - offsetY) * scale, bottomZ),
       };

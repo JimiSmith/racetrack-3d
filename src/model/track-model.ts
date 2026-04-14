@@ -7,12 +7,27 @@ import {
   TEXT_HEIGHT_MM,
 } from '../text3d.js';
 import type { TrackModel, OutlinePoints, BasePlate } from '../types/model.js';
-import type { ProjectedNode } from '../types/geometry.js';
+import type { Point2D, ProjectedNode } from '../types/geometry.js';
 import type { RankedPlacements } from '../types/text.js';
 import type { PerfTimer } from './perf-timer.js';
-import { BASE_THICKNESS_MM, computeScale } from './base-plate.js';
-import { buildBasePlateMesh } from './base-plate.js';
+import {
+  BASE_THICKNESS_MM,
+  COASTER_SIZE_MM,
+  COASTER_INNER_MARGIN_MM,
+  COASTER_POCKET_DEPTH_MM,
+  BASE_CORNER_RADIUS_MM,
+  buildBasePlateMesh,
+  buildCoasterBasePlateMesh,
+  computeScale,
+  type CoasterPocketSpec,
+} from './base-plate.js';
+import { selectAndExpandPlacement } from '../text/mesh.js';
+import { buildContourTree, collectShapes } from '../text/contours.js';
 import { buildTrackPrismMesh, __setTrackPrismPerfCounters } from './track-prism.js';
+import {
+  COASTER_TRACK_HEIGHT_FLUSH_MM,
+  COASTER_TRACK_HEIGHT_RAISED_MM,
+} from './track-ribbon.js';
 import {
   PRIMARY_ORIENTATION_AUTO,
   normalizePrimaryOrientationDeg,
@@ -91,6 +106,47 @@ export interface BuildTrackModelOptions {
   textPositionRank?: number;
   placementCacheToken?: unknown;
   perfTimer?: PerfTimer;
+  /** When true, produce a fixed 90 mm coaster with a level top surface. */
+  coasterMode?: boolean;
+  /** Coaster outline shape (only used when coasterMode is true). */
+  coasterShape?: 'round' | 'square';
+  /**
+   * How the track inlay sits relative to the base top.
+   * 'raised' (default) places a 0.2 mm thin layer on top of the base.
+   * 'flush' cuts the track shape clean through the base and fills it with a full-height plug.
+   */
+  coasterInlay?: 'flush' | 'raised';
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function translatePoint<T extends { x: number; y: number }>(p: T, dx: number, dy: number): T {
+  return { ...p, x: p.x + dx, y: p.y + dy };
+}
+
+function translateOutline(outline: OutlinePoints, dx: number, dy: number): OutlinePoints {
+  return {
+    outerRing: outline.outerRing.map(p => translatePoint(p, dx, dy)),
+    holes: outline.holes.map(ring => ring.map(p => translatePoint(p, dx, dy))),
+  };
+}
+
+/**
+ * Builds a pocket spec (in mm, centred at origin) from the track's outline for
+ * flush-inlay coaster mode. The boundary is the asphalt ribbon's outer edge
+ * and the islands are the infield(s) inside the loop — kept at full base
+ * height so the area inside the track loop remains solid, while the ribbon
+ * itself is recessed so the coloured track prism sits flush with the top.
+ */
+function buildTrackPocketSpec(outline: OutlinePoints, scale: number): {
+  boundary: Point2D[];
+  islands: Point2D[][];
+} {
+  const scalePoint = (p: Point2D): Point2D => ({ x: p.x * scale, y: p.y * scale });
+  return {
+    boundary: outline.outerRing.map(scalePoint),
+    islands: outline.holes.map(hole => hole.map(scalePoint)),
+  };
 }
 
 // ── buildTrackModel ──────────────────────────────────────────────────────────
@@ -106,6 +162,9 @@ export function buildTrackModel({
   textPositionRank = DEFAULT_TEXT_POSITION_RANK,
   placementCacheToken = null,
   perfTimer,
+  coasterMode = false,
+  coasterShape = 'round',
+  coasterInlay = 'raised',
 }: BuildTrackModelOptions): TrackModel {
   const normalizedPrimaryOrientationDeg = normalizePrimaryOrientationDeg(
     primaryOrientationDeg === undefined
@@ -189,56 +248,86 @@ export function buildTrackModel({
 
   // In combined mode, expand the base plate to encompass all layouts.
   // When reusing autoGeometry, the basePlate already accounts for secondary outlines.
-  const effectiveBasePlate = !autoGeometry && secondaryOutlines.length > 0
+  let effectiveBasePlate = !autoGeometry && secondaryOutlines.length > 0
     ? (buildCombinedBasePlate([orientedGeometry.outlinePoints, ...secondaryOutlines]) ?? orientedGeometry.basePlate)
     : orientedGeometry.basePlate;
 
-  const scale = computeScale(effectiveBasePlate);
-  const basePlateTriangles = buildBasePlateMesh(effectiveBasePlate, scale);
+  // ── Coaster mode geometry setup ────────────────────────────────────────────
+  // Translate all geometry so the track's bounding-box centre sits at (0, 0),
+  // aligning with the coaster mesh which is rendered centred on the origin.
+  let workingOutline = orientedGeometry.outlinePoints;
+  let workingProjected = orientedGeometry.projectedNodes;
+  let workingSecondaryOutlines = secondaryOutlines;
+  let workingSecondaries = orientedSecondaries;
+  let scale: number;
 
-  perfTimer?.step('basePlate');
+  if (coasterMode) {
+    const targetEnvelopeMm = COASTER_SIZE_MM - 2 * (COASTER_INNER_MARGIN_MM + BASE_CORNER_RADIUS_MM);
+    const longestSide = Math.max(effectiveBasePlate.width, effectiveBasePlate.height);
+    scale = longestSide > 0 ? targetEnvelopeMm / longestSide : 1;
 
-  // Build secondary prism meshes — unique segments only to avoid z-fighting on shared sections.
-  const primaryEdgeSet = buildPrimaryEdgeSet(orientedGeometry.projectedNodes ?? []);
-  const secondaryTrackTriangles = orientedSecondaries.flatMap(nodes => {
-    const uniqueChains = getUniqueSubChains(nodes, primaryEdgeSet);
-    return uniqueChains.flatMap(chain => buildTrackPrismMesh(null, scale, chain, true));
-  });
+    const centreX = (effectiveBasePlate.minX + effectiveBasePlate.maxX) / 2;
+    const centreY = (effectiveBasePlate.minY + effectiveBasePlate.maxY) / 2;
+    const dx = -centreX;
+    const dy = -centreY;
 
-  perfTimer?.step('secondaryTracks');
+    workingOutline = translateOutline(orientedGeometry.outlinePoints, dx, dy);
+    workingProjected = orientedGeometry.projectedNodes
+      ? orientedGeometry.projectedNodes.map(n => translatePoint(n, dx, dy))
+      : orientedGeometry.projectedNodes;
+    workingSecondaryOutlines = secondaryOutlines.map(o => translateOutline(o, dx, dy));
+    workingSecondaries = orientedSecondaries.map(nodes => nodes.map(n => translatePoint(n, dx, dy)));
 
-  // Primary layout prism mesh (shown in red in the preview/export).
-  const trackTriangles = buildTrackPrismMesh(
-    orientedGeometry.outlinePoints, scale, orientedGeometry.projectedNodes,
-  );
+    // Synthetic base plate: a 90 mm square centred at origin, expressed in metres.
+    // When scaled by `scale` it produces a 90×90 mm Rect2D for text placement.
+    const halfMetres = (COASTER_SIZE_MM / 2) / scale;
+    effectiveBasePlate = {
+      minX: -halfMetres,
+      maxX: halfMetres,
+      minY: -halfMetres,
+      maxY: halfMetres,
+      width: halfMetres * 2,
+      height: halfMetres * 2,
+    };
+  } else {
+    scale = computeScale(effectiveBasePlate);
+  }
 
-  perfTimer?.step('primaryTrack');
+  const ribbonOptions = coasterMode
+    ? {
+        trackHeightMm: coasterInlay === 'flush' ? COASTER_TRACK_HEIGHT_FLUSH_MM : COASTER_TRACK_HEIGHT_RAISED_MM,
+        ignoreElevation: true,
+        baseZ: coasterInlay === 'flush' ? BASE_THICKNESS_MM - COASTER_POCKET_DEPTH_MM : BASE_THICKNESS_MM,
+      }
+    : undefined;
 
   // Text placement uses all visible layouts as obstacles in combined mode.
-  const allOutlinePoints = secondaryOutlines.length > 0
-    ? [orientedGeometry.outlinePoints, ...secondaryOutlines]
+  const allOutlinePoints = workingSecondaryOutlines.length > 0
+    ? [workingOutline, ...workingSecondaryOutlines]
     : null;
 
   let rankedPlacements: RankedPlacements | null = null;
   const normalizedTrackName = String(trackName ?? '').trim();
   if (normalizedTrackName) {
-    // Try the cross-call cache first, then the local auto-orientation result.
-    rankedPlacements = cacheActive
+    // Coaster mode runs placement against a different base plate shape, so it
+    // must not reuse cached placements from non-coaster or cross-shape builds.
+    const canUseCache = cacheActive && !coasterMode;
+    rankedPlacements = canUseCache
       ? textPlacementCache.byOrientation.get(resolvedOrientationDeg) ?? null
       : null;
-    if (!rankedPlacements) {
+    if (!rankedPlacements && !coasterMode) {
       rankedPlacements = autoPlacementsForWinner;
     }
 
     if (!rankedPlacements) {
       rankedPlacements = computeRankedTextPlacements(
         normalizedTrackName,
-        orientedGeometry.outlinePoints,
+        workingOutline,
         effectiveBasePlate,
         scale,
-        { allOutlinePoints, perfTimer },
+        { allOutlinePoints, perfTimer, coasterShape: coasterMode ? coasterShape : undefined },
       );
-      if (cacheActive) {
+      if (canUseCache) {
         textPlacementCache.byOrientation.set(resolvedOrientationDeg, rankedPlacements);
       }
     }
@@ -246,10 +335,61 @@ export function buildTrackModel({
 
   perfTimer?.step('textPlacement');
 
+  // In flush coaster mode, the text also sits in a top-surface pocket flush
+  // with the base top. Collect the chosen placement's glyph shapes so they can
+  // be passed as additional pockets to the base plate builder.
+  const textPocketSpecs: CoasterPocketSpec[] = [];
+  if (coasterMode && coasterInlay === 'flush' && rankedPlacements) {
+    const expanded = selectAndExpandPlacement(rankedPlacements, { textPositionRank: resolvedTextPositionRank });
+    if (expanded?.contours?.length) {
+      const shapes = collectShapes(buildContourTree(expanded.contours));
+      for (const shape of shapes) {
+        textPocketSpecs.push({ boundary: shape.outer, islands: shape.holes });
+      }
+    }
+  }
+
+  const basePlateTriangles = coasterMode
+    ? buildCoasterBasePlateMesh(
+        coasterShape,
+        coasterInlay === 'flush'
+          ? [buildTrackPocketSpec(workingOutline, scale), ...textPocketSpecs]
+          : [],
+      )
+    : buildBasePlateMesh(effectiveBasePlate, scale);
+
+  perfTimer?.step('basePlate');
+
+  // Build secondary prism meshes — unique segments only to avoid z-fighting on shared sections.
+  const primaryEdgeSet = buildPrimaryEdgeSet(workingProjected ?? []);
+  const secondaryTrackTriangles = workingSecondaries.flatMap(nodes => {
+    const uniqueChains = getUniqueSubChains(nodes, primaryEdgeSet);
+    return uniqueChains.flatMap(chain => buildTrackPrismMesh(null, scale, chain, true, ribbonOptions));
+  });
+
+  perfTimer?.step('secondaryTracks');
+
+  // Primary layout prism mesh (shown in red in the preview/export).
+  const trackTriangles = buildTrackPrismMesh(
+    workingOutline, scale, workingProjected, false, ribbonOptions,
+  );
+
+  perfTimer?.step('primaryTrack');
+
+  // Text height/Z:
+  //  - non-coaster: unchanged (TEXT_HEIGHT_MM on top of base).
+  //  - coaster raised: 0.2 mm on top of base, matching the track.
+  //  - coaster flush: embedded in a 1 mm pocket, top flush with the base.
+  const textBaseThickness = coasterMode && coasterInlay === 'flush'
+    ? BASE_THICKNESS_MM - COASTER_POCKET_DEPTH_MM
+    : BASE_THICKNESS_MM;
+  const textHeight = coasterMode
+    ? (coasterInlay === 'flush' ? COASTER_POCKET_DEPTH_MM : COASTER_TRACK_HEIGHT_RAISED_MM)
+    : TEXT_HEIGHT_MM;
   const textTriangles = buildTextMeshFromRankedPlacements(rankedPlacements, {
     textPositionRank: resolvedTextPositionRank,
-    baseThickness: BASE_THICKNESS_MM,
-    textHeight: TEXT_HEIGHT_MM,
+    baseThickness: textBaseThickness,
+    textHeight,
   });
 
   perfTimer?.step('textMesh');
@@ -264,9 +404,9 @@ export function buildTrackModel({
     primaryOrientationDeg: normalizedPrimaryOrientationDeg,
     textPositionRank: resolvedTextPositionRank,
     orientationDeg: orientedGeometry.orientationDeg,
-    outlinePoints: orientedGeometry.outlinePoints,
+    outlinePoints: workingOutline,
     basePlate: effectiveBasePlate,
-    projectedNodes: orientedGeometry.projectedNodes,
+    projectedNodes: workingProjected,
   };
   if (rankedPlacements?.allScoredPlacements) {
     result.allScoredPlacements = rankedPlacements.allScoredPlacements;

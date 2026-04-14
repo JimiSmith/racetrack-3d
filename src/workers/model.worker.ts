@@ -23,6 +23,12 @@ export interface ModelBuildRequest {
   textPositionRank: number;
   /** Numeric generation counter; when it changes, the placement cache is invalidated. */
   cacheGeneration: number;
+  /** When true, build a fixed-size coaster instead of the standard auto-scaled model. */
+  coasterMode?: boolean;
+  /** Coaster outline shape (only used when coasterMode is true). */
+  coasterShape?: 'round' | 'square';
+  /** Coaster track inlay style (only used when coasterMode is true). */
+  coasterInlay?: 'flush' | 'raised';
 }
 
 export interface ModelBuildResponse {
@@ -117,6 +123,9 @@ function processLatest(): void {
       textPositionRank: request.textPositionRank,
       placementCacheToken,
       perfTimer,
+      coasterMode: request.coasterMode ?? false,
+      coasterShape: request.coasterShape ?? 'round',
+      coasterInlay: request.coasterInlay ?? 'raised',
     });
 
     // Flatten Triangle[] into a Float32Array (9 floats per triangle: 3 vertices × 3 coords).
