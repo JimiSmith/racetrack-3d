@@ -80,25 +80,29 @@
 </script>
 
 {#if $canExport || $isExportingStl || $isExporting3mf}
-  <div id="export-bar" class="export-bar">
-    <button
-      id="generate-3mf"
-      class="action-button action-button-primary"
-      type="button"
-      disabled={!$canExport || $isExporting3mf}
-      onclick={handle3mfClick}
-    >
-      <span class="action-text">{$isExporting3mf ? 'Generating 3MF...' : 'Download 3MF'}</span>
-      <span class="action-badge">Recommended</span>
-    </button>
-    <button
-      id="generate-stl"
-      class="action-button action-button-secondary"
-      type="button"
-      disabled={!$canExport || $isExportingStl}
-      onclick={handleStlClick}
-    >
-      <span class="action-text">{$isExportingStl ? 'Generating STL...' : 'Download STL'}</span>
-    </button>
+  <div class="export-inner">
+    <div id="export-bar" class="export-bar">
+      <button
+        id="generate-3mf"
+        class="action-button action-button-primary"
+        type="button"
+        disabled={!$canExport || $isExporting3mf}
+        onclick={handle3mfClick}
+      >
+        <span class="action-text">{$isExporting3mf ? 'Generating 3MF...' : 'Download 3MF'}</span>
+        <span class="action-badge">Recommended</span>
+      </button>
+      <button
+        id="generate-stl"
+        class="action-button action-button-secondary"
+        type="button"
+        disabled={!$canExport || $isExportingStl}
+        onclick={handleStlClick}
+      >
+        <span class="action-text">{$isExportingStl ? 'Generating STL...' : 'Download STL'}</span>
+      </button>
+    </div>
   </div>
+{:else}
+  <p class="export-empty">Load a circuit to enable export.</p>
 {/if}
