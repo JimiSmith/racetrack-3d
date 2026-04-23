@@ -197,10 +197,6 @@ body {
   pointer-events: none;
 }
 
-.preview-overlay[hidden] {
-  display: none;
-}
-
 #preview-overlay-title {
   margin: 0;
   font-size: clamp(1.2rem, 3.5vw, 1.8rem);
