@@ -71,10 +71,7 @@
   }
 </script>
 
-<section class="options-card" aria-label="Model options">
-  <div class="section-heading-row">
-    <p class="section-heading">Options</p>
-  </div>
+<div class="options-inner" aria-label="Model options">
   <LayoutPicker />
   <div class="field-card controls-wrap">
     <label for="orientation-select">Model orientation</label>
@@ -123,16 +120,4 @@
   {:else}
     <ElevationSlider />
   {/if}
-</section>
-
-<style>
-  .coaster-toggle {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-  }
-  .coaster-toggle input {
-    cursor: pointer;
-  }
-</style>
+</div>
