@@ -5,7 +5,39 @@ export function createVertex(x: number, y: number, z: number): Vertex {
   return { x, y, z };
 }
 
+/**
+ * Quantization grid (mm). Matches the 4-decimal precision in
+ * `formatCoordinate` (src/export/threemf.ts) so we only filter triangles
+ * that genuinely collapse after the export's vertex dedup.
+ */
+const DEGENERATE_QUANTIZATION_MM = 1e-4;
+
+function quantize(value: number): number {
+  return Math.round(value / DEGENERATE_QUANTIZATION_MM) * DEGENERATE_QUANTIZATION_MM;
+}
+
+/**
+ * Returns true only when two of the triangle's vertices collapse to the
+ * same point under the 3MF's 1e-4 mm vertex dedup. This is the exact
+ * condition for a triangle to disappear in the exported file and leave a
+ * non-manifold boundary; small-but-nonzero slivers are preserved so the
+ * mesh stays closed around fine glyph features.
+ */
+export function isDegenerateTriangle(a: Vertex, b: Vertex, c: Vertex): boolean {
+  const ax = quantize(a.x), ay = quantize(a.y), az = quantize(a.z);
+  const bx = quantize(b.x), by = quantize(b.y), bz = quantize(b.z);
+  const cx = quantize(c.x), cy = quantize(c.y), cz = quantize(c.z);
+  return (
+    (ax === bx && ay === by && az === bz) ||
+    (bx === cx && by === cy && bz === cz) ||
+    (ax === cx && ay === cy && az === cz)
+  );
+}
+
 export function addTriangle(triangles: Triangle[], a: Vertex, b: Vertex, c: Vertex): void {
+  if (isDegenerateTriangle(a, b, c)) {
+    return;
+  }
   triangles.push([a, b, c]);
 }
 

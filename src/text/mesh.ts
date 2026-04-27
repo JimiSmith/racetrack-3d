@@ -5,6 +5,7 @@ import type { Point2D } from '../types/geometry.js';
 import type { Rect2D } from '../types/text.js';
 import { buildContourTree, collectShapes, translateAndScaleContours, translateAndScaleBounds } from './contours.js';
 import type { ContourShape } from './contours.js';
+import { isDegenerateTriangle } from '../model/mesh-primitives.js';
 
 export const TEXT_HEIGHT_MM = 0.8;
 export const DEFAULT_TEXT_POSITION_RANK = 1;
@@ -23,6 +24,9 @@ function createVertex(x: number, y: number, z: number): Vertex {
 }
 
 function addTriangle(triangles: Triangle[], a: Vertex, b: Vertex, c: Vertex): void {
+  if (isDegenerateTriangle(a, b, c)) {
+    return;
+  }
   triangles.push([a, b, c]);
 }
 

@@ -447,14 +447,29 @@ export function buildTrackModel({
   // In flush coaster mode, the text also sits in a top-surface pocket flush
   // with the base top. Collect the chosen placement's glyph shapes so they can
   // be passed as additional pockets to the base plate builder.
+  // Each glyph gets a per-shape (x,y) perturbation of a few picometres so no
+  // two glyphs share collinear baseline vertices — earcut produces invalid
+  // triangulation (open boundary edges) when multiple holes share a line.
+  // The perturbation is far below the 1e-4 mm export quantization grid, so
+  // it's invisible in the print but breaks collinearity in the triangulator.
   const textPocketSpecs: CoasterPocketSpec[] = [];
   if (coasterMode && coasterInlay === 'flush' && rankedPlacements) {
     const expanded = selectAndExpandPlacement(rankedPlacements, { textPositionRank: resolvedTextPositionRank });
     if (expanded?.contours?.length) {
       const shapes = collectShapes(buildContourTree(expanded.contours));
-      for (const shape of shapes) {
-        textPocketSpecs.push({ boundary: shape.outer, islands: shape.holes });
-      }
+      // Above the 1e-4 mm export quantization grid so vertices stay distinct
+      // after dedup, but well below printer resolution (≈ 0.05 mm) so it's
+      // invisible in the print. Each glyph gets a unique (dx, dy) offset.
+      const TEXT_POCKET_PERTURBATION_MM = 5e-4;
+      shapes.forEach((shape, glyphIndex) => {
+        const dx = (glyphIndex + 1) * TEXT_POCKET_PERTURBATION_MM;
+        const dy = (glyphIndex + 1) * TEXT_POCKET_PERTURBATION_MM * 1.3;
+        const perturb = (p: Point2D): Point2D => ({ x: p.x + dx, y: p.y + dy });
+        textPocketSpecs.push({
+          boundary: shape.outer.map(perturb),
+          islands: shape.holes.map(hole => hole.map(perturb)),
+        });
+      });
     }
   }
 
