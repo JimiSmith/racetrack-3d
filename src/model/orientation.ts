@@ -4,6 +4,7 @@ import type { OutlinePoints, BasePlate } from '../types/model.js';
 import type { Point2D, ProjectedNode } from '../types/geometry.js';
 import type { RankedPlacements } from '../types/text.js';
 import { computeScale } from './base-plate.js';
+import { TRACK_WIDTH_METRES } from './track-ribbon.js';
 
 // ── Primitives (merged from src/orientation.js) ──────────────────────────────
 
@@ -113,6 +114,8 @@ export interface OrientTrackGeometryOptions {
   basePlate: BasePlate | null | undefined;
   projectedNodes?: ProjectedNode[] | null;
   orientationDeg?: number;
+  /** Ribbon width in metres for outline rebuild. Defaults to TRACK_WIDTH_METRES. */
+  widthMetres?: number;
 }
 
 export interface OrientedTrackGeometry {
@@ -127,13 +130,14 @@ export function orientTrackGeometry({
   basePlate,
   projectedNodes = null,
   orientationDeg = 0,
+  widthMetres = TRACK_WIDTH_METRES,
 }: OrientTrackGeometryOptions): OrientedTrackGeometry {
   const normalizedOrientationDeg = normalizeOrientationDeg(orientationDeg);
   const orientedProjectedNodes = projectedNodes?.length
     ? (rotatePointsByOrientation(projectedNodes, normalizedOrientationDeg) as ProjectedNode[])
     : null;
   const orientedOutlinePoints = orientedProjectedNodes?.length
-    ? buildTrackOutline(orientedProjectedNodes)
+    ? buildTrackOutline(orientedProjectedNodes, widthMetres)
     : rotateOutlineByOrientation(outlinePoints, normalizedOrientationDeg);
   const orientedBasePlate = rotateBasePlateByOrientation(basePlate, normalizedOrientationDeg)
     ?? buildBasePlate(orientedOutlinePoints);
@@ -174,12 +178,13 @@ export function selectAutoOrientation(
   projectedNodes: ProjectedNode[] | null | undefined,
   trackName: string | null | undefined,
   secondaryProjectedNodes: ProjectedNode[][] = [],
+  widthMetres: number = TRACK_WIDTH_METRES,
 ): AutoOrientationResult {
   if (__autoOrientCounter) { __autoOrientCounter.selectAutoOrientation++; }
   // Build an outline we can use for all candidates.
   // projectedNodes takes priority — same logic as orientTrackGeometry.
   const baseOutline = projectedNodes?.length
-    ? buildTrackOutline(projectedNodes)
+    ? buildTrackOutline(projectedNodes, widthMetres)
     : outlinePoints;
   const bp = basePlate ?? (baseOutline ? buildBasePlate(baseOutline) : null);
   if (!bp) { return { deg: 0, placements: null, geometry: null }; }
@@ -223,7 +228,7 @@ export function selectAutoOrientation(
       ? (rotatePointsByOrientation(projectedNodes, deg) as ProjectedNode[])
       : null;
     const rotatedOutline = rotatedProjectedNodes
-      ? buildTrackOutline(rotatedProjectedNodes)
+      ? buildTrackOutline(rotatedProjectedNodes, widthMetres)
       : rotateOutlineByOrientation(outlinePoints, deg);
 
     // In combined mode, rotate all secondary layouts and expand the base plate to fit all of them.
@@ -231,7 +236,7 @@ export function selectAutoOrientation(
       rotatePointsByOrientation(nodes, deg) as ProjectedNode[]
     );
     const rotatedSecondaryOutlines = rotatedSecondaryNodes.map(nodes =>
-      buildTrackOutline(nodes)
+      buildTrackOutline(nodes, widthMetres)
     );
 
     // Compute basePlate using the same logic as orientTrackGeometry:

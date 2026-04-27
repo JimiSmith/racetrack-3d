@@ -5,11 +5,14 @@
     coasterMode,
     coasterShape,
     coasterInlay,
+    trackWidthAuto,
+    trackWidthMm,
   } from '../stores/options.js';
   import { selectedTrack, layouts } from '../stores/track.js';
   import { normalizePrimaryOrientationDeg } from '../model/orientation.js';
   import { normalizeTextPositionRank, DEFAULT_TEXT_POSITION_RANK } from '../text3d.js';
   import { rebuildModel, loadElevations, invalidatePlacementCache } from '../track-loader.js';
+  import { MIN_COASTER_TRACK_WIDTH_MM } from '../model/track-ribbon.js';
   import { get } from 'svelte/store';
   import { nodes } from '../stores/model.js';
   import LayoutPicker from './LayoutPicker.svelte';
@@ -69,6 +72,40 @@
     coasterInlay.set((e.currentTarget as HTMLSelectElement).value as 'flush' | 'raised');
     handleCoasterChange();
   }
+
+  let trackWidthRebuildTimer: ReturnType<typeof setTimeout> | undefined;
+  function scheduleTrackWidthRebuild(): void {
+    if (!get(layouts).length || !get(selectedTrack)) {
+      return;
+    }
+    clearTimeout(trackWidthRebuildTimer);
+    trackWidthRebuildTimer = setTimeout(() => {
+      invalidatePlacementCache();
+      void rebuildModel();
+    }, 150);
+  }
+
+  function handleTrackWidthAutoToggle(e: Event): void {
+    trackWidthAuto.set((e.currentTarget as HTMLInputElement).checked);
+    scheduleTrackWidthRebuild();
+  }
+
+  function handleTrackWidthInput(e: Event): void {
+    const value = Number((e.currentTarget as HTMLInputElement).value);
+    trackWidthMm.set(value);
+    scheduleTrackWidthRebuild();
+  }
+
+  // Slider floor matches the coaster auto-mode minimum so manual mode can never
+  // request a width thinner than auto mode would allow.
+  const TRACK_WIDTH_MIN = MIN_COASTER_TRACK_WIDTH_MM;
+  const TRACK_WIDTH_MAX = 10;
+
+  function trackWidthGradient(value: number, disabled: boolean): string {
+    const progress = ((value - TRACK_WIDTH_MIN) / (TRACK_WIDTH_MAX - TRACK_WIDTH_MIN)) * 100;
+    const fill = disabled ? 'rgba(99, 108, 128, 0.45)' : 'var(--accent)';
+    return `linear-gradient(90deg, ${fill} 0%, ${fill} ${progress}%, rgba(99, 108, 128, 0.45) ${progress}%, rgba(99, 108, 128, 0.45) 100%)`;
+  }
 </script>
 
 <div class="options-inner" aria-label="Model options">
@@ -91,6 +128,33 @@
       <option value="3" selected={$textPositionRank === 3}>Alternate 2</option>
     </select>
     <button class="debug-btn" onclick={() => debugScreenVisible.set(true)}>Debug</button>
+  </div>
+  <div class="field-card controls-wrap track-width-card">
+    <div class="range-header">
+      <label for="track-width">Track width</label>
+      <output id="track-width-value" for="track-width">
+        {$trackWidthAuto ? 'Auto' : `${$trackWidthMm} mm`}
+      </output>
+    </div>
+    <input
+      id="track-width"
+      type="range"
+      min={TRACK_WIDTH_MIN}
+      max={TRACK_WIDTH_MAX}
+      step="0.5"
+      value={$trackWidthMm}
+      disabled={$trackWidthAuto}
+      style="background: {trackWidthGradient($trackWidthMm, $trackWidthAuto)}"
+      oninput={handleTrackWidthInput}
+    />
+    <label class="track-width-auto">
+      <input
+        type="checkbox"
+        checked={$trackWidthAuto}
+        onchange={handleTrackWidthAutoToggle}
+      />
+      <span>Auto</span>
+    </label>
   </div>
   <div class="field-card controls-wrap">
     <label class="coaster-toggle">

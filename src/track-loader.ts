@@ -32,6 +32,8 @@ import {
   coasterMode,
   coasterShape,
   coasterInlay,
+  trackWidthAuto,
+  trackWidthMm,
 } from './stores/options.js';
 import { statusMessage, statusIsError, previewOverlayState } from './stores/ui.js';
 import { placementDebugData } from './stores/debug.js';
@@ -134,6 +136,8 @@ export async function rebuildModel(elevationData: number[] | null = get(elevatio
       coasterMode: isCoaster,
       coasterShape: get(coasterShape),
       coasterInlay: get(coasterInlay),
+      trackWidthAuto: get(trackWidthAuto),
+      trackWidthMm: get(trackWidthMm),
     });
 
     nodes.set(layout.nodes);

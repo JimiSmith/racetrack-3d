@@ -29,6 +29,10 @@ export interface ModelBuildRequest {
   coasterShape?: 'round' | 'square';
   /** Coaster track inlay style (only used when coasterMode is true). */
   coasterInlay?: 'flush' | 'raised';
+  /** When true, auto-derive ribbon width; when false, use trackWidthMm directly. */
+  trackWidthAuto?: boolean;
+  /** User-selected printed ribbon width in mm (used when trackWidthAuto is false). */
+  trackWidthMm?: number;
 }
 
 export interface ModelBuildResponse {
@@ -126,6 +130,8 @@ function processLatest(): void {
       coasterMode: request.coasterMode ?? false,
       coasterShape: request.coasterShape ?? 'round',
       coasterInlay: request.coasterInlay ?? 'raised',
+      trackWidthAuto: request.trackWidthAuto ?? true,
+      trackWidthMm: request.trackWidthMm ?? 2,
     });
 
     // Flatten Triangle[] into a Float32Array (9 floats per triangle: 3 vertices × 3 coords).

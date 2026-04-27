@@ -667,7 +667,8 @@ body {
   margin-bottom: 12px;
 }
 
-#exaggeration-value {
+#exaggeration-value,
+#track-width-value {
   font-family: var(--font-mono);
   font-size: 1.15rem;
   font-weight: 700;
@@ -675,7 +676,8 @@ body {
   line-height: 1;
 }
 
-#exaggeration {
+#exaggeration,
+#track-width {
   width: 100%;
   appearance: none;
   height: 6px;
@@ -684,7 +686,13 @@ body {
   cursor: pointer;
 }
 
-#exaggeration::-webkit-slider-thumb {
+#track-width:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+#exaggeration::-webkit-slider-thumb,
+#track-width::-webkit-slider-thumb {
   appearance: none;
   width: 20px;
   height: 20px;
@@ -694,13 +702,37 @@ body {
   box-shadow: 0 4px 12px rgba(225, 6, 0, 0.35);
 }
 
-#exaggeration::-moz-range-thumb {
+#exaggeration::-moz-range-thumb,
+#track-width::-moz-range-thumb {
   width: 20px;
   height: 20px;
   border: 0;
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 4px 12px rgba(225, 6, 0, 0.35);
+}
+
+#track-width:disabled::-webkit-slider-thumb {
+  background: rgba(99, 108, 128, 0.6);
+  box-shadow: none;
+}
+
+#track-width:disabled::-moz-range-thumb {
+  background: rgba(99, 108, 128, 0.6);
+  box-shadow: none;
+}
+
+.field-card label.track-width-auto {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 0;
+  cursor: pointer;
+  font-size: 0.78rem;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
 }
 
 /* ── ExportBar ────────────────────────────────────────────── */

@@ -22,6 +22,17 @@ export const combinedLayoutMode = writable<boolean>(false);
 /** Elevation exaggeration multiplier (e.g. 1 = no exaggeration, 2 = double). */
 export const exaggeration = writable<number>(1);
 
+/**
+ * Whether to auto-derive the printed track width.
+ * When true: non-coaster uses TRACK_WIDTH_METRES (12 m); coaster uses
+ * max(TRACK_WIDTH_METRES, MIN_COASTER_TRACK_WIDTH_MM / scale).
+ * When false: width is taken from `trackWidthMm` directly.
+ */
+export const trackWidthAuto = writable<boolean>(true);
+
+/** User-selected printed track width in mm (used when trackWidthAuto is false). */
+export const trackWidthMm = writable<number>(2);
+
 /** Whether the model is built as a fixed-size 9x9 cm coaster with a level top. */
 export const coasterMode = writable<boolean>(false);
 
