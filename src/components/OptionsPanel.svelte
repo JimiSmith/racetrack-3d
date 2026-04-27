@@ -12,6 +12,7 @@
   import { normalizePrimaryOrientationDeg } from '../model/orientation.js';
   import { normalizeTextPositionRank, DEFAULT_TEXT_POSITION_RANK } from '../text3d.js';
   import { rebuildModel, loadElevations, invalidatePlacementCache } from '../track-loader.js';
+  import { MIN_COASTER_TRACK_WIDTH_MM } from '../model/track-ribbon.js';
   import { get } from 'svelte/store';
   import { nodes } from '../stores/model.js';
   import LayoutPicker from './LayoutPicker.svelte';
@@ -95,7 +96,9 @@
     scheduleTrackWidthRebuild();
   }
 
-  const TRACK_WIDTH_MIN = 1;
+  // Slider floor matches the coaster auto-mode minimum so manual mode can never
+  // request a width thinner than auto mode would allow.
+  const TRACK_WIDTH_MIN = MIN_COASTER_TRACK_WIDTH_MM;
   const TRACK_WIDTH_MAX = 10;
 
   function trackWidthGradient(value: number, disabled: boolean): string {

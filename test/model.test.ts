@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { buildBasePlate } from '../src/geometry/outline.js';
 import { BASE_THICKNESS_MM, buildTrackModel, computeScale, exportStl } from '../src/model/index.js';
+import { MIN_COASTER_TRACK_WIDTH_MM } from '../src/model/track-ribbon.js';
 import type { Triangle, TrackModel, Vertex } from '../src/types/model.js';
 
 type Bounds = { minX: number; maxX: number; minY: number; maxY: number; minZ: number; maxZ: number };
@@ -538,4 +539,151 @@ test('exportStl returns download metadata with a blob, buffer, and filename', ()
   assert.ok(result.buffer instanceof ArrayBuffer);
   assert.ok(result.byteLength > 0);
   assert.equal(result.triangleCount, model.triangles.length);
+});
+
+// ── Track-width slider tests ───────────────────────────────────────────────────
+//
+// These exercise the trackWidthAuto / trackWidthMm path. We use a long
+// horizontal straight track and a fixed orientation so the ribbon's printed
+// width sits along Y and equals max(Y) - min(Y) of the track triangles.
+
+function buildStraightTrackModel(opts: {
+  trackWidthAuto?: boolean;
+  trackWidthMm?: number;
+  coasterMode?: boolean;
+  trackName?: string;
+} = {}) {
+  return buildTrackModel({
+    outlinePoints: null,
+    basePlate: null,
+    trackName: opts.trackName,
+    projectedNodes: [
+      { x: 0, y: 0, elevation: 0 },
+      { x: 1000, y: 0, elevation: 0 },
+    ],
+    primaryOrientationDeg: 0,
+    ...(opts.coasterMode !== undefined ? { coasterMode: opts.coasterMode } : {}),
+    ...(opts.trackWidthAuto !== undefined ? { trackWidthAuto: opts.trackWidthAuto } : {}),
+    ...(opts.trackWidthMm !== undefined ? { trackWidthMm: opts.trackWidthMm } : {}),
+  });
+}
+
+function trackRibbonYSpanMm(model: TrackModel): number {
+  const tris = trackTriangles(model);
+  if (tris.length === 0) return 0;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const tri of tris) {
+    for (const v of tri) {
+      if (v.y < minY) minY = v.y;
+      if (v.y > maxY) maxY = v.y;
+    }
+  }
+  return maxY - minY;
+}
+
+test('buildTrackModel applies trackWidthMm in non-coaster manual mode', () => {
+  const auto = buildStraightTrackModel({ trackWidthAuto: true });
+  const manual = buildStraightTrackModel({ trackWidthAuto: false, trackWidthMm: 5 });
+
+  approxEqual(trackRibbonYSpanMm(manual), 5, 0.05);
+  assert.ok(
+    trackRibbonYSpanMm(manual) > trackRibbonYSpanMm(auto),
+    'manual 5 mm should be wider than the default 12 m at coaster scale',
+  );
+});
+
+test('buildTrackModel scales trackWidthMm linearly across the slider range', () => {
+  const narrow = buildStraightTrackModel({ trackWidthAuto: false, trackWidthMm: 2 });
+  const wide = buildStraightTrackModel({ trackWidthAuto: false, trackWidthMm: 8 });
+
+  approxEqual(trackRibbonYSpanMm(narrow), 2, 0.05);
+  approxEqual(trackRibbonYSpanMm(wide), 8, 0.05);
+});
+
+test('buildTrackModel coaster auto mode clamps to MIN_COASTER_TRACK_WIDTH_MM', () => {
+  const model = buildStraightTrackModel({ trackWidthAuto: true, coasterMode: true });
+
+  // Default 12 m at coaster scale on a 1 km track is < 1 mm, so the auto
+  // formula should widen the ribbon to exactly MIN_COASTER_TRACK_WIDTH_MM.
+  approxEqual(trackRibbonYSpanMm(model), MIN_COASTER_TRACK_WIDTH_MM, 0.05);
+});
+
+test('buildTrackModel coaster manual mode applies trackWidthMm', () => {
+  const model = buildStraightTrackModel({
+    trackWidthAuto: false,
+    trackWidthMm: 4,
+    coasterMode: true,
+  });
+
+  approxEqual(trackRibbonYSpanMm(model), 4, 0.1);
+});
+
+test('buildTrackModel rebuilds correct geometry across width changes with the same cache token', () => {
+  // Reproduces the "stale auto-orientation placements" bug: with auto orientation
+  // and a shared cache token, switching from auto to manual width must produce
+  // a ribbon at the requested width — not one buffered against the prior outline.
+  const token = {};
+  const projectedNodes = [
+    { x: 0, y: 0, elevation: 0 },
+    { x: 1000, y: 0, elevation: 0 },
+  ];
+
+  const auto = buildTrackModel({
+    outlinePoints: null,
+    basePlate: null,
+    trackName: 'TEST',
+    projectedNodes,
+    primaryOrientationDeg: 0,
+    placementCacheToken: token,
+    trackWidthAuto: true,
+  });
+
+  const manual = buildTrackModel({
+    outlinePoints: null,
+    basePlate: null,
+    trackName: 'TEST',
+    projectedNodes,
+    primaryOrientationDeg: 0,
+    placementCacheToken: token,
+    trackWidthAuto: false,
+    trackWidthMm: 7,
+  });
+
+  approxEqual(trackRibbonYSpanMm(manual), 7, 0.05);
+  assert.ok(trackRibbonYSpanMm(manual) > trackRibbonYSpanMm(auto));
+});
+
+test('buildTrackModel auto orientation uses the user-selected width for outline construction', () => {
+  // When auto orientation runs, its outlines (used for landscape & text-bottom
+  // scoring) must reflect the chosen width — otherwise orientation can drift.
+  // We assert the rendered ribbon matches the requested width even when auto
+  // orientation is active.
+  const model = buildTrackModel({
+    outlinePoints: null,
+    basePlate: null,
+    trackName: 'TEST',
+    projectedNodes: [
+      { x: 0, y: 0, elevation: 0 },
+      { x: 1500, y: 0, elevation: 0 },
+    ],
+    // primaryOrientationDeg omitted -> defaults to 'auto'
+    trackWidthAuto: false,
+    trackWidthMm: 6,
+  });
+
+  // Auto may rotate; pick the smaller span (the across-ribbon axis) which
+  // should equal the requested width.
+  const tris = trackTriangles(model);
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const tri of tris) {
+    for (const v of tri) {
+      if (v.x < minX) minX = v.x;
+      if (v.x > maxX) maxX = v.x;
+      if (v.y < minY) minY = v.y;
+      if (v.y > maxY) maxY = v.y;
+    }
+  }
+  const acrossRibbon = Math.min(maxX - minX, maxY - minY);
+  approxEqual(acrossRibbon, 6, 0.05);
 });
