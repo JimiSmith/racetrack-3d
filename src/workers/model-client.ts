@@ -27,6 +27,10 @@ export interface ModelBuildParams {
   coasterShape?: 'round' | 'square';
   /** Coaster track inlay style (used only when coasterMode is true). */
   coasterInlay?: 'flush' | 'raised';
+  /** When true, auto-derive ribbon width; when false, use trackWidthMm directly. */
+  trackWidthAuto?: boolean;
+  /** User-selected printed ribbon width in mm (used when trackWidthAuto is false). */
+  trackWidthMm?: number;
 }
 
 type WorkerResponse = ModelBuildResponse | ModelBuildErrorResponse;
@@ -151,6 +155,8 @@ export function createModelWorkerClient(): {
       ...(params.coasterMode !== undefined ? { coasterMode: params.coasterMode } : {}),
       ...(params.coasterShape !== undefined ? { coasterShape: params.coasterShape } : {}),
       ...(params.coasterInlay !== undefined ? { coasterInlay: params.coasterInlay } : {}),
+      ...(params.trackWidthAuto !== undefined ? { trackWidthAuto: params.trackWidthAuto } : {}),
+      ...(params.trackWidthMm !== undefined ? { trackWidthMm: params.trackWidthMm } : {}),
     };
 
     return new Promise<TrackModel>((resolve, reject) => {

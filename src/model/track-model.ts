@@ -118,6 +118,14 @@ export interface BuildTrackModelOptions {
    * 'flush' cuts the track shape clean through the base and fills it with a full-height plug.
    */
   coasterInlay?: 'flush' | 'raised';
+  /**
+   * When true (default), the printed ribbon width is auto-derived:
+   * non-coaster uses TRACK_WIDTH_METRES; coaster clamps to MIN_COASTER_TRACK_WIDTH_MM.
+   * When false, `trackWidthMm` overrides in both modes.
+   */
+  trackWidthAuto?: boolean;
+  /** User-selected printed ribbon width in mm; used when trackWidthAuto is false. */
+  trackWidthMm?: number;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -167,6 +175,8 @@ export function buildTrackModel({
   coasterMode = false,
   coasterShape = 'round',
   coasterInlay = 'raised',
+  trackWidthAuto = true,
+  trackWidthMm = 2,
 }: BuildTrackModelOptions): TrackModel {
   const normalizedPrimaryOrientationDeg = normalizePrimaryOrientationDeg(
     primaryOrientationDeg === undefined
@@ -254,21 +264,24 @@ export function buildTrackModel({
     ? (buildCombinedBasePlate([orientedGeometry.outlinePoints, ...secondaryOutlines]) ?? orientedGeometry.basePlate)
     : orientedGeometry.basePlate;
 
-  // ── Coaster mode geometry setup ────────────────────────────────────────────
-  // Translate all geometry so the track's bounding-box centre sits at (0, 0),
-  // aligning with the coaster mesh which is rendered centred on the origin.
+  // ── Geometry & ribbon width setup ──────────────────────────────────────────
+  // Coaster mode translates geometry so the track's bounding-box centre sits at
+  // (0, 0), aligning with the coaster mesh which is rendered centred on the
+  // origin. Non-coaster mode keeps geometry in its original frame.
   let workingOutline = orientedGeometry.outlinePoints;
   let workingProjected = orientedGeometry.projectedNodes;
   let workingSecondaryOutlines = secondaryOutlines;
   let workingSecondaries = orientedSecondaries;
   let scale: number;
-  let coasterTrackWidthMetres = TRACK_WIDTH_METRES;
+  let effectiveTrackWidthMetres = TRACK_WIDTH_METRES;
 
   if (coasterMode) {
     const targetEnvelopeMm = COASTER_SIZE_MM - 2 * (COASTER_INNER_MARGIN_MM + BASE_CORNER_RADIUS_MM);
     const longestSide = Math.max(effectiveBasePlate.width, effectiveBasePlate.height);
     scale = longestSide > 0 ? targetEnvelopeMm / longestSide : 1;
-    coasterTrackWidthMetres = Math.max(TRACK_WIDTH_METRES, MIN_COASTER_TRACK_WIDTH_MM / scale);
+    effectiveTrackWidthMetres = trackWidthAuto
+      ? Math.max(TRACK_WIDTH_METRES, MIN_COASTER_TRACK_WIDTH_MM / scale)
+      : trackWidthMm / scale;
 
     const centreX = (effectiveBasePlate.minX + effectiveBasePlate.maxX) / 2;
     const centreY = (effectiveBasePlate.minY + effectiveBasePlate.maxY) / 2;
@@ -280,13 +293,12 @@ export function buildTrackModel({
       : orientedGeometry.projectedNodes;
     workingSecondaries = orientedSecondaries.map(nodes => nodes.map(n => translatePoint(n, dx, dy)));
 
-    // Rebuild outlines with a ribbon width that prints at least
-    // MIN_COASTER_TRACK_WIDTH_MM. The base-plate pocket, ribbon mesh, and
-    // text-placement obstacle all derive from the same wider outline.
+    // Rebuild outlines at the chosen ribbon width. The base-plate pocket,
+    // ribbon mesh, and text-placement obstacle all derive from this outline.
     workingOutline = workingProjected?.length
-      ? buildTrackOutline(workingProjected, coasterTrackWidthMetres)
+      ? buildTrackOutline(workingProjected, effectiveTrackWidthMetres)
       : translateOutline(orientedGeometry.outlinePoints, dx, dy);
-    workingSecondaryOutlines = workingSecondaries.map(nodes => buildTrackOutline(nodes, coasterTrackWidthMetres));
+    workingSecondaryOutlines = workingSecondaries.map(nodes => buildTrackOutline(nodes, effectiveTrackWidthMetres));
 
     // Synthetic base plate: a 90 mm square centred at origin, expressed in metres.
     // When scaled by `scale` it produces a 90×90 mm Rect2D for text placement.
@@ -301,6 +313,13 @@ export function buildTrackModel({
     };
   } else {
     scale = computeScale(effectiveBasePlate);
+    if (!trackWidthAuto) {
+      effectiveTrackWidthMetres = trackWidthMm / scale;
+      if (workingProjected?.length) {
+        workingOutline = buildTrackOutline(workingProjected, effectiveTrackWidthMetres);
+      }
+      workingSecondaryOutlines = workingSecondaries.map(nodes => buildTrackOutline(nodes, effectiveTrackWidthMetres));
+    }
   }
 
   const ribbonOptions = coasterMode
@@ -308,9 +327,11 @@ export function buildTrackModel({
         trackHeightMm: coasterInlay === 'flush' ? COASTER_TRACK_HEIGHT_FLUSH_MM : COASTER_TRACK_HEIGHT_RAISED_MM,
         ignoreElevation: true,
         baseZ: coasterInlay === 'flush' ? BASE_THICKNESS_MM - COASTER_POCKET_DEPTH_MM : BASE_THICKNESS_MM,
-        trackWidthMetres: coasterTrackWidthMetres,
+        trackWidthMetres: effectiveTrackWidthMetres,
       }
-    : undefined;
+    : (effectiveTrackWidthMetres !== TRACK_WIDTH_METRES
+        ? { trackWidthMetres: effectiveTrackWidthMetres }
+        : undefined);
 
   // Text placement uses all visible layouts as obstacles in combined mode.
   const allOutlinePoints = workingSecondaryOutlines.length > 0
