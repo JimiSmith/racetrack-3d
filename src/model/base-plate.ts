@@ -64,6 +64,20 @@ export function buildRoundedRectangleRing(
   ring.push({ x: minX, y: minY + radiusMm });
   appendRoundedArc(ring, minX + radiusMm, minY + radiusMm, radiusMm, 180, 270, segmentsPerCorner);
 
+  // The final arc closes onto the first explicit point, but `Math.cos(270°)`
+  // leaves a sub-ULP residual whose survival depends on coordinate magnitude,
+  // so an exact `===` would miss the duplicate near the origin. Compare with an
+  // epsilon below the export grid to drop the closing vertex reliably.
+  const RING_CLOSE_EPSILON_MM = 1e-6;
+  const first = ring[0]!;
+  const last = ring[ring.length - 1]!;
+  if (
+    Math.abs(first.x - last.x) < RING_CLOSE_EPSILON_MM
+    && Math.abs(first.y - last.y) < RING_CLOSE_EPSILON_MM
+  ) {
+    ring.pop();
+  }
+
   return ring;
 }
 
@@ -166,6 +180,68 @@ function normalizeToCounterClockwise(ring: Point2D[]): Point2D[] {
 }
 
 /**
+ * Quantization grid (mm) used to dedup pocket polygon vertices. Matches the
+ * 4-decimal grid the 3MF exporter uses, so any vertices that would collapse
+ * after export are removed up-front instead of producing degenerate sliver
+ * triangles in earcut output.
+ */
+const POCKET_RING_QUANTIZATION_MM = 1e-4;
+/**
+ * Removes vertices that are colinear with their neighbours under the
+ * 4-decimal quantization grid. Earcut emits zero-area sliver triangles
+ * along long straight sections of the buffered track outline (turf.buffer
+ * subdivides those liberally), and the slivers produce 1-incidence open
+ * edges in the earcut output.
+ */
+function simplifyRing(ring: Point2D[]): Point2D[] {
+  if (ring.length < 3) {
+    return ring;
+  }
+  const q = (v: number): number => Math.round(v / POCKET_RING_QUANTIZATION_MM) * POCKET_RING_QUANTIZATION_MM;
+
+  // Step 1: drop consecutive duplicates at quantization precision.
+  const deduped: Point2D[] = [];
+  for (const point of ring) {
+    const qx = q(point.x);
+    const qy = q(point.y);
+    const last = deduped[deduped.length - 1];
+    if (last && q(last.x) === qx && q(last.y) === qy) {
+      continue;
+    }
+    deduped.push(point);
+  }
+  if (deduped.length > 1) {
+    const first = deduped[0]!;
+    const last = deduped[deduped.length - 1]!;
+    if (q(first.x) === q(last.x) && q(first.y) === q(last.y)) {
+      deduped.pop();
+    }
+  }
+  if (deduped.length < 3) {
+    return deduped;
+  }
+
+  // Step 2: drop colinear interior vertices using cross-product on quantized
+  // coords. Tolerance is one quantization unit squared — anything below
+  // that lies on the line through its neighbours after dedup.
+  const out: Point2D[] = [];
+  for (let i = 0; i < deduped.length; i += 1) {
+    const prev = deduped[(i - 1 + deduped.length) % deduped.length]!;
+    const curr = deduped[i]!;
+    const next = deduped[(i + 1) % deduped.length]!;
+    const ax = q(prev.x), ay = q(prev.y);
+    const bx = q(curr.x), by = q(curr.y);
+    const cx = q(next.x), cy = q(next.y);
+    const cross = (bx - ax) * (cy - by) - (by - ay) * (cx - bx);
+    if (Math.abs(cross) <= POCKET_RING_QUANTIZATION_MM * POCKET_RING_QUANTIZATION_MM) {
+      continue;
+    }
+    out.push(curr);
+  }
+  return out.length >= 3 ? out : deduped;
+}
+
+/**
  * Builds a fixed 90 mm coaster base plate centred at the origin. Optional
  * `pockets` are shallow recesses cut into the top surface (not through the
  * base), used in flush-inlay mode to seat the coloured track prism flush with
@@ -192,11 +268,12 @@ export function buildCoasterBasePlateMesh(
   const validPockets = pockets
     .filter(p => p.boundary.length >= 3)
     .map(p => ({
-      boundary: normalizeToCounterClockwise(p.boundary),
+      boundary: simplifyRing(normalizeToCounterClockwise(p.boundary)),
       islands: (p.islands ?? [])
         .filter(island => island.length >= 3)
-        .map(normalizeToCounterClockwise),
-    }));
+        .map(island => simplifyRing(normalizeToCounterClockwise(island))),
+    }))
+    .filter(p => p.boundary.length >= 3);
 
   const minZ = 0;
   const maxZ = BASE_THICKNESS_MM;

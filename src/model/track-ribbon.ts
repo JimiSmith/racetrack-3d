@@ -114,12 +114,16 @@ export function buildRaisedRibbonMesh(
 
       const previous = sections[sections.length - 1];
 
+      // Match the 3MF export's vertex dedup grid (4 decimals → 1e-4 mm).
+      // Strict equality misses sections that round to the same coordinates,
+      // producing degenerate stitch quads in the merged mesh.
+      const SECTION_EPSILON_MM = 1.5e-4;
       if (
         previous
-        && previous.topLeft.x === section.topLeft.x
-        && previous.topLeft.y === section.topLeft.y
-        && previous.topRight.x === section.topRight.x
-        && previous.topRight.y === section.topRight.y
+        && Math.abs(previous.topLeft.x - section.topLeft.x) < SECTION_EPSILON_MM
+        && Math.abs(previous.topLeft.y - section.topLeft.y) < SECTION_EPSILON_MM
+        && Math.abs(previous.topRight.x - section.topRight.x) < SECTION_EPSILON_MM
+        && Math.abs(previous.topRight.y - section.topRight.y) < SECTION_EPSILON_MM
       ) {
         continue;
       }

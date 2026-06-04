@@ -4,6 +4,7 @@
  */
 
 import { strToU8, zipSync } from 'fflate';
+import { isDegenerateTriangle } from '../model/mesh-primitives.js';
 import { splitModelTriangles as _splitModelTriangles } from '../model/triangle-groups.js';
 import type { TrackModel, Triangle, Vertex } from '../types/model.js';
 
@@ -19,11 +20,24 @@ function formatCoordinate(value: number): string {
   return (Math.round(value * 10000) / 10000).toFixed(4);
 }
 
-export function build3mfModelXml(model: TrackModel): string {
+/**
+ * Builds a vertex/triangle table for a single triangle group, with vertex
+ * dedup scoped to the group. Keeping each part's mesh separate is what
+ * makes the 3MF a multi-object file: each `<object>` owns its own vertex
+ * pool, so coplanar pocket walls in different parts can't be merged into
+ * non-2-manifold edges.
+ */
+function buildPart(
+  triangles: Triangle[],
+  colorIndex: number,
+): { vertexXml: string; triangleXml: string } | null {
+  if (triangles.length === 0) {
+    return null;
+  }
+
   const vertexIndexes = new Map<string, number>();
   const vertices: { x: string; y: string; z: string }[] = [];
-  const triangleEntries: { v1: number; v2: number; v3: number; colorIndex: number }[] = [];
-  const { baseTriangles, secondaryTrackTriangles, trackTriangles } = splitModelTriangles(model);
+  const triangleEntries: { v1: number; v2: number; v3: number }[] = [];
 
   function getVertexIndex(vertex: Vertex): number {
     const x = formatCoordinate(vertex.x);
@@ -39,26 +53,73 @@ export function build3mfModelXml(model: TrackModel): string {
     return vertexIndexes.get(key) as number;
   }
 
-  function addTriangles(triangles: [Vertex, Vertex, Vertex][], colorIndex: number): void {
-    for (const triangle of triangles) {
-      triangleEntries.push({
-        v1: getVertexIndex(triangle[0]),
-        v2: getVertexIndex(triangle[1]),
-        v3: getVertexIndex(triangle[2]),
-        colorIndex,
-      });
+  for (const triangle of triangles) {
+    // Drop triangles whose vertices coincide after the export's grid dedup
+    // (zero-area slivers that would leave a non-manifold boundary). Uses the
+    // shared coincidence-only definition from mesh-primitives so the writer is
+    // robust even for triangles that reach it without passing through
+    // `addTriangle`, and stays consistent with the STL writer.
+    if (isDegenerateTriangle(triangle[0], triangle[1], triangle[2])) {
+      continue;
     }
+    triangleEntries.push({
+      v1: getVertexIndex(triangle[0]),
+      v2: getVertexIndex(triangle[1]),
+      v3: getVertexIndex(triangle[2]),
+    });
   }
 
-  addTriangles(baseTriangles, 0);
-  addTriangles(secondaryTrackTriangles ?? [], 2);
-  addTriangles(trackTriangles, 1);
+  if (triangleEntries.length === 0) {
+    return null;
+  }
 
   const vertexXml = vertices
     .map(vertex => `          <vertex x="${vertex.x}" y="${vertex.y}" z="${vertex.z}"/>`)
     .join('\n');
   const triangleXml = triangleEntries
-    .map(triangle => `          <triangle v1="${triangle.v1}" v2="${triangle.v2}" v3="${triangle.v3}" pid="1" p1="${triangle.colorIndex}"/>`)
+    .map(triangle => `          <triangle v1="${triangle.v1}" v2="${triangle.v2}" v3="${triangle.v3}" pid="1" p1="${colorIndex}"/>`)
+    .join('\n');
+
+  return { vertexXml, triangleXml };
+}
+
+export function build3mfModelXml(model: TrackModel): string {
+  const { baseTriangles, secondaryTrackTriangles, trackTriangles } = splitModelTriangles(model);
+
+  // One <object> per logical part, each with its own vertex pool. This keeps
+  // the parts independently 2-manifold even when they share coplanar
+  // boundaries (e.g. flush coaster pocket walls vs. inlay walls), where a
+  // single shared mesh would have edges incident to four faces.
+  const parts: { id: number; pindex: number; vertexXml: string; triangleXml: string }[] = [];
+
+  // Allocate object IDs sequentially; object id "1" would conflict with
+  // colorgroup id "1" in some readers, so we start at 2.
+  let nextId = 2;
+  function tryAdd(triangles: Triangle[], colorIndex: number): void {
+    const part = buildPart(triangles, colorIndex);
+    if (part) {
+      parts.push({ id: nextId++, pindex: colorIndex, ...part });
+    }
+  }
+
+  tryAdd(baseTriangles, 0);
+  tryAdd(secondaryTrackTriangles ?? [], 2);
+  tryAdd(trackTriangles, 1);
+
+  const objectsXml = parts
+    .map(part => `    <object id="${part.id}" type="model" pid="1" pindex="${part.pindex}">
+      <mesh>
+        <vertices>
+${part.vertexXml}
+        </vertices>
+        <triangles>
+${part.triangleXml}
+        </triangles>
+      </mesh>
+    </object>`)
+    .join('\n');
+  const buildXml = parts
+    .map(part => `    <item objectid="${part.id}"/>`)
     .join('\n');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -71,19 +132,10 @@ export function build3mfModelXml(model: TrackModel): string {
       <m:color color="#E8002D"/>
       <m:color color="#888888"/>
     </m:colorgroup>
-    <object id="2" type="model" pid="1" pindex="0">
-      <mesh>
-        <vertices>
-${vertexXml}
-        </vertices>
-        <triangles>
-${triangleXml}
-        </triangles>
-      </mesh>
-    </object>
+${objectsXml}
   </resources>
   <build>
-    <item objectid="2"/>
+${buildXml}
   </build>
 </model>`;
 }
