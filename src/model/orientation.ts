@@ -58,7 +58,7 @@ export function rotateOutlineByOrientation(
 
 // ── Bounds helpers ────────────────────────────────────────────────────────────
 
-function boundsFromPoints(points: Point2D[]): BasePlate {
+export function boundsFromPoints(points: Point2D[]): BasePlate {
   let minX = Infinity;
   let maxX = -Infinity;
   let minY = Infinity;

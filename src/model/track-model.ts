@@ -1,4 +1,4 @@
-import { buildTrackOutline as _buildTrackOutline } from '../geometry/outline.js';
+import { buildTrackOutline as _buildTrackOutline, DEFAULT_BASE_PLATE_MARGIN_METRES } from '../geometry/outline.js';
 import {
   buildTextMeshFromRankedPlacements,
   computeRankedTextPlacements,
@@ -38,6 +38,7 @@ import {
   rotatePointsByOrientation,
   orientTrackGeometry,
   selectAutoOrientation,
+  boundsFromPoints,
   __setOrientationBuildTrackOutlineCounter,
   __setAutoOrientCounter,
 } from './orientation.js';
@@ -132,8 +133,8 @@ export interface BuildTrackModelOptions {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const COASTER_TARGET_ENVELOPE_MM = COASTER_SIZE_MM - 2 * (COASTER_INNER_MARGIN_MM + BASE_CORNER_RADIUS_MM);
-/** Total margin (both sides per axis) added by buildBasePlate's default 50 m margin. */
-const BASE_PLATE_MARGIN_TOTAL_METRES = 100;
+/** Total margin (both sides per axis) added by buildBasePlate's default margin. */
+const BASE_PLATE_MARGIN_TOTAL_METRES = 2 * DEFAULT_BASE_PLATE_MARGIN_METRES;
 
 /**
  * Solves for the ribbon width (in metres) that — once buffered by `buildTrackOutline`
@@ -174,24 +175,11 @@ function computeEffectiveTrackWidthMetres(
     return TRACK_WIDTH_METRES;
   }
 
-  let minX = Infinity;
-  let maxX = -Infinity;
-  let minY = Infinity;
-  let maxY = -Infinity;
-  const accumulate = (nodes: ProjectedNode[] | null | undefined): void => {
-    if (!nodes?.length) { return; }
-    for (const n of nodes) {
-      if (n.x < minX) { minX = n.x; }
-      if (n.x > maxX) { maxX = n.x; }
-      if (n.y < minY) { minY = n.y; }
-      if (n.y > maxY) { maxY = n.y; }
-    }
-  };
-  accumulate(projectedNodes);
-  for (const nodes of secondaryProjectedNodes) {
-    accumulate(nodes);
-  }
-  const B = Math.max(maxX - minX, maxY - minY);
+  const allNodes = [projectedNodes, ...secondaryProjectedNodes]
+    .filter((nodes): nodes is ProjectedNode[] => !!nodes?.length)
+    .flat();
+  const bounds = boundsFromPoints(allNodes);
+  const B = Math.max(bounds.width, bounds.height);
   if (!Number.isFinite(B) || B <= 0) {
     return TRACK_WIDTH_METRES;
   }
@@ -377,12 +365,11 @@ export function buildTrackModel({
       : orientedGeometry.projectedNodes;
     workingSecondaries = orientedSecondaries.map(nodes => nodes.map(n => translatePoint(n, dx, dy)));
 
-    // Re-buffer outlines around the translated nodes (translation alone is
-    // enough mathematically, but rebuilding keeps a single code path).
-    workingOutline = workingProjected?.length
-      ? buildTrackOutline(workingProjected, effectiveTrackWidthMetres)
-      : translateOutline(orientedGeometry.outlinePoints, dx, dy);
-    workingSecondaryOutlines = workingSecondaries.map(nodes => buildTrackOutline(nodes, effectiveTrackWidthMetres));
+    // The orientation-pass outlines are already buffered at
+    // effectiveTrackWidthMetres, so translating them is equivalent to (and far
+    // cheaper than) re-buffering the translated nodes.
+    workingOutline = translateOutline(orientedGeometry.outlinePoints, dx, dy);
+    workingSecondaryOutlines = secondaryOutlines.map(outline => translateOutline(outline, dx, dy));
 
     // Synthetic base plate: a 90 mm square centred at origin, expressed in metres.
     // When scaled by `scale` it produces a 90×90 mm Rect2D for text placement.
@@ -406,9 +393,7 @@ export function buildTrackModel({
         baseZ: coasterInlay === 'flush' ? BASE_THICKNESS_MM - COASTER_POCKET_DEPTH_MM : BASE_THICKNESS_MM,
         trackWidthMetres: effectiveTrackWidthMetres,
       }
-    : (trackWidthAuto
-        ? undefined
-        : { trackWidthMetres: effectiveTrackWidthMetres });
+    : (trackWidthAuto ? undefined : { trackWidthMetres: effectiveTrackWidthMetres });
 
   // Text placement uses all visible layouts as obstacles in combined mode.
   const allOutlinePoints = workingSecondaryOutlines.length > 0
