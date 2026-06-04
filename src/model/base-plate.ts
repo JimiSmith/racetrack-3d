@@ -64,11 +64,17 @@ export function buildRoundedRectangleRing(
   ring.push({ x: minX, y: minY + radiusMm });
   appendRoundedArc(ring, minX + radiusMm, minY + radiusMm, radiusMm, 180, 270, segmentsPerCorner);
 
-  // The final arc lands exactly on the first explicit point — drop the duplicate
-  // so the closed ring has each vertex exactly once.
+  // The final arc closes onto the first explicit point, but `Math.cos(270°)`
+  // leaves a sub-ULP residual whose survival depends on coordinate magnitude,
+  // so an exact `===` would miss the duplicate near the origin. Compare with an
+  // epsilon below the export grid to drop the closing vertex reliably.
+  const RING_CLOSE_EPSILON_MM = 1e-6;
   const first = ring[0]!;
   const last = ring[ring.length - 1]!;
-  if (first.x === last.x && first.y === last.y) {
+  if (
+    Math.abs(first.x - last.x) < RING_CLOSE_EPSILON_MM
+    && Math.abs(first.y - last.y) < RING_CLOSE_EPSILON_MM
+  ) {
     ring.pop();
   }
 

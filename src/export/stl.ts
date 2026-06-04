@@ -3,6 +3,7 @@
  * Safe to use in Web Workers.
  */
 
+import { isDegenerateTriangle } from '../model/mesh-primitives.js';
 import type { TrackModel, Triangle, Vertex } from '../types/model.js';
 
 export function computeNormal(a: Vertex, b: Vertex, c: Vertex): Vertex {
@@ -25,25 +26,14 @@ export function computeNormal(a: Vertex, b: Vertex, c: Vertex): Vertex {
   };
 }
 
-const STL_QUANTIZATION_MM = 1e-4;
-const STL_AREA_TOLERANCE_MM2 = 1e-6;
-
-function isStlDegenerate(a: Vertex, b: Vertex, c: Vertex): boolean {
-  const q = (v: number): number => Math.round(v / STL_QUANTIZATION_MM) * STL_QUANTIZATION_MM;
-  const ax = q(a.x), ay = q(a.y), az = q(a.z);
-  const bx = q(b.x), by = q(b.y), bz = q(b.z);
-  const cx = q(c.x), cy = q(c.y), cz = q(c.z);
-  const abx = bx - ax, aby = by - ay, abz = bz - az;
-  const acx = cx - ax, acy = cy - ay, acz = cz - az;
-  const nx = aby * acz - abz * acy;
-  const ny = abz * acx - abx * acz;
-  const nz = abx * acy - aby * acx;
-  return Math.hypot(nx, ny, nz) / 2 < STL_AREA_TOLERANCE_MM2;
-}
-
 export function serializeBinaryStl(triangles: Triangle[], solidName = 'racetrack-3d'): ArrayBuffer {
   const safeName = String(solidName).replace(/[^\x20-\x7e]+/g, ' ').slice(0, 80);
-  const kept = triangles.filter(([a, b, c]) => !isStlDegenerate(a, b, c));
+  // Drop only triangles whose vertices coincide on the export grid, using the
+  // shared definition so STL agrees with the 3MF writer. Crucially this is
+  // coincidence-only, not area-based: an area filter also removes thin-but-real
+  // collinear slivers that carry edge-pairing, which opens holes in this
+  // single-soup mesh.
+  const kept = triangles.filter(([a, b, c]) => !isDegenerateTriangle(a, b, c));
   const triangleCount = kept.length;
   const buffer = new ArrayBuffer(84 + triangleCount * 50);
   const view = new DataView(buffer);

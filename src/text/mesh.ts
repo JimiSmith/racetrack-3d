@@ -3,9 +3,9 @@ import type { Triangle, Vertex } from '../types/model.js';
 import type { RankedPlacements, FittedTextLayout, TextPlacementCandidate } from '../types/text.js';
 import type { Point2D } from '../types/geometry.js';
 import type { Rect2D } from '../types/text.js';
+import { addQuad, addTriangle } from '../model/mesh-primitives.js';
 import { buildContourTree, collectShapes, translateAndScaleContours, translateAndScaleBounds } from './contours.js';
 import type { ContourShape } from './contours.js';
-import { isDegenerateTriangle } from '../model/mesh-primitives.js';
 
 export const TEXT_HEIGHT_MM = 0.8;
 export const DEFAULT_TEXT_POSITION_RANK = 1;
@@ -21,18 +21,6 @@ export function normalizeTextPositionRank(value: unknown): number {
 
 function createVertex(x: number, y: number, z: number): Vertex {
   return { x, y, z };
-}
-
-function addTriangle(triangles: Triangle[], a: Vertex, b: Vertex, c: Vertex): void {
-  if (isDegenerateTriangle(a, b, c)) {
-    return;
-  }
-  triangles.push([a, b, c]);
-}
-
-function addQuad(triangles: Triangle[], a: Vertex, b: Vertex, c: Vertex, d: Vertex): void {
-  addTriangle(triangles, a, b, c);
-  addTriangle(triangles, a, c, d);
 }
 
 function signedArea(points: Point2D[]): number {

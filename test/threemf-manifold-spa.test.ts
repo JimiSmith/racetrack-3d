@@ -3,6 +3,10 @@
  * synthetic loops in threemf-manifold.test.ts don't trigger the
  * earcut-with-many-baseline-collinear-glyph-holes failure mode that
  * shows up on real tracks with long printed labels.
+ *
+ * As in threemf-manifold.test.ts, `validate-mesh` measures the mesh at the
+ * exporter's own 1e-4 mm grid, so passing here means manifold *at that grid*,
+ * not necessarily manifold under a slicer's stricter quantization.
  */
 
 import assert from 'node:assert/strict';

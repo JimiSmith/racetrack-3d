@@ -447,23 +447,28 @@ export function buildTrackModel({
   // In flush coaster mode, the text also sits in a top-surface pocket flush
   // with the base top. Collect the chosen placement's glyph shapes so they can
   // be passed as additional pockets to the base plate builder.
-  // Each glyph gets a per-shape (x,y) perturbation of a few picometres so no
-  // two glyphs share collinear baseline vertices — earcut produces invalid
-  // triangulation (open boundary edges) when multiple holes share a line.
-  // The perturbation is far below the 1e-4 mm export quantization grid, so
-  // it's invisible in the print but breaks collinearity in the triangulator.
+  // Each glyph gets a unique sub-resolution (x, y) offset so no two glyphs
+  // share collinear baseline vertices — earcut produces invalid triangulation
+  // (open boundary edges) when multiple holes share a line. The offset is above
+  // the 1e-4 mm export grid (so vertices stay distinct after dedup) yet far
+  // below printer resolution (≈ 0.05 mm), so it breaks collinearity in the
+  // triangulator while staying invisible in the print.
   const textPocketSpecs: CoasterPocketSpec[] = [];
   if (coasterMode && coasterInlay === 'flush' && rankedPlacements) {
     const expanded = selectAndExpandPlacement(rankedPlacements, { textPositionRank: resolvedTextPositionRank });
     if (expanded?.contours?.length) {
       const shapes = collectShapes(buildContourTree(expanded.contours));
-      // Above the 1e-4 mm export quantization grid so vertices stay distinct
-      // after dedup, but well below printer resolution (≈ 0.05 mm) so it's
-      // invisible in the print. Each glyph gets a unique (dx, dy) offset.
-      const TEXT_POCKET_PERTURBATION_MM = 5e-4;
+      // Per-glyph step, capped so even a very long label's total drift stays
+      // bounded (≤ MAX_TEXT_POCKET_PERTURBATION_MM, still well under the
+      // ≈ 0.05 mm print resolution). For realistic labels `step` is the full
+      // PER_GLYPH_STEP_MM; it only shrinks once the glyph count would otherwise
+      // push the last glyph past the cap, and stays above the 1e-4 mm grid.
+      const PER_GLYPH_STEP_MM = 5e-4;
+      const MAX_TEXT_POCKET_PERTURBATION_MM = 0.03;
+      const step = Math.min(PER_GLYPH_STEP_MM, MAX_TEXT_POCKET_PERTURBATION_MM / Math.max(shapes.length, 1));
       shapes.forEach((shape, glyphIndex) => {
-        const dx = (glyphIndex + 1) * TEXT_POCKET_PERTURBATION_MM;
-        const dy = (glyphIndex + 1) * TEXT_POCKET_PERTURBATION_MM * 1.3;
+        const dx = (glyphIndex + 1) * step;
+        const dy = (glyphIndex + 1) * step * 1.3;
         const perturb = (p: Point2D): Point2D => ({ x: p.x + dx, y: p.y + dy });
         textPocketSpecs.push({
           boundary: shape.outer.map(perturb),

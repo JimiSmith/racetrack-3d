@@ -17,11 +17,22 @@ function quantize(value: number): number {
 }
 
 /**
- * Returns true only when two of the triangle's vertices collapse to the
- * same point under the 3MF's 1e-4 mm vertex dedup. This is the exact
- * condition for a triangle to disappear in the exported file and leave a
- * non-manifold boundary; small-but-nonzero slivers are preserved so the
- * mesh stays closed around fine glyph features.
+ * Returns true only when two of the triangle's vertices collapse to the same
+ * point under the 3MF's 1e-4 mm vertex dedup. This is the exact condition for a
+ * triangle to disappear on export and leave a non-manifold boundary.
+ *
+ * This is intentionally coincidence-only, *not* area-based: a thin but distinct
+ * sliver — three collinear-looking yet separate vertices — still contributes
+ * its edges to the mesh's edge-pairing. Dropping such triangles (as an
+ * area < tolerance test would) opens holes in the ribbon and pocket meshes,
+ * which is exactly the failure an STL area-filter previously introduced. So
+ * collinear-but-distinct triangles are deliberately kept; only genuine
+ * coincident-vertex collapses are removed.
+ *
+ * This is the single degeneracy definition shared by the STL and 3MF writers,
+ * so both agree on which triangles disappear. (The mesh validator's separate
+ * area-based `findDegenerateTriangles` is a stricter diagnostic, not an export
+ * filter.)
  */
 export function isDegenerateTriangle(a: Vertex, b: Vertex, c: Vertex): boolean {
   const ax = quantize(a.x), ay = quantize(a.y), az = quantize(a.z);

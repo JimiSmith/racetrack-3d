@@ -1,3 +1,13 @@
+/**
+ * Per-part 2-manifold assertions for the exported mesh.
+ *
+ * Caveat: `validate-mesh` quantizes on the same 1e-4 mm grid the 3MF exporter
+ * uses, so these tests verify the mesh is self-consistent *at the export grid*
+ * — they cannot detect non-manifold edges a slicer with a tighter or different
+ * grid (e.g. Bambu Studio) might still report. The flush-coaster-with-text case
+ * is one such known residual, tracked in the PR; a green run here is necessary
+ * but not sufficient for "clean in the slicer".
+ */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 

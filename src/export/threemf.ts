@@ -4,6 +4,7 @@
  */
 
 import { strToU8, zipSync } from 'fflate';
+import { isDegenerateTriangle } from '../model/mesh-primitives.js';
 import { splitModelTriangles as _splitModelTriangles } from '../model/triangle-groups.js';
 import type { TrackModel, Triangle, Vertex } from '../types/model.js';
 
@@ -53,14 +54,19 @@ function buildPart(
   }
 
   for (const triangle of triangles) {
-    const v1 = getVertexIndex(triangle[0]);
-    const v2 = getVertexIndex(triangle[1]);
-    const v3 = getVertexIndex(triangle[2]);
-    // Drop triangles that collapse after vertex dedup (zero-area slivers).
-    if (v1 === v2 || v2 === v3 || v1 === v3) {
+    // Drop triangles whose vertices coincide after the export's grid dedup
+    // (zero-area slivers that would leave a non-manifold boundary). Uses the
+    // shared coincidence-only definition from mesh-primitives so the writer is
+    // robust even for triangles that reach it without passing through
+    // `addTriangle`, and stays consistent with the STL writer.
+    if (isDegenerateTriangle(triangle[0], triangle[1], triangle[2])) {
       continue;
     }
-    triangleEntries.push({ v1, v2, v3 });
+    triangleEntries.push({
+      v1: getVertexIndex(triangle[0]),
+      v2: getVertexIndex(triangle[1]),
+      v3: getVertexIndex(triangle[2]),
+    });
   }
 
   if (triangleEntries.length === 0) {
