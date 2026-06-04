@@ -462,7 +462,9 @@ export function buildTrackModel({
       // bounded (≤ MAX_TEXT_POCKET_PERTURBATION_MM, still well under the
       // ≈ 0.05 mm print resolution). For realistic labels `step` is the full
       // PER_GLYPH_STEP_MM; it only shrinks once the glyph count would otherwise
-      // push the last glyph past the cap, and stays above the 1e-4 mm grid.
+      // push the last glyph past the cap, and stays above the 1e-4 mm export
+      // grid for any plausible label (it would only reach the grid past ~300
+      // glyphs — far beyond a 90 mm coaster's capacity).
       const PER_GLYPH_STEP_MM = 5e-4;
       const MAX_TEXT_POCKET_PERTURBATION_MM = 0.03;
       const step = Math.min(PER_GLYPH_STEP_MM, MAX_TEXT_POCKET_PERTURBATION_MM / Math.max(shapes.length, 1));
