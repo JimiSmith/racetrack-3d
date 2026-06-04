@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import type { Font } from 'opentype.js';
+
+import type { RankedTextPlacement } from '../src/types/text.js';
 import { BASE_THICKNESS_MM } from '../src/model/index.js';
 import { rotateOutlineByOrientation } from '../src/model/orientation.js';
 import {
@@ -400,7 +403,7 @@ test('ranked placements sort by score, then candidate index', () => {
     { id: 'lower-score', score: 9, candidateIndex: 2 },
     { id: 'best-score-lowest-candidate', score: 10, candidateIndex: 0 },
     { id: 'best-score-higher-candidate', score: 10, candidateIndex: 1 },
-  ].sort((a, b) => __debugCompareRankedTextPlacements(a as any, b as any));
+  ].sort((a, b) => __debugCompareRankedTextPlacements(a as unknown as RankedTextPlacement, b as unknown as RankedTextPlacement));
 
   assert.deepEqual(placements.map(({ id }) => id), [
     'best-score-lowest-candidate',
@@ -533,7 +536,7 @@ test('multiline line stacking preserves top-to-bottom order without rotation', (
   assert.ok(layout);
   assert.ok(layout.lines.length > 1, `expected multiline, got: ${JSON.stringify(layout.lines)}`);
   assert.equal(collapseWhitespace(layout.text), 'Autodromo Nazionale di Monza');
-  assertRenderedLineOrder(layout as any);
+  assertRenderedLineOrder(layout as unknown as { lines: string[]; lineBounds: Bounds[] });
 });
 
 test('placement rank does not alter word order', () => {
@@ -721,7 +724,7 @@ test('scored placements expose textClearanceMultiplier in the expected range', (
   const basePlate = { minX: -200, maxX: 4200, minY: -200, maxY: 2700, width: 4400, height: 2900 };
 
   const result = computeRankedTextPlacements('Circuit Name', outline, basePlate, 1, {
-    font: createMockFont() as any,
+    font: createMockFont() as unknown as Font,
   });
 
   assert.ok(result);
@@ -753,10 +756,10 @@ test('text clearance multiplier is higher when text has more breathing room from
   const basePlate = { minX: 0, maxX: 2200, minY: 0, maxY: 2200, width: 2200, height: 2200 };
 
   const shortResult = computeRankedTextPlacements('GO', outline, basePlate, 1, {
-    font: createMockFont() as any,
+    font: createMockFont() as unknown as Font,
   });
   const longResult = computeRankedTextPlacements('A Very Long Circuit Name', outline, basePlate, 1, {
-    font: createMockFont() as any,
+    font: createMockFont() as unknown as Font,
   });
 
   assert.ok(shortResult);
@@ -791,7 +794,7 @@ test('text clearance multiplier is above the floor when text is far from the tra
   const basePlate = { minX: -200, maxX: 6200, minY: -200, maxY: 6200, width: 6400, height: 6400 };
 
   const result = computeRankedTextPlacements('Hi', outline, basePlate, 1, {
-    font: createMockFont() as any,
+    font: createMockFont() as unknown as Font,
   });
 
   assert.ok(result);
@@ -936,10 +939,14 @@ test('DP produces valid splits when all words render to zero width', () => {
 });
 
 test('DP measures space width via fallback when charToGlyph is unavailable', () => {
-  const font = createMockFont() as any;
+  const font = createMockFont() as {
+    charToGlyph?: unknown;
+    unitsPerEm?: unknown;
+    getPath: (...args: unknown[]) => unknown;
+  };
   delete font.charToGlyph;
   delete font.unitsPerEm;
-  const lines = __findOptimalLineBreaks('Las Vegas Strip Circuit', 2, font) as string[];
+  const lines = __findOptimalLineBreaks('Las Vegas Strip Circuit', 2, font as unknown as Font) as string[];
   assert.equal(lines.length, 2);
   assert.equal(lines.join(' '), 'Las Vegas Strip Circuit');
 });

@@ -13,6 +13,46 @@ const TRACK_INSTANCE_IDS: Record<string, string> = {
 };
 const ENTITY_BATCH_SIZE = 50;
 
+interface SparqlBinding {
+  item?: { value: string };
+  type?: { value: string };
+  lat?: { value: string };
+  lon?: { value: string };
+}
+
+interface MergedTrackRow {
+  wikidataId: string;
+  type: string | null;
+  lat: number;
+  lon: number;
+  countryId: string | null;
+  cityIds: string[];
+}
+
+interface EntityDetail {
+  label: string | null;
+  aliases: string[];
+  description: string | null;
+  wikidataShortName: string | null;
+  countryId: string | null;
+  cityIds: string[];
+}
+
+interface WikidataClaim {
+  mainsnak?: { datavalue?: { value?: { text?: string; id?: string } } };
+}
+
+interface WikidataAlias {
+  value: string;
+}
+
+interface WikidataEntity {
+  labels?: { en?: { value: string } };
+  aliases?: { en?: WikidataAlias[] };
+  descriptions?: { en?: { value: string } };
+  claims?: Record<string, WikidataClaim[]>;
+}
+
 // Per-track alias supplements. Keys are Wikidata IDs; values are arrays of
 // additional alias strings to merge with the Wikidata-sourced aliases.
 // Use this for well-known names absent from Wikidata (e.g. branding names or
@@ -30,7 +70,7 @@ function extractWikidataId(value: unknown): string | null {
   return String(value ?? '').split('/').pop()! || null;
 }
 
-async function fetchJson(url: string, options?: RequestInit, retryOptions?: { retries?: number; baseDelayMs?: number }): Promise<any> {
+async function fetchJson(url: string, options?: RequestInit, retryOptions?: { retries?: number; baseDelayMs?: number }): Promise<unknown> {
   const { retries = 4, baseDelayMs = 1000 } = retryOptions ?? {};
   const { headers: optionHeaders, ...restOptions } = options ?? {};
 
@@ -59,9 +99,9 @@ async function fetchJson(url: string, options?: RequestInit, retryOptions?: { re
   }
 }
 
-async function fetchTrackRows(): Promise<any[]> {
+async function fetchTrackRows(): Promise<SparqlBinding[]> {
   const pageSize = 500;
-  const rows: any[] = [];
+  const rows: SparqlBinding[] = [];
 
   for (let offset = 0; ; offset += pageSize) {
     const sparql = `
@@ -85,7 +125,7 @@ OFFSET ${offset}
         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
       },
       body: `query=${encodeURIComponent(sparql)}&format=json`,
-    });
+    }) as { results?: { bindings?: SparqlBinding[] } };
 
     const pageRows = payload.results?.bindings ?? [];
     rows.push(...pageRows);
@@ -95,8 +135,8 @@ OFFSET ${offset}
   }
 }
 
-function mergeTrackRows(rows: any[]) {
-  const merged = new Map<string, any>();
+function mergeTrackRows(rows: SparqlBinding[]) {
+  const merged = new Map<string, MergedTrackRow>();
 
   for (const row of rows) {
     const wikidataId = extractWikidataId(row.item?.value);
@@ -107,8 +147,8 @@ function mergeTrackRows(rows: any[]) {
     const existing = merged.get(wikidataId) ?? {
       wikidataId,
       type: TRACK_INSTANCE_IDS[extractWikidataId(row.type?.value)!] ?? null,
-      lat: Number.parseFloat(row.lat?.value),
-      lon: Number.parseFloat(row.lon?.value),
+      lat: Number.parseFloat(row.lat?.value ?? ''),
+      lon: Number.parseFloat(row.lon?.value ?? ''),
       countryId: null,
       cityIds: [],
     };
@@ -120,25 +160,25 @@ function mergeTrackRows(rows: any[]) {
 }
 
 async function fetchEntityDetails(ids: string[]) {
-  const entities = new Map<string, any>();
+  const entities = new Map<string, EntityDetail>();
 
   for (let index = 0; index < ids.length; index += ENTITY_BATCH_SIZE) {
     const batch = ids.slice(index, index + ENTITY_BATCH_SIZE);
     const url = `${WIKIDATA_API}?action=wbgetentities&ids=${encodeURIComponent(batch.join('|'))}&languages=en&props=labels|aliases|descriptions|claims&format=json&origin=*`;
-    const payload = await fetchJson(url);
+    const payload = await fetchJson(url) as { entities?: Record<string, WikidataEntity> };
 
     for (const id of batch) {
-      const entity = payload.entities?.[id] ?? {};
+      const entity: WikidataEntity = payload.entities?.[id] ?? {};
       const shortName = entity.claims?.P1813
-        ?.find((claim: any) => claim?.mainsnak?.datavalue?.value?.text)
+        ?.find((claim: WikidataClaim) => claim?.mainsnak?.datavalue?.value?.text)
         ?.mainsnak?.datavalue?.value?.text ?? null;
       const getEntityClaimIds = (property: string): string[] => (entity.claims?.[property] ?? [])
-        .map((claim: any) => claim?.mainsnak?.datavalue?.value?.id)
-        .filter(Boolean);
+        .map((claim: WikidataClaim) => claim?.mainsnak?.datavalue?.value?.id)
+        .filter((value): value is string => Boolean(value));
 
       entities.set(id, {
         label: entity.labels?.en?.value ?? null,
-        aliases: (entity.aliases?.en ?? []).map((alias: any) => alias.value).filter(Boolean),
+        aliases: (entity.aliases?.en ?? []).map((alias: WikidataAlias) => alias.value).filter(Boolean),
         description: entity.descriptions?.en?.value ?? null,
         wikidataShortName: shortName,
         countryId: getEntityClaimIds('P17')[0] ?? null,
@@ -155,10 +195,17 @@ async function fetchEntityDetails(ids: string[]) {
   return entities;
 }
 
-function assembleIndex(baseRows: any[], entityDetails: Map<string, any>) {
+function assembleIndex(baseRows: MergedTrackRow[], entityDetails: Map<string, EntityDetail>) {
   return baseRows
     .map(row => {
-      const details = entityDetails.get(row.wikidataId) ?? {};
+      const details: EntityDetail = entityDetails.get(row.wikidataId) ?? {
+        label: null,
+        aliases: [],
+        description: null,
+        wikidataShortName: null,
+        countryId: null,
+        cityIds: [],
+      };
       const country = details.countryId ? entityDetails.get(details.countryId)?.label ?? null : null;
       const city = (details.cityIds ?? []).map((id: string) => entityDetails.get(id)?.label ?? null).find(Boolean) ?? null;
       const extraAliases = SEARCH_INDEX_ALIASES.get(row.wikidataId) ?? [];

@@ -70,15 +70,15 @@ function coordsMatch(a: LatLon, b: LatLon): boolean {
 /** Get the effective nodes for a way entry, applying fromNode/toNode slicing. */
 function getEffectiveNodes(entry: EditorWayEntry): LatLon[] {
   const way = wayDataById.get(entry.wayId);
-  if (!way) return [];
+  if (!way) {return [];}
   let nodes = way.nodes;
   if (entry.fromNode) {
     const idx = nodes.findIndex(n => coordsMatch(n, entry.fromNode!));
-    if (idx > 0) nodes = nodes.slice(idx);
+    if (idx > 0) {nodes = nodes.slice(idx);}
   }
   if (entry.toNode) {
     const idx = nodes.findIndex(n => coordsMatch(n, entry.toNode!));
-    if (idx >= 0) nodes = nodes.slice(0, idx + 1);
+    if (idx >= 0) {nodes = nodes.slice(0, idx + 1);}
   }
   return nodes;
 }
@@ -86,7 +86,7 @@ function getEffectiveNodes(entry: EditorWayEntry): LatLon[] {
 /** Find the index of a node in a way's node list. Returns -1 if not found. */
 function findNodeIndex(wayId: number, node: LatLon): number {
   const way = wayDataById.get(wayId);
-  if (!way) return -1;
+  if (!way) {return -1;}
   return way.nodes.findIndex(n => coordsMatch(n, node));
 }
 
@@ -148,7 +148,7 @@ function initMap(): void {
 let searchDebounce: ReturnType<typeof setTimeout> | null = null;
 
 function handleSearchInput(): void {
-  if (searchDebounce) clearTimeout(searchDebounce);
+  if (searchDebounce) {clearTimeout(searchDebounce);}
   searchDebounce = setTimeout(() => {
     const query = searchInput.value.trim();
     if (query.length < 2) {
@@ -254,8 +254,8 @@ async function selectTrack(track: SearchResult): Promise<void> {
           name,
           ways: def.ways.map(w => {
             const entry: EditorWayEntry = { wayId: w.wayId };
-            if (w.fromNode) entry.fromNode = w.fromNode;
-            if (w.toNode) entry.toNode = w.toNode;
+            if (w.fromNode) {entry.fromNode = w.fromNode;}
+            if (w.toNode) {entry.toNode = w.toNode;}
             return entry;
           }),
           collapsed: true,
@@ -277,7 +277,7 @@ async function selectTrack(track: SearchResult): Promise<void> {
 // --- Drawing ---
 
 function clearAll(): void {
-  for (const layer of wayLayers) map.removeLayer(layer);
+  for (const layer of wayLayers) {map.removeLayer(layer);}
   clearTrimMarkers();
   clearLoopPreview();
   wayLayers = [];
@@ -334,10 +334,10 @@ function drawWays(ways: WaysFileWay[]): void {
 function autoTrimPair(entryA: EditorWayEntry, entryB: EditorWayEntry): void {
   const wayA = wayDataById.get(entryA.wayId);
   const wayB = wayDataById.get(entryB.wayId);
-  if (!wayA || !wayB) return;
+  if (!wayA || !wayB) {return;}
 
   const nodesA = getEffectiveNodes(entryA);
-  if (nodesA.length === 0) return;
+  if (nodesA.length === 0) {return;}
 
   const aLast = nodesA[nodesA.length - 1]!;
   const aFirst = nodesA[0]!;
@@ -379,7 +379,7 @@ function autoTrimPair(entryA: EditorWayEntry, entryB: EditorWayEntry): void {
  * first way in the layout (for loop closure).
  */
 function autoTrim(layout: EditorLayout): void {
-  if (layout.ways.length < 2) return;
+  if (layout.ways.length < 2) {return;}
 
   const newEntry = layout.ways[layout.ways.length - 1]!;
   const prevEntry = layout.ways[layout.ways.length - 2]!;
@@ -397,10 +397,10 @@ function autoTrim(layout: EditorLayout): void {
 // --- Way click handler ---
 
 function handleWayClick(wayId: number): void {
-  if (!activeSelectLayoutId) return;
+  if (!activeSelectLayoutId) {return;}
 
   const layout = editorLayouts.find(l => l.id === activeSelectLayoutId);
-  if (!layout) return;
+  if (!layout) {return;}
 
   const existingIdx = layout.ways.findIndex(w => w.wayId === wayId);
   if (existingIdx >= 0) {
@@ -420,19 +420,19 @@ function handleWayClick(wayId: number): void {
 function getWayIdsInAnyLayout(): Set<number> {
   const ids = new Set<number>();
   for (const layout of editorLayouts) {
-    for (const entry of layout.ways) ids.add(entry.wayId);
+    for (const entry of layout.ways) {ids.add(entry.wayId);}
   }
   return ids;
 }
 
 function getActiveLayoutWayIds(): Set<number> {
-  if (!activeSelectLayoutId) return new Set();
+  if (!activeSelectLayoutId) {return new Set();}
   const layout = editorLayouts.find(l => l.id === activeSelectLayoutId);
   return layout ? new Set(layout.ways.map(w => w.wayId)) : new Set();
 }
 
 function clearTrimOverlays(): void {
-  for (const layer of trimOverlayLayers) map.removeLayer(layer);
+  for (const layer of trimOverlayLayers) {map.removeLayer(layer);}
   trimOverlayLayers = [];
 }
 
@@ -481,17 +481,17 @@ function updateWayStyles(): void {
         }
       } else {
         // No trim — show full way in cyan
-        if (way) layer.setLatLngs(way.nodes.map((n: LatLon) => [n.lat, n.lon]));
+        if (way) {layer.setLatLngs(way.nodes.map((n: LatLon) => [n.lat, n.lon]));}
         layer.setStyle({ color: WAY_COLOR_ACTIVE, weight: 5, opacity: 1 });
       }
     } else if (inAnyLayout.has(wayId)) {
       // Restore full geometry for ways no longer in the active layout
       const way = wayDataById.get(wayId);
-      if (way) layer.setLatLngs(way.nodes.map((n: LatLon) => [n.lat, n.lon]));
+      if (way) {layer.setLatLngs(way.nodes.map((n: LatLon) => [n.lat, n.lon]));}
       layer.setStyle({ color: WAY_COLOR_IN_LAYOUT, weight: 4, opacity: 0.85 });
     } else {
       const way = wayDataById.get(wayId);
-      if (way) layer.setLatLngs(way.nodes.map((n: LatLon) => [n.lat, n.lon]));
+      if (way) {layer.setLatLngs(way.nodes.map((n: LatLon) => [n.lat, n.lon]));}
       const isRaceway = String(way?.tags.highway ?? '').toLowerCase() === 'raceway';
       layer.setStyle({
         color: isRaceway ? WAY_COLOR_RACEWAY : WAY_COLOR_DEFAULT,
@@ -507,11 +507,11 @@ function updateWayStyles(): void {
 function enterTrimMode(layoutId: string, wayIdx: number, field: 'fromNode' | 'toNode'): void {
   clearTrimMarkers();
   const layout = editorLayouts.find(l => l.id === layoutId);
-  if (!layout) return;
+  if (!layout) {return;}
   const entry = layout.ways[wayIdx];
-  if (!entry) return;
+  if (!entry) {return;}
   const way = wayDataById.get(entry.wayId);
-  if (!way) return;
+  if (!way) {return;}
 
   trimTarget = { layoutId, wayIdx, field };
   setStatus(`Click a node on way ${entry.wayId} to set ${field === 'fromNode' ? 'start' : 'end'} point. Press Escape to cancel.`);
@@ -534,11 +534,11 @@ function enterTrimMode(layoutId: string, wayIdx: number, field: 'fromNode' | 'to
 }
 
 function applyTrimSelection(node: LatLon): void {
-  if (!trimTarget) return;
+  if (!trimTarget) {return;}
   const layout = editorLayouts.find(l => l.id === trimTarget!.layoutId);
-  if (!layout) return;
+  if (!layout) {return;}
   const entry = layout.ways[trimTarget.wayIdx];
-  if (!entry) return;
+  if (!entry) {return;}
 
   entry[trimTarget.field] = { lat: node.lat, lon: node.lon };
   exitTrimMode();
@@ -552,7 +552,7 @@ function exitTrimMode(): void {
 }
 
 function clearTrimMarkers(): void {
-  for (const marker of trimMarkers) map.removeLayer(marker);
+  for (const marker of trimMarkers) {map.removeLayer(marker);}
   trimMarkers = [];
 }
 
@@ -801,7 +801,7 @@ function wireLayoutEvents(): void {
   // Collapse toggle
   for (const header of layoutsContainer.querySelectorAll('.layout-card-header')) {
     header.addEventListener('click', (e) => {
-      if ((e.target as HTMLElement).closest('.layout-card-delete')) return;
+      if ((e.target as HTMLElement).closest('.layout-card-delete')) {return;}
       const layoutId = (header as HTMLElement).dataset.layoutId!;
       const layout = editorLayouts.find(l => l.id === layoutId);
       if (layout) {
@@ -819,7 +819,7 @@ function wireLayoutEvents(): void {
       const idx = editorLayouts.findIndex(l => l.id === layoutId);
       if (idx >= 0) {
         editorLayouts.splice(idx, 1);
-        if (activeSelectLayoutId === layoutId) activeSelectLayoutId = null;
+        if (activeSelectLayoutId === layoutId) {activeSelectLayoutId = null;}
         updateWayStyles();
         renderLayoutsPanel();
         updateSaveBtn();
@@ -836,7 +836,7 @@ function wireLayoutEvents(): void {
         layout.name = input.value;
         const card = input.closest('.layout-card');
         const nameSpan = card?.querySelector('.layout-card-name');
-        if (nameSpan) nameSpan.textContent = layout.name || 'Untitled';
+        if (nameSpan) {nameSpan.textContent = layout.name || 'Untitled';}
       }
     });
     input.addEventListener('click', (e) => e.stopPropagation());
@@ -851,7 +851,7 @@ function wireLayoutEvents(): void {
       } else {
         activeSelectLayoutId = layoutId;
         const layout = editorLayouts.find(l => l.id === layoutId);
-        if (layout) layout.collapsed = false;
+        if (layout) {layout.collapsed = false;}
       }
       exitTrimMode();
       updateWayStyles();
@@ -907,7 +907,7 @@ function wireLayoutEvents(): void {
       const wayId = Number(el.dataset.wayId);
       if (layout) {
         const idx = layout.ways.findIndex(w => w.wayId === wayId);
-        if (idx >= 0) layout.ways.splice(idx, 1);
+        if (idx >= 0) {layout.ways.splice(idx, 1);}
         updateWayStyles();
         renderLayoutsPanel();
         updateSaveBtn();
@@ -978,8 +978,8 @@ function buildExportJson(): LayoutFile {
     layouts[name] = {
       ways: layout.ways.map(entry => {
         const out: LayoutFileWayEntry = { wayId: entry.wayId };
-        if (entry.fromNode) out.fromNode = entry.fromNode;
-        if (entry.toNode) out.toNode = entry.toNode;
+        if (entry.fromNode) {out.fromNode = entry.fromNode;}
+        if (entry.toNode) {out.toNode = entry.toNode;}
         return out;
       }),
     };
@@ -996,7 +996,7 @@ function buildExportJson(): LayoutFile {
 }
 
 function downloadJson(data: object, filename: string): void {
-  const json = JSON.stringify(data, null, 2) + '\n';
+  const json = `${JSON.stringify(data, null, 2)  }\n`;
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1009,7 +1009,7 @@ function downloadJson(data: object, filename: string): void {
 }
 
 saveBtn.addEventListener('click', () => {
-  if (!currentTrackId || editorLayouts.length === 0) return;
+  if (!currentTrackId || editorLayouts.length === 0) {return;}
   const data = buildExportJson();
   downloadJson(data, `${currentTrackId}.json`);
 });

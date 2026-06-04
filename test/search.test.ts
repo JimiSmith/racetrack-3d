@@ -38,7 +38,11 @@ const GEOMETRY_HINTS: Record<string, GeometryHints> = {
   },
 };
 
-function loadFixture(name: string): any {
+interface OsmFixture {
+  elements: Array<{ id: number; tags: Record<string, string>; geometry: LatLonNode[] }>;
+}
+
+function loadFixture(name: string): { elements?: unknown[] } {
   return JSON.parse(readFileSync(new URL(`./fixtures/${name}`, import.meta.url), 'utf8'));
 }
 
@@ -59,8 +63,8 @@ function assertLayoutInvariants(layout: { name: string; nodes: LatLonNode[] }, {
 }
 
 function fixtureWays(name: string): Way[] {
-  const fixture = loadFixture(name);
-  return fixture.elements.map((element: any) => ({
+  const fixture = loadFixture(name) as OsmFixture;
+  return fixture.elements.map((element) => ({
     id: element.id,
     tags: element.tags,
     nodes: element.geometry,
@@ -103,7 +107,7 @@ function n(lat: number, lon: number): LatLonNode {
 }
 
 function makeIndexedTrack(record: Record<string, unknown>) {
-  const entry = buildTrackSearchEntry(record as any);
+  const entry = buildTrackSearchEntry(record as Parameters<typeof buildTrackSearchEntry>[0]);
   assert.ok(entry, `expected valid search entry for ${record.wikidataId}`);
   return entry;
 }
@@ -427,7 +431,7 @@ test('searchTracks uses the shipped local search index and returns compatible fi
 test('getTrackGeometry lazily loads and caches the prebuilt supported track layouts', async () => {
   const originalFetch = globalThis.fetch;
   const calls: unknown[] = [];
-  globalThis.fetch = (async (url: any) => {
+  globalThis.fetch = (async (url: RequestInfo | URL) => {
     calls.push(url);
     if (url === '/generated/geometry/Q171402.json') {
       return {
@@ -516,7 +520,7 @@ test('fetchTrackGeometry returns prebuilt local geometry when available', async 
   };
 
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = (async (url: any) => {
+  globalThis.fetch = (async (url: RequestInfo | URL) => {
     if (String(url).includes('/generated/geometry/Q172851.json')) {
       return { ok: true, async json() { return prebuiltEntry; } };
     }
@@ -524,7 +528,7 @@ test('fetchTrackGeometry returns prebuilt local geometry when available', async 
   }) as typeof fetch;
 
   try {
-    const result = await fetchTrackGeometry('Circuit de Spa-Francorchamps', { wikidataId: 'Q172851' }) as any;
+    const result = await fetchTrackGeometry('Circuit de Spa-Francorchamps', { wikidataId: 'Q172851' }) as { trackId: string; layouts: { name: string; nodes: LatLonNode[] }[] };
     assert.equal(result.trackId, 'Q172851');
     assertLayoutNames(result.layouts, ['Main', 'Alternate']);
   } finally {
@@ -552,7 +556,7 @@ test('build-only geometry cleanup is not applied to runtime payload parsing by d
   };
 
   const runtimeResult = buildTrackGeometryFromPayload(payload, 'Synthetic Circuit');
-  const buildResult = normalizeTrackGeometryResult(runtimeResult as any, 'Synthetic Circuit');
+  const buildResult = normalizeTrackGeometryResult(runtimeResult as Parameters<typeof normalizeTrackGeometryResult>[0], 'Synthetic Circuit');
 
   assert.ok(runtimeResult);
   assert.ok(buildResult);
@@ -568,7 +572,7 @@ test('buildTrackGeometryFromPayload produces named Silverstone layouts from high
   const fixture = loadFixture('silverstone.json');
 
   const result = buildTrackGeometryFromPayload(fixture, 'Silverstone Circuit');
-  const normalized = normalizeTrackGeometryResult(result as any, 'Silverstone Circuit');
+  const normalized = normalizeTrackGeometryResult(result as Parameters<typeof normalizeTrackGeometryResult>[0], 'Silverstone Circuit');
 
   assert.ok(result);
   assert.ok(normalized);
