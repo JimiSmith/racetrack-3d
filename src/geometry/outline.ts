@@ -36,7 +36,10 @@ export function buildTrackOutline(nodes: Point2D[], widthMetres = 12): OutlinePo
   };
 }
 
-export function buildBasePlate(outline: OutlinePoints | Point2D[], margin = 50): BasePlate {
+/** Default per-side margin (metres) added around the track bbox by buildBasePlate. */
+export const DEFAULT_BASE_PLATE_MARGIN_METRES = 50;
+
+export function buildBasePlate(outline: OutlinePoints | Point2D[], margin = DEFAULT_BASE_PLATE_MARGIN_METRES): BasePlate {
   // Accept either the full outline object {outerRing, holes} or a plain array
   const outlinePoints = (outline as OutlinePoints)?.outerRing ?? (outline as Point2D[]);
   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
