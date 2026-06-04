@@ -9,6 +9,8 @@ import {
 import type { TrackModel, OutlinePoints, BasePlate } from '../types/model.js';
 import type { Point2D, ProjectedNode } from '../types/geometry.js';
 import type { RankedPlacements } from '../types/text.js';
+import { selectAndExpandPlacement } from '../text/mesh.js';
+import { buildContourTree, collectShapes } from '../text/contours.js';
 import type { PerfTimer } from './perf-timer.js';
 import {
   BASE_THICKNESS_MM,
@@ -22,8 +24,6 @@ import {
   computeScale,
   type CoasterPocketSpec,
 } from './base-plate.js';
-import { selectAndExpandPlacement } from '../text/mesh.js';
-import { buildContourTree, collectShapes } from '../text/contours.js';
 import { buildTrackPrismMesh, __setTrackPrismPerfCounters } from './track-prism.js';
 import {
   COASTER_TRACK_HEIGHT_FLUSH_MM,

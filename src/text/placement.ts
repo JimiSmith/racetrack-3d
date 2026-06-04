@@ -827,7 +827,7 @@ export function dedupeRankedPlacements(
   placements: RankedTextPlacement[],
   scaledBasePlate: Rect2D,
 ): RankedTextPlacement[] {
-  if (placements.length <= 1) return placements;
+  if (placements.length <= 1) {return placements;}
 
   const diagSq = scaledBasePlate.width ** 2 + scaledBasePlate.height ** 2;
   const maxDist = (diagSq > 0 ? Math.sqrt(diagSq) : 1) / 2;
