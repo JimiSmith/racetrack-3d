@@ -8,15 +8,12 @@
  * is one such known residual, tracked in the PR; a green run here is necessary
  * but not sufficient for "clean in the slicer".
  */
-import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { buildBasePlate, buildTrackOutline } from '../src/geometry/outline.js';
 import { buildTrackModel } from '../src/model/index.js';
-import { splitModelTriangles } from '../src/model/triangle-groups.js';
-import { findDegenerateTriangles, findNonManifoldEdges, summarizeMesh } from '../src/model/validate-mesh.js';
+import { assertModelManifold } from '../test-utils/mesh-assertions.js';
 import type { ProjectedNode } from '../src/types/geometry.js';
-import type { Triangle } from '../src/types/model.js';
 
 /**
  * A simple closed racing-line: rounded rectangle in projected metres.
@@ -69,38 +66,6 @@ function buildModelForCase(opts: {
     ...(opts.coasterInlay ? { coasterInlay: opts.coasterInlay } : {}),
     primaryOrientationDeg: 0,
   });
-}
-
-function assertPartManifold(label: string, triangles: Triangle[]): void {
-  if (triangles.length === 0) {
-    return;
-  }
-  const nonManifold = findNonManifoldEdges(triangles);
-  const degenerate = findDegenerateTriangles(triangles);
-  if (nonManifold.length > 0 || degenerate.length > 0) {
-    const summary = summarizeMesh(triangles);
-    const examples = nonManifold.slice(0, 5).map(e => ({
-      a: { x: +e.a.x.toFixed(4), y: +e.a.y.toFixed(4), z: +e.a.z.toFixed(4) },
-      b: { x: +e.b.x.toFixed(4), y: +e.b.y.toFixed(4), z: +e.b.z.toFixed(4) },
-      triangleIndices: e.triangleIndices,
-    }));
-    assert.fail(
-      `${label}: part is not 2-manifold\n  summary=${JSON.stringify(summary)}\n  first non-manifold edges: ${JSON.stringify(examples, null, 2)}\n  degenerate triangle indices (first 5): ${JSON.stringify(degenerate.slice(0, 5))}`,
-    );
-  }
-}
-
-/**
- * Validates that each logical part of the model — base, secondary tracks,
- * primary track + text — is independently 2-manifold. This mirrors what
- * Bambu sees, since `build3mfModelXml` emits one `<object>` per part with
- * its own vertex pool.
- */
-function assertModelManifold(label: string, model: ReturnType<typeof buildTrackModel>): void {
-  const { baseTriangles, secondaryTrackTriangles, trackTriangles } = splitModelTriangles(model);
-  assertPartManifold(`${label} / base`, baseTriangles);
-  assertPartManifold(`${label} / secondary tracks`, secondaryTrackTriangles);
-  assertPartManifold(`${label} / primary track + text`, trackTriangles);
 }
 
 test('non-coaster export is 2-manifold per part', () => {

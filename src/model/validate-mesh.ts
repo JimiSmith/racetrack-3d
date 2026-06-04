@@ -8,7 +8,8 @@
  * validator measures the mesh as Bambu Studio sees it after vertex dedup.
  */
 
-import type { Triangle, Vertex } from '../types/model.js';
+import type { Triangle, TrackModel, Vertex } from '../types/model.js';
+import { splitModelTriangles } from './triangle-groups.js';
 
 /** 4-decimal quantization, matching `formatCoordinate` in src/export/threemf.ts. */
 const DEFAULT_PRECISION_MM = 1e-4;
@@ -138,4 +139,60 @@ export function summarizeMesh(triangles: Triangle[], options: ValidateOptions = 
     nonManifoldEdgeCount: findNonManifoldEdges(triangles, options).length,
     degenerateTriangleCount: findDegenerateTriangles(triangles, options).length,
   };
+}
+
+export interface PartReport {
+  /** Logical part name. 'track' = primary track + embossed text (same exported object). */
+  part: 'base' | 'secondary' | 'track';
+  triangleCount: number;
+  nonManifoldEdges: NonManifoldEdge[];
+  degenerateTriangles: number[];
+  // Extended as #109 / #115 land — additive only, never removing the above:
+  // tJunctions: TJunction[];
+  // flippedFaces: number[];
+  // selfIntersections: SelfIntersection[];
+  // shellComponents: number;
+}
+
+export interface ModelReport {
+  /** True iff every part is 2-manifold AND free of degenerate triangles. Pure data report; the
+   *  decision of what to ASSERT on lives in the test helper's `failOn`, not here. */
+  ok: boolean;
+  parts: PartReport[];
+}
+
+/**
+ * Splits a model into its per-part triangle groups (base / secondary / track)
+ * and composes the existing manifold + degenerate detectors into a structured
+ * report. Pure data: it always computes both detectors for every part and never
+ * decides what callers should fail on — that decision lives in the test helper.
+ *
+ * `parts` always contains exactly three entries in the fixed order
+ * `base`, `secondary`, `track`; empty parts are included with zero findings and
+ * therefore never make `ok` false.
+ */
+export function validateModel(
+  model: TrackModel,
+  options: ValidateOptions = {},
+): ModelReport {
+  const { baseTriangles, secondaryTrackTriangles, trackTriangles } = splitModelTriangles(model);
+
+  const buildPart = (part: PartReport['part'], triangles: Triangle[]): PartReport => ({
+    part,
+    triangleCount: triangles.length,
+    nonManifoldEdges: findNonManifoldEdges(triangles, options),
+    degenerateTriangles: findDegenerateTriangles(triangles, options),
+  });
+
+  const parts: PartReport[] = [
+    buildPart('base', baseTriangles),
+    buildPart('secondary', secondaryTrackTriangles),
+    buildPart('track', trackTriangles),
+  ];
+
+  const ok = parts.every(
+    p => p.nonManifoldEdges.length === 0 && p.degenerateTriangles.length === 0,
+  );
+
+  return { ok, parts };
 }
