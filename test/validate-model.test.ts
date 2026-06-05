@@ -66,12 +66,27 @@ test('validateModel includes empty parts with zero findings that never break ok'
   assert.deepEqual(secondary.nonManifoldEdges, []);
   assert.deepEqual(secondary.degenerateTriangles, []);
   assert.deepEqual(secondary.tJunctions, []);
+  // #115: an empty part has no triangles, so findShellComponents([]) is [] (length 0).
+  assert.deepEqual(secondary.selfIntersections, []);
+  assert.deepEqual(secondary.flippedFaces, []);
+  assert.equal(secondary.shellComponentCount, 0);
 });
 
 test('validateModel reports a tJunctions array on every part', () => {
   const report = validateModel(buildModel());
   for (const part of report.parts) {
     assert.ok(Array.isArray(part.tJunctions), `${part.part} has a tJunctions array`);
+  }
+});
+
+test('validateModel exposes #115 detector fields on every part', () => {
+  const report = validateModel(buildModel());
+  for (const part of report.parts) {
+    assert.ok(Array.isArray(part.selfIntersections), `${part.part} has a selfIntersections array`);
+    assert.ok(Array.isArray(part.flippedFaces), `${part.part} has a flippedFaces array`);
+    // Empty parts legitimately yield 0; healthy non-empty parts yield 1; the DEFECT rule
+    // (used by the sweep/assertions) is strictly `> 1`. Assert ONLY the type here.
+    assert.equal(typeof part.shellComponentCount, 'number', `${part.part} has a numeric shellComponentCount`);
   }
 });
 

@@ -23,11 +23,24 @@ const PART_LABELS: Record<PartReport['part'], string> = {
  *   - `'edges'`: fail ONLY on non-manifold edges.
  *   - `'edges+tjunctions'`: fail on non-manifold edges OR T-junctions (#109).
  *   - `'edges+degenerates+tjunctions'`: fail on any of the three.
+ *   - `'edges+selfx'`: fail on non-manifold edges OR self-intersections (#115).
+ *   - `'edges+flipped'`: fail on non-manifold edges OR flipped-winding faces (#115).
+ *   - `'edges+shells'`: fail on non-manifold edges OR disjoint shells (`>1`, #115).
+ *   - `'all'`: fail on ANY detector (edges, degenerates, T-junctions, self-intersections,
+ *     flipped faces, disjoint shells).
  *
- * Degenerate and T-junction diagnostics are PRINTED in the failure message regardless
- * of `failOn`; printing is not failing.
+ * All diagnostics (degenerate, T-junction, self-intersection, flipped-face, shell)
+ * are PRINTED in the failure message regardless of `failOn`; printing is not failing.
  */
-type FailOn = 'edges' | 'edges+degenerates' | 'edges+tjunctions' | 'edges+degenerates+tjunctions';
+type FailOn =
+  | 'edges'
+  | 'edges+degenerates'
+  | 'edges+tjunctions'
+  | 'edges+degenerates+tjunctions'
+  | 'edges+selfx'
+  | 'edges+flipped'
+  | 'edges+shells'
+  | 'all';
 
 export function assertModelManifold(
   label: string,
@@ -35,8 +48,13 @@ export function assertModelManifold(
   options?: { failOn?: FailOn } & ValidateOptions,
 ): void {
   const { failOn = 'edges+degenerates', ...validateOptions } = options ?? {};
-  const failOnDegenerates = failOn === 'edges+degenerates' || failOn === 'edges+degenerates+tjunctions';
-  const failOnTJunctions = failOn === 'edges+tjunctions' || failOn === 'edges+degenerates+tjunctions';
+  const failOnDegenerates =
+    failOn === 'edges+degenerates' || failOn === 'edges+degenerates+tjunctions' || failOn === 'all';
+  const failOnTJunctions =
+    failOn === 'edges+tjunctions' || failOn === 'edges+degenerates+tjunctions' || failOn === 'all';
+  const failOnSelfIntersections = failOn === 'edges+selfx' || failOn === 'all';
+  const failOnFlipped = failOn === 'edges+flipped' || failOn === 'all';
+  const failOnShells = failOn === 'edges+shells' || failOn === 'all';
   const report = validateModel(model, validateOptions);
   const groups = splitModelTriangles(model);
   const trianglesByPart: Record<PartReport['part'], Triangle[]> = {
@@ -53,7 +71,10 @@ export function assertModelManifold(
     const failed =
       part.nonManifoldEdges.length > 0 ||
       (failOnDegenerates && part.degenerateTriangles.length > 0) ||
-      (failOnTJunctions && part.tJunctions.length > 0);
+      (failOnTJunctions && part.tJunctions.length > 0) ||
+      (failOnSelfIntersections && part.selfIntersections.length > 0) ||
+      (failOnFlipped && part.flippedFaces.length > 0) ||
+      (failOnShells && part.shellComponentCount > 1);
 
     if (!failed) {
       continue;
@@ -75,8 +96,10 @@ export function assertModelManifold(
       triangleIndex: t.triangleIndex,
       perpendicularDistance: +t.perpendicularDistance.toFixed(6),
     }));
+    const coplanarSelfIntersections = part.selfIntersections.filter(s => s.kind === 'coplanar').length;
+    const crossingSelfIntersections = part.selfIntersections.length - coplanarSelfIntersections;
     assert.fail(
-      `${partLabel}: part failed mesh validation (failOn=${failOn})\n  summary=${JSON.stringify(summary)}\n  first non-manifold edges: ${JSON.stringify(examples, null, 2)}\n  degenerate triangle indices (first 5): ${JSON.stringify(part.degenerateTriangles.slice(0, 5))}\n  T-junction count: ${part.tJunctions.length}\n  first T-junctions (vertex / edge / perpendicularDistance): ${JSON.stringify(tJunctionExamples, null, 2)}`,
+      `${partLabel}: part failed mesh validation (failOn=${failOn})\n  summary=${JSON.stringify(summary)}\n  first non-manifold edges: ${JSON.stringify(examples, null, 2)}\n  degenerate triangle indices (first 5): ${JSON.stringify(part.degenerateTriangles.slice(0, 5))}\n  T-junction count: ${part.tJunctions.length}\n  first T-junctions (vertex / edge / perpendicularDistance): ${JSON.stringify(tJunctionExamples, null, 2)}\n  self-intersection count: ${part.selfIntersections.length} (crossing=${crossingSelfIntersections}, coplanar=${coplanarSelfIntersections})\n  flipped-face count: ${part.flippedFaces.length}\n  shell-component count: ${part.shellComponentCount}`,
     );
   }
 }

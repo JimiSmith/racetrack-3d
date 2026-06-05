@@ -34,7 +34,8 @@ const USAGE = `Usage: npm run validate:meshes [-- <options>]
   --help           Show this message.
 
 Exits non-zero if any (track, mode, part) fails the current mesh detectors
-(non-manifold edges, degenerate triangles, or T-junctions).`;
+(non-manifold edges, degenerate triangles, T-junctions, self-intersections,
+flipped faces, or disjoint shells).`;
 
 interface ParsedArgs {
   help: boolean;

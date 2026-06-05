@@ -80,5 +80,7 @@ test('coaster round + raised export is 2-manifold per part (Spa repro mode)', ()
 
 test('coaster round + flush export is 2-manifold per part', () => {
   const model = buildModelForCase({ coasterMode: true, coasterInlay: 'flush' });
-  assertModelManifold('coaster flush', model, { failOn: 'edges+tjunctions' });
+  // Opted into the full #115 detector set; this case is one of the 3 intentional
+  // pre-existing failures and the new detectors may make it louder (expected, not a regression).
+  assertModelManifold('coaster flush', model, { failOn: 'all' });
 });

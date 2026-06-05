@@ -9,10 +9,31 @@
  */
 
 import type { Triangle, TrackModel, Vertex } from '../types/model.js';
+import {
+  DEFAULT_PRECISION_MM,
+  edgeKey,
+  quantize,
+  vertexKey,
+  type ValidateOptions,
+} from './validate-mesh-primitives.js';
+import {
+  findFlippedAdjacentFaces,
+  findSelfIntersectingTriangles,
+  findShellComponents,
+  type SelfIntersection,
+} from './mesh-detectors.js';
 import { splitModelTriangles } from './triangle-groups.js';
 
-/** 4-decimal quantization, matching `formatCoordinate` in src/export/threemf.ts. */
-export const DEFAULT_PRECISION_MM = 1e-4;
+// Re-export the shared primitives so existing import paths
+// (`import { DEFAULT_PRECISION_MM, ValidateOptions } from '.../validate-mesh.js'`)
+// keep working unchanged after the §6 module split.
+export { DEFAULT_PRECISION_MM };
+export type { ValidateOptions };
+// Re-export the #115 detectors + types so consumers can import them from the
+// validator module exactly as the issue phrases it.
+export { findFlippedAdjacentFaces, findSelfIntersectingTriangles, findShellComponents };
+export type { SelfIntersection };
+
 /** Triangles with cross-product magnitude below this (in mm²) are considered degenerate. */
 const DEFAULT_AREA_TOLERANCE_MM2 = 1e-6;
 /**
@@ -22,18 +43,6 @@ const DEFAULT_AREA_TOLERANCE_MM2 = 1e-6;
  * step of the edge.
  */
 export const DEFAULT_TJUNCTION_TOLERANCE_MM = 1e-4;
-
-function quantize(value: number, precision: number): number {
-  return Math.round(value / precision) * precision;
-}
-
-function vertexKey(v: Vertex, precision: number): string {
-  return `${quantize(v.x, precision)},${quantize(v.y, precision)},${quantize(v.z, precision)}`;
-}
-
-function edgeKey(a: string, b: string): string {
-  return a < b ? `${a}|${b}` : `${b}|${a}`;
-}
 
 function triangleArea(a: Vertex, b: Vertex, c: Vertex): number {
   const abx = b.x - a.x, aby = b.y - a.y, abz = b.z - a.z;
@@ -50,14 +59,6 @@ export interface NonManifoldEdge {
   b: Vertex;
   /** Indices into the triangles array that contain this edge. */
   triangleIndices: number[];
-}
-
-export interface ValidateOptions {
-  precisionMm?: number;
-  areaToleranceMm2?: number;
-  /** Perpendicular distance tolerance (mm) for T-junction detection. Defaults to
-   *  `DEFAULT_TJUNCTION_TOLERANCE_MM` (1e-4). */
-  toleranceMm?: number;
 }
 
 /**
@@ -295,6 +296,12 @@ export interface MeshSummary {
   nonManifoldEdgeCount: number;
   degenerateTriangleCount: number;
   tJunctionCount: number;
+  /** #115: total self-intersecting pairs (true 3D crossers + coplanar laminations). */
+  selfIntersectionCount: number;
+  /** #115: adjacent face pairs with flipped (same-direction) shared-edge winding. */
+  flippedFaceCount: number;
+  /** #115: connected shell components by shared-edge adjacency. */
+  componentCount: number;
 }
 
 export function summarizeMesh(triangles: Triangle[], options: ValidateOptions = {}): MeshSummary {
@@ -311,6 +318,9 @@ export function summarizeMesh(triangles: Triangle[], options: ValidateOptions = 
     nonManifoldEdgeCount: findNonManifoldEdges(triangles, options).length,
     degenerateTriangleCount: findDegenerateTriangles(triangles, options).length,
     tJunctionCount: findTJunctions(triangles, options).length,
+    selfIntersectionCount: findSelfIntersectingTriangles(triangles, options).length,
+    flippedFaceCount: findFlippedAdjacentFaces(triangles, options).length,
+    componentCount: findShellComponents(triangles, options).length,
   };
 }
 
@@ -322,10 +332,16 @@ export interface PartReport {
   degenerateTriangles: number[];
   /** T-junctions (#109): interior-of-edge vertices. NOT folded into `ModelReport.ok`. */
   tJunctions: TJunction[];
-  // Extended as #115 lands — additive only, never removing the above:
-  // flippedFaces: number[];
-  // selfIntersections: SelfIntersection[];
-  // shellComponents: number;
+  /** #115: self-intersecting triangle pairs (3D crossers + coplanar laminations, tagged
+   *  via `kind`). NOT folded into `ModelReport.ok`. */
+  selfIntersections: SelfIntersection[];
+  /** #115: adjacent face pairs with flipped (same-direction) shared-edge winding.
+   *  NOT folded into `ModelReport.ok`. */
+  flippedFaces: Array<{ triangleA: number; triangleB: number; sharedEdge: { a: Vertex; b: Vertex } }>;
+  /** #115: count of disjoint shell components (`findShellComponents(triangles).length`).
+   *  A healthy single shell is 1; >1 indicates disjoint shells. An empty part is 0.
+   *  NOT folded into `ModelReport.ok`. */
+  shellComponentCount: number;
 }
 
 export interface ModelReport {
@@ -358,6 +374,9 @@ export function validateModel(
     nonManifoldEdges: findNonManifoldEdges(triangles, options),
     degenerateTriangles: findDegenerateTriangles(triangles, options),
     tJunctions: findTJunctions(triangles, options),
+    selfIntersections: findSelfIntersectingTriangles(triangles, options),
+    flippedFaces: findFlippedAdjacentFaces(triangles, options),
+    shellComponentCount: findShellComponents(triangles, options).length,
   });
 
   const parts: PartReport[] = [
