@@ -187,14 +187,19 @@ export interface SweepFailure {
   part: PartReport['part'] | 'build';
   nonManifoldEdges: number;
   degenerateTriangles: number;
+  tJunctions: number;
   /** From nonManifoldEdges[0], rounded to 4dp. */
   firstEdge?: { a: { x: number; y: number; z: number }; b: { x: number; y: number; z: number } };
   buildError?: string;
 }
 
-/** Failure predicate for a part — extend here when #109/#115 fields land on PartReport. */
+/** Failure predicate for a part — extend here when #115 fields land on PartReport. */
 function partFailed(part: PartReport): boolean {
-  return part.nonManifoldEdges.length > 0 || part.degenerateTriangles.length > 0;
+  return (
+    part.nonManifoldEdges.length > 0 ||
+    part.degenerateTriangles.length > 0 ||
+    part.tJunctions.length > 0
+  );
 }
 
 function round4(n: number): number {
@@ -251,6 +256,7 @@ export function sweepOne(file: PrebuiltTrackFile, mode: Mode): SweepFailure[] {
         part: part.part,
         nonManifoldEdges: part.nonManifoldEdges.length,
         degenerateTriangles: part.degenerateTriangles.length,
+        tJunctions: part.tJunctions.length,
         ...(first
           ? {
               firstEdge: {
@@ -272,6 +278,7 @@ export function sweepOne(file: PrebuiltTrackFile, mode: Mode): SweepFailure[] {
         part: 'build',
         nonManifoldEdges: 0,
         degenerateTriangles: 0,
+        tJunctions: 0,
         buildError: message,
       },
     ];
@@ -327,6 +334,7 @@ const COLS = {
   part: 10,
   nm: 8,
   degen: 7,
+  tjunc: 7,
 };
 
 function truncate(s: string, width: number): string {
@@ -357,6 +365,7 @@ export function formatFailureTable(result: SweepResult, tracksRequested: number)
     'part'.padEnd(COLS.part) +
     'nm-edges'.padStart(COLS.nm) +
     'degens'.padStart(COLS.degen) +
+    'tjunc'.padStart(COLS.tjunc) +
     '  first edge';
   lines.push(header);
   lines.push('-'.repeat(header.length));
@@ -369,6 +378,7 @@ export function formatFailureTable(result: SweepResult, tracksRequested: number)
         f.part.padEnd(COLS.part) +
         String(f.nonManifoldEdges).padStart(COLS.nm) +
         String(f.degenerateTriangles).padStart(COLS.degen) +
+        String(f.tJunctions).padStart(COLS.tjunc) +
         '  ' +
         formatFirstEdge(f),
     );
