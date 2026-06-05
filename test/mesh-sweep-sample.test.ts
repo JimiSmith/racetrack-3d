@@ -3,7 +3,7 @@
  *
  * Runs the SHARED sweep core (`test-utils/mesh-sweep.ts`) — the same code path the
  * `npm run validate:meshes` CLI runs — over the committed `REPRESENTATIVE_SAMPLE`, and
- * asserts ZERO mesh failures (non-manifold edges / degenerate triangles) across the
+ * asserts ZERO mesh failures (non-manifold edges / degenerate triangles / T-junctions) across the
  * worker/export build path.
  *
  * INTENTIONALLY RED (owner decision): several representative tracks already fail the

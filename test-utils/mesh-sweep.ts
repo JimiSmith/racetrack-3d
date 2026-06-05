@@ -11,12 +11,13 @@
  * Builds go through the worker/export path exactly as `src/workers/model.worker.ts`
  * does: `buildTrackModel({ outlinePoints: null, basePlate: null, ... })` derives the
  * real outline + base plate internally, then `validateModel()` (src/model/validate-mesh.ts,
- * from #121/#123) runs the current non-manifold + degenerate detectors on every part.
+ * from #121/#123) runs the current non-manifold, degenerate, and T-junction (#109)
+ * detectors on every part.
  *
  * The failure predicate and row formatter iterate `report.parts` generically, so the
- * #109 (T-junction) and #115 (self-intersection / flipped winding / disjoint shell)
- * detectors slot in later by extending `validateModel` / `PartReport` and adding one
- * line to `partFailed` + the formatter — no structural change here.
+ * #115 (self-intersection / flipped winding / disjoint shell) detectors slot in later by
+ * extending `validateModel` / `PartReport` and adding one line to `partFailed` + the
+ * formatter — no structural change here.
  */
 
 import { readFileSync, readdirSync } from 'node:fs';
