@@ -186,6 +186,32 @@ function normalizeToCounterClockwise(ring: Point2D[]): Point2D[] {
  * triangles in earcut output.
  */
 const POCKET_RING_QUANTIZATION_MM = 1e-4;
+
+/**
+ * True when quantized vertex B=(bx,by) lies within 2×Q (perpendicular) of the
+ * segment A=(ax,ay)–C=(cx,cy), where Q = POCKET_RING_QUANTIZATION_MM = 1e-4 mm.
+ *
+ * `cross` equals base×height = |A–C| * perpDist exactly (it is twice the signed
+ * area of triangle (A,B,C)); the perpendicular distance of B from line A–C is
+ * |cross| / |A–C|. Comparing |cross| <= 2 * Q * |A–C| is therefore algebraically
+ * identical to perpDist <= 2 * Q — i.e. this drops B when it is within TWO grid
+ * units (2e-4 mm) of the chord, NOT one. The factor of 2 is a deliberate safety
+ * margin above the 1e-4 export grid: it collapses vertices sitting within ~1 grid
+ * unit of the line (e.g. the empirical Spa vertex at perpDist ≈ 1.03e-4 mm) before
+ * export quantization can land them exactly on the segment and create a T-junction.
+ * Multiplying through by |A–C| also avoids a division and the |A–C|=0 singularity.
+ */
+function isColinearUnderGrid(
+  ax: number, ay: number,
+  bx: number, by: number,
+  cx: number, cy: number,
+): boolean {
+  const cross = (bx - ax) * (cy - by) - (by - ay) * (cx - bx);
+  const segLength = Math.hypot(cx - ax, cy - ay);
+  const threshold = 2 * POCKET_RING_QUANTIZATION_MM * segLength;
+  return Math.abs(cross) <= threshold;
+}
+
 /**
  * Removes vertices that are colinear with their neighbours under the
  * 4-decimal quantization grid. Earcut emits zero-area sliver triangles
@@ -221,24 +247,39 @@ function simplifyRing(ring: Point2D[]): Point2D[] {
     return deduped;
   }
 
-  // Step 2: drop colinear interior vertices using cross-product on quantized
-  // coords. Tolerance is one quantization unit squared — anything below
-  // that lies on the line through its neighbours after dedup.
-  const out: Point2D[] = [];
-  for (let i = 0; i < deduped.length; i += 1) {
-    const prev = deduped[(i - 1 + deduped.length) % deduped.length]!;
-    const curr = deduped[i]!;
-    const next = deduped[(i + 1) % deduped.length]!;
-    const ax = q(prev.x), ay = q(prev.y);
-    const bx = q(curr.x), by = q(curr.y);
-    const cx = q(next.x), cy = q(next.y);
-    const cross = (bx - ax) * (cy - by) - (by - ay) * (cx - bx);
-    if (Math.abs(cross) <= POCKET_RING_QUANTIZATION_MM * POCKET_RING_QUANTIZATION_MM) {
-      continue;
+  // Step 2: drop colinear interior vertices, iterating until stable so that
+  // cascading collinearity (a vertex that only becomes colinear once its
+  // neighbour is dropped) is also removed. O(N^2) worst case; N is a few
+  // thousand at most, so this is cheap.
+  let working: Point2D[] = deduped;
+  for (;;) {
+    if (working.length < 3) {
+      return deduped; // never collapse below a triangle; fall back to deduped ring
     }
-    out.push(curr);
+    const next: Point2D[] = [];
+    let removedAny = false;
+    for (let i = 0; i < working.length; i += 1) {
+      const prev = working[(i - 1 + working.length) % working.length]!;
+      const curr = working[i]!;
+      const nxt = working[(i + 1) % working.length]!;
+      if (
+        isColinearUnderGrid(
+          q(prev.x), q(prev.y),
+          q(curr.x), q(curr.y),
+          q(nxt.x), q(nxt.y),
+        )
+      ) {
+        removedAny = true;
+        continue; // drop curr
+      }
+      next.push(curr);
+    }
+    if (!removedAny) {
+      break;
+    }
+    working = next;
   }
-  return out.length >= 3 ? out : deduped;
+  return working.length >= 3 ? working : deduped;
 }
 
 /**
