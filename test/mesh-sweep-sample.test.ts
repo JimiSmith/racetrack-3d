@@ -3,8 +3,10 @@
  *
  * Runs the SHARED sweep core (`test-utils/mesh-sweep.ts`) — the same code path the
  * `npm run validate:meshes` CLI runs — over the committed `REPRESENTATIVE_SAMPLE`, and
- * asserts ZERO mesh failures (non-manifold edges / degenerate triangles / T-junctions) across the
- * worker/export build path.
+ * asserts ZERO mesh failures (non-manifold edges / degenerate triangles / T-junctions /
+ * self-intersections / flipped faces / disjoint shells, #115) across the worker/export
+ * build path. The #115 detectors make this baseline LOUDER (more failures counted) — that
+ * is expected and by design, not a regression.
  *
  * INTENTIONALLY RED (owner decision): several representative tracks already fail the
  * current detectors. This test asserts zero failures on purpose so the pre-existing

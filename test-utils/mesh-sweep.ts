@@ -14,10 +14,11 @@
  * from #121/#123) runs the current non-manifold, degenerate, and T-junction (#109)
  * detectors on every part.
  *
- * The failure predicate and row formatter iterate `report.parts` generically, so the
- * #115 (self-intersection / flipped winding / disjoint shell) detectors slot in later by
- * extending `validateModel` / `PartReport` and adding one line to `partFailed` + the
- * formatter — no structural change here.
+ * The #115 (self-intersection / flipped winding / disjoint shell) detectors have LANDED:
+ * `partFailed`, `sweepOne`, and `formatFailureTable` now count and display them as HARD
+ * FAILS alongside the non-manifold/degenerate/T-junction detectors (mirroring how PR #130
+ * wired T-junctions). The coplanar self-intersection subtotal is surfaced via the PR-body
+ * summary by filtering `PartReport.selfIntersections` on `kind`, not as its own table column.
  */
 
 import { readFileSync, readdirSync } from 'node:fs';
@@ -189,17 +190,28 @@ export interface SweepFailure {
   nonManifoldEdges: number;
   degenerateTriangles: number;
   tJunctions: number;
+  /** #115: total self-intersecting pairs (3D crossers + coplanar laminations). */
+  selfIntersections: number;
+  /** #115: flipped-winding adjacent face pairs. */
+  flippedFaces: number;
+  /** #115: disjoint shell-component count (the part fails only when this is `> 1`). */
+  shellComponents: number;
   /** From nonManifoldEdges[0], rounded to 4dp. */
   firstEdge?: { a: { x: number; y: number; z: number }; b: { x: number; y: number; z: number } };
   buildError?: string;
 }
 
-/** Failure predicate for a part — extend here when #115 fields land on PartReport. */
+/** Failure predicate for a part. #115 detectors are HARD FAILS, mirroring #130. A single
+ *  part is legitimately ONE shell, so the shell-component fail condition is `> 1` (more than
+ *  one disjoint shell is the defect), not `> 0`. */
 function partFailed(part: PartReport): boolean {
   return (
     part.nonManifoldEdges.length > 0 ||
     part.degenerateTriangles.length > 0 ||
-    part.tJunctions.length > 0
+    part.tJunctions.length > 0 ||
+    part.selfIntersections.length > 0 ||
+    part.flippedFaces.length > 0 ||
+    part.shellComponentCount > 1
   );
 }
 
@@ -258,6 +270,9 @@ export function sweepOne(file: PrebuiltTrackFile, mode: Mode): SweepFailure[] {
         nonManifoldEdges: part.nonManifoldEdges.length,
         degenerateTriangles: part.degenerateTriangles.length,
         tJunctions: part.tJunctions.length,
+        selfIntersections: part.selfIntersections.length,
+        flippedFaces: part.flippedFaces.length,
+        shellComponents: part.shellComponentCount,
         ...(first
           ? {
               firstEdge: {
@@ -280,6 +295,9 @@ export function sweepOne(file: PrebuiltTrackFile, mode: Mode): SweepFailure[] {
         nonManifoldEdges: 0,
         degenerateTriangles: 0,
         tJunctions: 0,
+        selfIntersections: 0,
+        flippedFaces: 0,
+        shellComponents: 0,
         buildError: message,
       },
     ];
@@ -336,6 +354,9 @@ const COLS = {
   nm: 8,
   degen: 7,
   tjunc: 7,
+  selfx: 7,
+  flip: 6,
+  shells: 8,
 };
 
 function truncate(s: string, width: number): string {
@@ -367,6 +388,9 @@ export function formatFailureTable(result: SweepResult, tracksRequested: number)
     'nm-edges'.padStart(COLS.nm) +
     'degens'.padStart(COLS.degen) +
     'tjunc'.padStart(COLS.tjunc) +
+    'selfx'.padStart(COLS.selfx) +
+    'flip'.padStart(COLS.flip) +
+    'shells'.padStart(COLS.shells) +
     '  first edge';
   lines.push(header);
   lines.push('-'.repeat(header.length));
@@ -380,6 +404,9 @@ export function formatFailureTable(result: SweepResult, tracksRequested: number)
         String(f.nonManifoldEdges).padStart(COLS.nm) +
         String(f.degenerateTriangles).padStart(COLS.degen) +
         String(f.tJunctions).padStart(COLS.tjunc) +
+        String(f.selfIntersections).padStart(COLS.selfx) +
+        String(f.flippedFaces).padStart(COLS.flip) +
+        String(f.shellComponents).padStart(COLS.shells) +
         '  ' +
         formatFirstEdge(f),
     );

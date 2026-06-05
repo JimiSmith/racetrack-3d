@@ -42,5 +42,7 @@ test('Spa-Francorchamps flush coaster — each 3MF object is 2-manifold', () => 
     coasterInlay: 'flush',
     primaryOrientationDeg: 'auto',
   });
-  assertModelManifold('Spa flush', model, { failOn: 'edges+tjunctions' });
+  // Opted into the full #115 detector set; this is one of the 3 intentional pre-existing
+  // failures and the new detectors may make it louder (expected, not a regression).
+  assertModelManifold('Spa flush', model, { failOn: 'all' });
 });
