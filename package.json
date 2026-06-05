@@ -13,6 +13,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "check:file-sizes": "node --import tsx/esm scripts/check-file-sizes.ts",
+    "validate:meshes": "node --import tsx/esm scripts/validate-meshes.ts",
     "check": "npm run typecheck && npm run lint && npm test && npm run check:file-sizes"
   },
   "devDependencies": {
