@@ -65,6 +65,14 @@ test('validateModel includes empty parts with zero findings that never break ok'
   assert.equal(secondary.triangleCount, 0);
   assert.deepEqual(secondary.nonManifoldEdges, []);
   assert.deepEqual(secondary.degenerateTriangles, []);
+  assert.deepEqual(secondary.tJunctions, []);
+});
+
+test('validateModel reports a tJunctions array on every part', () => {
+  const report = validateModel(buildModel());
+  for (const part of report.parts) {
+    assert.ok(Array.isArray(part.tJunctions), `${part.part} has a tJunctions array`);
+  }
 });
 
 test('validateModel.ok is true iff every part has zero non-manifold edges and degenerates', () => {

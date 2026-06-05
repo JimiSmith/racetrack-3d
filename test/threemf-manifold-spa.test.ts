@@ -42,5 +42,5 @@ test('Spa-Francorchamps flush coaster — each 3MF object is 2-manifold', () => 
     coasterInlay: 'flush',
     primaryOrientationDeg: 'auto',
   });
-  assertModelManifold('Spa flush', model, { failOn: 'edges' });
+  assertModelManifold('Spa flush', model, { failOn: 'edges+tjunctions' });
 });
