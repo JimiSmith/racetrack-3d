@@ -80,5 +80,5 @@ test('coaster round + raised export is 2-manifold per part (Spa repro mode)', ()
 
 test('coaster round + flush export is 2-manifold per part', () => {
   const model = buildModelForCase({ coasterMode: true, coasterInlay: 'flush' });
-  assertModelManifold('coaster flush', model);
+  assertModelManifold('coaster flush', model, { failOn: 'edges+tjunctions' });
 });

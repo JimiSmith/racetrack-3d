@@ -12,9 +12,16 @@ import type { Triangle, TrackModel, Vertex } from '../types/model.js';
 import { splitModelTriangles } from './triangle-groups.js';
 
 /** 4-decimal quantization, matching `formatCoordinate` in src/export/threemf.ts. */
-const DEFAULT_PRECISION_MM = 1e-4;
+export const DEFAULT_PRECISION_MM = 1e-4;
 /** Triangles with cross-product magnitude below this (in mm²) are considered degenerate. */
 const DEFAULT_AREA_TOLERANCE_MM2 = 1e-6;
+/**
+ * Perpendicular distance (mm) within which a vertex is treated as lying ON an
+ * edge for T-junction detection. Deliberately equal to `DEFAULT_PRECISION_MM`:
+ * a vertex is "on the line" exactly when it sits within one quantization grid
+ * step of the edge.
+ */
+export const DEFAULT_TJUNCTION_TOLERANCE_MM = 1e-4;
 
 function quantize(value: number, precision: number): number {
   return Math.round(value / precision) * precision;
@@ -48,6 +55,26 @@ export interface NonManifoldEdge {
 export interface ValidateOptions {
   precisionMm?: number;
   areaToleranceMm2?: number;
+  /** Perpendicular distance tolerance (mm) for T-junction detection. Defaults to
+   *  `DEFAULT_TJUNCTION_TOLERANCE_MM` (1e-4). */
+  toleranceMm?: number;
+}
+
+/**
+ * A T-junction: vertex `V` lying in the INTERIOR of an edge `(a,b)` of another
+ * triangle, sharing no endpoint topologically (quantized) with that edge. The
+ * mesh stays 2-manifold by edge-incidence count, so `findNonManifoldEdges`
+ * cannot see this, yet slicers (Bambu Studio / PrusaSlicer) flag it.
+ */
+export interface TJunction {
+  /** The interior vertex (raw coordinates). */
+  vertex: Vertex;
+  /** The edge whose interior `vertex` lies on (raw coordinates). */
+  edge: { a: Vertex; b: Vertex };
+  /** Index of the triangle that owns the offending edge. */
+  triangleIndex: number;
+  /** Perpendicular distance (mm) from `vertex` to the edge line. */
+  perpendicularDistance: number;
 }
 
 /**
@@ -118,11 +145,156 @@ export function findDegenerateTriangles(
   return result;
 }
 
+/** Edge record stored in the uniform XY grid for T-junction detection. */
+interface GridEdge {
+  a: Vertex;
+  b: Vertex;
+  qaKey: string;
+  qbKey: string;
+  triangleIndex: number;
+}
+
+/**
+ * Detects T-junctions: vertices lying in the interior of another triangle's edge.
+ *
+ * Backed by a uniform XY-plane grid spatial index. These meshes are prismatic
+ * (Z is a small set of discrete levels), so binning on XY is the discriminating
+ * axis. The `t` projection, perpendicular distance, and endpoint-radius math are
+ * all full 3D, so XY-only binning only OVER-collects candidates across Z levels;
+ * the 3D distance term rejects the over-collected cross-level pairs.
+ *
+ * Predicate — a vertex `V` is a T-junction of edge `(A,B)` iff ALL hold (identity
+ * tests use quantized coords; the t/distance/radius math uses raw coords):
+ *  - quantized-key inequality `qV != qA` and `qV != qB` (no shared endpoint),
+ *  - absolute endpoint radius `|V-A| > precisionMm` and `|V-B| > precisionMm`,
+ *  - non-degenerate edge (`|B-A| > 0` after quantization),
+ *  - interior projection `t = dot(V-A, B-A)/dot(B-A, B-A)` strictly in `(0, 1)`,
+ *  - perpendicular distance `d = |(V-A) - t*(B-A)| <= toleranceMm`.
+ */
+export function findTJunctions(
+  triangles: Triangle[],
+  options: ValidateOptions = {},
+): TJunction[] {
+  const precision = options.precisionMm ?? DEFAULT_PRECISION_MM;
+  const tolerance = options.toleranceMm ?? DEFAULT_TJUNCTION_TOLERANCE_MM;
+  const cell = Math.max(tolerance, 0.5);
+
+  const cellKey = (cx: number, cy: number): string => `${cx},${cy}`;
+  const grid = new Map<string, GridEdge[]>();
+
+  // Unique representative raw vertex per quantized key (first seen).
+  const uniqueVertices = new Map<string, Vertex>();
+
+  // Deduplicate physical edges by quantized edge-key, keeping the lowest
+  // triangleIndex that owns the edge (so emission is deterministic).
+  const edges = new Map<string, GridEdge>();
+  for (let triIndex = 0; triIndex < triangles.length; triIndex += 1) {
+    const tri = triangles[triIndex]!;
+    const keys = tri.map(v => vertexKey(v, precision)) as [string, string, string];
+    for (let v = 0; v < 3; v += 1) {
+      if (!uniqueVertices.has(keys[v]!)) {
+        uniqueVertices.set(keys[v]!, tri[v]!);
+      }
+    }
+    for (let e = 0; e < 3; e += 1) {
+      const ka = keys[e]!;
+      const kb = keys[(e + 1) % 3]!;
+      if (ka === kb) {
+        continue; // degenerate edge — owned by findDegenerateTriangles
+      }
+      const ek = edgeKey(ka, kb);
+      if (!edges.has(ek)) {
+        edges.set(ek, { a: tri[e]!, b: tri[(e + 1) % 3]!, qaKey: ka, qbKey: kb, triangleIndex: triIndex });
+      }
+    }
+  }
+
+  // Insert each unique edge into every cell its tol-expanded XY bbox covers.
+  for (const record of edges.values()) {
+    const { a, b } = record;
+    const cx0 = Math.floor((Math.min(a.x, b.x) - tolerance) / cell);
+    const cx1 = Math.floor((Math.max(a.x, b.x) + tolerance) / cell);
+    const cy0 = Math.floor((Math.min(a.y, b.y) - tolerance) / cell);
+    const cy1 = Math.floor((Math.max(a.y, b.y) + tolerance) / cell);
+    for (let cx = cx0; cx <= cx1; cx += 1) {
+      for (let cy = cy0; cy <= cy1; cy += 1) {
+        const key = cellKey(cx, cy);
+        const bucket = grid.get(key);
+        if (bucket) {
+          bucket.push(record);
+        } else {
+          grid.set(key, [record]);
+        }
+      }
+    }
+  }
+
+  const tol2 = tolerance * tolerance;
+  const precision2 = precision * precision;
+  const emitted = new Set<string>();
+  const result: TJunction[] = [];
+
+  for (const [qV, V] of uniqueVertices) {
+    const cx = Math.floor(V.x / cell);
+    const cy = Math.floor(V.y / cell);
+    const bucket = grid.get(cellKey(cx, cy));
+    if (!bucket) {
+      continue;
+    }
+    for (const edge of bucket) {
+      if (qV === edge.qaKey || qV === edge.qbKey) {
+        continue; // shares an endpoint with the edge
+      }
+      const { a, b } = edge;
+      const bax = b.x - a.x, bay = b.y - a.y, baz = b.z - a.z;
+      const len2 = bax * bax + bay * bay + baz * baz;
+      if (len2 === 0) {
+        continue; // zero-length edge
+      }
+      const vax = V.x - a.x, vay = V.y - a.y, vaz = V.z - a.z;
+      // Absolute endpoint radius (raw 3D coords).
+      const distA2 = vax * vax + vay * vay + vaz * vaz;
+      if (distA2 <= precision2) {
+        continue;
+      }
+      const vbx = V.x - b.x, vby = V.y - b.y, vbz = V.z - b.z;
+      const distB2 = vbx * vbx + vby * vby + vbz * vbz;
+      if (distB2 <= precision2) {
+        continue;
+      }
+      const t = (vax * bax + vay * bay + vaz * baz) / len2;
+      if (!(t > 0 && t < 1)) {
+        continue; // not strictly interior
+      }
+      const px = vax - t * bax, py = vay - t * bay, pz = vaz - t * baz;
+      const d2 = px * px + py * py + pz * pz;
+      if (d2 > tol2) {
+        continue;
+      }
+      const ek = edgeKey(edge.qaKey, edge.qbKey);
+      const pairKey = `${qV}#${ek}`;
+      if (emitted.has(pairKey)) {
+        continue;
+      }
+      emitted.add(pairKey);
+      result.push({
+        vertex: V,
+        edge: { a, b },
+        triangleIndex: edge.triangleIndex,
+        perpendicularDistance: Math.sqrt(d2),
+      });
+    }
+  }
+
+  return result;
+}
+
 export interface MeshSummary {
   triangleCount: number;
   uniqueVertexCount: number;
   nonManifoldEdgeCount: number;
   degenerateTriangleCount: number;
+  tJunctionCount: number;
 }
 
 export function summarizeMesh(triangles: Triangle[], options: ValidateOptions = {}): MeshSummary {
@@ -138,6 +310,7 @@ export function summarizeMesh(triangles: Triangle[], options: ValidateOptions = 
     uniqueVertexCount: uniqueVertices.size,
     nonManifoldEdgeCount: findNonManifoldEdges(triangles, options).length,
     degenerateTriangleCount: findDegenerateTriangles(triangles, options).length,
+    tJunctionCount: findTJunctions(triangles, options).length,
   };
 }
 
@@ -147,16 +320,18 @@ export interface PartReport {
   triangleCount: number;
   nonManifoldEdges: NonManifoldEdge[];
   degenerateTriangles: number[];
-  // Extended as #109 / #115 land — additive only, never removing the above:
-  // tJunctions: TJunction[];
+  /** T-junctions (#109): interior-of-edge vertices. NOT folded into `ModelReport.ok`. */
+  tJunctions: TJunction[];
+  // Extended as #115 lands — additive only, never removing the above:
   // flippedFaces: number[];
   // selfIntersections: SelfIntersection[];
   // shellComponents: number;
 }
 
 export interface ModelReport {
-  /** True iff every part is 2-manifold AND free of degenerate triangles. Pure data report; the
-   *  decision of what to ASSERT on lives in the test helper's `failOn`, not here. */
+  /** True iff every part is 2-manifold AND free of degenerate triangles. T-junctions (#109) are
+   *  deliberately NOT folded in — they are a separate measurement consumed via the test helper's
+   *  `failOn`. Pure data report; the decision of what to ASSERT on lives in the test helper, not here. */
   ok: boolean;
   parts: PartReport[];
 }
@@ -182,6 +357,7 @@ export function validateModel(
     triangleCount: triangles.length,
     nonManifoldEdges: findNonManifoldEdges(triangles, options),
     degenerateTriangles: findDegenerateTriangles(triangles, options),
+    tJunctions: findTJunctions(triangles, options),
   });
 
   const parts: PartReport[] = [
