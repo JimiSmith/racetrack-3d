@@ -94,7 +94,7 @@ async function main(): Promise<void> {
       return;
     }
     console.log(`validate:meshes — single track ${args.track} (full matrix)\n`);
-    const result = runSweep([args.track], { variant: 'full' });
+    const result = await runSweep([args.track], { variant: 'full' });
     report(result, 1);
     return;
   }
@@ -103,7 +103,7 @@ async function main(): Promise<void> {
     const ids = buildableTrackIds();
     console.log(`validate:meshes — all ${ids.length} buildable tracks (lean matrix). This may take minutes.\n`);
     const started = Date.now();
-    const result = runSweep(ids, { variant: 'all' });
+    const result = await runSweep(ids, { variant: 'all' });
     console.log(`(${((Date.now() - started) / 1000).toFixed(1)}s)\n`);
     report(result, ids.length);
     return;
@@ -111,12 +111,12 @@ async function main(): Promise<void> {
 
   console.log(`validate:meshes — representative sample of ${REPRESENTATIVE_SAMPLE.length} tracks (auto-trimmed matrix)\n`);
   const started = Date.now();
-  const result = runSweep(REPRESENTATIVE_SAMPLE, { variant: 'sample' });
+  const result = await runSweep(REPRESENTATIVE_SAMPLE, { variant: 'sample' });
   console.log(`(${((Date.now() - started) / 1000).toFixed(1)}s)\n`);
   report(result, REPRESENTATIVE_SAMPLE.length);
 }
 
-function report(result: ReturnType<typeof runSweep>, requested: number): void {
+function report(result: Awaited<ReturnType<typeof runSweep>>, requested: number): void {
   if (result.failures.length === 0) {
     console.log(`validate:meshes — ${result.built} tracks, 0 failures`);
     return;

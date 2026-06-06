@@ -10,8 +10,7 @@
  * the public API. Internal helpers are accessed via `any` casts.
  */
 
-import earcut from 'earcut';
-import type { OutlinePoints, BasePlate, Triangle } from './types/model.js';
+import type { OutlinePoints, BasePlate } from './types/model.js';
 import type { RankedPlacements, ScoringWeights, TextPlacementCandidate, RankedTextPlacement } from './types/text.js';
 import type { Point2D } from './types/geometry.js';
 // --- Internal module access (text/* modules are still .js — use any for internals) ---
@@ -87,92 +86,6 @@ export function __disablePerfCounters(): void {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
-}
-
-function createVertex(x: number, y: number, z: number): { x: number; y: number; z: number } {
-  return { x, y, z };
-}
-
-type Vertex2D = { x: number; y: number };
-type Vertex3D = { x: number; y: number; z: number };
-
-function addTriangle(
-  triangles: [Vertex3D, Vertex3D, Vertex3D][],
-  a: Vertex3D,
-  b: Vertex3D,
-  c: Vertex3D,
-): void {
-  triangles.push([a, b, c]);
-}
-
-function addQuad(
-  triangles: [Vertex3D, Vertex3D, Vertex3D][],
-  a: Vertex3D,
-  b: Vertex3D,
-  c: Vertex3D,
-  d: Vertex3D,
-): void {
-  addTriangle(triangles, a, b, c);
-  addTriangle(triangles, a, c, d);
-}
-
-function signedArea(points: Vertex2D[]): number {
-  let area = 0;
-  for (let index = 0; index < points.length; index += 1) {
-    const current = points[index]!;
-    const next = points[(index + 1) % points.length]!;
-    area += current.x * next.y - next.x * current.y;
-  }
-  return area / 2;
-}
-
-interface ContourShape {
-  outer: Vertex2D[];
-  holes: Vertex2D[][];
-}
-
-function triangulateShape(shape: ContourShape, minZ: number, maxZ: number): [Vertex3D, Vertex3D, Vertex3D][] {
-  const rings = [shape.outer, ...shape.holes];
-  const flattened: number[] = [];
-  const holeIndices: number[] = [];
-  const vertices2d: Vertex2D[] = [];
-
-  for (const ring of rings) {
-    if (flattened.length > 0) {
-      holeIndices.push(vertices2d.length);
-    }
-    for (const point of ring) {
-      flattened.push(point.x, point.y);
-      vertices2d.push(point);
-    }
-  }
-
-  const indices = earcut(flattened, holeIndices.length ? holeIndices : null);
-  const bottomVertices = vertices2d.map(point => createVertex(point.x, point.y, minZ));
-  const topVertices = vertices2d.map(point => createVertex(point.x, point.y, maxZ));
-  const triangles: [Vertex3D, Vertex3D, Vertex3D][] = [];
-
-  for (let index = 0; index < indices.length; index += 3) {
-    addTriangle(triangles, topVertices[indices[index]!]!, topVertices[indices[index + 1]!]!, topVertices[indices[index + 2]!]!);
-    addTriangle(triangles, bottomVertices[indices[index + 2]!]!, bottomVertices[indices[index + 1]!]!, bottomVertices[indices[index]!]!);
-  }
-
-  let ringOffset = 0;
-  for (const ring of rings) {
-    const clockwise = signedArea(ring) < 0;
-    for (let index = 0; index < ring.length; index += 1) {
-      const current = ringOffset + index;
-      const next = ringOffset + ((index + 1) % ring.length);
-      if (clockwise) {
-        addQuad(triangles, bottomVertices[next]!, bottomVertices[current]!, topVertices[current]!, topVertices[next]!);
-      } else {
-        addQuad(triangles, bottomVertices[current]!, bottomVertices[next]!, topVertices[next]!, topVertices[current]!);
-      }
-    }
-    ringOffset += ring.length;
-  }
-
-  return triangles;
 }
 
 interface ExpandedPlacement {
@@ -312,27 +225,4 @@ export function __debugDedupeRankedPlacements(
   scaledBasePlate: { minX: number; minY: number; maxX: number; maxY: number; width: number; height: number },
 ): RankedTextPlacement[] {
   return (P.dedupeRankedPlacements as (p: unknown, b: unknown) => RankedTextPlacement[])(placements, scaledBasePlate);
-}
-
-// ─── Legacy buildTextMesh (for tests — uses triangulateShape directly) ────────
-
-export function buildTextMesh(
-  text: string,
-  outlinePoints: OutlinePoints | null | undefined,
-  basePlate: BasePlate,
-  scale: number,
-  options: Record<string, unknown> = {},
-): Triangle[] {
-  const placement = computeTextPlacement(text, outlinePoints, basePlate, scale, options);
-  if (!placement?.contours?.length) {
-    return [];
-  }
-
-  const shapes = (C.collectShapes as (t: unknown) => ContourShape[])(
-    (C.buildContourTree as (c: unknown) => unknown)(placement.contours),
-  );
-  const minZ = (options['baseThickness'] as number | undefined) ?? 8;
-  const maxZ = minZ + ((options['textHeight'] as number | undefined) ?? (M.TEXT_HEIGHT_MM as number));
-
-  return shapes.flatMap(shape => triangulateShape(shape, minZ, maxZ));
 }

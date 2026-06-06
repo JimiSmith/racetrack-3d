@@ -61,14 +61,14 @@ function ovalCircuitNodes(segments = 64) {
 // Issue 2: Duplicate buildTrackOutline for winning orientation
 // ---------------------------------------------------------------------------
 
-test('perf: buildTrackOutline calls during auto-orientation (outline-based)', (t) => {
+test('perf: buildTrackOutline calls during auto-orientation (outline-based)', async (t) => {
   const outline = tallNarrowHoleOutline();
   const basePlate = buildBasePlate(outline, 50);
 
   __resetModelPerfCounters();
   __resetPerfCounters();
   t.after(disableAllPerfCounters);
-  const model = buildTrackModel({
+  const model = await buildTrackModel({
     outlinePoints: outline,
     basePlate,
     trackName: 'IMOLA',
@@ -91,13 +91,13 @@ test('perf: buildTrackOutline calls during auto-orientation (outline-based)', (t
   assert.equal(textCounters.computeRankedTextPlacements, 4);
 });
 
-test('perf: buildTrackOutline calls during auto-orientation (projectedNodes)', (t) => {
+test('perf: buildTrackOutline calls during auto-orientation (projectedNodes)', async (t) => {
   const nodes = ovalCircuitNodes();
 
   __resetModelPerfCounters();
   __resetPerfCounters();
   t.after(disableAllPerfCounters);
-  const model = buildTrackModel({
+  const model = await buildTrackModel({
     outlinePoints: null,
     basePlate: null,
     projectedNodes: nodes,
@@ -124,13 +124,13 @@ test('perf: buildTrackOutline calls during auto-orientation (projectedNodes)', (
     'should be 5 buildTrackOutline calls (1 base + 4 orientations, no duplicate)');
 });
 
-test('perf: buildTrackOutline calls with explicit orientation (no auto)', (t) => {
+test('perf: buildTrackOutline calls with explicit orientation (no auto)', async (t) => {
   const nodes = ovalCircuitNodes();
 
   __resetModelPerfCounters();
   __resetPerfCounters();
   t.after(disableAllPerfCounters);
-  const model = buildTrackModel({
+  const model = await buildTrackModel({
     outlinePoints: null,
     basePlate: null,
     projectedNodes: nodes,
@@ -152,13 +152,13 @@ test('perf: buildTrackOutline calls with explicit orientation (no auto)', (t) =>
     'explicit orientation should only build outline once');
 });
 
-test('perf: computeRankedTextPlacements calls during auto-orientation (no cache token)', (t) => {
+test('perf: computeRankedTextPlacements calls during auto-orientation (no cache token)', async (t) => {
   const nodes = ovalCircuitNodes();
 
   __resetPerfCounters();
   __resetModelPerfCounters();
   t.after(disableAllPerfCounters);
-  const model = buildTrackModel({
+  const model = await buildTrackModel({
     outlinePoints: null,
     basePlate: null,
     projectedNodes: nodes,
@@ -181,14 +181,14 @@ test('perf: computeRankedTextPlacements calls during auto-orientation (no cache 
     'auto-orientation should compute text placements exactly 4 times, no redundant 5th call');
 });
 
-test('perf: computeRankedTextPlacements calls during auto-orientation (with cache token)', (t) => {
+test('perf: computeRankedTextPlacements calls during auto-orientation (with cache token)', async (t) => {
   const nodes = ovalCircuitNodes();
   const token = {};
 
   __resetPerfCounters();
   __resetModelPerfCounters();
   t.after(disableAllPerfCounters);
-  const model = buildTrackModel({
+  const model = await buildTrackModel({
     outlinePoints: null,
     basePlate: null,
     projectedNodes: nodes,
@@ -239,11 +239,11 @@ test('perf: wall-clock cost of buildTrackOutline (Turf buffer)', async () => {
   assert.ok(median >= 0);
 });
 
-test('perf: wall-clock cost of full buildTrackModel with auto-orientation', () => {
+test('perf: wall-clock cost of full buildTrackModel with auto-orientation', async () => {
   const nodes = ovalCircuitNodes();
 
   // Warm up
-  buildTrackModel({
+  await buildTrackModel({
     outlinePoints: null,
     basePlate: null,
     projectedNodes: nodes,
@@ -257,7 +257,7 @@ test('perf: wall-clock cost of full buildTrackModel with auto-orientation', () =
 
   for (let i = 0; i < iterations; i++) {
     const start = performance.now();
-    buildTrackModel({
+    await buildTrackModel({
       outlinePoints: null,
       basePlate: null,
       projectedNodes: nodes,
@@ -268,7 +268,7 @@ test('perf: wall-clock cost of full buildTrackModel with auto-orientation', () =
 
   for (let i = 0; i < iterations; i++) {
     const start = performance.now();
-    buildTrackModel({
+    await buildTrackModel({
       outlinePoints: null,
       basePlate: null,
       projectedNodes: nodes,
@@ -296,13 +296,13 @@ test('perf: wall-clock cost of full buildTrackModel with auto-orientation', () =
 // Edge cases and correctness
 // ---------------------------------------------------------------------------
 
-test('perf: empty track name with auto-orientation does not crash', (t) => {
+test('perf: empty track name with auto-orientation does not crash', async (t) => {
   const nodes = ovalCircuitNodes();
 
   __resetModelPerfCounters();
   __resetPerfCounters();
   t.after(disableAllPerfCounters);
-  const model = buildTrackModel({
+  const model = await buildTrackModel({
     outlinePoints: null,
     basePlate: null,
     projectedNodes: nodes,
@@ -318,7 +318,7 @@ test('perf: empty track name with auto-orientation does not crash', (t) => {
   assert.equal(textCounters.computeRankedTextPlacements, 4);
 });
 
-test('perf: combined mode with secondary layouts counts outline calls correctly', (t) => {
+test('perf: combined mode with secondary layouts counts outline calls correctly', async (t) => {
   const primary = ovalCircuitNodes(32);
   // Secondary is a smaller oval offset to the side
   const secondary = ovalCircuitNodes(32).map((n: { x: number; y: number; elevation: number }) => ({ ...n, x: n.x + 700 }));
@@ -326,7 +326,7 @@ test('perf: combined mode with secondary layouts counts outline calls correctly'
   __resetModelPerfCounters();
   __resetPerfCounters();
   t.after(disableAllPerfCounters);
-  const model = buildTrackModel({
+  const model = await buildTrackModel({
     outlinePoints: null,
     basePlate: null,
     projectedNodes: primary,
@@ -341,26 +341,29 @@ test('perf: combined mode with secondary layouts counts outline calls correctly'
   assert.equal(model.primaryOrientationDeg, 'auto');
   assert.equal(modelCounters.selectAutoOrientation, 1);
 
-  // selectAutoOrientation: 1 base outline + 4 × (1 primary + 1 secondary) = 9
-  // No extra calls from buildTrackModel (geometry reused).
+  // selectAutoOrientation: 1 base outline + 4 × (1 primary + 1 secondary) = 9, PLUS the
+  // CSG path's per-unique-sub-chain secondary ribbon outline built once for the winning
+  // orientation (issue #133 / #128: secondaries are extruded from their de-duplicated
+  // sub-chain footprints, not the full secondary outline) = 10. The single test secondary
+  // yields exactly one unique sub-chain → exactly one extra call.
   console.log('--- Combined mode: buildTrackOutline calls ---');
   console.log(`  buildTrackOutline calls:           ${modelCounters.buildTrackOutline}`);
   console.log(`  computeRankedTextPlacements calls:  ${textCounters.computeRankedTextPlacements}`);
 
-  assert.equal(modelCounters.buildTrackOutline, 9,
-    '1 base + 4×(1 primary + 1 secondary) = 9 buildTrackOutline calls');
+  assert.equal(modelCounters.buildTrackOutline, 10,
+    '1 base + 4×(1 primary + 1 secondary) + 1 unique sub-chain ribbon outline = 10');
   assert.equal(textCounters.computeRankedTextPlacements, 4,
     '4 orientations, winner reused');
 });
 
-test('perf: auto-orientation output matches explicit orientation output', () => {
+test('perf: auto-orientation output matches explicit orientation output', async () => {
   const outline = tallNarrowHoleOutline();
   const basePlate = buildBasePlate(outline, 50);
 
-  const autoModel = buildTrackModel({ outlinePoints: outline, basePlate, trackName: 'IMOLA' });
+  const autoModel = await buildTrackModel({ outlinePoints: outline, basePlate, trackName: 'IMOLA' });
   const resolvedDeg = autoModel.orientationDeg;
 
-  const explicitModel = buildTrackModel({
+  const explicitModel = await buildTrackModel({
     outlinePoints: outline,
     basePlate,
     trackName: 'IMOLA',
@@ -378,10 +381,10 @@ test('perf: auto-orientation output matches explicit orientation output', () => 
   assert.equal(autoModel.scale, explicitModel.scale, 'scale should match');
 });
 
-test('perf: auto-orientation with projectedNodes output matches explicit', () => {
+test('perf: auto-orientation with projectedNodes output matches explicit', async () => {
   const nodes = ovalCircuitNodes();
 
-  const autoModel = buildTrackModel({
+  const autoModel = await buildTrackModel({
     outlinePoints: null,
     basePlate: null,
     projectedNodes: nodes,
@@ -389,7 +392,7 @@ test('perf: auto-orientation with projectedNodes output matches explicit', () =>
   });
   const resolvedDeg = autoModel.orientationDeg;
 
-  const explicitModel = buildTrackModel({
+  const explicitModel = await buildTrackModel({
     outlinePoints: null,
     basePlate: null,
     projectedNodes: nodes,
@@ -410,16 +413,16 @@ test('perf: auto-orientation with projectedNodes output matches explicit', () =>
 // the outline's tight bounding box. This stresses the basePlate alignment between
 // selectAutoOrientation and orientTrackGeometry — if the two paths compute
 // basePlate differently, auto and explicit will produce different scales.
-test('perf: auto-orientation basePlate alignment with non-default margin', () => {
+test('perf: auto-orientation basePlate alignment with non-default margin', async () => {
   const outline = tallNarrowHoleOutline();
   // Use a much larger margin than buildBasePlate's default (50).
   // This creates a basePlate whose bounds differ significantly from buildBasePlate(outline).
   const basePlate = buildBasePlate(outline, 200);
 
-  const autoModel = buildTrackModel({ outlinePoints: outline, basePlate, trackName: 'IMOLA' });
+  const autoModel = await buildTrackModel({ outlinePoints: outline, basePlate, trackName: 'IMOLA' });
   const resolvedDeg = autoModel.orientationDeg;
 
-  const explicitModel = buildTrackModel({
+  const explicitModel = await buildTrackModel({
     outlinePoints: outline,
     basePlate,
     trackName: 'IMOLA',

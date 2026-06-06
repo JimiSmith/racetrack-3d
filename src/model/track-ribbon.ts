@@ -1,7 +1,4 @@
-import type { Triangle } from '../types/model.js';
 import type { ProjectedNode } from '../types/geometry.js';
-import { createVertex, addQuad, normalizeVector } from './mesh-primitives.js';
-import { BASE_THICKNESS_MM } from './base-plate.js';
 
 export const TRACK_HEIGHT_MM = 3;
 export const COASTER_TRACK_HEIGHT_FLUSH_MM = 1;     // fills a 1 mm pocket carved into the top of the base
@@ -9,7 +6,6 @@ export const COASTER_TRACK_HEIGHT_RAISED_MM = 0.2;  // thin inlay sitting on top
 export const TRACK_WIDTH_METRES = 12;
 /** Minimum ribbon width in coaster mode, in mm (thin tracks look fragile at small scales). */
 export const MIN_COASTER_TRACK_WIDTH_MM = 1.0;
-export const MAX_RIBBON_SECTION_STEP_METRES = 4;
 
 export interface RibbonMeshOptions {
   /** Height of the ribbon above its base, in mm. Defaults to TRACK_HEIGHT_MM. */
@@ -22,6 +18,11 @@ export interface RibbonMeshOptions {
   trackWidthMetres?: number;
 }
 
+/**
+ * Cleans a projected centreline path: drops non-finite and consecutive-duplicate
+ * points, and removes a closing point that coincides with the start. Live consumers:
+ * `orientation.ts`, `track-model.ts`, the CSG ribbon elevation sampler.
+ */
 export function normalizeProjectedPath(projectedNodes: ProjectedNode[] | null | undefined): ProjectedNode[] {
   if (!projectedNodes?.length) {
     return [];
@@ -51,111 +52,4 @@ export function normalizeProjectedPath(projectedNodes: ProjectedNode[] | null | 
   }
 
   return normalized;
-}
-
-export function buildRaisedRibbonMesh(
-  projectedNodes: ProjectedNode[] | null | undefined,
-  scale: number,
-  forceOpen = false,
-  options: RibbonMeshOptions = {},
-): Triangle[] | null {
-  const path = normalizeProjectedPath(projectedNodes);
-
-  if (path.length < 2) {
-    return null;
-  }
-
-  const isClosed = !forceOpen && path.length > 2;
-  const trackHeight = options.trackHeightMm ?? TRACK_HEIGHT_MM;
-  const ignoreElevation = options.ignoreElevation ?? false;
-  const bottomZ = options.baseZ ?? BASE_THICKNESS_MM;
-  const halfWidth = (options.trackWidthMetres ?? TRACK_WIDTH_METRES) / 2;
-
-  type Section = {
-    topLeft: ReturnType<typeof createVertex>;
-    topRight: ReturnType<typeof createVertex>;
-    bottomLeft: ReturnType<typeof createVertex>;
-    bottomRight: ReturnType<typeof createVertex>;
-  };
-
-  const sections: Section[] = [];
-  const segmentCount = isClosed ? path.length : path.length - 1;
-
-  for (let index = 0; index < segmentCount; index += 1) {
-    const start = path[index]!;
-    const end = path[(index + 1) % path.length]!;
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-    const direction = normalizeVector(dx, dy);
-    const segmentLength = Math.hypot(dx, dy);
-
-    if (!direction || segmentLength === 0) {
-      continue;
-    }
-
-    const offsetX = -direction.y * halfWidth;
-    const offsetY = direction.x * halfWidth;
-    const sampleCount = Math.max(1, Math.ceil(segmentLength / MAX_RIBBON_SECTION_STEP_METRES));
-
-    for (let sampleIndex = 0; sampleIndex <= sampleCount; sampleIndex += 1) {
-      const t = sampleIndex / sampleCount;
-      const x = start.x + dx * t;
-      const y = start.y + dy * t;
-      const elevation = ignoreElevation
-        ? 0
-        : (start.elevation ?? 0) + ((end.elevation ?? start.elevation ?? 0) - (start.elevation ?? 0)) * t;
-      const topZ = bottomZ + trackHeight + elevation * scale;
-      const section: Section = {
-        topLeft: createVertex((x + offsetX) * scale, (y + offsetY) * scale, topZ),
-        topRight: createVertex((x - offsetX) * scale, (y - offsetY) * scale, topZ),
-        bottomLeft: createVertex((x + offsetX) * scale, (y + offsetY) * scale, bottomZ),
-        bottomRight: createVertex((x - offsetX) * scale, (y - offsetY) * scale, bottomZ),
-      };
-
-      const previous = sections[sections.length - 1];
-
-      // Match the 3MF export's vertex dedup grid (4 decimals → 1e-4 mm).
-      // Strict equality misses sections that round to the same coordinates,
-      // producing degenerate stitch quads in the merged mesh.
-      const SECTION_EPSILON_MM = 1.5e-4;
-      if (
-        previous
-        && Math.abs(previous.topLeft.x - section.topLeft.x) < SECTION_EPSILON_MM
-        && Math.abs(previous.topLeft.y - section.topLeft.y) < SECTION_EPSILON_MM
-        && Math.abs(previous.topRight.x - section.topRight.x) < SECTION_EPSILON_MM
-        && Math.abs(previous.topRight.y - section.topRight.y) < SECTION_EPSILON_MM
-      ) {
-        continue;
-      }
-
-      sections.push(section);
-    }
-  }
-
-  if (sections.length < 2) {
-    return null;
-  }
-
-  const triangles: Triangle[] = [];
-  const sectionSegmentCount = isClosed ? sections.length : sections.length - 1;
-
-  for (let index = 0; index < sectionSegmentCount; index += 1) {
-    const current = sections[index]!;
-    const next = sections[(index + 1) % sections.length]!;
-
-    addQuad(triangles, current.topLeft, current.topRight, next.topRight, next.topLeft);
-    addQuad(triangles, current.bottomLeft, next.bottomLeft, next.bottomRight, current.bottomRight);
-    addQuad(triangles, current.bottomLeft, current.topLeft, next.topLeft, next.bottomLeft);
-    addQuad(triangles, current.bottomRight, next.bottomRight, next.topRight, current.topRight);
-  }
-
-  if (!isClosed) {
-    const start = sections[0]!;
-    const end = sections[sections.length - 1]!;
-
-    addQuad(triangles, start.bottomRight, start.bottomLeft, start.topLeft, start.topRight);
-    addQuad(triangles, end.bottomLeft, end.bottomRight, end.topRight, end.topLeft);
-  }
-
-  return triangles;
 }

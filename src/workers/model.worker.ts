@@ -99,11 +99,13 @@ self.onmessage = (event: MessageEvent<ModelBuildRequest>) => {
   // queued messages can arrive and overwrite latestRequest before we build
   if (!processingScheduled) {
     processingScheduled = true;
-    setTimeout(processLatest, 0);
+    // Wrap so an async rejection never floats as an unhandled promise — the
+    // internal try/catch owns all errors and posts `model-error`.
+    setTimeout(() => { void processLatest(); }, 0);
   }
 };
 
-function processLatest(): void {
+async function processLatest(): Promise<void> {
   // Grab the latest request (most recently arrived)
   const request = latestRequest;
   latestRequest = null;
@@ -117,7 +119,7 @@ function processLatest(): void {
     const placementCacheToken = getOrCreateCacheToken(request.cacheGeneration);
     const perfTimer = new PerfTimer();
 
-    const model = buildTrackModel({
+    const model = await buildTrackModel({
       outlinePoints: null,
       basePlate: null,
       trackName: request.trackName,

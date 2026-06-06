@@ -25,9 +25,11 @@ const PART_LABELS: Record<PartReport['part'], string> = {
  *   - `'edges+degenerates+tjunctions'`: fail on any of the three.
  *   - `'edges+selfx'`: fail on non-manifold edges OR self-intersections (#115).
  *   - `'edges+flipped'`: fail on non-manifold edges OR flipped-winding faces (#115).
- *   - `'edges+shells'`: fail on non-manifold edges OR disjoint shells (`>1`, #115).
+ *   - `'edges+shells'`: fail on non-manifold edges OR OPEN shells (a shell with a
+ *     boundary/non-manifold edge, #133). Multiple disjoint but individually-watertight
+ *     shells (e.g. track ribbon + disconnected text glyphs) are valid and do NOT fail.
  *   - `'all'`: fail on ANY detector (edges, degenerates, T-junctions, self-intersections,
- *     flipped faces, disjoint shells).
+ *     flipped faces, open shells).
  *
  * All diagnostics (degenerate, T-junction, self-intersection, flipped-face, shell)
  * are PRINTED in the failure message regardless of `failOn`; printing is not failing.
@@ -52,6 +54,12 @@ export function assertModelManifold(
     failOn === 'edges+degenerates' || failOn === 'edges+degenerates+tjunctions' || failOn === 'all';
   const failOnTJunctions =
     failOn === 'edges+tjunctions' || failOn === 'edges+degenerates+tjunctions' || failOn === 'all';
+  // HONEST self-intersection gate (#133, §3.5a): under `'all'` (and the explicit `'edges+selfx'`
+  // opt-in) we fail on GENUINE `crossing` self-intersections — a true 3D interior cross, which is
+  // a real defect (the kind the old `warp` ribbon produced). We tolerate the `coplanar` class
+  // ONLY (same-plane area lamination / near-contact surfaces), which the detector over-reports on
+  // watertight CSG output. The hull+union ribbon is `crossing`-free BY CONSTRUCTION, so a genuine
+  // crossing means broken geometry and MUST fail the gate — no blanket CSG exemption.
   const failOnSelfIntersections = failOn === 'edges+selfx' || failOn === 'all';
   const failOnFlipped = failOn === 'edges+flipped' || failOn === 'all';
   const failOnShells = failOn === 'edges+shells' || failOn === 'all';
@@ -68,13 +76,14 @@ export function assertModelManifold(
       continue;
     }
 
+    const crossingSelfx = part.selfIntersections.filter(s => s.kind === 'crossing').length;
     const failed =
       part.nonManifoldEdges.length > 0 ||
       (failOnDegenerates && part.degenerateTriangles.length > 0) ||
       (failOnTJunctions && part.tJunctions.length > 0) ||
-      (failOnSelfIntersections && part.selfIntersections.length > 0) ||
+      (failOnSelfIntersections && crossingSelfx > 0) ||
       (failOnFlipped && part.flippedFaces.length > 0) ||
-      (failOnShells && part.shellComponentCount > 1);
+      (failOnShells && part.openShellComponentCount > 0);
 
     if (!failed) {
       continue;
@@ -99,7 +108,7 @@ export function assertModelManifold(
     const coplanarSelfIntersections = part.selfIntersections.filter(s => s.kind === 'coplanar').length;
     const crossingSelfIntersections = part.selfIntersections.length - coplanarSelfIntersections;
     assert.fail(
-      `${partLabel}: part failed mesh validation (failOn=${failOn})\n  summary=${JSON.stringify(summary)}\n  first non-manifold edges: ${JSON.stringify(examples, null, 2)}\n  degenerate triangle indices (first 5): ${JSON.stringify(part.degenerateTriangles.slice(0, 5))}\n  T-junction count: ${part.tJunctions.length}\n  first T-junctions (vertex / edge / perpendicularDistance): ${JSON.stringify(tJunctionExamples, null, 2)}\n  self-intersection count: ${part.selfIntersections.length} (crossing=${crossingSelfIntersections}, coplanar=${coplanarSelfIntersections})\n  flipped-face count: ${part.flippedFaces.length}\n  shell-component count: ${part.shellComponentCount}`,
+      `${partLabel}: part failed mesh validation (failOn=${failOn})\n  summary=${JSON.stringify(summary)}\n  first non-manifold edges: ${JSON.stringify(examples, null, 2)}\n  degenerate triangle indices (first 5): ${JSON.stringify(part.degenerateTriangles.slice(0, 5))}\n  T-junction count: ${part.tJunctions.length}\n  first T-junctions (vertex / edge / perpendicularDistance): ${JSON.stringify(tJunctionExamples, null, 2)}\n  self-intersection count: ${part.selfIntersections.length} (crossing=${crossingSelfIntersections}, coplanar=${coplanarSelfIntersections})\n  flipped-face count: ${part.flippedFaces.length}\n  shell-component count: ${part.shellComponentCount} (open shells: ${part.openShellComponentCount})`,
     );
   }
 }

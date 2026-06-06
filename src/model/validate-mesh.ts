@@ -20,6 +20,7 @@ import {
   findFlippedAdjacentFaces,
   findSelfIntersectingTriangles,
   findShellComponents,
+  findOpenShellComponentCount,
   type SelfIntersection,
 } from './mesh-detectors.js';
 import { splitModelTriangles } from './triangle-groups.js';
@@ -31,7 +32,7 @@ export { DEFAULT_PRECISION_MM };
 export type { ValidateOptions };
 // Re-export the #115 detectors + types so consumers can import them from the
 // validator module exactly as the issue phrases it.
-export { findFlippedAdjacentFaces, findSelfIntersectingTriangles, findShellComponents };
+export { findFlippedAdjacentFaces, findSelfIntersectingTriangles, findShellComponents, findOpenShellComponentCount };
 export type { SelfIntersection };
 
 /** Triangles with cross-product magnitude below this (in mm²) are considered degenerate. */
@@ -342,6 +343,12 @@ export interface PartReport {
    *  A healthy single shell is 1; >1 indicates disjoint shells. An empty part is 0.
    *  NOT folded into `ModelReport.ok`. */
   shellComponentCount: number;
+  /** #133: count of shell components that are NOT closed 2-manifolds (have at least
+   *  one boundary/non-manifold edge). A part may legitimately contain several disjoint
+   *  but individually-watertight shells (the track ribbon + disconnected text glyph
+   *  solids), so the meaningful "fragmented soup" defect is `openShellComponentCount > 0`,
+   *  not `shellComponentCount > 1`. An empty part is 0. NOT folded into `ModelReport.ok`. */
+  openShellComponentCount: number;
 }
 
 export interface ModelReport {
@@ -377,6 +384,7 @@ export function validateModel(
     selfIntersections: findSelfIntersectingTriangles(triangles, options),
     flippedFaces: findFlippedAdjacentFaces(triangles, options),
     shellComponentCount: findShellComponents(triangles, options).length,
+    openShellComponentCount: findOpenShellComponentCount(triangles, options),
   });
 
   const parts: PartReport[] = [

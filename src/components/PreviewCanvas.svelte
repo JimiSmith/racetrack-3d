@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { initPreview, updatePreview } from '../preview/renderer.js';
   import { currentModel } from '../stores/model.js';
-  import { previewOverlayState } from '../stores/ui.js';
+  import { previewOverlayState, isRebuilding } from '../stores/ui.js';
 
   onMount(() => {
     initPreview();
@@ -21,6 +21,12 @@
   <div id="preview-overlay" class="preview-overlay" aria-live="polite">
     <p id="preview-overlay-title">{$previewOverlayState.title}</p>
     <p id="preview-overlay-body">{$previewOverlayState.body}</p>
+  </div>
+{/if}
+{#if $isRebuilding}
+  <div id="preview-rebuilding" class="preview-rebuilding" aria-live="polite">
+    <span class="preview-rebuilding-spinner" aria-hidden="true"></span>
+    <span class="preview-rebuilding-label">Generating model…</span>
   </div>
 {/if}
 <p class="canvas-hud" aria-hidden="true">Drag · rotate &nbsp;·&nbsp; Scroll · zoom</p>

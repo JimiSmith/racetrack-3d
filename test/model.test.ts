@@ -221,8 +221,8 @@ function crossSectionEdgeVertices(vertices: Vertex[], targetX: number, tolerance
   };
 }
 
-function buildElevatedStraightTrackModel() {
-  return buildTrackModel({
+async function buildElevatedStraightTrackModel() {
+  return await buildTrackModel({
     outlinePoints: null,
     basePlate: null,
     trackName: undefined,
@@ -267,11 +267,11 @@ function parseBinaryStlBounds(buffer: ArrayBuffer) {
 }
 
 
-test('buildTrackModel returns triangles and a positive finite scale', () => {
+test('buildTrackModel returns triangles and a positive finite scale', async () => {
   const outlinePoints = syntheticOutline();
   const basePlate = buildBasePlate(outlinePoints, 20);
 
-  const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
+  const model = await buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
 
   assert.ok(Array.isArray(model.triangles));
   assert.ok(model.triangles.length > 0);
@@ -279,10 +279,10 @@ test('buildTrackModel returns triangles and a positive finite scale', () => {
   assert.ok(model.scale > 0);
 });
 
-test('buildTrackModel keeps base plate triangles at or below the base thickness and includes raised track triangles', () => {
+test('buildTrackModel keeps base plate triangles at or below the base thickness and includes raised track triangles', async () => {
   const outlinePoints = syntheticOutline();
   const basePlate = buildBasePlate(outlinePoints, 20);
-  const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
+  const model = await buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
   const basePlateTriangles = model.triangles.slice(0, model.baseTriangleCount);
   const trackTriangles = model.triangles.slice(model.baseTriangleCount);
 
@@ -294,10 +294,10 @@ test('buildTrackModel keeps base plate triangles at or below the base thickness 
   assert.ok(trackTriangles.some(triangle => triangle.some(vertex => vertex.z > BASE_THICKNESS_MM)));
 });
 
-test('buildTrackModel uses a 2.5mm rounded base plate', () => {
+test('buildTrackModel uses a 2.5mm rounded base plate', async () => {
   const outlinePoints = syntheticOutline();
   const basePlate = buildBasePlate(outlinePoints, 20);
-  const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
+  const model = await buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
   const basePlateTriangles = model.triangles.slice(0, model.baseTriangleCount);
   const basePlateBounds = triangleBounds(basePlateTriangles);
   const roundedCornerVertices = uniqueVertices(basePlateTriangles).filter(vertex => (
@@ -314,8 +314,8 @@ test('buildTrackModel uses a 2.5mm rounded base plate', () => {
   assert.ok(roundedCornerVertices.length > 0, 'expected rounded corner vertices on the base plate perimeter');
 });
 
-test('buildTrackModel preserves longitudinal elevation along the track top surface', () => {
-  const model = buildElevatedStraightTrackModel();
+test('buildTrackModel preserves longitudinal elevation along the track top surface', async () => {
+  const model = await buildElevatedStraightTrackModel();
   const topVertices = topTrackVertices(model);
   const startSection = crossSectionEdgeVertices(topVertices, 0, 1e-3);
   const endSection = crossSectionEdgeVertices(topVertices, 100 * model.scale, 1e-3);
@@ -325,8 +325,8 @@ test('buildTrackModel preserves longitudinal elevation along the track top surfa
   assert.ok(endSection.minY.z > startSection.minY.z);
 });
 
-test('buildTrackModel keeps each local top cross-section level across the track width', () => {
-  const model = buildElevatedStraightTrackModel();
+test('buildTrackModel keeps each local top cross-section level across the track width', async () => {
+  const model = await buildElevatedStraightTrackModel();
   const topVertices = topTrackVertices(model);
   const startSection = crossSectionEdgeVertices(topVertices, 0, 1e-3);
   const endSection = crossSectionEdgeVertices(topVertices, 100 * model.scale, 1e-3);
@@ -335,7 +335,7 @@ test('buildTrackModel keeps each local top cross-section level across the track 
   approxEqual(endSection.minY.z, endSection.maxY.z, 1e-6);
 });
 
-test('buildTrackModel prevents the raised top cap from sagging at the center of curved sections', () => {
+test('buildTrackModel prevents the raised top cap from sagging at the center of curved sections', async () => {
   const projectedNodes = [
     { x: 0, y: 0, elevation: 0 },
     { x: 100, y: 0, elevation: 10 },
@@ -348,7 +348,7 @@ test('buildTrackModel prevents the raised top cap from sagging at the center of 
     { x: -180, y: 180, elevation: 45 },
     { x: -160, y: 80, elevation: 20 },
   ];
-  const model = buildTrackModel({ outlinePoints: null, basePlate: null, trackName: undefined, projectedNodes, primaryOrientationDeg: 0 });
+  const model = await buildTrackModel({ outlinePoints: null, basePlate: null, trackName: undefined, projectedNodes, primaryOrientationDeg: 0 });
   const segmentStart = projectedNodes[8]!;
   const segmentEnd = projectedNodes[9]!;
   const segmentDx = segmentEnd.x - segmentStart.x;
@@ -380,8 +380,8 @@ test('buildTrackModel prevents the raised top cap from sagging at the center of 
   assert.ok(centerZ >= Math.min(leftZ, rightZ) - 0.03);
 });
 
-test('buildTrackModel keeps elevated preview geometry aligned with STL export bounds', () => {
-  const model = buildElevatedStraightTrackModel();
+test('buildTrackModel keeps elevated preview geometry aligned with STL export bounds', async () => {
+  const model = await buildElevatedStraightTrackModel();
   const previewBounds = triangleBounds(model.triangles);
   const exportBounds = parseBinaryStlBounds(exportStl(model, 'elevated-track').buffer);
 
@@ -393,10 +393,10 @@ test('buildTrackModel keeps elevated preview geometry aligned with STL export bo
   approxEqual(previewBounds.maxZ, exportBounds.maxZ, 1e-4);
 });
 
-test('buildTrackModel keeps embossed text after the track segment and out of the base segment', () => {
+test('buildTrackModel keeps embossed text after the track segment and out of the base segment', async () => {
   const outlinePoints = syntheticOutline();
   const basePlate = buildBasePlate(outlinePoints, 20);
-  const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
+  const model = await buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
 
   const baseTriangles = model.triangles.slice(0, model.baseTriangleCount);
   const textTriangles = model.triangles.slice(model.baseTriangleCount + model.trackTriangleCount);
@@ -408,7 +408,7 @@ test('buildTrackModel keeps embossed text after the track segment and out of the
   assert.ok(baseTriangles.every(triangle => triangle.every(vertex => vertex.z <= BASE_THICKNESS_MM)));
 });
 
-test('computeScale fits the base plate inside a 200mm bounding box', () => {
+test('computeScale fits the base plate inside a 200mm bounding box', async () => {
   const scale = computeScale({ width: 400, height: 150 });
 
   assert.equal(scale, 0.5);
@@ -416,14 +416,14 @@ test('computeScale fits the base plate inside a 200mm bounding box', () => {
   assert.ok(150 * scale <= 200);
 });
 
-test('buildTrackModel rotates geometry bounds in 90 degree increments', () => {
+test('buildTrackModel rotates geometry bounds in 90 degree increments', async () => {
   const outlinePoints = syntheticOutline();
   const basePlate = buildBasePlate(outlinePoints, 20);
 
-  const model0 = buildTrackModel({ outlinePoints, basePlate, trackName: undefined, orientationDeg: 0 });
-  const model90 = buildTrackModel({ outlinePoints, basePlate, trackName: undefined, orientationDeg: 90 });
-  const model180 = buildTrackModel({ outlinePoints, basePlate, trackName: undefined, orientationDeg: 180 });
-  const model270 = buildTrackModel({ outlinePoints, basePlate, trackName: undefined, orientationDeg: 270 });
+  const model0 = await buildTrackModel({ outlinePoints, basePlate, trackName: undefined, orientationDeg: 0 });
+  const model90 = await buildTrackModel({ outlinePoints, basePlate, trackName: undefined, orientationDeg: 90 });
+  const model180 = await buildTrackModel({ outlinePoints, basePlate, trackName: undefined, orientationDeg: 180 });
+  const model270 = await buildTrackModel({ outlinePoints, basePlate, trackName: undefined, orientationDeg: 270 });
 
   const span0 = span(triangleBounds(model0.triangles));
   const span90 = span(triangleBounds(model90.triangles));
@@ -442,14 +442,14 @@ test('buildTrackModel rotates geometry bounds in 90 degree increments', () => {
   assert.equal(model270.orientationDeg, 270);
 });
 
-test('buildTrackModel caches text placement per orientation', () => {
+test('buildTrackModel caches text placement per orientation', async () => {
   const outlinePoints = offsetHoleOutline();
   const basePlate = buildBasePlate(outlinePoints, 50);
   const token = {};
 
   // Different orientations still produce different placements (algorithm runs independently per orientation)
-  const model0 = buildTrackModel({ outlinePoints, basePlate, trackName: 'DAYTONA ROAD COURSE', orientationDeg: 0, textPositionRank: 1, placementCacheToken: token });
-  const model90 = buildTrackModel({ outlinePoints, basePlate, trackName: 'DAYTONA ROAD COURSE', orientationDeg: 90, textPositionRank: 1, placementCacheToken: token });
+  const model0 = await buildTrackModel({ outlinePoints, basePlate, trackName: 'DAYTONA ROAD COURSE', orientationDeg: 0, textPositionRank: 1, placementCacheToken: token });
+  const model90 = await buildTrackModel({ outlinePoints, basePlate, trackName: 'DAYTONA ROAD COURSE', orientationDeg: 90, textPositionRank: 1, placementCacheToken: token });
 
   assert.ok(model0.textTriangleCount > 0);
   assert.ok(model90.textTriangleCount > 0);
@@ -467,16 +467,16 @@ test('buildTrackModel caches text placement per orientation', () => {
   );
 
   // Same token + same orientation + different rank: uses cached ranked placements, selects from them
-  const model0_rank2 = buildTrackModel({ outlinePoints, basePlate, trackName: 'DAYTONA ROAD COURSE', orientationDeg: 0, textPositionRank: 2, placementCacheToken: token });
+  const model0_rank2 = await buildTrackModel({ outlinePoints, basePlate, trackName: 'DAYTONA ROAD COURSE', orientationDeg: 0, textPositionRank: 2, placementCacheToken: token });
   assert.ok(model0_rank2.textTriangleCount > 0, 'expected rank 2 cache hit to produce text triangles');
 });
 
-test('buildTrackModel auto orientation rotates the model for portrait tracks and uses fixed text', () => {
+test('buildTrackModel auto orientation rotates the model for portrait tracks and uses fixed text', async () => {
   const outlinePoints = tallNarrowHoleOutline();
   const basePlate = buildBasePlate(outlinePoints, 50);
 
-  const autoModel = buildTrackModel({ outlinePoints, basePlate, trackName: 'IMOLA' });
-  const explicitModel = buildTrackModel({ outlinePoints, basePlate, trackName: 'IMOLA', primaryOrientationDeg: 0 });
+  const autoModel = await buildTrackModel({ outlinePoints, basePlate, trackName: 'IMOLA' });
+  const explicitModel = await buildTrackModel({ outlinePoints, basePlate, trackName: 'IMOLA', primaryOrientationDeg: 0 });
 
   assert.equal(autoModel.primaryOrientationDeg, 'auto');
   assert.equal(explicitModel.primaryOrientationDeg, 0);
@@ -499,12 +499,12 @@ test('buildTrackModel auto orientation rotates the model for portrait tracks and
   );
 });
 
-test('buildTrackModel threads text position rank through preview and STL export geometry', () => {
+test('buildTrackModel threads text position rank through preview and STL export geometry', async () => {
   const outlinePoints = rankedHoleOutline();
   const basePlate = buildBasePlate(outlinePoints, 60);
 
-  const firstModel = buildTrackModel({ outlinePoints, basePlate, trackName: 'GO', textPositionRank: 1 });
-  const secondModel = buildTrackModel({ outlinePoints, basePlate, trackName: 'GO', textPositionRank: 2 });
+  const firstModel = await buildTrackModel({ outlinePoints, basePlate, trackName: 'GO', textPositionRank: 1 });
+  const secondModel = await buildTrackModel({ outlinePoints, basePlate, trackName: 'GO', textPositionRank: 2 });
   const exportedSecond = exportStl(secondModel, 'ranked-position');
 
   const firstCenter = boundsCenter(textBounds(firstModel));
@@ -526,10 +526,10 @@ test('buildTrackModel threads text position rank through preview and STL export 
   approxEqual(previewBounds.maxZ, exportBounds.maxZ, 1e-4);
 });
 
-test('exportStl returns download metadata with a blob, buffer, and filename', () => {
+test('exportStl returns download metadata with a blob, buffer, and filename', async () => {
   const outlinePoints = syntheticOutline();
   const basePlate = buildBasePlate(outlinePoints, 20);
-  const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
+  const model = await buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
 
   const result = exportStl(model, 'Synthetic Raceway');
 
@@ -547,13 +547,13 @@ test('exportStl returns download metadata with a blob, buffer, and filename', ()
 // horizontal straight track and a fixed orientation so the ribbon's printed
 // width sits along Y and equals max(Y) - min(Y) of the track triangles.
 
-function buildStraightTrackModel(opts: {
+async function buildStraightTrackModel(opts: {
   trackWidthAuto?: boolean;
   trackWidthMm?: number;
   coasterMode?: boolean;
   trackName?: string;
 } = {}) {
-  return buildTrackModel({
+  return await buildTrackModel({
     outlinePoints: null,
     basePlate: null,
     trackName: opts.trackName,
@@ -582,9 +582,9 @@ function trackRibbonYSpanMm(model: TrackModel): number {
   return maxY - minY;
 }
 
-test('buildTrackModel applies trackWidthMm in non-coaster manual mode', () => {
-  const auto = buildStraightTrackModel({ trackWidthAuto: true });
-  const manual = buildStraightTrackModel({ trackWidthAuto: false, trackWidthMm: 5 });
+test('buildTrackModel applies trackWidthMm in non-coaster manual mode', async () => {
+  const auto = await buildStraightTrackModel({ trackWidthAuto: true });
+  const manual = await buildStraightTrackModel({ trackWidthAuto: false, trackWidthMm: 5 });
 
   approxEqual(trackRibbonYSpanMm(manual), 5, 0.05);
   assert.ok(
@@ -593,24 +593,24 @@ test('buildTrackModel applies trackWidthMm in non-coaster manual mode', () => {
   );
 });
 
-test('buildTrackModel scales trackWidthMm linearly across the slider range', () => {
-  const narrow = buildStraightTrackModel({ trackWidthAuto: false, trackWidthMm: 2 });
-  const wide = buildStraightTrackModel({ trackWidthAuto: false, trackWidthMm: 8 });
+test('buildTrackModel scales trackWidthMm linearly across the slider range', async () => {
+  const narrow = await buildStraightTrackModel({ trackWidthAuto: false, trackWidthMm: 2 });
+  const wide = await buildStraightTrackModel({ trackWidthAuto: false, trackWidthMm: 8 });
 
   approxEqual(trackRibbonYSpanMm(narrow), 2, 0.05);
   approxEqual(trackRibbonYSpanMm(wide), 8, 0.05);
 });
 
-test('buildTrackModel coaster auto mode clamps to MIN_COASTER_TRACK_WIDTH_MM', () => {
-  const model = buildStraightTrackModel({ trackWidthAuto: true, coasterMode: true });
+test('buildTrackModel coaster auto mode clamps to MIN_COASTER_TRACK_WIDTH_MM', async () => {
+  const model = await buildStraightTrackModel({ trackWidthAuto: true, coasterMode: true });
 
   // Default 12 m at coaster scale on a 1 km track is < 1 mm, so the auto
   // formula should widen the ribbon to exactly MIN_COASTER_TRACK_WIDTH_MM.
   approxEqual(trackRibbonYSpanMm(model), MIN_COASTER_TRACK_WIDTH_MM, 0.05);
 });
 
-test('buildTrackModel coaster manual mode applies trackWidthMm', () => {
-  const model = buildStraightTrackModel({
+test('buildTrackModel coaster manual mode applies trackWidthMm', async () => {
+  const model = await buildStraightTrackModel({
     trackWidthAuto: false,
     trackWidthMm: 4,
     coasterMode: true,
@@ -619,7 +619,7 @@ test('buildTrackModel coaster manual mode applies trackWidthMm', () => {
   approxEqual(trackRibbonYSpanMm(model), 4, 0.1);
 });
 
-test('buildTrackModel rebuilds correct geometry across width changes with the same cache token', () => {
+test('buildTrackModel rebuilds correct geometry across width changes with the same cache token', async () => {
   // Reproduces the "stale auto-orientation placements" bug: with auto orientation
   // and a shared cache token, switching from auto to manual width must produce
   // a ribbon at the requested width — not one buffered against the prior outline.
@@ -629,7 +629,7 @@ test('buildTrackModel rebuilds correct geometry across width changes with the sa
     { x: 1000, y: 0, elevation: 0 },
   ];
 
-  const auto = buildTrackModel({
+  const auto = await buildTrackModel({
     outlinePoints: null,
     basePlate: null,
     trackName: 'TEST',
@@ -639,7 +639,7 @@ test('buildTrackModel rebuilds correct geometry across width changes with the sa
     trackWidthAuto: true,
   });
 
-  const manual = buildTrackModel({
+  const manual = await buildTrackModel({
     outlinePoints: null,
     basePlate: null,
     trackName: 'TEST',
@@ -654,12 +654,12 @@ test('buildTrackModel rebuilds correct geometry across width changes with the sa
   assert.ok(trackRibbonYSpanMm(manual) > trackRibbonYSpanMm(auto));
 });
 
-test('buildTrackModel auto orientation uses the user-selected width for outline construction', () => {
+test('buildTrackModel auto orientation uses the user-selected width for outline construction', async () => {
   // When auto orientation runs, its outlines (used for landscape & text-bottom
   // scoring) must reflect the chosen width — otherwise orientation can drift.
   // We assert the rendered ribbon matches the requested width even when auto
   // orientation is active.
-  const model = buildTrackModel({
+  const model = await buildTrackModel({
     outlinePoints: null,
     basePlate: null,
     trackName: 'TEST',
