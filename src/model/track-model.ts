@@ -61,7 +61,6 @@ let textPlacementCache: TextPlacementCache = {
 interface ModelPerfCounters {
   buildTrackOutline: number;
   selectAutoOrientation: number;
-  buildTrackPrismMesh: number;
 }
 
 let __modelPerfCounters: ModelPerfCounters | null = null;
@@ -70,7 +69,6 @@ export function __resetModelPerfCounters(): void {
   __modelPerfCounters = {
     buildTrackOutline: 0,
     selectAutoOrientation: 0,
-    buildTrackPrismMesh: 0,
   };
   __setOrientationBuildTrackOutlineCounter(__modelPerfCounters);
   __setAutoOrientCounter(__modelPerfCounters);

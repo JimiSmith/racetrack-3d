@@ -167,7 +167,10 @@ function footprintCrossSection(api: ManifoldToplevel, fp: Footprint): CrossSecti
   // removes the pinch entirely (0 crossings) and is ≪ the ~0.1 mm FDM print resolution,
   // so it is loss-free for the printed part. The SAME simplified footprint is shared by
   // the flush pocket cutter and the inlay, so WYSIWYG fit is preserved.
-  return new api.CrossSection(contours, 'Positive').simplify(FOOTPRINT_SIMPLIFY_MM);
+  const raw = new api.CrossSection(contours, 'Positive');
+  const simplified = raw.simplify(FOOTPRINT_SIMPLIFY_MM);
+  raw.delete();
+  return simplified;
 }
 
 /**
@@ -182,7 +185,16 @@ function buildTextCrossSection(api: ManifoldToplevel, footprints: Footprint[]): 
   }
   const csList = footprints.map((fp) => footprintCrossSection(api, fp));
   const merged = csList.length === 1 ? csList[0]! : api.CrossSection.union(csList);
-  return merged.simplify(TEXT_SIMPLIFY_EPSILON_MM);
+  const simplified = merged.simplify(TEXT_SIMPLIFY_EPSILON_MM);
+  // `merged` is either csList[0] (length 1) or a fresh union; either way it and every
+  // input CrossSection are now consumed by the simplify above. Free them all.
+  if (merged !== csList[0]) {
+    merged.delete();
+  }
+  for (const cs of csList) {
+    cs.delete();
+  }
+  return simplified;
 }
 
 /** Scales a metres-space outline to mm and returns a footprint. */
@@ -286,8 +298,10 @@ function buildRibbonManifold(
     cs.delete();
     return null;
   }
-  let solid = cs.extrude(trackHeight).translate([0, 0, baseZ]);
+  const extruded = cs.extrude(trackHeight);
   cs.delete();
+  let solid = extruded.translate([0, 0, baseZ]);
+  extruded.delete();
   if (!ignoreElevation && projected?.length) {
     // Subdivide the prism so the flat top face has interior vertices spaced ≤
     // ELEVATION_REFINE_LENGTH_MM before warping; otherwise a long top triangle spanning
@@ -296,15 +310,17 @@ function buildRibbonManifold(
     // small top vertex is raised to its own sampled elevation → the top follows the
     // slope with no sag, and the underlying footprint is still the dissolved, watertight
     // outline (no self-intersection).
-    solid = solid.refineToLength(ELEVATION_REFINE_LENGTH_MM);
+    const refined = solid.refineToLength(ELEVATION_REFINE_LENGTH_MM);
+    solid.delete();
     const topZ = baseZ + trackHeight;
     const sampleElev = makeElevationSampler(projected, scale);
     const EPS = 1e-6;
-    solid = solid.warp((v) => {
+    solid = refined.warp((v) => {
       if (Math.abs(v[2] - topZ) <= EPS) {
         v[2] = topZ + sampleElev(v[0], v[1]);
       }
     });
+    refined.delete();
   }
   return solid;
 }
@@ -353,20 +369,35 @@ function buildSecondaryGroup(api: ManifoldToplevel, spec: CsgSpec): Manifold | n
   // post-union simplify dissolves them (loss-free at FOOTPRINT_SIMPLIFY_MM ≪ print res).
   const mergedRaw = csList.length === 1 ? csList[0]! : api.CrossSection.union(csList);
   const merged = mergedRaw.simplify(FOOTPRINT_SIMPLIFY_MM);
+  // `mergedRaw` (fresh union) and all sub-chain CrossSections are consumed by the
+  // simplify above; free them. When csList.length === 1, mergedRaw IS csList[0] and is
+  // freed by the loop below.
+  if (mergedRaw !== csList[0]) {
+    mergedRaw.delete();
+  }
+  for (const cs of csList) {
+    cs.delete();
+  }
   if (merged.isEmpty()) {
+    merged.delete();
     return null;
   }
-  let solid = merged.extrude(trackHeight).translate([0, 0, baseZ]);
+  const extruded = merged.extrude(trackHeight);
+  merged.delete();
+  let solid = extruded.translate([0, 0, baseZ]);
+  extruded.delete();
   if (!ignoreElevation && allProjected.length > 0) {
-    solid = solid.refineToLength(ELEVATION_REFINE_LENGTH_MM);
+    const refined = solid.refineToLength(ELEVATION_REFINE_LENGTH_MM);
+    solid.delete();
     const samplers = allProjected.map((p) => makeElevationSampler(p, scale));
     const topZ = baseZ + trackHeight;
     const EPS = 1e-6;
-    solid = solid.warp((v) => {
+    solid = refined.warp((v) => {
       if (Math.abs(v[2] - topZ) <= EPS) {
         v[2] = topZ + combinedElevation(samplers, allProjected, scale, v[0], v[1]);
       }
     });
+    refined.delete();
   }
   return solid;
 }
@@ -516,16 +547,30 @@ export function manifoldToTriangles(manifold: Manifold, weldEpsilon = 0): Triang
       { x: c.x, y: c.y, z: c.z },
     ]);
   }
+  // NOTE: the `Mesh` (MeshGL) from getMesh() is a plain JS object holding JS-owned typed
+  // arrays (copied out of WASM); it has no `.delete()` and owns no WASM heap, so there is
+  // nothing to free here. Only Manifold/CrossSection objects must be explicitly deleted.
   return triangles;
 }
 
-/** Simplify + read back a solid in one step (with null/empty guards). */
+/**
+ * Simplify + read back a solid in one step (with null/empty guards).
+ *
+ * Takes ownership of `manifold`: it is deleted before returning (along with the
+ * intermediate `simplified` solid), so the caller must not use it afterward.
+ */
 function finalizeSolid(manifold: Manifold | null, weldEpsilon = 0): Triangle[] {
-  if (!manifold || manifold.isEmpty()) {
+  if (!manifold) {
+    return [];
+  }
+  if (manifold.isEmpty()) {
+    manifold.delete();
     return [];
   }
   const simplified = manifold.simplify(SIMPLIFY_TOLERANCE_MM);
+  manifold.delete();
   const tris = manifoldToTriangles(simplified, weldEpsilon);
+  simplified.delete();
   return tris;
 }
 
@@ -560,8 +605,13 @@ export async function buildModelGeometryCsg(spec: CsgSpec): Promise<CsgGeometryR
   let textSolid: Manifold | null = null;
   if (spec.textSolid && spec.textSolid.footprints.length > 0) {
     const merged = buildTextCrossSection(api, spec.textSolid.footprints);
-    if (merged && !merged.isEmpty()) {
-      textSolid = merged.extrude(spec.textSolid.height).translate([0, 0, spec.textSolid.baseZ]);
+    if (merged) {
+      if (!merged.isEmpty()) {
+        const extruded = merged.extrude(spec.textSolid.height);
+        textSolid = extruded.translate([0, 0, spec.textSolid.baseZ]);
+        extruded.delete();
+      }
+      merged.delete();
     }
   }
 
@@ -582,8 +632,22 @@ export async function buildModelGeometryCsg(spec: CsgSpec): Promise<CsgGeometryR
     const cutterCross = cutterCsList.length === 1 ? cutterCsList[0]! : api.CrossSection.union(cutterCsList);
     if (!cutterCross.isEmpty()) {
       const depth = COASTER_POCKET_DEPTH_MM;
-      const cutter = cutterCross.extrude(depth).translate([0, 0, BASE_THICKNESS_MM - depth]);
-      baseSolid = baseSolid.subtract(cutter);
+      const extrudedCutter = cutterCross.extrude(depth);
+      const cutter = extrudedCutter.translate([0, 0, BASE_THICKNESS_MM - depth]);
+      extrudedCutter.delete();
+      const pocketed = baseSolid.subtract(cutter);
+      cutter.delete();
+      baseSolid.delete();
+      baseSolid = pocketed;
+    }
+    // Free the cutter cross-sections: the fresh union (if any) plus every footprint
+    // CrossSection in the list. When length === 1, cutterCross IS cutterCsList[0] and is
+    // freed by the loop.
+    if (cutterCross !== cutterCsList[0]) {
+      cutterCross.delete();
+    }
+    for (const cs of cutterCsList) {
+      cs.delete();
     }
   }
 

@@ -81,7 +81,6 @@ test('perf: buildTrackOutline calls during auto-orientation (outline-based)', as
   console.log('--- Issue 2: buildTrackOutline calls (outline-based, portrait) ---');
   console.log(`  buildTrackOutline calls:           ${modelCounters.buildTrackOutline}`);
   console.log(`  selectAutoOrientation calls:       ${modelCounters.selectAutoOrientation}`);
-  console.log(`  buildTrackPrismMesh calls:          ${modelCounters.buildTrackPrismMesh}`);
   console.log(`  computeRankedTextPlacements calls:  ${textCounters.computeRankedTextPlacements}`);
   console.log(`  Auto-orientation resolved to:       ${model.orientationDeg}°`);
 
@@ -111,7 +110,6 @@ test('perf: buildTrackOutline calls during auto-orientation (projectedNodes)', a
   console.log('--- Issue 2: buildTrackOutline calls (projectedNodes, oval) ---');
   console.log(`  buildTrackOutline calls:           ${modelCounters.buildTrackOutline}`);
   console.log(`  selectAutoOrientation calls:       ${modelCounters.selectAutoOrientation}`);
-  console.log(`  buildTrackPrismMesh calls:          ${modelCounters.buildTrackPrismMesh}`);
   console.log(`  computeRankedTextPlacements calls:  ${textCounters.computeRankedTextPlacements}`);
   console.log(`  Auto-orientation resolved to:       ${model.orientationDeg}°`);
   console.log('');
