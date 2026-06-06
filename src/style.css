@@ -210,6 +210,36 @@ body {
   font-size: 0.88rem;
 }
 
+.preview-rebuilding {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(7, 10, 15, 0.72);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
+.preview-rebuilding-spinner {
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  animation: preview-rebuilding-spin 0.7s linear infinite;
+}
+
+@keyframes preview-rebuilding-spin {
+  to { transform: rotate(360deg); }
+}
+
 .canvas-hud {
   position: absolute;
   bottom: 12px;

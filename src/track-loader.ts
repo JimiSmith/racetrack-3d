@@ -35,7 +35,7 @@ import {
   trackWidthAuto,
   trackWidthMm,
 } from './stores/options.js';
-import { statusMessage, statusIsError, previewOverlayState } from './stores/ui.js';
+import { statusMessage, statusIsError, previewOverlayState, isRebuilding } from './stores/ui.js';
 import { placementDebugData } from './stores/debug.js';
 import type { Layout } from './types/geometry.js';
 import type { SearchResult } from './types/search.js';
@@ -125,6 +125,7 @@ export async function rebuildModel(elevationData: number[] | null = get(elevatio
   const generation = getCacheGeneration();
   const isCoaster = get(coasterMode);
 
+  isRebuilding.set(true);
   try {
     const model = await modelWorkerClient.requestModelBuild({
       projectedNodes: projected,
@@ -176,6 +177,8 @@ export async function rebuildModel(elevationData: number[] | null = get(elevatio
   } catch (err) {
     if (err instanceof Error && err.message === 'Superseded by newer request') { return; }
     throw err;
+  } finally {
+    isRebuilding.set(false);
   }
 }
 

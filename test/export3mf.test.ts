@@ -101,7 +101,7 @@ function approxEqual(actual: number, expected: number, tolerance = 1e-4) {
 test('export3mf returns a 3MF blob and filename', async () => {
   const outlinePoints = syntheticOutline();
   const basePlate = buildBasePlate(outlinePoints, 20);
-  const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
+  const model = await buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
 
   const result = export3mf(model, 'Synthetic Raceway');
 
@@ -119,7 +119,7 @@ test('export3mf returns a 3MF blob and filename', async () => {
 test('export3mf colors base plate triangles black and track triangles red', async () => {
   const outlinePoints = syntheticOutline();
   const basePlate = buildBasePlate(outlinePoints, 20);
-  const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
+  const model = await buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
 
   const result = export3mf(model, 'Synthetic Raceway.3mf');
   const archive = unzipSync(new Uint8Array(await result.blob.arrayBuffer()));
@@ -135,10 +135,10 @@ test('export3mf colors base plate triangles black and track triangles red', asyn
   assert.ok(redTriangles.length > 0);
 });
 
-test('splitModelTriangles keeps embossed text in the red track group', () => {
+test('splitModelTriangles keeps embossed text in the red track group', async () => {
   const outlinePoints = syntheticOutline();
   const basePlate = buildBasePlate(outlinePoints, 20);
-  const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
+  const model = await buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
 
   const { baseTriangles, trackTriangles } = splitModelTriangles(model);
   const textTriangles = model.triangles.slice(model.baseTriangleCount + model.trackTriangleCount);
@@ -152,7 +152,7 @@ test('splitModelTriangles keeps embossed text in the red track group', () => {
 test('export3mf colors embossed text triangles red', async () => {
   const outlinePoints = syntheticOutline();
   const basePlate = buildBasePlate(outlinePoints, 20);
-  const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
+  const model = await buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
 
   const textTriangles = model.triangles.slice(model.baseTriangleCount + model.trackTriangleCount);
   const textVertexSet = new Set(
@@ -177,7 +177,7 @@ test('export3mf colors embossed text triangles red', async () => {
 test('export3mf deduplicates vertices in the model XML', async () => {
   const outlinePoints = syntheticOutline();
   const basePlate = buildBasePlate(outlinePoints, 20);
-  const model = buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
+  const model = await buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
 
   const result = export3mf(model, 'Synthetic Raceway');
   const archive = unzipSync(new Uint8Array(await result.blob.arrayBuffer()));
@@ -194,7 +194,7 @@ test('export3mf deduplicates vertices in the model XML', async () => {
 test('export3mf keeps preview geometry bounds aligned for rotated models', async () => {
   const outlinePoints = rankedHoleOutline();
   const basePlate = buildBasePlate(outlinePoints, 60);
-  const model = buildTrackModel({
+  const model = await buildTrackModel({
     outlinePoints,
     basePlate,
     trackName: 'GO',

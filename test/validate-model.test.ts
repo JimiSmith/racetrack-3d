@@ -38,7 +38,7 @@ function syntheticProjectedLoop(): ProjectedNode[] {
   return nodes;
 }
 
-function buildModel() {
+async function buildModel() {
   const projectedNodes = syntheticProjectedLoop();
   const outlinePoints = buildTrackOutline(projectedNodes, 12);
   const basePlate = buildBasePlate(outlinePoints, 50);
@@ -53,13 +53,13 @@ function buildModel() {
   });
 }
 
-test('validateModel reports parts in fixed base/secondary/track order', () => {
-  const report = validateModel(buildModel());
+test('validateModel reports parts in fixed base/secondary/track order', async () => {
+  const report = validateModel(await buildModel());
   assert.deepEqual(report.parts.map(p => p.part), ['base', 'secondary', 'track']);
 });
 
-test('validateModel includes empty parts with zero findings that never break ok', () => {
-  const report = validateModel(buildModel());
+test('validateModel includes empty parts with zero findings that never break ok', async () => {
+  const report = validateModel(await buildModel());
   // The synthetic non-coaster model has no secondary track.
   const secondary = report.parts.find(p => p.part === 'secondary')!;
   assert.equal(secondary.triangleCount, 0);
@@ -72,15 +72,15 @@ test('validateModel includes empty parts with zero findings that never break ok'
   assert.equal(secondary.shellComponentCount, 0);
 });
 
-test('validateModel reports a tJunctions array on every part', () => {
-  const report = validateModel(buildModel());
+test('validateModel reports a tJunctions array on every part', async () => {
+  const report = validateModel(await buildModel());
   for (const part of report.parts) {
     assert.ok(Array.isArray(part.tJunctions), `${part.part} has a tJunctions array`);
   }
 });
 
-test('validateModel exposes #115 detector fields on every part', () => {
-  const report = validateModel(buildModel());
+test('validateModel exposes #115 detector fields on every part', async () => {
+  const report = validateModel(await buildModel());
   for (const part of report.parts) {
     assert.ok(Array.isArray(part.selfIntersections), `${part.part} has a selfIntersections array`);
     assert.ok(Array.isArray(part.flippedFaces), `${part.part} has a flippedFaces array`);
@@ -90,8 +90,8 @@ test('validateModel exposes #115 detector fields on every part', () => {
   }
 });
 
-test('validateModel.ok is true iff every part has zero non-manifold edges and degenerates', () => {
-  const report = validateModel(buildModel());
+test('validateModel.ok is true iff every part has zero non-manifold edges and degenerates', async () => {
+  const report = validateModel(await buildModel());
   const expected = report.parts.every(
     p => p.nonManifoldEdges.length === 0 && p.degenerateTriangles.length === 0,
   );

@@ -1,16 +1,16 @@
 import { buildTrackOutline as _buildTrackOutline } from '../geometry/outline.js';
 import {
-  buildTextMeshFromRankedPlacements,
   computeRankedTextPlacements,
   DEFAULT_TEXT_POSITION_RANK,
   normalizeTextPositionRank,
   TEXT_HEIGHT_MM,
 } from '../text3d.js';
 import type { TrackModel, OutlinePoints, BasePlate } from '../types/model.js';
-import type { Point2D, ProjectedNode } from '../types/geometry.js';
+import type { ProjectedNode } from '../types/geometry.js';
 import type { RankedPlacements } from '../types/text.js';
 import { selectAndExpandPlacement } from '../text/mesh.js';
 import { buildContourTree, collectShapes } from '../text/contours.js';
+import type { ContourShape } from '../text/contours.js';
 import type { PerfTimer } from './perf-timer.js';
 import {
   BASE_THICKNESS_MM,
@@ -19,17 +19,16 @@ import {
   COASTER_POCKET_DEPTH_MM,
   BASE_CORNER_RADIUS_MM,
   TARGET_MAX_SIZE_MM,
-  buildBasePlateMesh,
-  buildCoasterBasePlateMesh,
   computeScale,
-  type CoasterPocketSpec,
 } from './base-plate.js';
-import { buildTrackPrismMesh, __setTrackPrismPerfCounters } from './track-prism.js';
+import type { Footprint, CsgSpec } from './base-plate-csg.js';
 import {
   COASTER_TRACK_HEIGHT_FLUSH_MM,
   COASTER_TRACK_HEIGHT_RAISED_MM,
+  TRACK_HEIGHT_MM,
   TRACK_WIDTH_METRES,
   MIN_COASTER_TRACK_WIDTH_MM,
+  type RibbonMeshOptions,
 } from './track-ribbon.js';
 import {
   PRIMARY_ORIENTATION_AUTO,
@@ -62,7 +61,6 @@ let textPlacementCache: TextPlacementCache = {
 interface ModelPerfCounters {
   buildTrackOutline: number;
   selectAutoOrientation: number;
-  buildTrackPrismMesh: number;
 }
 
 let __modelPerfCounters: ModelPerfCounters | null = null;
@@ -71,11 +69,9 @@ export function __resetModelPerfCounters(): void {
   __modelPerfCounters = {
     buildTrackOutline: 0,
     selectAutoOrientation: 0,
-    buildTrackPrismMesh: 0,
   };
   __setOrientationBuildTrackOutlineCounter(__modelPerfCounters);
   __setAutoOrientCounter(__modelPerfCounters);
-  __setTrackPrismPerfCounters(__modelPerfCounters);
 }
 
 export function __getModelPerfCounters(): ModelPerfCounters | null {
@@ -86,7 +82,6 @@ export function __disableModelPerfCounters(): void {
   __modelPerfCounters = null;
   __setOrientationBuildTrackOutlineCounter(null);
   __setAutoOrientCounter(null);
-  __setTrackPrismPerfCounters(null);
 }
 
 // ── buildTrackOutline wrapper ────────────────────────────────────────────────
@@ -218,26 +213,21 @@ function translateOutline(outline: OutlinePoints, dx: number, dy: number): Outli
 }
 
 /**
- * Builds a pocket spec (in mm, centred at origin) from the track's outline for
- * flush-inlay coaster mode. The boundary is the asphalt ribbon's outer edge
- * and the islands are the infield(s) inside the loop — kept at full base
- * height so the area inside the track loop remains solid, while the ribbon
- * itself is recessed so the coloured track prism sits flush with the top.
+ * Converts a list of contour shapes (placement coords, mm) into CSG footprints
+ * (outer + holes), filtering rings that are too small to form a polygon.
  */
-function buildTrackPocketSpec(outline: OutlinePoints, scale: number): {
-  boundary: Point2D[];
-  islands: Point2D[][];
-} {
-  const scalePoint = (p: Point2D): Point2D => ({ x: p.x * scale, y: p.y * scale });
-  return {
-    boundary: outline.outerRing.map(scalePoint),
-    islands: outline.holes.map(hole => hole.map(scalePoint)),
-  };
+function shapesToFootprints(shapes: ContourShape[]): Footprint[] {
+  return shapes
+    .filter(shape => shape.outer.length >= 3)
+    .map(shape => ({
+      outer: shape.outer.map(p => ({ x: p.x, y: p.y })),
+      holes: shape.holes.filter(h => h.length >= 3).map(h => h.map(p => ({ x: p.x, y: p.y }))),
+    }));
 }
 
 // ── buildTrackModel ──────────────────────────────────────────────────────────
 
-export function buildTrackModel({
+export async function buildTrackModel({
   outlinePoints,
   basePlate,
   trackName,
@@ -253,7 +243,7 @@ export function buildTrackModel({
   coasterInlay = 'raised',
   trackWidthAuto = true,
   trackWidthMm = 2,
-}: BuildTrackModelOptions): TrackModel {
+}: BuildTrackModelOptions): Promise<TrackModel> {
   const normalizedPrimaryOrientationDeg = normalizePrimaryOrientationDeg(
     primaryOrientationDeg === undefined
       ? (orientationDeg === undefined ? PRIMARY_ORIENTATION_AUTO : orientationDeg)
@@ -444,71 +434,20 @@ export function buildTrackModel({
 
   perfTimer?.step('textPlacement');
 
-  // In flush coaster mode, the text also sits in a top-surface pocket flush
-  // with the base top. Collect the chosen placement's glyph shapes so they can
-  // be passed as additional pockets to the base plate builder.
-  // Each glyph gets a unique sub-resolution (x, y) offset so no two glyphs
-  // share collinear baseline vertices — earcut produces invalid triangulation
-  // (open boundary edges) when multiple holes share a line. The offset is above
-  // the 1e-4 mm export grid (so vertices stay distinct after dedup) yet far
-  // below printer resolution (≈ 0.05 mm), so it breaks collinearity in the
-  // triangulator while staying invisible in the print.
-  const textPocketSpecs: CoasterPocketSpec[] = [];
-  if (coasterMode && coasterInlay === 'flush' && rankedPlacements) {
+  // Collect the chosen placement's glyph shapes (true, un-perturbed contours).
+  // CSG's CrossSection union resolves overlapping/abutting glyphs exactly, so no
+  // per-glyph perturbation is needed. These footprints serve as the text solid
+  // (raised/embossed) and, in flush mode, as the base pocket cutter for text.
+  let textFootprints: Footprint[] = [];
+  if (rankedPlacements) {
     const expanded = selectAndExpandPlacement(rankedPlacements, { textPositionRank: resolvedTextPositionRank });
     if (expanded?.contours?.length) {
-      const shapes = collectShapes(buildContourTree(expanded.contours));
-      // Per-glyph step, capped so even a very long label's total drift stays
-      // bounded (≤ MAX_TEXT_POCKET_PERTURBATION_MM, still well under the
-      // ≈ 0.05 mm print resolution). For realistic labels `step` is the full
-      // PER_GLYPH_STEP_MM; it only shrinks once the glyph count would otherwise
-      // push the last glyph past the cap, and stays above the 1e-4 mm export
-      // grid for any plausible label (it would only reach the grid past ~300
-      // glyphs — far beyond a 90 mm coaster's capacity).
-      const PER_GLYPH_STEP_MM = 5e-4;
-      const MAX_TEXT_POCKET_PERTURBATION_MM = 0.03;
-      const step = Math.min(PER_GLYPH_STEP_MM, MAX_TEXT_POCKET_PERTURBATION_MM / Math.max(shapes.length, 1));
-      shapes.forEach((shape, glyphIndex) => {
-        const dx = (glyphIndex + 1) * step;
-        const dy = (glyphIndex + 1) * step * 1.3;
-        const perturb = (p: Point2D): Point2D => ({ x: p.x + dx, y: p.y + dy });
-        textPocketSpecs.push({
-          boundary: shape.outer.map(perturb),
-          islands: shape.holes.map(hole => hole.map(perturb)),
-        });
-      });
+      textFootprints = shapesToFootprints(collectShapes(buildContourTree(expanded.contours)));
     }
   }
 
-  const basePlateTriangles = coasterMode
-    ? buildCoasterBasePlateMesh(
-        coasterShape,
-        coasterInlay === 'flush'
-          ? [buildTrackPocketSpec(workingOutline, scale), ...textPocketSpecs]
-          : [],
-      )
-    : buildBasePlateMesh(effectiveBasePlate, scale);
-
-  perfTimer?.step('basePlate');
-
-  // Build secondary prism meshes — unique segments only to avoid z-fighting on shared sections.
-  const primaryEdgeSet = buildPrimaryEdgeSet(workingProjected ?? []);
-  const secondaryTrackTriangles = workingSecondaries.flatMap(nodes => {
-    const uniqueChains = getUniqueSubChains(nodes, primaryEdgeSet);
-    return uniqueChains.flatMap(chain => buildTrackPrismMesh(null, scale, chain, true, ribbonOptions));
-  });
-
-  perfTimer?.step('secondaryTracks');
-
-  // Primary layout prism mesh (shown in red in the preview/export).
-  const trackTriangles = buildTrackPrismMesh(
-    workingOutline, scale, workingProjected, false, ribbonOptions,
-  );
-
-  perfTimer?.step('primaryTrack');
-
   // Text height/Z:
-  //  - non-coaster: unchanged (TEXT_HEIGHT_MM on top of base).
+  //  - non-coaster: TEXT_HEIGHT_MM on top of base.
   //  - coaster raised: 0.2 mm on top of base, matching the track.
   //  - coaster flush: embedded in a 1 mm pocket, top flush with the base.
   const textBaseThickness = coasterMode && coasterInlay === 'flush'
@@ -517,20 +456,55 @@ export function buildTrackModel({
   const textHeight = coasterMode
     ? (coasterInlay === 'flush' ? COASTER_POCKET_DEPTH_MM : COASTER_TRACK_HEIGHT_RAISED_MM)
     : TEXT_HEIGHT_MM;
-  const textTriangles = buildTextMeshFromRankedPlacements(rankedPlacements, {
-    textPositionRank: resolvedTextPositionRank,
-    baseThickness: textBaseThickness,
-    textHeight,
+
+  // Unique secondary sub-chains (drop sections shared with the primary to avoid
+  // z-fighting); each buffered into a closed outline so the CSG path extrudes a
+  // clean (non-self-intersecting) solid. Combined into one grey solid by CSG.
+  const primaryEdgeSet = buildPrimaryEdgeSet(workingProjected ?? []);
+  const secondaryRibbonOutlines = workingSecondaries
+    .flatMap(nodes => getUniqueSubChains(nodes, primaryEdgeSet))
+    .filter(chain => chain.length >= 2)
+    .map(chain => ({ outline: buildTrackOutline(chain, effectiveTrackWidthMetres), projected: chain }));
+
+  // Normalize the ribbon options into a concrete shape for the CSG extruder.
+  const csgRibbon: RibbonMeshOptions = {
+    trackHeightMm: ribbonOptions?.trackHeightMm ?? TRACK_HEIGHT_MM,
+    ignoreElevation: ribbonOptions?.ignoreElevation ?? false,
+    baseZ: ribbonOptions?.baseZ ?? BASE_THICKNESS_MM,
+    trackWidthMetres: ribbonOptions?.trackWidthMetres ?? effectiveTrackWidthMetres,
+  };
+
+  const mode: CsgSpec['mode'] = coasterMode
+    ? (coasterInlay === 'flush' ? 'coaster-flush' : 'coaster-raised')
+    : 'embossed';
+
+  // Dynamic import keeps the ~1 MB wasm + glue out of any chunk that merely
+  // imports src/model for types/constants (export worker, preview module).
+  const { buildModelGeometryCsg } = await import('./base-plate-csg.js');
+
+  const csg = await buildModelGeometryCsg({
+    mode,
+    coasterShape,
+    scale,
+    primaryOutline: workingOutline,
+    primaryProjected: workingProjected,
+    secondaryOutlines: secondaryRibbonOutlines,
+    basePlate: effectiveBasePlate,
+    flushTextFootprints: mode === 'coaster-flush' ? textFootprints : [],
+    textSolid: textFootprints.length > 0
+      ? { footprints: textFootprints, baseZ: textBaseThickness, height: textHeight }
+      : null,
+    ribbon: csgRibbon,
   });
 
-  perfTimer?.step('textMesh');
+  perfTimer?.step('csg');
 
   const result: TrackModel = {
-    triangles: [...basePlateTriangles, ...secondaryTrackTriangles, ...trackTriangles, ...textTriangles],
-    baseTriangleCount: basePlateTriangles.length,
-    secondaryTrackTriangleCount: secondaryTrackTriangles.length,
-    trackTriangleCount: trackTriangles.length,
-    textTriangleCount: textTriangles.length,
+    triangles: csg.triangles,
+    baseTriangleCount: csg.baseTriangleCount,
+    secondaryTrackTriangleCount: csg.secondaryTrackTriangleCount,
+    trackTriangleCount: csg.trackTriangleCount,
+    textTriangleCount: csg.textTriangleCount,
     scale,
     primaryOrientationDeg: normalizedPrimaryOrientationDeg,
     textPositionRank: resolvedTextPositionRank,

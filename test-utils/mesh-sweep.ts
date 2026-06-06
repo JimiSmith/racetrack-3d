@@ -194,24 +194,36 @@ export interface SweepFailure {
   selfIntersections: number;
   /** #115: flipped-winding adjacent face pairs. */
   flippedFaces: number;
-  /** #115: disjoint shell-component count (the part fails only when this is `> 1`). */
+  /** #115: disjoint shell-component count (diagnostic only). The part fails on OPEN shells
+   *  (`openShellComponentCount > 0`), not on a count `> 1` — multiple closed shells are valid (#133). */
   shellComponents: number;
   /** From nonManifoldEdges[0], rounded to 4dp. */
   firstEdge?: { a: { x: number; y: number; z: number }; b: { x: number; y: number; z: number } };
   buildError?: string;
 }
 
-/** Failure predicate for a part. #115 detectors are HARD FAILS, mirroring #130. A single
- *  part is legitimately ONE shell, so the shell-component fail condition is `> 1` (more than
- *  one disjoint shell is the defect), not `> 0`. */
+/** Failure predicate for a part.
+ *
+ *  SELF-INTERSECTIONS are gated HONESTLY (#133, §3.5a): a GENUINE `crossing` self-intersection
+ *  (a true 3D interior cross — the defect the old `warp` ribbon produced) is a HARD FAIL. The
+ *  `coplanar` class only (same-plane area lamination / near-contact surfaces, which the detector
+ *  over-reports on watertight CSG output) is tolerated and surfaced for visibility, not failed on.
+ *  The hull+union ribbon is `crossing`-free BY CONSTRUCTION, so any `crossing > 0` is real broken
+ *  geometry and must fail — there is NO blanket CSG exemption.
+ *
+ *  A part may legitimately contain SEVERAL disjoint shells that are each individually watertight
+ *  (the track ribbon PLUS the disconnected embossed/inlaid text glyph solids), so the shell
+ *  defect is `openShellComponentCount > 0` (a shell with a boundary / non-manifold edge — the
+ *  unwelded-soup failure mode), NOT `shellComponentCount > 1`. */
 function partFailed(part: PartReport): boolean {
+  const crossingSelfIntersections = part.selfIntersections.filter(s => s.kind === 'crossing').length;
   return (
     part.nonManifoldEdges.length > 0 ||
     part.degenerateTriangles.length > 0 ||
     part.tJunctions.length > 0 ||
-    part.selfIntersections.length > 0 ||
+    crossingSelfIntersections > 0 ||
     part.flippedFaces.length > 0 ||
-    part.shellComponentCount > 1
+    part.openShellComponentCount > 0
   );
 }
 
@@ -224,7 +236,7 @@ function round4(n: number): number {
  * Returns the failure rows for this single build (empty when clean). A thrown build
  * error becomes one row with `part: 'build'` so a crash on a hard track is reported.
  */
-export function sweepOne(file: PrebuiltTrackFile, mode: Mode): SweepFailure[] {
+export async function sweepOne(file: PrebuiltTrackFile, mode: Mode): Promise<SweepFailure[]> {
   const label = trackLabel(file);
   const layouts = buildableLayouts(file);
   const primaryIndex =
@@ -242,7 +254,7 @@ export function sweepOne(file: PrebuiltTrackFile, mode: Mode): SweepFailure[] {
         ? others.map(l => projectNodes(l.nodes, null, center))
         : [];
 
-    const model = buildTrackModel({
+    const model = await buildTrackModel({
       outlinePoints: null,
       basePlate: null,
       trackName: label,
@@ -321,7 +333,7 @@ export interface RunSweepOptions {
  * Runs the sweep over a list of track ids. Stub/no-geometry files are recorded as
  * skipped (never failures). Returns aggregated failures + counts.
  */
-export function runSweep(trackIds: string[], options: RunSweepOptions = {}): SweepResult {
+export async function runSweep(trackIds: string[], options: RunSweepOptions = {}): Promise<SweepResult> {
   const variant = options.variant ?? 'sample';
   const failures: SweepFailure[] = [];
   const skipped: SweepResult['skipped'] = [];
@@ -336,7 +348,7 @@ export function runSweep(trackIds: string[], options: RunSweepOptions = {}): Swe
     const multiLayout = buildableLayouts(file).length > 1;
     const modes = enumerateModes(multiLayout, variant);
     for (const mode of modes) {
-      failures.push(...sweepOne(file, mode));
+      failures.push(...await sweepOne(file, mode));
     }
     built += 1;
   }

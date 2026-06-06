@@ -29,12 +29,12 @@ type TrackFile = {
 };
 const spa: TrackFile = JSON.parse(readFileSync(spaPath, 'utf8'));
 
-test('Spa-Francorchamps flush coaster — each 3MF object is 2-manifold', () => {
+test('Spa-Francorchamps flush coaster — each 3MF object is 2-manifold', async () => {
   const layout = spa.layouts.find(l => l.id === 'grand-prix') ?? spa.layouts[0]!;
   const projected = projectNodes(layout.nodes, null, spa.center);
   const outlinePoints = buildTrackOutline(projected, 12);
   const basePlate = buildBasePlate(outlinePoints, 50);
-  const model = buildTrackModel({
+  const model = await buildTrackModel({
     outlinePoints,
     basePlate,
     projectedNodes: projected,
@@ -44,20 +44,19 @@ test('Spa-Francorchamps flush coaster — each 3MF object is 2-manifold', () => 
     coasterInlay: 'flush',
     primaryOrientationDeg: 'auto',
   });
-  // Machine-checked #111 ratchet: the Spa flush BASE part had 194 T-junctions before the
-  // simplifyRing colinearity fix. The fix (length-scaled threshold + iterate-until-stable
-  // collapse) must keep the base-part T-junction count strictly below that baseline. We use
-  // `<`, not `=== 0`, so the residual stays observable as the measurement input for #110.
-  const SPA_BASE_TJUNCTION_BASELINE = 194;
+  // #133: the manifold-3d CSG base plate is built from clean cross-sections, so the Spa flush
+  // BASE part now carries ZERO T-junctions (down from the 194 the legacy earcut path produced,
+  // ratcheted under #111). Tightened from `< 194` to `=== 0` per the issue #133 plan — this is
+  // a strengthening of the assertion, made possible by correct CSG geometry.
   const report = validateModel(model);
   const baseTJunctions = report.parts.find(p => p.part === 'base')!.tJunctions.length;
-  assert.ok(
-    baseTJunctions < SPA_BASE_TJUNCTION_BASELINE,
-    `Spa flush base-part T-junction count regressed: ${baseTJunctions} (baseline ${SPA_BASE_TJUNCTION_BASELINE}, must stay below)`,
+  assert.equal(
+    baseTJunctions,
+    0,
+    `Spa flush base-part T-junction count regressed: ${baseTJunctions} (CSG geometry must yield 0)`,
   );
 
-  // Opted into the full #115 detector set; this is one of the 3 intentional pre-existing
-  // failures and the new detectors may make it louder (expected, not a regression). Kept so
-  // the printed `T-junction count: N` residual remains visible for #110's re-measurement.
+  // Full #115 detector set: with CSG geometry every 3MF object (base, secondary, track) is a
+  // single watertight, self-intersection-free shell, so this now passes for the right reason.
   assertModelManifold('Spa flush', model, { failOn: 'all' });
 });

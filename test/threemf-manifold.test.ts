@@ -68,18 +68,18 @@ function buildModelForCase(opts: {
   });
 }
 
-test('non-coaster export is 2-manifold per part', () => {
-  const model = buildModelForCase({ coasterMode: false });
+test('non-coaster export is 2-manifold per part', async () => {
+  const model = await buildModelForCase({ coasterMode: false });
   assertModelManifold('non-coaster', model);
 });
 
-test('coaster round + raised export is 2-manifold per part (Spa repro mode)', () => {
-  const model = buildModelForCase({ coasterMode: true, coasterInlay: 'raised' });
+test('coaster round + raised export is 2-manifold per part (Spa repro mode)', async () => {
+  const model = await buildModelForCase({ coasterMode: true, coasterInlay: 'raised' });
   assertModelManifold('coaster raised', model);
 });
 
-test('coaster round + flush export is 2-manifold per part', () => {
-  const model = buildModelForCase({ coasterMode: true, coasterInlay: 'flush' });
+test('coaster round + flush export is 2-manifold per part', async () => {
+  const model = await buildModelForCase({ coasterMode: true, coasterInlay: 'flush' });
   // Opted into the full #115 detector set; this case is one of the 3 intentional
   // pre-existing failures and the new detectors may make it louder (expected, not a regression).
   assertModelManifold('coaster flush', model, { failOn: 'all' });

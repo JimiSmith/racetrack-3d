@@ -4,6 +4,7 @@ import test from 'node:test';
 import type { Font } from 'opentype.js';
 
 import type { RankedTextPlacement } from '../src/types/text.js';
+import type { OutlinePoints, BasePlate, Triangle } from '../src/types/model.js';
 import { BASE_THICKNESS_MM } from '../src/model/index.js';
 import { rotateOutlineByOrientation } from '../src/model/orientation.js';
 import {
@@ -15,13 +16,35 @@ import {
   __debugPlacementCandidates,
   __debugRectIntersectsPolygon,
   __findOptimalLineBreaks,
-  buildTextMesh,
   computeRankedTextPlacements,
 } from '../src/text3d.js';
+import { buildTextMeshFromRankedPlacements } from '../src/text/mesh.js';
 
 type Point = { x: number; y: number };
 type Vertex3D = { x: number; y: number; z: number };
 type Bounds = { minX: number; maxX: number; minY: number; maxY: number };
+
+/**
+ * Test helper composing the production text-mesh path: rank placements then
+ * triangulate the selected one. Mirrors how the model pipeline builds text and
+ * replaces the retired `buildTextMesh` convenience wrapper (issue #113).
+ */
+function buildTextMesh(
+  text: string,
+  outlinePoints: OutlinePoints | null | undefined,
+  basePlate: BasePlate,
+  scale: number,
+  options: Record<string, unknown> = {},
+): Triangle[] {
+  const ranked = computeRankedTextPlacements(
+    text,
+    outlinePoints,
+    basePlate,
+    scale,
+    options as Parameters<typeof computeRankedTextPlacements>[4],
+  );
+  return buildTextMeshFromRankedPlacements(ranked, options as Parameters<typeof buildTextMeshFromRankedPlacements>[1]);
+}
 
 function rectangleCommands(x: number, y: number, width: number, height: number) {
   return [

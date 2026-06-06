@@ -510,3 +510,52 @@ export function findShellComponents(
   components.sort((a, b) => a[0]! - b[0]!);
   return components;
 }
+
+/**
+ * Counts how many connected shell components are NOT closed 2-manifolds — i.e.
+ * contain at least one edge that is not shared by exactly two triangles (a
+ * boundary/open edge or a non-manifold edge).
+ *
+ * Rationale: a single part may legitimately contain MULTIPLE disjoint shells
+ * that are each individually watertight — e.g. the primary-track colour group is
+ * the track ribbon PLUS the disconnected embossed/inlaid text glyph solids, every
+ * one of which is its own closed prism. That is valid, printable geometry, not a
+ * defect. The real fragmentation defect (BSP-style unwelded soup) shows up as
+ * shells with open edges. So the meaningful gate is "every shell is closed", i.e.
+ * `findOpenShellComponentCount(...) === 0`, rather than "exactly one shell".
+ *
+ * Returns the number of components that have one or more non-2-incident edges.
+ */
+export function findOpenShellComponentCount(
+  triangles: Triangle[],
+  options: ValidateOptions = {},
+): number {
+  const precision = options.precisionMm ?? DEFAULT_PRECISION_MM;
+  const components = findShellComponents(triangles, options);
+  let openCount = 0;
+
+  for (const members of components) {
+    const incidence = new Map<string, number>();
+    for (const triIndex of members) {
+      const tri = triangles[triIndex]!;
+      const keys = tri.map(v => vertexKey(v, precision)) as [string, string, string];
+      for (let edge = 0; edge < 3; edge += 1) {
+        const ka = keys[edge]!;
+        const kb = keys[(edge + 1) % 3]!;
+        if (ka === kb) {
+          continue; // degenerate edge — owned by findDegenerateTriangles
+        }
+        const key = edgeKey(ka, kb);
+        incidence.set(key, (incidence.get(key) ?? 0) + 1);
+      }
+    }
+    for (const count of incidence.values()) {
+      if (count !== 2) {
+        openCount += 1;
+        break;
+      }
+    }
+  }
+
+  return openCount;
+}
