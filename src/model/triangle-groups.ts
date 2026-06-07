@@ -1,5 +1,4 @@
 import type { TrackModel, Triangle } from '../types/model.js';
-import { BASE_THICKNESS_MM } from './base-plate.js';
 
 interface SplitModelTriangles {
   baseTriangles: Triangle[];
@@ -20,28 +19,22 @@ export function splitModelTriangles(
 ): SplitModelTriangles {
   const triangles = model?.triangles ?? [];
 
-  if (hasExplicitTriangleSegments(model)) {
-    const baseEnd = model!.baseTriangleCount!;
-    const secCount = model!.secondaryTrackTriangleCount ?? 0;
-    const secondaryEnd = baseEnd + secCount;
-    // trackTriangles includes primary track + text (both rendered in the same red/primary colour).
-    return {
-      baseTriangles: triangles.slice(0, baseEnd),
-      secondaryTrackTriangles: triangles.slice(baseEnd, secondaryEnd),
-      trackTriangles: triangles.slice(secondaryEnd),
-    };
+  if (!hasExplicitTriangleSegments(model)) {
+    throw new Error(
+      'splitModelTriangles requires explicit triangle-segment counts ' +
+        '(baseTriangleCount/secondaryTrackTriangleCount/trackTriangleCount); ' +
+        'the legacy Z-only heuristic cannot recover secondary-track triangles. ' +
+        'Build the model via buildTrackModel.',
+    );
   }
 
-  const baseTriangles: Triangle[] = [];
-  const trackTriangles: Triangle[] = [];
-
-  for (const triangle of triangles) {
-    if (triangle.every(vertex => vertex.z <= BASE_THICKNESS_MM)) {
-      baseTriangles.push(triangle);
-    } else {
-      trackTriangles.push(triangle);
-    }
-  }
-
-  return { baseTriangles, secondaryTrackTriangles: [], trackTriangles };
+  const baseEnd = model!.baseTriangleCount!;
+  const secCount = model!.secondaryTrackTriangleCount ?? 0;
+  const secondaryEnd = baseEnd + secCount;
+  // trackTriangles includes primary track + text (both rendered in the same red/primary colour).
+  return {
+    baseTriangles: triangles.slice(0, baseEnd),
+    secondaryTrackTriangles: triangles.slice(baseEnd, secondaryEnd),
+    trackTriangles: triangles.slice(secondaryEnd),
+  };
 }

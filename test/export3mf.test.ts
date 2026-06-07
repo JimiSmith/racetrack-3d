@@ -135,6 +135,47 @@ test('export3mf colors base plate triangles black and track triangles red', asyn
   assert.ok(redTriangles.length > 0);
 });
 
+function triangleAtZ(z: number): [Vertex, Vertex, Vertex] {
+  return [
+    { x: 0, y: 0, z },
+    { x: 1, y: 0, z },
+    { x: 0, y: 1, z },
+  ];
+}
+
+test('splitModelTriangles throws when explicit triangle-segment counts are missing', () => {
+  const model = { triangles: [triangleAtZ(0), triangleAtZ(5)] };
+
+  assert.throws(
+    () => splitModelTriangles(model),
+    /explicit triangle-segment counts/,
+  );
+});
+
+test('splitModelTriangles splits by explicit counts, including a non-empty secondary group', () => {
+  const triangles = [
+    triangleAtZ(0), // base
+    triangleAtZ(0), // base
+    triangleAtZ(1), // secondary
+    triangleAtZ(2), // primary track
+    triangleAtZ(3), // text (folded into trackTriangles)
+  ];
+  const model = {
+    triangles,
+    baseTriangleCount: 2,
+    secondaryTrackTriangleCount: 1,
+    trackTriangleCount: 1,
+    textTriangleCount: 1,
+  };
+
+  const { baseTriangles, secondaryTrackTriangles, trackTriangles } = splitModelTriangles(model);
+
+  assert.deepEqual(baseTriangles, triangles.slice(0, 2));
+  assert.deepEqual(secondaryTrackTriangles, triangles.slice(2, 3));
+  assert.deepEqual(trackTriangles, triangles.slice(3));
+  assert.ok(secondaryTrackTriangles.length > 0);
+});
+
 test('splitModelTriangles keeps embossed text in the red track group', async () => {
   const outlinePoints = syntheticOutline();
   const basePlate = buildBasePlate(outlinePoints, 20);
