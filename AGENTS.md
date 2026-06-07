@@ -8,6 +8,18 @@
 - Always push to `origin/main` after committing.
 - Check open GitHub issues before starting work. See `.agents/skills/github-issues.md`.
 
+## Testing
+
+`npm test` skips two slow tests **by default** (gated by the `RUN_SLOW_TESTS` env var) so iterative runs stay fast:
+
+- the mesh-validation sweep in `test/mesh-sweep-sample.test.ts` (~6 min), and
+- the text-clearance test in `test/text3d.test.ts` (~60s).
+
+Only run them when your change could affect what they cover — the mesh sweep for model/CSG/mesh-generation or validation changes (`test-utils/mesh-sweep.ts`, the model/export pipeline); the text-clearance test for text placement/clearance changes (`computeRankedTextPlacements` and `src/text*`). Do **not** run them routinely.
+
+- Run on demand: `npm run test:slow` (or `RUN_SLOW_TESTS=1 npm test`).
+- CI runs the full suite including both via `RUN_SLOW_TESTS=1` in `.github/workflows/deploy-pages.yml`, so they stay covered on every push to `main` — no need to run them locally just to be safe.
+
 ## Hard rules
 
 - Never add source-specific or Overpass-specific cleanup to `src/search.js`. Runtime logic stays generic.
