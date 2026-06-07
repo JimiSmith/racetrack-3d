@@ -324,9 +324,28 @@ export interface SweepResult {
   skipped: { trackId: string; reason: 'no-geometry' }[];
 }
 
+export interface SweepProgress {
+  /** Tracks processed so far (built + skipped). */
+  processed: number;
+  /** Total tracks in this run. */
+  total: number;
+  /** Tracks built so far (excludes skipped). */
+  built: number;
+  /** Cumulative failing rows so far. */
+  failures: number;
+  /** Milliseconds elapsed since the sweep started. */
+  elapsedMs: number;
+  /** The track id just processed. */
+  trackId: string;
+  /** Failing rows contributed by the track just processed (0 when clean/skipped). */
+  trackFailures: number;
+}
+
 export interface RunSweepOptions {
   /** Selects the per-track mode matrix. Defaults to 'sample'. */
   variant?: SweepVariant;
+  /** Optional callback invoked once per track (built or skipped) for progress reporting. */
+  onProgress?: (progress: SweepProgress) => void;
 }
 
 /**
@@ -335,22 +354,31 @@ export interface RunSweepOptions {
  */
 export async function runSweep(trackIds: string[], options: RunSweepOptions = {}): Promise<SweepResult> {
   const variant = options.variant ?? 'sample';
+  const { onProgress } = options;
   const failures: SweepFailure[] = [];
   const skipped: SweepResult['skipped'] = [];
   let built = 0;
+  let processed = 0;
+  const startedAt = Date.now();
+  const total = trackIds.length;
 
   for (const trackId of trackIds) {
     const file = readTrackFile(trackId);
     if (file === null || !isBuildable(file)) {
       skipped.push({ trackId, reason: 'no-geometry' });
+      processed += 1;
+      onProgress?.({ processed, total, built, failures: failures.length, elapsedMs: Date.now() - startedAt, trackId, trackFailures: 0 });
       continue;
     }
     const multiLayout = buildableLayouts(file).length > 1;
     const modes = enumerateModes(multiLayout, variant);
+    const before = failures.length;
     for (const mode of modes) {
       failures.push(...await sweepOne(file, mode));
     }
     built += 1;
+    processed += 1;
+    onProgress?.({ processed, total, built, failures: failures.length, elapsedMs: Date.now() - startedAt, trackId, trackFailures: failures.length - before });
   }
 
   return { failures, built, skipped };

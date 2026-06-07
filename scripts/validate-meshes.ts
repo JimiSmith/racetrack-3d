@@ -103,7 +103,23 @@ async function main(): Promise<void> {
     const ids = buildableTrackIds();
     console.log(`validate:meshes — all ${ids.length} buildable tracks (lean matrix). This may take minutes.\n`);
     const started = Date.now();
-    const result = await runSweep(ids, { variant: 'all' });
+    let lastBeat = 0;
+    const result = await runSweep(ids, {
+      variant: 'all',
+      onProgress: p => {
+        // Stream each failing track the moment it is found.
+        if (p.trackFailures > 0) {
+          console.log(`  ✗ ${p.trackId}: ${p.trackFailures} failing row(s)  [${p.processed}/${p.total}]`);
+        }
+        // Heartbeat every 25 tracks (and on the final track) so a long run shows progress.
+        if (p.processed - lastBeat >= 25 || p.processed === p.total) {
+          lastBeat = p.processed;
+          const rate = p.processed / Math.max(1, p.elapsedMs / 1000);
+          const etaS = rate > 0 ? Math.round((p.total - p.processed) / rate) : 0;
+          console.log(`  … ${p.processed}/${p.total} processed · ${p.built} built · ${p.failures} failing rows · ${(p.elapsedMs / 1000).toFixed(0)}s elapsed · ~${etaS}s left`);
+        }
+      },
+    });
     console.log(`(${((Date.now() - started) / 1000).toFixed(1)}s)\n`);
     report(result, ids.length);
     return;
