@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/ scripts/ test/ test-utils/",
     "test": "node --import tsx/esm --test",
+    "test:slow": "RUN_SLOW_TESTS=1 node --import tsx/esm --test",
     "build": "vite build",
     "preview": "vite preview",
     "check:file-sizes": "node --import tsx/esm scripts/check-file-sizes.ts",

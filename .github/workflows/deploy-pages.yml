@@ -37,6 +37,9 @@ jobs:
 
       - name: Run tests
         run: npm test
+        env:
+          # Run the slow tests that are skipped by default locally (see CLAUDE.md).
+          RUN_SLOW_TESTS: '1'
 
       - name: Build app
         run: npm run build
