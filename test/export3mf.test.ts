@@ -204,15 +204,73 @@ test('export3mf colors embossed text triangles red', async () => {
   const archive = unzipSync(new Uint8Array(await result.blob.arrayBuffer()));
   const xml = extractModelXml(archive);
 
-  const redTriangles = [...xml.matchAll(/<triangle[^>]*v1="(\d+)"[^>]*v2="(\d+)"[^>]*v3="(\d+)"[^>]*p1="1"\/>/g)];
-  const vertices = [...xml.matchAll(/<vertex x="([^"]+)" y="([^"]+)" z="([^"]+)"\/>/g)].map(([, x, y, z]) => `${x},${y},${z}`);
+  // Each mesh object now owns its own vertex pool, so <triangle> v-indices are
+  // local to the <object> that contains them. Resolve indices per mesh object
+  // rather than against one flat global vertex list.
+  const meshBlocks = [...xml.matchAll(/<object\b[^>]*>([\s\S]*?)<\/object>/g)]
+    .map(([, body]) => body)
+    .filter(body => body.includes('<mesh>'));
 
-  const hasRedTextTriangle = redTriangles.some(([, v1, v2, v3]) => {
-    const keys = [Number(v1), Number(v2), Number(v3)].map(index => vertices[index]!);
-    return keys.every(key => textVertexSet.has(key));
+  const hasRedTextTriangle = meshBlocks.some(body => {
+    const vertices = [...body.matchAll(/<vertex x="([^"]+)" y="([^"]+)" z="([^"]+)"\/>/g)]
+      .map(([, x, y, z]) => `${x},${y},${z}`);
+    const redTriangles = [...body.matchAll(/<triangle[^>]*v1="(\d+)"[^>]*v2="(\d+)"[^>]*v3="(\d+)"[^>]*p1="1"\/>/g)];
+
+    return redTriangles.some(([, v1, v2, v3]) => {
+      const keys = [Number(v1), Number(v2), Number(v3)].map(index => vertices[index]!);
+      return keys.every(key => textVertexSet.has(key));
+    });
   });
 
   assert.ok(hasRedTextTriangle);
+});
+
+test('export3mf emits a single parent object + components with one colour scheme', async () => {
+  const outlinePoints = syntheticOutline();
+  const basePlate = buildBasePlate(outlinePoints, 20);
+  const model = await buildTrackModel({ outlinePoints, basePlate, trackName: 'Synthetic Raceway' });
+
+  const result = export3mf(model, 'Synthetic Raceway.3mf');
+  const archive = unzipSync(new Uint8Array(await result.blob.arrayBuffer()));
+  const xml = extractModelXml(archive);
+
+  // Exactly one build with exactly one item.
+  assert.equal([...xml.matchAll(/<build\b/g)].length, 1);
+  assert.equal([...xml.matchAll(/<item\b/g)].length, 1);
+
+  // Parse every <object> block; classify into mesh objects and the parent
+  // components container.
+  const objects = [...xml.matchAll(/<object\s+id="(\d+)"[^>]*>([\s\S]*?)<\/object>/g)].map(
+    ([full, id, body]) => ({ id: Number(id), body, index: xml.indexOf(full) }),
+  );
+  const meshObjects = objects.filter(obj => obj.body.includes('<mesh>'));
+  const componentObjects = objects.filter(obj => obj.body.includes('<components>'));
+
+  // Exactly one parent object, and it is a pure components container (no mesh).
+  assert.equal(componentObjects.length, 1);
+  const parent = componentObjects[0]!;
+  assert.ok(!parent.body.includes('<mesh>'));
+  assert.ok(meshObjects.length > 0);
+
+  // One <component> per mesh object, referencing exactly those mesh ids.
+  const componentIds = [...parent.body.matchAll(/<component\s+objectid="(\d+)"\/>/g)].map(([, id]) => Number(id));
+  assert.equal(componentIds.length, meshObjects.length);
+  const meshIds = meshObjects.map(obj => obj.id).sort((a, b) => a - b);
+  assert.deepEqual([...componentIds].sort((a, b) => a - b), meshIds);
+
+  // The build item references the parent object.
+  const itemObjectId = Number(xml.match(/<item\s+objectid="(\d+)"\/>/)![1]);
+  assert.equal(itemObjectId, parent.id);
+
+  // Children declared before the parent that references them.
+  for (const child of meshObjects) {
+    assert.ok(child.index < parent.index, `mesh object ${child.id} must precede parent ${parent.id}`);
+  }
+
+  // One colour scheme: per-triangle pid/p1 only, no per-object pindex, one colorgroup.
+  assert.ok(!/pindex=/.test(xml));
+  assert.equal([...xml.matchAll(/<m:colorgroup\b/g)].length, 1);
+  assert.ok([...xml.matchAll(/<triangle[^>]*pid="1"[^>]*p1="\d+"\/>/g)].length > 0);
 });
 
 test('export3mf deduplicates vertices in the model XML', async () => {
