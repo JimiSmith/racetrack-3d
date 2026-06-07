@@ -76,6 +76,7 @@ src/
 │   ├── placement.ts         # computePlacementMask, findPlacementCandidates, computeRankedTextPlacements
 │   ├── scoring.ts           # SCORING_WEIGHTS, scoreTextFit, size window multiplier, clearance scoring
 │   ├── mesh.ts              # buildTextMeshFromRankedPlacements, contour triangulation
+│   ├── debug.ts            # Test-only __debug*/__*PerfCounters helpers (not part of public API)
 │   └── index.ts             # Public re-exports
 │
 ├── export/                  # Export serialization (pure, no DOM)
@@ -118,7 +119,6 @@ src/
 │   ├── geometry/            # Per-track JSON files keyed by Wikidata ID
 │   └── track-search-index.json
 │
-├── text3d.ts                # Legacy shim — re-exports from src/text/ modules (see Known Debt below)
 ├── track-loader.ts          # Orchestrates model rebuilds: reads stores, posts to model worker, writes results back
 ├── label-font-data.js       # Base64-encoded font (+ .d.ts)
 ├── entry.ts                 # App entry point — mounts Svelte App component
@@ -306,14 +306,14 @@ Vite uses esbuild for transpilation and Rollup for production bundling. Workers 
 
 ## Known debt
 
-- **`src/text3d.ts` shim** — 389-line re-export file bridging `src/model/` and `src/text/` modules. Three call sites still import from it (`model/orientation.ts`, `stores/options.ts`, `components/OptionsPanel.svelte`). These should be migrated to import directly from `src/text/` modules, after which the shim can be deleted.
+- _(none currently tracked)_ — The former legacy text re-export shim was removed in #137: production code now imports directly from the `src/text/index.ts` barrel, and its test-only debug helpers live in `src/text/debug.ts`.
 
 ## Hard rules
 
 - **No file over 300 lines.** Decompose along responsibility boundaries.
 - **No circular dependencies.** Enforced by ESLint `import/no-cycle`.
 - **No DOM access in pure modules.** Only `components/`, `preview/`, and `entry.ts` may touch the DOM.
-- **No `any` in new code.** Use `unknown` and narrow. Legacy `any` casts exist in `text3d.ts` and should be eliminated when the shim is removed.
+- **No `any` in new code.** Use `unknown` and narrow. (The legacy `any` casts in the old text re-export shim were eliminated in #137; `src/text/debug.ts` is `any`-free.)
 - **Exports are the public API.** Each directory's `index.ts` defines what is public. Internal helpers are not re-exported.
 - **Workers own their computation.** The main thread must not call `buildTrackModel` directly — only via the model worker client. Same for export serialization.
 - **Build scripts stay in JS/MJS.** `scripts/` does not need TypeScript.

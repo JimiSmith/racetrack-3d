@@ -7,8 +7,8 @@ import {
   __resetPerfCounters,
   __getPerfCounters,
   __disablePerfCounters,
-  computeRankedTextPlacements,
-} from '../src/text3d.js';
+} from '../src/text/debug.js';
+import { computeRankedTextPlacements } from '../src/text/index.js';
 
 // ---------------------------------------------------------------------------
 // Helpers — realistic track shapes

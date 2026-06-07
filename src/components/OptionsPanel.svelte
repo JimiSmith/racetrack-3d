@@ -10,7 +10,7 @@
   } from '../stores/options.js';
   import { selectedTrack, layouts } from '../stores/track.js';
   import { normalizePrimaryOrientationDeg } from '../model/orientation.js';
-  import { normalizeTextPositionRank, DEFAULT_TEXT_POSITION_RANK } from '../text3d.js';
+  import { normalizeTextPositionRank, DEFAULT_TEXT_POSITION_RANK } from '../text/index.js';
   import { rebuildModel, loadElevations, invalidatePlacementCache } from '../track-loader.js';
   import { MIN_COASTER_TRACK_WIDTH_MM } from '../model/track-ribbon.js';
   import { get } from 'svelte/store';

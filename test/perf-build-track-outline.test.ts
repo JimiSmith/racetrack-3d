@@ -12,7 +12,7 @@ import {
   __resetPerfCounters,
   __getPerfCounters,
   __disablePerfCounters,
-} from '../src/text3d.js';
+} from '../src/text/debug.js';
 
 // ---------------------------------------------------------------------------
 // Helpers

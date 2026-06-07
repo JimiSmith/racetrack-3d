@@ -1,53 +1,61 @@
 /**
- * Thin re-export shim for the src/text/ module group.
+ * Test-only debug helpers for the src/text/ module group.
  *
- * This file previously contained all 1585 lines of the text placement and
- * mesh generation pipeline. Those have been decomposed into focused modules
- * under src/text/. This shim re-exports the public API so that existing
- * callers (src/model/, src/main.ts, tests) continue to work unchanged.
- *
- * The src/text/ modules are still plain .js — their .d.ts files only declare
- * the public API. Internal helpers are accessed via `any` casts.
+ * These `__`-prefixed wrappers expose internal pipeline functions to the test
+ * suite without polluting the stable public API barrel (src/text/index.ts).
+ * Production code should never import from this module.
  */
 
-import type { OutlinePoints, BasePlate } from './types/model.js';
-import type { RankedPlacements, ScoringWeights, TextPlacementCandidate, RankedTextPlacement } from './types/text.js';
-import type { Point2D } from './types/geometry.js';
-// --- Internal module access (text/* modules are still .js — use any for internals) ---
-import * as _placementMod from './text/placement.js';
-import * as _contoursMod from './text/contours.js';
-import * as _lineBreakingMod from './text/line-breaking.js';
-import * as _scoringMod from './text/scoring.js';
-import * as _meshMod from './text/mesh.js';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const P = _placementMod as any; // internal exports not in .d.ts
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const C = _contoursMod as any; // internal exports not in .d.ts
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const LB = _lineBreakingMod as any; // internal exports not in .d.ts
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const SC = _scoringMod as any; // internal exports not in .d.ts
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const M = _meshMod as any; // internal exports not in .d.ts
-// --- Public API re-exports ---
-export {
-  TEXT_HEIGHT_MM,
-  DEFAULT_TEXT_POSITION_RANK,
-  normalizeTextPositionRank,
-  buildTextMeshFromRankedPlacements,
-} from './text/mesh.js';
-
-export { SCORING_WEIGHTS } from './text/scoring.js';
-
-export { computeRankedTextPlacements } from './text/placement.js';
+import type { Font } from 'opentype.js';
+import type { OutlinePoints, BasePlate } from '../types/model.js';
+import type {
+  ScoringWeights,
+  TextPlacementCandidate,
+  RankedTextPlacement,
+  FittedTextLayout,
+  Rect2D,
+  PlacementScoreBreakdown,
+} from '../types/text.js';
+import type { Point2D } from '../types/geometry.js';
+import {
+  computeRankedTextPlacements,
+  compareRankedTextPlacements,
+  scaleOutline,
+  createScaledBounds,
+  computePlacementMask,
+  findPlacementCandidates,
+  rectIntersectsPolygon,
+  dedupeRankedPlacements,
+  __resetPerfCounters as resetPlacementCounters,
+  __getPerfCounters as getPlacementCounters,
+  __disablePerfCounters as disablePlacementCounters,
+  type ComputeRankedOptions,
+} from './placement.js';
+import {
+  __resetPerfCounters as resetContoursCounters,
+  __getPerfCounters as getContoursCounters,
+  __disablePerfCounters as disableContoursCounters,
+} from './contours.js';
+import {
+  findOptimalLineBreaksForText,
+  __resetPerfCounters as resetLineBreakingCounters,
+  __getPerfCounters as getLineBreakingCounters,
+  __disablePerfCounters as disableLineBreakingCounters,
+} from './line-breaking.js';
+import {
+  scoreTextFit,
+  computeSizeWindowMultiplier,
+  computeLineCountMultiplier,
+  SCORING_WEIGHTS,
+} from './scoring.js';
+import { selectAndExpandPlacement } from './mesh.js';
 
 // --- Performance counter aggregation across all sub-modules ---
 
 export function __resetPerfCounters(): void {
-  (P.__resetPerfCounters as () => void)();
-  (C.__resetPerfCounters as () => void)();
-  (LB.__resetPerfCounters as () => void)();
+  resetPlacementCounters();
+  resetContoursCounters();
+  resetLineBreakingCounters();
 }
 
 interface PerfCounters {
@@ -60,9 +68,9 @@ interface PerfCounters {
 }
 
 export function __getPerfCounters(): PerfCounters | null {
-  const placement = (P.__getPerfCounters as () => Record<string, number> | null)();
-  const contours = (C.__getPerfCounters as () => Record<string, number> | null)();
-  const lineBreaking = (LB.__getPerfCounters as () => Record<string, number> | null)();
+  const placement = getPlacementCounters();
+  const contours = getContoursCounters();
+  const lineBreaking = getLineBreakingCounters();
   if (!placement && !contours && !lineBreaking) {
     return null;
   }
@@ -77,9 +85,9 @@ export function __getPerfCounters(): PerfCounters | null {
 }
 
 export function __disablePerfCounters(): void {
-  (P.__disablePerfCounters as () => void)();
-  (C.__disablePerfCounters as () => void)();
-  (LB.__disablePerfCounters as () => void)();
+  disablePlacementCounters();
+  disableContoursCounters();
+  disableLineBreakingCounters();
 }
 
 // ─── Private helpers ──────────────────────────────────────────────────────────
@@ -107,15 +115,15 @@ function computeTextPlacement(
   outlinePoints: OutlinePoints | null | undefined,
   basePlate: BasePlate,
   scale: number,
-  options: Record<string, unknown> = {},
+  options: ComputeRankedOptions & { textPositionRank?: number } = {},
 ): (ExpandedPlacement & { normalizedText: string }) | null {
   const normalizedText = String(text ?? '').trim();
   if (!normalizedText) {
     return null;
   }
 
-  const rankedResult = (P.computeRankedTextPlacements as (...a: unknown[]) => RankedPlacements | null)(text, outlinePoints, basePlate, scale, options);
-  const expanded = (M.selectAndExpandPlacement as (r: unknown, opts: unknown) => ExpandedPlacement | null)(rankedResult, options);
+  const rankedResult = computeRankedTextPlacements(text, outlinePoints, basePlate, scale, options);
+  const expanded = selectAndExpandPlacement(rankedResult, options);
   if (!expanded) {
     return null;
   }
@@ -129,16 +137,16 @@ export function __findOptimalLineBreaks(
   text: string,
   lineCount: number,
   font: unknown,
-): unknown {
-  return (LB.findOptimalLineBreaksForText as (t: string, n: number, f: unknown) => unknown)(text, lineCount, font ?? null);
+): string[] {
+  return findOptimalLineBreaksForText(text, lineCount, (font ?? null) as Font);
 }
 
 export function __debugScoreTextFit(
-  rect: { minX: number; minY: number; maxX: number; maxY: number; width: number; height: number },
-  layout: Record<string, unknown>,
-  candidate: Record<string, unknown> = {},
-): { score: number; breakdown: Record<string, number> } {
-  return (SC.scoreTextFit as (...a: unknown[]) => { score: number; breakdown: Record<string, number> })(rect, layout, candidate);
+  rect: Rect2D,
+  layout: FittedTextLayout,
+  candidate: { fractionOutside?: number; normalizedTrackClearance?: number } = {},
+): { score: number; breakdown: PlacementScoreBreakdown } {
+  return scoreTextFit(rect, layout, candidate);
 }
 
 export function __debugTextFitModifiers(
@@ -146,10 +154,10 @@ export function __debugTextFitModifiers(
   lineCount: number,
   fractionOutside = 1,
 ): { sizeWindowMultiplier: number; lineCountMultiplier: number; outsideMultiplier: number } {
-  const weights = SC.SCORING_WEIGHTS as ScoringWeights;
+  const weights: ScoringWeights = SCORING_WEIGHTS;
   return {
-    sizeWindowMultiplier: (SC.computeSizeWindowMultiplier as (h: number) => number)(heightMm),
-    lineCountMultiplier: (SC.computeLineCountMultiplier as (n: number) => number)(lineCount),
+    sizeWindowMultiplier: computeSizeWindowMultiplier(heightMm),
+    lineCountMultiplier: computeLineCountMultiplier(lineCount),
     outsideMultiplier: weights.outsideMultiplierMin + weights.outsideMultiplierRange * clamp(fractionOutside, 0, 1),
   };
 }
@@ -158,7 +166,7 @@ export function __debugCompareRankedTextPlacements(
   a: RankedTextPlacement,
   b: RankedTextPlacement,
 ): number {
-  return (P.compareRankedTextPlacements as (a: unknown, b: unknown) => number)(a, b);
+  return compareRankedTextPlacements(a, b);
 }
 
 export function __debugTextPlacement(
@@ -181,7 +189,13 @@ export function __debugTextPlacement(
   candidateFractionOutside: number | undefined;
   candidateTrackClearance: number | undefined;
 } | null {
-  const placement = computeTextPlacement(text, outlinePoints, basePlate, scale, options);
+  const placement = computeTextPlacement(
+    text,
+    outlinePoints,
+    basePlate,
+    scale,
+    options as ComputeRankedOptions & { textPositionRank?: number },
+  );
   if (!placement) {
     return null;
   }
@@ -207,22 +221,25 @@ export function __debugPlacementCandidates(
   basePlate: BasePlate,
   scale: number,
 ): TextPlacementCandidate[] {
-  const scaledOutline = (P.scaleOutline as (o: unknown, s: number) => unknown)(outlinePoints, scale);
-  const scaledBasePlate = (P.createScaledBounds as (b: unknown, s: number) => unknown)(basePlate, scale);
-  const placementMask = (P.computePlacementMask as (...a: unknown[]) => unknown)([scaledOutline], scaledOutline, scaledBasePlate);
-  return (P.findPlacementCandidates as (...a: unknown[]) => { candidates: TextPlacementCandidate[] })(scaledBasePlate, placementMask).candidates;
+  const scaledOutline = scaleOutline(outlinePoints, scale);
+  const scaledBasePlate = createScaledBounds(basePlate, scale);
+  const placementMask = computePlacementMask([scaledOutline], scaledOutline, scaledBasePlate);
+  return findPlacementCandidates(scaledBasePlate, placementMask).candidates;
 }
 
 export function __debugRectIntersectsPolygon(
   rect: { minX: number; minY: number; maxX: number; maxY: number },
   polygon: Point2D[],
 ): boolean {
-  return (P.rectIntersectsPolygon as (r: unknown, p: unknown) => boolean)(rect, polygon);
+  return rectIntersectsPolygon(
+    { ...rect, width: rect.maxX - rect.minX, height: rect.maxY - rect.minY },
+    polygon,
+  );
 }
 
 export function __debugDedupeRankedPlacements(
   placements: RankedTextPlacement[],
   scaledBasePlate: { minX: number; minY: number; maxX: number; maxY: number; width: number; height: number },
 ): RankedTextPlacement[] {
-  return (P.dedupeRankedPlacements as (p: unknown, b: unknown) => RankedTextPlacement[])(placements, scaledBasePlate);
+  return dedupeRankedPlacements(placements, scaledBasePlate);
 }

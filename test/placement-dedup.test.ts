@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { __debugDedupeRankedPlacements } from '../src/text3d.js';
+import { __debugDedupeRankedPlacements } from '../src/text/debug.js';
 import type { RankedTextPlacement, Rect2D } from '../src/types/text.js';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

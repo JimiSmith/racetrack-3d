@@ -22,7 +22,7 @@ Both `npm test` and `npm run build` must pass before committing.
 | `test/geometry.test.js` | Geometry projection and outline building |
 | `test/model.test.js` | 3D model construction |
 | `test/export3mf.test.js` | 3MF export format |
-| `test/text3d.test.js` | Track name text rendering |
+| `test/text-placement.test.ts` | Track name text rendering |
 | `test/track-name.test.js` | Track name selection logic |
 | `test/picker.test.js` | Layout picker ranking |
 | `test/preview-geometry.test.js` | Preview geometry generation |

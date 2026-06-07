@@ -4,7 +4,7 @@ import {
   DEFAULT_TEXT_POSITION_RANK,
   normalizeTextPositionRank,
   TEXT_HEIGHT_MM,
-} from '../text3d.js';
+} from '../text/index.js';
 import type { TrackModel, OutlinePoints, BasePlate } from '../types/model.js';
 import type { ProjectedNode } from '../types/geometry.js';
 import type { RankedPlacements } from '../types/text.js';
