@@ -86,28 +86,36 @@ function buildPart(
 export function build3mfModelXml(model: TrackModel): string {
   const { baseTriangles, secondaryTrackTriangles, trackTriangles } = splitModelTriangles(model);
 
-  // One <object> per logical part, each with its own vertex pool. This keeps
-  // the parts independently 2-manifold even when they share coplanar
+  // One mesh <object> per logical part, each with its own vertex pool. This
+  // keeps the parts independently 2-manifold even when they share coplanar
   // boundaries (e.g. flush coaster pocket walls vs. inlay walls), where a
-  // single shared mesh would have edges incident to four faces.
-  const parts: { id: number; pindex: number; vertexXml: string; triangleXml: string }[] = [];
+  // single shared mesh would have edges incident to four faces. The mesh
+  // objects are wired together as <component>s of a single parent object so
+  // the model imports as ONE printable (see below).
+  const parts: { id: number; vertexXml: string; triangleXml: string }[] = [];
 
   // Allocate object IDs sequentially; object id "1" would conflict with
   // colorgroup id "1" in some readers, so we start at 2.
   let nextId = 2;
   function tryAdd(triangles: Triangle[], colorIndex: number): void {
+    // colorIndex is wired into each triangle's per-triangle p1 by buildPart;
+    // there is no per-object pindex (one colour scheme — see #116).
     const part = buildPart(triangles, colorIndex);
     if (part) {
-      parts.push({ id: nextId++, pindex: colorIndex, ...part });
+      parts.push({ id: nextId++, ...part });
     }
   }
 
+  // NOTE: the add order below (base, secondary, track) is NOT the colour-index
+  // order (base=0, track=1, secondary=2). The mismatch is intentional — the
+  // colour index is fixed per part type, the add order only fixes the object
+  // ids and the children-before-parent declaration order. Do not "fix" it.
   tryAdd(baseTriangles, 0);
   tryAdd(secondaryTrackTriangles ?? [], 2);
   tryAdd(trackTriangles, 1);
 
   const objectsXml = parts
-    .map(part => `    <object id="${part.id}" type="model" pid="1" pindex="${part.pindex}">
+    .map(part => `    <object id="${part.id}" type="model">
       <mesh>
         <vertices>
 ${part.vertexXml}
@@ -118,9 +126,30 @@ ${part.triangleXml}
       </mesh>
     </object>`)
     .join('\n');
-  const buildXml = parts
-    .map(part => `    <item objectid="${part.id}"/>`)
+
+  // Wrap the per-part mesh objects in a single parent <object> that lists them
+  // as <component>s, and emit exactly ONE <build><item> referencing the parent.
+  // This makes the file import as one printable rather than N scattered parts.
+  // The mesh objects (children) are declared in <resources> before this parent
+  // — PrusaSlicer requires children to precede the parent that references them,
+  // which our fixed add order already guarantees. The parent gets the next free
+  // id after all children. When the model has no parts at all, skip the parent
+  // object and the build item entirely (avoid a parent referencing zero
+  // components, which some readers reject).
+  const parentId = nextId;
+  const hasParts = parts.length > 0;
+
+  const componentsXml = parts
+    .map(part => `        <component objectid="${part.id}"/>`)
     .join('\n');
+  const parentObjectXml = hasParts
+    ? `\n    <object id="${parentId}" type="model">
+      <components>
+${componentsXml}
+      </components>
+    </object>`
+    : '';
+  const buildXml = hasParts ? `    <item objectid="${parentId}"/>` : '';
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <model unit="millimeter" xml:lang="en-US"
@@ -132,7 +161,7 @@ ${part.triangleXml}
       <m:color color="#E8002D"/>
       <m:color color="#888888"/>
     </m:colorgroup>
-${objectsXml}
+${objectsXml}${parentObjectXml}
   </resources>
   <build>
 ${buildXml}
