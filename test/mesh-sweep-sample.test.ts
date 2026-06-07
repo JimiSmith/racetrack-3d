@@ -28,9 +28,16 @@ import { REPRESENTATIVE_SAMPLE, formatFailureTable, runSweep } from '../test-uti
 // first-build-WASM-instantiation headroom.
 const SWEEP_TIMEOUT_MS = 1_800_000;
 
+// Slow (~6 min). Skipped by default so iterative `npm test` stays fast; set
+// RUN_SLOW_TESTS=1 to run it on demand. CI runs it automatically (see CLAUDE.md).
+const RUN_SLOW_TESTS = process.env.RUN_SLOW_TESTS === '1';
+
 test(
   'representative sample meshes are 2-manifold and free of degenerate triangles',
-  { timeout: SWEEP_TIMEOUT_MS },
+  {
+    timeout: SWEEP_TIMEOUT_MS,
+    skip: RUN_SLOW_TESTS ? false : 'slow (~6 min); set RUN_SLOW_TESTS=1 to run (CI runs it automatically)',
+  },
   async () => {
     const result = await runSweep(REPRESENTATIVE_SAMPLE, { variant: 'sample' });
 

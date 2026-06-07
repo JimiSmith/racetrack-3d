@@ -19,6 +19,11 @@ import {
 import { TEXT_HEIGHT_MM, computeRankedTextPlacements } from '../src/text/index.js';
 import { buildTextMeshFromRankedPlacements } from '../src/text/mesh.js';
 
+// Gate for the one slow test in this file (~60s). Skipped by default so iterative
+// `npm test` stays fast; set RUN_SLOW_TESTS=1 to run it. CI runs it automatically
+// (see CLAUDE.md).
+const RUN_SLOW_TESTS = process.env.RUN_SLOW_TESTS === '1';
+
 type Point = { x: number; y: number };
 type Vertex3D = { x: number; y: number; z: number };
 type Bounds = { minX: number; maxX: number; minY: number; maxY: number };
@@ -803,31 +808,35 @@ test('text clearance multiplier is higher when text has more breathing room from
   );
 });
 
-test('text clearance multiplier is above the floor when text is far from the track', () => {
-  // Large infield with a thin track border — text placed inside has meaningful clearance
-  const outline = centeredHoleOutline({
-    width: 6000,
-    height: 6000,
-    holeMinX: 100,
-    holeMaxX: 5900,
-    holeMinY: 100,
-    holeMaxY: 5900,
-  });
-  const basePlate = { minX: -200, maxX: 6200, minY: -200, maxY: 6200, width: 6400, height: 6400 };
+test(
+  'text clearance multiplier is above the floor when text is far from the track',
+  { skip: RUN_SLOW_TESTS ? false : 'slow (~60s); set RUN_SLOW_TESTS=1 to run (CI runs it automatically)' },
+  () => {
+    // Large infield with a thin track border — text placed inside has meaningful clearance
+    const outline = centeredHoleOutline({
+      width: 6000,
+      height: 6000,
+      holeMinX: 100,
+      holeMaxX: 5900,
+      holeMinY: 100,
+      holeMaxY: 5900,
+    });
+    const basePlate = { minX: -200, maxX: 6200, minY: -200, maxY: 6200, width: 6400, height: 6400 };
 
-  const result = computeRankedTextPlacements('Hi', outline, basePlate, 1, {
-    font: createMockFont() as unknown as Font,
-  });
+    const result = computeRankedTextPlacements('Hi', outline, basePlate, 1, {
+      font: createMockFont() as unknown as Font,
+    });
 
-  assert.ok(result);
-  const best = result.allScoredPlacements![0];
-  assert.ok(best, 'expected a placement');
-  const tcm = best.scoreBreakdown?.textClearanceMultiplier;
-  assert.ok(
-    tcm! > 0.96,
-    `text far from track should have clearance above the 0.96 floor, got ${tcm}`,
-  );
-});
+    assert.ok(result);
+    const best = result.allScoredPlacements![0];
+    assert.ok(best, 'expected a placement');
+    const tcm = best.scoreBreakdown?.textClearanceMultiplier;
+    assert.ok(
+      tcm! > 0.96,
+      `text far from track should have clearance above the 0.96 floor, got ${tcm}`,
+    );
+  },
+);
 
 test('placement score includes text clearance contribution and remains finite', () => {
   const outline = largeHoleOutline();
