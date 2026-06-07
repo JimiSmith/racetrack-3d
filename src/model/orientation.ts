@@ -1,5 +1,5 @@
 import { buildBasePlate, buildTrackOutline as _buildTrackOutline } from '../geometry/outline.js';
-import { computeRankedTextPlacements, SCORING_WEIGHTS } from '../text3d.js';
+import { computeRankedTextPlacements, SCORING_WEIGHTS } from '../text/index.js';
 import type { OutlinePoints, BasePlate } from '../types/model.js';
 import type { Point2D, ProjectedNode } from '../types/geometry.js';
 import type { RankedPlacements } from '../types/text.js';

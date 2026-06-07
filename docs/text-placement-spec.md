@@ -2,7 +2,7 @@
 
 _Version 6 — updated 2026-04-02_
 
-This document describes the text placement pipeline used to emboss a circuit name onto the base plate of a 3D model. It is the authoritative spec for `src/text3d.js`.
+This document describes the text placement pipeline used to emboss a circuit name onto the base plate of a 3D model. It is the authoritative spec for the `src/text/` pipeline (the `src/text/index.ts` barrel, with placement/scaling in `src/text/placement.ts` and mesh building in `src/text/mesh.ts`).
 
 ---
 
@@ -16,7 +16,7 @@ The label is placed by:
 4. **Fitting text** into every candidate and scoring each (candidate × fit) pair.
 5. Returning the best-scoring pair as rank 1, second-best as rank 2, and so on.
 
-The pipeline runs fully at build/preview time in `src/text3d.js`.
+The pipeline runs fully at build/preview time in `src/text/` (entry point: `src/text/index.ts`).
 
 ---
 

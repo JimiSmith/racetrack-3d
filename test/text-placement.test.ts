@@ -8,7 +8,6 @@ import type { OutlinePoints, BasePlate, Triangle } from '../src/types/model.js';
 import { BASE_THICKNESS_MM } from '../src/model/index.js';
 import { rotateOutlineByOrientation } from '../src/model/orientation.js';
 import {
-  TEXT_HEIGHT_MM,
   __debugTextPlacement,
   __debugTextFitModifiers,
   __debugScoreTextFit,
@@ -16,8 +15,8 @@ import {
   __debugPlacementCandidates,
   __debugRectIntersectsPolygon,
   __findOptimalLineBreaks,
-  computeRankedTextPlacements,
-} from '../src/text3d.js';
+} from '../src/text/debug.js';
+import { TEXT_HEIGHT_MM, computeRankedTextPlacements } from '../src/text/index.js';
 import { buildTextMeshFromRankedPlacements } from '../src/text/mesh.js';
 
 type Point = { x: number; y: number };

@@ -150,7 +150,7 @@ export interface RankedPlacements {
 /**
  * The tuning surface for the text placement scoring pipeline.
  * All magic numbers are collected here so they can be seen — and adjusted — in one place.
- * Shape mirrors the frozen `SCORING_WEIGHTS` object in `text3d.js`.
+ * Shape mirrors the frozen `SCORING_WEIGHTS` object in `src/text/scoring.ts`.
  */
 export interface ScoringWeights {
   /** Minimum multiplier when the candidate is fully inside the track outline. */

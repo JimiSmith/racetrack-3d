@@ -2,7 +2,7 @@
 
 > **App context:** Fully client-side, browser-only, must remain fast on phones/iPhone Safari.  
 > **Use case:** Place embossed circuit-name text on the base plate in the largest visually appropriate empty rectangular area, avoiding the track outline and other no-go zones.  
-> **Current state:** `src/text3d.js` chooses either the bounding box of the largest infield hole or a small fallback strip near the base edge, then scales a single-line string to fit.
+> **Current state:** `src/text/placement.ts` chooses either the bounding box of the largest infield hole or a small fallback strip near the base edge, then scales a single-line string to fit.
 
 ---
 
@@ -70,7 +70,7 @@ From the current code:
   - builds the base plate mesh
   - builds the track mesh
   - calls `buildTextMesh(trackName, outlinePoints, basePlate, scale, ...)`
-- `src/text3d.js`
+- `src/text/placement.ts`
   - currently picks a text placement area from either:
     - the **bounding box of the largest hole** (`getPrimaryPlacement`), or
     - a **fallback strip near the lower-left edge** (`getFallbackPlacement`)
@@ -463,7 +463,7 @@ But centered multiline should be the default.
 
 ## Why the current implementation is too limited
 
-Current `src/text3d.js` behavior is intentionally simple:
+Current `src/text/placement.ts` behavior is intentionally simple:
 
 - pick the largest hole by polygon area
 - use its axis-aligned bounding box if large enough
@@ -686,7 +686,7 @@ But that should be driven by concrete failures, not by theory-first ambition.
 
 ## Suggested implementation details against current files
 
-## `src/text3d.js`
+## `src/text/placement.ts`
 
 This is the natural home for the placement stage, but it should be split conceptually:
 

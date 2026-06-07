@@ -4,7 +4,7 @@
 
 import { writable, derived } from 'svelte/store';
 import { selectPrintedTrackName } from '../search/index.js';
-import { DEFAULT_TEXT_POSITION_RANK } from '../text3d.js';
+import { DEFAULT_TEXT_POSITION_RANK } from '../text/index.js';
 import { selectedTrack, layouts, layoutIndex, osmVenueNames } from './track.js';
 
 /** Primary orientation of the model in degrees, or 'auto'. */

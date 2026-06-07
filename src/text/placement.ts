@@ -873,7 +873,7 @@ export function dedupeRankedPlacements(
 }
 
 /** Options for computeRankedTextPlacements(). */
-interface ComputeRankedOptions {
+export interface ComputeRankedOptions {
   font?: import('opentype.js').Font | null;
   allOutlinePoints?: OutlinePoints[] | null;
   perfTimer?: PerfTimer | undefined;

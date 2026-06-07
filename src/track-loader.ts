@@ -10,7 +10,7 @@ import { projectNodes } from './geometry/projection.js';
 import { fetchElevations } from './elevation/terrarium.js';
 import { createModelWorkerClient } from './workers/model-client.js';
 import { PRIMARY_ORIENTATION_AUTO } from './model/orientation.js';
-import { DEFAULT_TEXT_POSITION_RANK } from './text3d.js';
+import { DEFAULT_TEXT_POSITION_RANK } from './text/index.js';
 import { selectedTrack, layouts, layoutIndex, osmVenueNames } from './stores/track.js';
 import {
   currentModel,
